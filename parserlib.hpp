@@ -2,11 +2,43 @@
 #define PARSERLIB_HPP
 
 
+#include <vector>
+#include <string>
+#include <list>
+
+
 namespace parserlib {
 
 
+class _private;
 class _expr;
 class rule;
+
+
+///type of the parser's input.
+typedef std::vector<int> input;
+
+
+///position into the input.
+class pos {
+public:
+    ///interator into the input.
+    input::iterator m_it;
+    
+    ///line.
+    int m_line;
+    
+    ///column.
+    int m_col;
+    
+    ///null constructor.
+    pos() {}
+    
+    /** constructor from input.
+        @param i input.
+     */
+    pos(input &i);
+};
 
 
 /** a grammar expression.
@@ -72,6 +104,46 @@ private:
 }; 
 
 
+/** type of procedure to invoke when a rule is successfully parsed.
+    @param b begin position of input.
+    @param e end position of input.
+    @param d pointer to user data.
+ */
+typedef void (*parse_proc)(const pos &b, const pos &e, void *d);
+
+
+///error.
+class error {
+public:
+    /** constructor.
+        @param b begin position.
+        @param e end position.
+        @param m message.
+     */
+    error(const pos &b, const pos &e, const char *m);
+
+    /** constructor.
+        @param b begin position.
+        @param e end position.
+        @param m message.
+     */
+    error(const pos &b, const pos &e, const wchar_t *m);
+
+    ///begin position.
+    pos m_begin;
+    
+    ///end position.
+    pos m_end;
+    
+    ///message.
+    std::wstring m_msg;
+};
+
+
+///type of error list.
+typedef std::list<error> error_list;
+
+
 /** represents a rule.
  */
 class rule {
@@ -80,6 +152,11 @@ public:
         @param e expression.
      */
     rule(const expr &e);
+    
+    /** constructor from rule.
+        @param r rule.
+     */
+    rule(rule &r);
 
     /** deletes the internal object that represents the expression.
      */
@@ -110,12 +187,27 @@ public:
      */
     expr operator !();
     
+    /** sets the parse procedure.
+        @param p procedure.
+     */
+    void set_parse_proc(parse_proc p);
+    
+    /** get the this ptr (since operator & is overloaded).
+        @return pointer to this.
+     */
+    rule *this_ptr() { return this; }
+    
 private:    
     //internal expression
     _expr *m_expr;
+    
+    //associated parse procedure.
+    parse_proc m_parse_proc;
 
     //assignment not allowed
     rule &operator = (rule &);    
+    
+    friend class _private;
 }; 
 
 
@@ -171,6 +263,19 @@ expr range(int min, int max);
     @return an expression that handles newlines.
  */
 expr nl(const expr &e); 
+
+
+/** parses the given input.
+    The parse procedures of each rule parsed are executed
+    before this function returns, if parsing succeeds.
+    @param i input.
+    @param g root rule of grammar.
+    @param ws whitespace rule.
+    @param el list of errors.
+    @param d user data, passed to the parse procedures.
+    @return true on parsing success, false on failure.
+ */
+bool parse(input &i, rule &g, rule &ws, error_list &el, void *d = 0);
 
 
 } //namespace parserlib
