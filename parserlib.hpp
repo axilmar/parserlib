@@ -5,6 +5,7 @@
 namespace parserlib {
 
 
+class _expr;
 class rule;
 
 
@@ -32,10 +33,6 @@ public:
      */
     expr(rule &r);
     
-    /** deletes the internal object that represents the expression.
-     */
-    ~expr();
-    
     /** creates a zero-or-more loop out of this expression.
         @return a zero-or-more loop expression.
      */
@@ -62,8 +59,16 @@ public:
     expr operator !() const;     
     
 private:
+    //internal expression
+    _expr *m_expr;
+    
+    //internal constructor from internal expression
+    expr(_expr *e) : m_expr(e) {}
+
     //assignment not allowed
     expr &operator = (expr &);    
+    
+    friend class _private;
 }; 
 
 
@@ -104,6 +109,13 @@ public:
         @return a NOT-expression out of this rule.
      */
     expr operator !();
+    
+private:    
+    //internal expression
+    _expr *m_expr;
+
+    //assignment not allowed
+    rule &operator = (rule &);    
 }; 
 
 
