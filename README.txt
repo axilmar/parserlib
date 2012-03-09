@@ -159,7 +159,7 @@ The actual parsing is done by the 'parse' function, like this:
     error_list el;
     expr_t *r = dynamic_cast<expr_t *>(parse(i, exp, ::ws, el));
     
-If the parsing function returns a non-null result, then parsing was successful.
+If the parsing function returns a non-null pointer to an AST node, then parsing was successful.
 Otherwise, there was an error, and the error list is filled with error descriptions.
 
 Other Examples
