@@ -1,100 +1,174 @@
 Introduction
 ------------
 
-ParserLib is a simple c++ PEG parser. Its aim is to be very simple in use.
+ParserLib is a c++ recursive-descent PEG parser.
 
-Grammars
---------
+Writing Grammars
+----------------
 
-Grammars can be written in pseudo-EBNF form, as in Boost::Spirit, like this:
+Its purpose is to be very simple to use.
 
-    //calculator grammar.
-    extern rule expression;
-    rule whitespace = *term(' ');
-    rule digit = set("0123456789");
-    rule integer = term(+digit);
-    rule num_expression = integer | '(' >> expression >> ')';
-    rule mul_expression = num_expression >> ('*' >> add_expression | '/' >> add_expression);
-    rule add_expression = mul_expression >> ('+' >> add_expression | '-' >> add_expression);
-    rule expression = add_expression;
+Grammars can be written in EBNF style, using c++ operators, ala boost::spirit.
+
+The operators are:
+
+    operator >>: sequence.
+    operator | : choice.
+    operator * : zero or more times loop.
+    operator + : one or more times loop.
+    operator - : optional.
+    operator & : logical AND.
+    operator ! : logical NOT.
+    
+The class 'rule' represents a grammar rule.    
+
+For example, a calculator grammar can be written like this:
+
+    extern rule exp, add, mul;
+
+    //whitespace    
+    rule ws = *expr(' ');
+
+    //digit    
+    rule digit = range('0', '9');
+
+    //number    
+    rule num = +digit >> -('.' >> +digit >> -(set("eE") >> -set("+-") >> +digit));
+
+    //value    
+    rule val = num
+             | '(' >> exp >> ')';
+
+    //multiplication/division
+    rule mul_op = '*' >> mul;
+    rule div_op = '/' >> mul;
+    rule mul = val >> -(mul_op | div_op);
+
+    //addition/subtraction
+    rule add_op = '+' >> add;
+    rule sub_op = '-' >> add;
+    rule add = mul >> -(add_op | sub_op);
+
+    //expression
+    rule exp = add;
+
+For more information on PEG parsing, see this: 
+    http://en.wikipedia.org/wiki/Parsing_expression_grammar    
+    
+Writing ASTs
+------------
+
+Abstract Syntax Trees can be written by extending the available ParserLib classes:
+
+    class ast_node: base class for AST nodes.
+    class ast_container: base class for AST nodes that have members.
+    class ast_member : base class for classes that are static members of AST nodes.
+    class ast_ptr<T>: AST member that points to an object of type T.
+    class ast_list<T>: AST member that contains a list of T objects.
+
+For example, writing an AST for the calculator above is very easy:
+
+    //base class for expressions
+    class expr_t : public ast_container {
+    public:
+        virtual double eval() const = 0;
+    };
+
+    //number
+    class num_t : public expr_t {
+    public:
+        virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+            stringstream stream;
+            for(input::iterator it = b.m_it; it != e.m_it; ++it) {
+                stream << (char)*it;
+            }
+            stream >> m_value;
+        }
+
+        virtual double eval() const {
+            return m_value;
+        }
+
+    private:
+        double m_value;
+    };
+
+    //base class for binary expressions
+    class binary_expr_t : public expr_t {
+    public:
+        ast_ptr<expr_t> left, right;
+    };
+
+    //addition
+    class add_t : public binary_expr_t {
+    public:
+        virtual double eval() const {
+            return left->eval() + right->eval();
+        }
+    };
+
+    //subtraction
+    class sub_t : public binary_expr_t {
+    public:
+        virtual double eval() const {
+            return left->eval() - right->eval();
+        }
+    };
+
+    //multiplication
+    class mul_t : public binary_expr_t {
+    public:
+        virtual double eval() const {
+            return left->eval() * right->eval();
+        }
+    };
+
+    //division
+    class div_t_ : public binary_expr_t {
+    public:
+        virtual double eval() const {
+            return left->eval() / right->eval();
+        }
+    };
+    
+Connecting Grammars and ASTs.
+-----------------------------
+
+The above AST, although simple and consise, is not connected to the grammar.
+In order to connect it to the grammar, we need to use the class ast<T>, which
+connects rules to classes. 
+
+For example, for the calculator:
+
+    ast<num_t> ast_num(num);
+    ast<add_t> ast_add(add_op);
+    ast<sub_t> ast_sub(sub_op);
+    ast<mul_t> ast_mul(mul_op);
+    ast<div_t_> ast_div(div_op);
+    
+This is one of the major differences from boost::spirit, in which 
+parser objects are embedded into the grammar.
 
 Parsing
 -------
 
-Parsing can then be achieved by this piece of code:
+The actual parsing is done by the 'parse' function, like this:
 
-    ErrorList errors;
-    AST *ast = parse("1 + (2 * 3)", expression, whitespace, errors);
+    //parse
+    error_list el;
+    expr_t *r = dynamic_cast<expr_t *>(parse(i, exp, ::ws, el));
+    
+If the parsing function returns a non-null result, then parsing was successful.
+Otherwise, there was an error, and the error list is filled with error descriptions.
 
-AST
----
+Other Examples
+--------------
 
-The result of the above code, should there be no errors, should be an AST instance. The AST instance itself is linked with a rule, and has children. Each parsed element in the grammar gets an AST node. There are two kinds of AST nodes, non-terminals and terminals. Processing an AST tree can then be as simple as the following function:
+For more examples, please look at the folder 'examples'.
 
-    void process_AST(AST *ast) {
-        NonTermAST *nonTerm;
+TODO
+----
 
-        switch (ast->type()) {
-            case NON_TERMINAL:
-                if (ast->is_rule(num_expression)) {
-                    print("integer found\n");
-                }
-                else if (ast->is_rule(mul_expression)) {
-                    print("multiplication found\n");
-                }
-                else if (ast->is_rule(add_expression)) {
-                    print("addition found\n");
-                }
-                nonTerm = (NonTermAST *)ast;
-                for(ASTContainer::const_iterator it = nonTerm->children().begin();
-                    it != nonTerm->children().end();
-                    ++it)
-                {
-                    process_AST(*it);
-                }
-                break;
+-the class ast_list<T>.
+-more examples.
 
-            case TERMINAL:
-                print_terminal((TermAST *)ast);
-                break;
-        }
-    }
-
-Errors
-------
-
-Errors can be processed like this:
-
-    for(ErrorList::iterator it = errors.begin(); it != errors.end(); ++it) {
-        Error &error = *it;
-        cout << "error at line " << error.line() << ", column " << error.column() << ": ";
-        switch (error.type()) {
-            case LEXER_ERROR:
-                cout << "invalid characters\n";
-                break;
-            case PARSER_ERROR:
-                cout << "syntax error\n";
-                break;
-        }
-        cout << endl;
-    }
-
-
-Why not Boost::Spirit?
-----------------------
-
-Two reasons:
-
-    * I find Boost::Spirit extremely complicated for my taste.
-    * all the template meta-programming makes compiling slow.
-
-How is whitespace parsed?
--------------------------
-
-Whitespace parsing is done in-between each terminal declared in the grammar. When the parser finds a terminal, it sets a flag to stop parsing whitespace within the terminal, and thus terminals can contain whitespace characters. The flag is reset after the terminal parsing ends.
-
-Usage
------
-
-Just include "parserlib.hpp" and "parserlib.cpp" in your project.
-The namespace is "parserlib" (of course).
