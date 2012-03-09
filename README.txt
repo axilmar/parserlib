@@ -147,7 +147,8 @@ For example, for the calculator:
     ast<div_t_> ast_div(div_op);
     
 This is one of the major differences from boost::spirit, in which 
-parser objects are embedded into the grammar.
+parser objects are embedded into the grammar. By connecting the grammar
+and the AST outside of the grammar, the grammar remains clean and more readable.
 
 Parsing
 -------
@@ -171,4 +172,5 @@ TODO
 
 -the class ast_list<T>.
 -more examples.
+-full code documentation.
 
