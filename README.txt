@@ -3,6 +3,11 @@ Introduction
 
 ParserLib is a c++ recursive-descent PEG parser.
 
+Version
+-------
+
+0.0.0.1.
+
 Writing Grammars
 ----------------
 
