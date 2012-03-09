@@ -9,7 +9,7 @@ using namespace parserlib;
 /**** GRAMMAR DECLARATIONS ****/
 
 
-extern rule exp, add, mul;
+extern rule expr_, add, mul;
 
 
 rule ws = *expr(' ');
@@ -22,7 +22,7 @@ rule num = +digit >> -('.' >> +digit >> -(set("eE") >> -set("+-") >> +digit));
 
 
 rule val = num
-         | '(' >> exp >> ')';
+         | '(' >> expr_ >> ')';
 
 
 rule mul_op = '*' >> mul;
@@ -35,7 +35,7 @@ rule sub_op = '-' >> add;
 rule add = mul >> -(add_op | sub_op);
 
 
-rule exp = add;
+rule expr_ = add;
 
 
 /**** AST DECLARATIONS ****/
@@ -130,7 +130,7 @@ int main() {
 
 		//parse
 		error_list el;
-		expr_t *r = dynamic_cast<expr_t *>(parse(i, exp, ::ws, el));
+		expr_t *r = dynamic_cast<expr_t *>(parse(i, expr_, ::ws, el));
 
 		//on success
 		if (r) {

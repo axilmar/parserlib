@@ -1,0 +1,12 @@
+Debug/
+Release/
+*.ncb
+*.user
+*.suo
+_UpgradeReport_Files/
+ipch/
+*.sdf
+*.filters
+*.xml
+
+
