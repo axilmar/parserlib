@@ -122,8 +122,11 @@ private:
 
 /** pointer to an AST object.
     It assumes ownership of the object.
+    It pops an object of the given type from the stack.
+    @param T type of object to control.
+    @param OPT if true, the object becomes optional.
  */
-template <class T> class ast_ptr : public ast_member {
+template <class T, bool OPT = false> class ast_ptr : public ast_member {
 public:
     /** the default constructor.
         @param obj object.
@@ -135,7 +138,7 @@ public:
         It duplicates the underlying object.
         @param src source object.
      */
-    ast_ptr(const ast_ptr<T> &src) : 
+    ast_ptr(const ast_ptr<T, OPT> &src) : 
         m_ptr(src.m_ptr ? new T(*src.m_ptr) : 0)
     {
     }
@@ -151,7 +154,7 @@ public:
         @param obj new object.
         @return reference to this.
      */
-    ast_ptr<T> &operator = (const T *obj) {
+    ast_ptr<T, OPT> &operator = (const T *obj) {
         delete m_ptr;
         m_ptr = obj ? new T(*obj) : 0;
         return *this;
@@ -162,7 +165,7 @@ public:
         @param src source object.
         @return reference to this.
      */
-    ast_ptr<T> &operator = (const ast_ptr<T> &src) {
+    ast_ptr<T, OPT> &operator = (const ast_ptr<T, OPT> &src) {
         delete m_ptr;
         m_ptr = src.m_ptr ? new T(*src.m_ptr) : 0;
         return *this;
@@ -192,7 +195,8 @@ public:
 
     /** Pops a node from the stack.
         @param st stack.
-        @exception std::logic_error thrown if the node is not of the appropriate type.
+        @exception std::logic_error thrown if the node is not of the appropriate type;
+            thrown only if OPT == false.
      */
     virtual void construct(ast_stack &st) {
         assert(!st.empty());
@@ -204,7 +208,7 @@ public:
         T *obj = dynamic_cast<T *>(node);
         
         //throw an error if there is a logic mistake
-        if (!obj) throw std::logic_error("invalid AST node");
+        if (!OPT && !obj) throw std::logic_error("invalid AST node");
         
         //remove the node from the stack
         st.pop_back();
