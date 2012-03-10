@@ -3,6 +3,7 @@
 
 
 #include <cassert>
+#include <list>
 #include "parser.hpp"
 
 
@@ -222,6 +223,87 @@ private:
     //ptr
     T *m_ptr;
 }; 
+
+
+/** A list of objects.
+    It pops objects of the given type from the ast stack, until no more objects can be popped.
+    It assumes ownership of objects.
+    @param T type of object to control.
+ */
+template <class T> class ast_list : public ast_member {
+public:
+    ///list type.
+    typedef std::list<T *> container;
+
+    ///the default constructor.
+    ast_list() {}
+    
+    /** duplicates the objects of the given list.
+        @param src source object.
+     */
+    ast_list(const ast_list<T> &src) {
+        _dup(src);
+    }
+    
+    /** deletes the objects.
+     */
+    ~ast_list() {
+        _clear();
+    }
+    
+    /** deletes the objects of this list and duplicates the given one.
+        @param src source object.
+        @return reference to this.
+     */
+    ast_list<T> &operator = (const ast_list<T> &src) {
+        if (&src != this) {
+            _clear();
+            _dup(src);
+        }
+        return *this;
+    }
+    
+    /** returns the container of objects.
+        @return the container of objects.
+     */ 
+    container &objects() const {
+        return m_objects;
+    }
+
+    /** Pops objects of type T from the stack until no more objects can be popped.
+        @param st stack.
+     */
+    virtual void construct(ast_stack &st) {
+        while(!st.empty()) {
+            T *obj = dynamic_cast<T *>(st.back());
+            if (!obj) break;
+            st.pop_back();
+            m_objects.push_front(obj);
+        }
+    }
+    
+private:
+    //objects
+    container m_objects;
+    
+    //deletes the objects of this list.
+    void _clear() {
+        while (!m_objects.empty()) {
+            delete m_objects.back();
+            m_objects.pop_back();
+        }
+    }
+    
+    //duplicate the given list.
+    void _dup(const ast_list<T> &src) {
+        for(container::const_iterator it = src.m_objects.begin();
+            it != src.m_objects.end();
+            ++it)
+        {
+            m_objects.push_back(new T(*it));
+        }
+    }
+};
 
 
 /** AST function which creates an object of type T 

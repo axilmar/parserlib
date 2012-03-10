@@ -175,7 +175,6 @@ For more examples, please look at the folder 'examples'.
 TODO
 ----
 
--the class ast_list<T>.
 -more examples.
 -full code documentation.
 
