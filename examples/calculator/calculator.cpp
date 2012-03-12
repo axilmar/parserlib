@@ -130,7 +130,8 @@ int main() {
 
 		//parse
 		error_list el;
-		expr_t *r = dynamic_cast<expr_t *>(parse(i, expr_, ::ws, el));
+		expr_t *r;
+		parse(i, expr_, ::ws, el, r);
 
 		//on success
 		if (r) {

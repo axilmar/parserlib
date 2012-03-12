@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "parserlib", "parserlib.vcproj", "{C55E64BD-2F4A-4CF1-AFC0-49E9C6FFE27B}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calculator", "calculator.vcproj", "{9B729CDC-30CF-4B1B-A905-5E84EB4D82C2}"
 EndProject
 Global
@@ -11,10 +9,6 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C55E64BD-2F4A-4CF1-AFC0-49E9C6FFE27B}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C55E64BD-2F4A-4CF1-AFC0-49E9C6FFE27B}.Debug|Win32.Build.0 = Debug|Win32
-		{C55E64BD-2F4A-4CF1-AFC0-49E9C6FFE27B}.Release|Win32.ActiveCfg = Release|Win32
-		{C55E64BD-2F4A-4CF1-AFC0-49E9C6FFE27B}.Release|Win32.Build.0 = Release|Win32
 		{9B729CDC-30CF-4B1B-A905-5E84EB4D82C2}.Debug|Win32.ActiveCfg = Debug|Win32
 		{9B729CDC-30CF-4B1B-A905-5E84EB4D82C2}.Debug|Win32.Build.0 = Debug|Win32
 		{9B729CDC-30CF-4B1B-A905-5E84EB4D82C2}.Release|Win32.ActiveCfg = Release|Win32

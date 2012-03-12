@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <list>
+#include <stdexcept>
 #include "parser.hpp"
 
 
@@ -15,7 +16,7 @@ class ast_node;
 
 /** type of AST node stack.
  */
-typedef std::vector<ast_node *> ast_stack; 
+typedef std::vector<ast_node *> ast_stack;
 
 
 /** Base class for AST nodes.
@@ -24,7 +25,7 @@ class ast_node {
 public:
     ///destructor.
     virtual ~ast_node() {}
-    
+
     /** interface for filling the contents of the node
         from a node stack.
         @param b begin position in the source.
@@ -32,7 +33,7 @@ public:
         @param st stack.
      */
     virtual void construct(const pos &b, const pos &e, ast_stack &st) = 0;
-}; 
+};
 
 
 class ast_member;
@@ -40,7 +41,7 @@ class ast_member;
 
 /** type of ast member vector.
  */
-typedef std::vector<ast_member *> ast_member_vector; 
+typedef std::vector<ast_member *> ast_member_vector;
 
 
 /** base class for AST nodes with children.
@@ -50,7 +51,7 @@ public:
     /** sets the container under construction to be this.
      */
     ast_container();
-    
+
     /** sets the container under construction to be this.
         Members are not copied.
         @param src source object.
@@ -81,12 +82,12 @@ public:
         @param st stack.
      */
     virtual void construct(const pos &b, const pos &e, ast_stack &st);
-    
+
 private:
     ast_member_vector m_members;
-    
+
     friend class ast_member;
-}; 
+};
 
 
 /** Base class for children of ast_container.
@@ -96,12 +97,12 @@ public:
     /** automatically registers itself to the container under construction.
      */
     ast_member() { _init(); }
-    
+
     /** automatically registers itself to the container under construction.
         @param src source object.
      */
     ast_member(const ast_member &src) { _init(); }
-    
+
     /** the assignment operator.
         @param src source object.
         @return reference to this.
@@ -109,15 +110,15 @@ public:
     ast_member &operator = (const ast_member &src) {
         return *this;
     }
-    
+
     /** interface for filling the the member from a node stack.
         @param st stack.
      */
     virtual void construct(ast_stack &st) = 0;
-    
+
 private:
     //register the AST member to the current container.
-    void _init();  
+    void _init();
 };
 
 
@@ -134,22 +135,22 @@ public:
      */
     ast_ptr(T *obj = 0) : m_ptr(obj) {
     }
-    
+
     /** the copy constructor.
         It duplicates the underlying object.
         @param src source object.
      */
-    ast_ptr(const ast_ptr<T, OPT> &src) : 
+    ast_ptr(const ast_ptr<T, OPT> &src) :
         m_ptr(src.m_ptr ? new T(*src.m_ptr) : 0)
     {
     }
-    
-    /** deletes the underlying object.    
+
+    /** deletes the underlying object.
      */
     ~ast_ptr() {
         delete m_ptr;
     }
-    
+
     /** copies the given object.
         The old object is deleted.
         @param obj new object.
@@ -160,7 +161,7 @@ public:
         m_ptr = obj ? new T(*obj) : 0;
         return *this;
     }
-    
+
     /** copies the underlying object.
         The old object is deleted.
         @param src source object.
@@ -171,21 +172,21 @@ public:
         m_ptr = src.m_ptr ? new T(*src.m_ptr) : 0;
         return *this;
     }
-    
+
     /** gets the underlying ptr value.
         @return the underlying ptr value.
      */
     T *get() const {
         return m_ptr;
     }
-    
+
     /** auto conversion to the underlying object ptr.
-        @return the underlying ptr value.        
+        @return the underlying ptr value.
      */
     operator T *() const {
         return m_ptr;
     }
-    
+
     /** member access.
         @return the underlying ptr value.
      */
@@ -201,28 +202,30 @@ public:
      */
     virtual void construct(ast_stack &st) {
         assert(!st.empty());
-        
+
         //get a node from the stack
         ast_node *node = st.back();
-        
+
         //check if the node is of type T
         T *obj = dynamic_cast<T *>(node);
-        
+
         //throw an error if there is a logic mistake
-        if (!OPT && !obj) throw std::logic_error("invalid AST node");
-        
+        if (!OPT && !obj) {
+            throw std::logic_error("invalid AST node");
+        }
+
         //remove the node from the stack
         st.pop_back();
-        
+
         //set the new pointer
         delete m_ptr;
-        m_ptr = obj;        
+        m_ptr = obj;
     }
-    
+
 private:
     //ptr
     T *m_ptr;
-}; 
+};
 
 
 /** A list of objects.
@@ -237,20 +240,20 @@ public:
 
     ///the default constructor.
     ast_list() {}
-    
+
     /** duplicates the objects of the given list.
         @param src source object.
      */
     ast_list(const ast_list<T> &src) {
         _dup(src);
     }
-    
+
     /** deletes the objects.
      */
     ~ast_list() {
         _clear();
     }
-    
+
     /** deletes the objects of this list and duplicates the given one.
         @param src source object.
         @return reference to this.
@@ -262,10 +265,10 @@ public:
         }
         return *this;
     }
-    
+
     /** returns the container of objects.
         @return the container of objects.
-     */ 
+     */
     container &objects() const {
         return m_objects;
     }
@@ -281,11 +284,11 @@ public:
             m_objects.push_front(obj);
         }
     }
-    
+
 private:
     //objects
     container m_objects;
-    
+
     //deletes the objects of this list.
     void _clear() {
         while (!m_objects.empty()) {
@@ -293,10 +296,10 @@ private:
             m_objects.pop_back();
         }
     }
-    
+
     //duplicate the given list.
     void _dup(const ast_list<T> &src) {
-        for(container::const_iterator it = src.m_objects.begin();
+        for(typename container::const_iterator it = src.m_objects.begin();
             it != src.m_objects.end();
             ++it)
         {
@@ -306,7 +309,7 @@ private:
 };
 
 
-/** AST function which creates an object of type T 
+/** AST function which creates an object of type T
     and pushes it to the node stack.
  */
 template <class T> class ast {
@@ -317,7 +320,7 @@ public:
     ast(rule &r) {
         r.set_parse_proc(&_parse_proc);
     }
-    
+
 private:
     //parse proc
     static void _parse_proc(const pos &b, const pos &e, void *d) {
@@ -326,7 +329,7 @@ private:
         obj->construct(b, e, *st);
         st->push_back(obj);
     }
-}; 
+};
 
 
 /** parses the given input.
@@ -339,6 +342,25 @@ private:
         The return object must be deleted by the caller.
  */
 ast_node *parse(input &i, rule &g, rule &ws, error_list &el);
+
+
+/** parses the given input.
+    @param i input.
+    @param g root rule of grammar.
+    @param ws whitespace rule.
+    @param el list of errors.
+    @param d user data, passed to the parse procedures.
+    @param ast result pointer to created ast.
+    @return true on success, false on error.
+ */
+template <class T> bool parse(input &i, rule &g, rule &ws, error_list &el, T *&ast) {
+    ast_node *node = parse(i, g, ws, el);
+    if (!node) return false;
+    ast = dynamic_cast<T *>(node);
+    if (ast) return true;
+    delete node;
+    return false;
+}
 
 
 } //namespace parserlib

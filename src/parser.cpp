@@ -1,5 +1,6 @@
 #include <cstring>
 #include <cassert>
+#include <stdexcept>
 #include "parser.hpp"
 
 
@@ -13,7 +14,7 @@ public:
     static _expr *get_expr(const expr &e) {
         return e.m_expr;
     }
-    
+
     //create new expression from given expression
     static expr construct_expr(_expr *e) {
         return e;
@@ -22,12 +23,12 @@ public:
     //get the internal expression object from the rule.
     static _expr *get_expr(rule &r) {
         return r.m_expr;
-    }    
+    }
 
     //get the internal parse proc from the rule.
     static parse_proc get_parse_proc(rule &r) {
         return r.m_parse_proc;
-    }    
+    }
 };
 
 
@@ -39,7 +40,7 @@ class _state {
 public:
     //position
     pos m_pos;
-    
+
     //size of match vector
     size_t m_matches;
 
@@ -53,23 +54,23 @@ class _match {
 public:
     //rule matched
     rule *m_rule;
-    
+
     //begin position
     pos m_begin;
-    
+
     //end position
     pos m_end;
-    
+
     //null constructor
     _match() {}
-    
+
     //constructor from parameters
     _match(rule *r, const pos &b, const pos &e) :
         m_rule(r),
         m_begin(b),
         m_end(e)
-    {        
-    }   
+    {
+    }
 };
 
 
@@ -82,19 +83,19 @@ class _context {
 public:
     //rule that parses whitespace
     rule &m_ws;
-    
+
     //current position
     pos m_pos;
-    
+
     //error position
     pos m_error_pos;
-    
+
     //input end
     input::iterator m_end;
-    
+
     //matches
     _match_vector m_matches;
-    
+
     //constructor
     _context(input &i, rule &ws) :
         m_ws(ws),
@@ -103,52 +104,52 @@ public:
         m_end(i.end())
     {
     }
-    
+
     //check if the end is reached
     bool end() const {
         return m_pos.m_it == m_end;
     }
-    
+
     //get the current symbol
     int symbol() const {
         assert(!end());
         return *m_pos.m_it;
     }
-    
+
     //set the longest possible error
     void set_error_pos() {
         if (m_pos.m_it > m_error_pos.m_it) {
             m_error_pos = m_pos;
         }
     }
-    
+
     //next column
     void next_col() {
         ++m_pos.m_it;
         ++m_pos.m_col;
     }
-    
+
     //next line
     void next_line() {
         ++m_pos.m_line;
         m_pos.m_col = 1;
     }
-    
+
     //restore the state
     void restore(const _state &st) {
         m_pos = st.m_pos;
         m_matches.resize(st.m_matches);
     }
-    
+
     //parse non-term rule.
     bool parse_non_term(rule &r);
-    
+
     //parse term rule.
     bool parse_term(rule &r);
-    
+
     //parse whitespace terminal
     bool parse_ws() { return parse_term(m_ws); }
-    
+
     //execute all the parse procs
     void do_parse_procs(void *d) const {
         for(_match_vector::const_iterator it = m_matches.begin();
@@ -168,10 +169,10 @@ public:
     //destructor.
     virtual ~_expr() {
     }
-    
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const = 0;
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const = 0;
 };
@@ -184,22 +185,22 @@ public:
     _char(int c) :
         m_char(c)
     {
-    }    
-    
+    }
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         return _parse(con);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         return _parse(con);
     }
-    
+
 private:
     //character
-    int m_char;    
-    
+    int m_char;
+
     //internal parse
     bool _parse(_context &con) const {
         if (!con.end()) {
@@ -229,24 +230,24 @@ public:
         m_string(s, s + wcslen(s))
     {
     }
-    
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         return _parse(con);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         return _parse(con);
     }
-    
+
 private:
     //string
-    std::vector<int> m_string;    
-    
+    std::vector<int> m_string;
+
     //parse the string
     bool _parse(_context &con) const {
-        for(std::vector<int>::const_iterator it = m_string.begin(), 
+        for(std::vector<int>::const_iterator it = m_string.begin(),
             end = m_string.end();;)
         {
             if (it == end) return true;
@@ -287,29 +288,29 @@ public:
             m_set[(size_t)min] = true;
         }
     }
-    
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         return _parse(con);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         return _parse(con);
     }
-    
+
 private:
     //set is kept as an array of flags, for quick access
-    std::vector<bool> m_set;  
-    
+    std::vector<bool> m_set;
+
     //add character
     void _add(size_t i) {
         if (i >= m_set.size()) {
             m_set.resize(i + 1);
         }
         m_set[i] = true;
-    }  
-    
+    }
+
     //internal parse
     bool _parse(_context &con) const {
         if (!con.end()) {
@@ -333,15 +334,15 @@ public:
         m_expr(e)
     {
     }
-    
+
     //destructor.
     virtual ~_unary() {
         delete m_expr;
     }
-    
+
 protected:
     //expression
-    _expr *m_expr;    
+    _expr *m_expr;
 };
 
 
@@ -349,7 +350,7 @@ protected:
 class _term : public _unary {
 public:
     //constructor.
-    _term(_expr *e) : 
+    _term(_expr *e) :
         _unary(e)
     {
     }
@@ -358,19 +359,19 @@ public:
     virtual bool parse_non_term(_context &con) const {
         return m_expr->parse_term(con);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         return m_expr->parse_term(con);
-    }    
+    }
 };
 
 
-//loop 0 
+//loop 0
 class _loop0 : public _unary {
 public:
     //constructor.
-    _loop0(_expr *e) : 
+    _loop0(_expr *e) :
         _unary(e)
     {
     }
@@ -381,22 +382,22 @@ public:
             con.parse_ws();
             _state st(con);
             if (m_expr->parse_non_term(con)) continue;
-            con.restore(st);            
+            con.restore(st);
             break;
         }
         return true;
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         for(;;) {
             _state st(con);
             if (m_expr->parse_term(con)) continue;
-            con.restore(st);            
+            con.restore(st);
             break;
         }
         return true;
-    }    
+    }
 };
 
 
@@ -404,7 +405,7 @@ public:
 class _loop1 : public _unary {
 public:
     //constructor.
-    _loop1(_expr *e) : 
+    _loop1(_expr *e) :
         _unary(e)
     {
     }
@@ -417,23 +418,23 @@ public:
             con.parse_ws();
             _state st(con);
             if (m_expr->parse_non_term(con)) continue;
-            con.restore(st);            
+            con.restore(st);
             break;
         }
         return true;
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         if (!m_expr->parse_term(con)) return false;
         for(;;) {
             _state st(con);
             if (m_expr->parse_term(con)) continue;
-            con.restore(st);            
+            con.restore(st);
             break;
         }
         return true;
-    }    
+    }
 };
 
 
@@ -441,7 +442,7 @@ public:
 class _optional : public _unary {
 public:
     //constructor.
-    _optional(_expr *e) : 
+    _optional(_expr *e) :
         _unary(e)
     {
     }
@@ -449,14 +450,14 @@ public:
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         _state st(con);
-        if (!m_expr->parse_non_term(con)) con.restore(st);            
+        if (!m_expr->parse_non_term(con)) con.restore(st);
         return true;
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         _state st(con);
-        if (!m_expr->parse_term(con)) con.restore(st);            
+        if (!m_expr->parse_term(con)) con.restore(st);
         return true;
     }
 };
@@ -466,7 +467,7 @@ public:
 class _and : public _unary {
 public:
     //constructor.
-    _and(_expr *e) : 
+    _and(_expr *e) :
         _unary(e)
     {
     }
@@ -475,15 +476,15 @@ public:
     virtual bool parse_non_term(_context &con) const {
         _state st(con);
         bool ok = m_expr->parse_non_term(con);
-        con.restore(st);            
+        con.restore(st);
         return ok;
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         _state st(con);
         bool ok = m_expr->parse_term(con);
-        con.restore(st);            
+        con.restore(st);
         return ok;
     }
 };
@@ -493,7 +494,7 @@ public:
 class _not : public _unary {
 public:
     //constructor.
-    _not(_expr *e) : 
+    _not(_expr *e) :
         _unary(e)
     {
     }
@@ -502,15 +503,15 @@ public:
     virtual bool parse_non_term(_context &con) const {
         _state st(con);
         bool ok = !m_expr->parse_non_term(con);
-        con.restore(st);            
+        con.restore(st);
         return ok;
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         _state st(con);
         bool ok = !m_expr->parse_term(con);
-        con.restore(st);            
+        con.restore(st);
         return ok;
     }
 };
@@ -520,7 +521,7 @@ public:
 class _nl : public _unary {
 public:
     //constructor.
-    _nl(_expr *e) : 
+    _nl(_expr *e) :
         _unary(e)
     {
     }
@@ -531,7 +532,7 @@ public:
         con.next_line();
         return true;
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         if (!m_expr->parse_term(con)) return false;
@@ -549,13 +550,13 @@ public:
         m_left(left), m_right(right)
     {
     }
-    
+
     //destructor.
     virtual ~_binary() {
         delete m_left;
         delete m_right;
     }
-    
+
 protected:
     //left and right expressions
     _expr *m_left, *m_right;
@@ -566,23 +567,23 @@ protected:
 class _seq : public _binary {
 public:
     //constructor.
-    _seq(_expr *left, _expr *right) : 
+    _seq(_expr *left, _expr *right) :
         _binary(left, right)
     {
     }
-    
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         if (!m_left->parse_non_term(con)) return false;
         con.parse_ws();
         return m_right->parse_non_term(con);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         if (!m_left->parse_term(con)) return false;
         return m_right->parse_term(con);
-    }    
+    }
 };
 
 
@@ -590,11 +591,11 @@ public:
 class _choice : public _binary {
 public:
     //constructor.
-    _choice(_expr *left, _expr *right) : 
+    _choice(_expr *left, _expr *right) :
         _binary(left, right)
     {
     }
-    
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         _state st(con);
@@ -602,14 +603,14 @@ public:
         con.restore(st);
         return m_right->parse_non_term(con);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         _state st(con);
         if (m_left->parse_term(con)) return true;
         con.restore(st);
         return m_right->parse_term(con);
-    }    
+    }
 };
 
 
@@ -617,21 +618,21 @@ public:
 class _ref : public _expr {
 public:
     //constructor.
-    _ref(rule &r) : 
+    _ref(rule &r) :
         m_rule(r)
     {
     }
-    
+
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
         return con.parse_non_term(m_rule);
     }
-    
+
     //parse terminal
     virtual bool parse_term(_context &con) const {
         return con.parse_term(m_rule);
-    }    
-    
+    }
+
 private:
     //reference
     rule &m_rule;
@@ -643,7 +644,7 @@ _state::_state(_context &con) :
     m_pos(con.m_pos),
     m_matches(con.m_matches.size())
 {
-}    
+}
 
 
 //parse non-term rule.
@@ -655,7 +656,7 @@ bool _context::parse_non_term(rule &r) {
             return true;
         }
         return false;
-    }        
+    }
     return _private::get_expr(r)->parse_non_term(*this);
 }
 
@@ -669,7 +670,7 @@ bool _context::parse_term(rule &r) {
             return true;
         }
         return false;
-    }        
+    }
     return _private::get_expr(r)->parse_term(*this);
 }
 
@@ -691,13 +692,13 @@ pos::pos(input &i) :
     m_line(1),
     m_col(1)
 {
-}    
+}
 
 
 /** character terminal constructor.
-    @param c character. 
+    @param c character.
  */
-expr::expr(int c) : 
+expr::expr(int c) :
     m_expr(new _char(c))
 {
 }
@@ -769,7 +770,7 @@ expr expr::operator !() const {
     return _private::construct_expr(new _not(m_expr));
 }
 
-    
+
 /** constructor.
     @param b begin position.
     @param e end position.
@@ -780,7 +781,7 @@ error::error(const pos &b, const pos &e, const char *m) :
     m_end(e),
     m_msg(m, m + strlen(m))
 {
-}    
+}
 
 
 /** constructor.
@@ -793,7 +794,7 @@ error::error(const pos &b, const pos &e, const wchar_t *m) :
     m_end(e),
     m_msg(m, m + wcslen(m))
 {
-}    
+}
 
 
 /** constructor from expression.
@@ -813,6 +814,15 @@ rule::rule(rule &r) :
     m_expr(new _ref(r)),
     m_parse_proc(0)
 {
+}
+
+
+/** invalid constructor from rule (required by gcc).
+    @param r rule.
+    @exception std::logic_error always thrown.
+ */
+rule::rule(const rule &r) {
+    throw std::logic_error("invalid operation");
 }
 
 
@@ -956,27 +966,27 @@ expr nl(const expr &e) {
 bool parse(input &i, rule &g, rule &ws, error_list &el, void *d) {
     //prepare context
     _context con(i, ws);
-    
+
     //parse initial whitespace
     con.parse_term(con.m_ws);
-    
+
     //parse grammar
     if (!con.parse_non_term(g)) {
         el.push_back(
             error(con.m_error_pos, _next_pos(con.m_error_pos), "syntax error"));
         return false;
     }
-    
+
     //parse whitespace at the end
     con.parse_term(con.m_ws);
-    
+
     //if end is not reached, there was an error
     if (!con.end()) {
         el.push_back(
             error(con.m_error_pos, con.m_error_pos, "syntax error"));
         return false;
     }
-    
+
     //success; execute the parse procedures
     con.do_parse_procs(d);
     return true;

@@ -2,6 +2,13 @@
 #define PARSER_HPP
 
 
+//gcc chokes without rule::rule(const rule &),
+//msvc complains when rule::rule(const rule &) is defined.
+#ifdef _MSC_VER
+#pragma warning (disable: 4521)
+#endif
+
+
 #include <vector>
 #include <string>
 #include <list>
@@ -24,16 +31,16 @@ class pos {
 public:
     ///interator into the input.
     input::iterator m_it;
-    
+
     ///line.
     int m_line;
-    
+
     ///column.
     int m_col;
-    
+
     ///null constructor.
     pos() {}
-    
+
     /** constructor from input.
         @param i input.
      */
@@ -46,62 +53,62 @@ public:
 class expr {
 public:
     /** character terminal constructor.
-        @param c character. 
+        @param c character.
      */
     expr(int c);
-    
+
     /** null-terminated string terminal constructor.
         @param s null-terminated string.
      */
     expr(const char *s);
-    
+
     /** null-terminated wide string terminal constructor.
         @param s null-terminated string.
      */
     expr(const wchar_t *s);
-    
+
     /** rule reference constructor.
         @param r rule.
      */
     expr(rule &r);
-    
+
     /** creates a zero-or-more loop out of this expression.
         @return a zero-or-more loop expression.
      */
-    expr operator *() const;     
-    
+    expr operator *() const;
+
     /** creates a one-or-more loop out of this expression.
         @return a one-or-more loop expression.
      */
-    expr operator +() const;     
-    
+    expr operator +() const;
+
     /** creates an optional out of this expression.
         @return an optional expression.
      */
-    expr operator -() const;     
-    
+    expr operator -() const;
+
     /** creates an AND-expression.
         @return an AND-expression.
      */
-    expr operator &() const;     
-    
+    expr operator &() const;
+
     /** creates a NOT-expression.
         @return a NOT-expression.
      */
-    expr operator !() const;     
-    
+    expr operator !() const;
+
 private:
     //internal expression
     _expr *m_expr;
-    
+
     //internal constructor from internal expression
     expr(_expr *e) : m_expr(e) {}
 
     //assignment not allowed
-    expr &operator = (expr &);    
-    
+    expr &operator = (expr &);
+
     friend class _private;
-}; 
+};
 
 
 /** type of procedure to invoke when a rule is successfully parsed.
@@ -131,10 +138,10 @@ public:
 
     ///begin position.
     pos m_begin;
-    
+
     ///end position.
     pos m_end;
-    
+
     ///message.
     std::wstring m_msg;
 };
@@ -152,63 +159,69 @@ public:
         @param e expression.
      */
     rule(const expr &e);
-    
+
     /** constructor from rule.
         @param r rule.
      */
     rule(rule &r);
 
+    /** invalid constructor from rule (required by gcc).
+        @param r rule.
+        @exception std::logic_error always thrown.
+     */
+    rule(const rule &r);
+
     /** deletes the internal object that represents the expression.
      */
     ~rule();
-    
+
     /** creates a zero-or-more loop out of this rule.
         @return a zero-or-more loop rule.
      */
     expr operator *();
-    
+
     /** creates a one-or-more loop out of this rule.
         @return a one-or-more loop rule.
      */
     expr operator +();
-    
+
     /** creates an optional out of this rule.
         @return an optional rule.
      */
-    expr operator -(); 
-    
+    expr operator -();
+
     /** creates an AND-expression out of this rule.
         @return an AND-expression out of this rule.
      */
     expr operator &();
-    
+
     /** creates a NOT-expression out of this rule.
         @return a NOT-expression out of this rule.
      */
     expr operator !();
-    
+
     /** sets the parse procedure.
         @param p procedure.
      */
     void set_parse_proc(parse_proc p);
-    
+
     /** get the this ptr (since operator & is overloaded).
         @return pointer to this.
      */
     rule *this_ptr() { return this; }
-    
-private:    
+
+private:
     //internal expression
     _expr *m_expr;
-    
+
     //associated parse procedure.
     parse_proc m_parse_proc;
 
     //assignment not allowed
-    rule &operator = (rule &);    
-    
+    rule &operator = (rule &);
+
     friend class _private;
-}; 
+};
 
 
 /** creates a sequence of expressions.
@@ -216,7 +229,7 @@ private:
     @param right right operand.
     @return an expression which parses a sequence.
  */
-expr operator >> (const expr &left, const expr &right); 
+expr operator >> (const expr &left, const expr &right);
 
 
 /** creates a choice of expressions.
@@ -224,7 +237,7 @@ expr operator >> (const expr &left, const expr &right);
     @param right right operand.
     @return an expression which parses a choice.
  */
-expr operator | (const expr &left, const expr &right); 
+expr operator | (const expr &left, const expr &right);
 
 
 /** converts a parser expression into a terminal.
@@ -238,14 +251,14 @@ expr term(const expr &e);
     @param s null-terminated string with characters of the set.
     @return an expression which parses a single character out of a set.
  */
-expr set(const char *s); 
+expr set(const char *s);
 
 
 /** creates a set expression from a null-terminated wide string.
     @param s null-terminated string with characters of the set.
     @return an expression which parses a single character out of a set.
  */
-expr set(const wchar_t *s); 
+expr set(const wchar_t *s);
 
 
 /** creates a range expression.
@@ -253,7 +266,7 @@ expr set(const wchar_t *s);
     @param max max character.
     @return an expression which parses a single character out of range.
  */
-expr range(int min, int max); 
+expr range(int min, int max);
 
 
 /** creates an expression which increments the line counter
@@ -262,7 +275,7 @@ expr range(int min, int max);
     @param e expression to wrap into a newline parser.
     @return an expression that handles newlines.
  */
-expr nl(const expr &e); 
+expr nl(const expr &e);
 
 
 /** parses the given input.
