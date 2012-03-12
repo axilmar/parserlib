@@ -639,6 +639,21 @@ private:
 };
 
 
+//eof
+class _eof : public _expr {
+public:
+    //parse with whitespace
+    virtual bool parse_non_term(_context &con) const {
+        return parse_term(con);
+    }
+
+    //parse terminal
+    virtual bool parse_term(_context &con) const {
+        return con.end();
+    }
+};
+
+
 //constructor
 _state::_state(_context &con) :
     m_pos(con.m_pos),
@@ -797,6 +812,15 @@ error::error(const pos &b, const pos &e, const wchar_t *m) :
 }
 
 
+/** compare on begin position. 
+    @param e the other error to compare this with.
+    @return true if this comes before the previous error, false otherwise.
+ */
+bool error::operator < (const error &e) const {
+    return m_begin.m_it < e.m_begin.m_it;
+}
+
+
 /** constructor from expression.
     @param e expression.
  */
@@ -950,6 +974,14 @@ expr range(int min, int max) {
  */
 expr nl(const expr &e) {
     return _private::construct_expr(new _nl(_private::get_expr(e)));
+}
+
+
+/** creates an expression which tests for the end of input.
+    @return an expression that handles the end of input.
+ */
+expr eof() {
+    return _private::construct_expr(new _eof());
 }
 
 

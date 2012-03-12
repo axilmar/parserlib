@@ -122,6 +122,15 @@ typedef void (*parse_proc)(const pos &b, const pos &e, void *d);
 ///error.
 class error {
 public:
+    ///begin position.
+    pos m_begin;
+
+    ///end position.
+    pos m_end;
+
+    ///message.
+    std::wstring m_msg;
+    
     /** constructor.
         @param b begin position.
         @param e end position.
@@ -136,14 +145,11 @@ public:
      */
     error(const pos &b, const pos &e, const wchar_t *m);
 
-    ///begin position.
-    pos m_begin;
-
-    ///end position.
-    pos m_end;
-
-    ///message.
-    std::wstring m_msg;
+    /** compare on begin position. 
+        @param e the other error to compare this with.
+        @return true if this comes before the previous error, false otherwise.
+     */
+    bool operator < (const error &e) const;
 };
 
 
@@ -276,6 +282,12 @@ expr range(int min, int max);
     @return an expression that handles newlines.
  */
 expr nl(const expr &e);
+
+
+/** creates an expression which tests for the end of input.
+    @return an expression that handles the end of input.
+ */
+expr eof();
 
 
 /** parses the given input.
