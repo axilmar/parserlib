@@ -23,11 +23,11 @@ using namespace parserlib;
 
 
 //block comments
-#define BLOCK_COMMENTS       ("/*" >> *(!expr("/*") >> (NEWLINE | ANY_CHAR)) >> "*/")
+#define BLOCK_COMMENTS       ("/*" >> *(!expr("*/") >> (NEWLINE | ANY_CHAR)) >> "*/")
  
  
 //line comments
-#define LINE_COMMENTS        ("//" >> *(!expr("//") >> !NEWLINE >> ANY_CHAR) >> (NEWLINE | eof()))
+#define LINE_COMMENTS        ("//" >> *(!(NEWLINE | eof()) >> ANY_CHAR) >> (NEWLINE | eof()))
 
 
 //letter
