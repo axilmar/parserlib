@@ -355,7 +355,6 @@ ast_node *parse(input &i, rule &g, rule &ws, error_list &el);
  */
 template <class T> bool parse(input &i, rule &g, rule &ws, error_list &el, T *&ast) {
     ast_node *node = parse(i, g, ws, el);
-    if (!node) return false;
     ast = dynamic_cast<T *>(node);
     if (ast) return true;
     delete node;

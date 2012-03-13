@@ -1,8 +1,1 @@
-/* block 
-   comments */
-   
-//line comments
 
-//struct
-struct POINT {
-}

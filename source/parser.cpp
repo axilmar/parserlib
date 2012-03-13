@@ -1004,8 +1004,10 @@ bool parse(input &i, rule &g, rule &ws, error_list &el, void *d) {
 
     //parse grammar
     if (!con.parse_non_term(g)) {
+        std::wstring str = L"syntax error: ";
+        str += (wchar_t)*con.m_error_pos.m_it;
         el.push_back(
-            error(con.m_error_pos, _next_pos(con.m_error_pos), "syntax error"));
+            error(con.m_error_pos, _next_pos(con.m_error_pos), str.c_str()));
         return false;
     }
 
@@ -1015,7 +1017,7 @@ bool parse(input &i, rule &g, rule &ws, error_list &el, void *d) {
     //if end is not reached, there was an error
     if (!con.end()) {
         el.push_back(
-            error(con.m_error_pos, con.m_error_pos, "syntax error"));
+            error(con.m_error_pos, con.m_error_pos, "invalid end of file"));
         return false;
     }
 
