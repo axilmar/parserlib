@@ -1,10 +1,43 @@
+#include <cstdlib>
 #include <cstring>
 #include <cassert>
 #include <stdexcept>
+#include <map>
 #include "parser.hpp"
 
 
 namespace parserlib {
+
+
+//internal map from rules to parse procs
+typedef std::map<rule *, parse_proc> _parse_proc_map_t;
+
+
+//the one and only parse proc map.
+static _parse_proc_map_t *_parse_proc_map = 0;
+
+
+//on exit, it deletes the parse proc map
+static void _delete_parse_proc_map() {
+    delete _parse_proc_map;
+}
+
+
+//initializes the parse proc map.
+static void _init_parse_proc_map() {
+    if (_parse_proc_map) return;
+    _parse_proc_map = new _parse_proc_map_t;
+    atexit(_delete_parse_proc_map);
+}
+
+
+//get the parse proc from the map
+static parse_proc _get_parse_proc(rule *r) {
+    if (!_parse_proc_map) return 0;
+    _parse_proc_map_t::iterator it = _parse_proc_map->find(r);
+    if (it == _parse_proc_map->end()) return 0;
+    return it->second;
+}
 
 
 //internal private class that manages access to the public classes' internals.
@@ -850,6 +883,7 @@ bool error::operator < (const error &e) const {
 rule::rule(int c) :
     m_expr(new _char(c))
 {
+    m_parse_proc = _get_parse_proc(this);
 }
 
 
@@ -859,6 +893,7 @@ rule::rule(int c) :
 rule::rule(const char *s) :
     m_expr(new _string(s))
 {
+    m_parse_proc = _get_parse_proc(this);
 }
 
 
@@ -868,6 +903,7 @@ rule::rule(const char *s) :
 rule::rule(const wchar_t *s) :
     m_expr(new _string(s))
 {
+    m_parse_proc = _get_parse_proc(this);
 }
 
 
@@ -875,9 +911,9 @@ rule::rule(const wchar_t *s) :
     @param e expression.
  */
 rule::rule(const expr &e) :
-    m_expr(_private::get_expr(e)),
-    m_parse_proc(0)
+    m_expr(_private::get_expr(e))
 {
+    m_parse_proc = _get_parse_proc(this);
 }
 
 
@@ -888,6 +924,7 @@ rule::rule(rule &r) :
     m_expr(new _ref(r)),
     m_parse_proc(0)
 {
+    m_parse_proc = _get_parse_proc(this);
 }
 
 
@@ -953,6 +990,8 @@ expr rule::operator !() {
 void rule::set_parse_proc(parse_proc p) {
     assert(p);
     m_parse_proc = p;
+    _init_parse_proc_map();
+    (*_parse_proc_map)[this] = p;
 }
 
 

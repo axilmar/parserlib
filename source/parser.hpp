@@ -244,7 +244,7 @@ public:
         @return pointer to this.
      */
     rule *this_ptr() { return this; }
-
+    
 private:
     //internal expression
     _expr *m_expr;

@@ -212,6 +212,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\pl_grammar_ast.cpp"
+			>
+		</File>
+		<File
 			RelativePath="..\program.txt"
 			>
 		</File>
