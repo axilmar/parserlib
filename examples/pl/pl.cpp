@@ -430,11 +430,8 @@ public:
 
 
 //base class for types.
-class ast_type : public ast_node {
+class ast_type : public ast_container {
 public:
-    //does nothing.
-    virtual void construct(ast_stack &st) {}
-    
     //get the type's name.
     virtual string name() const = 0;
 };
@@ -491,20 +488,11 @@ public:
 //id type.
 class ast_id_type : public ast_type {
 public:
-    //value
-    string m_value;
-
-    //constructs the value.
-    virtual void construct(ast_stack &st) {
-        stringstream stream;
-        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
-            stream << (char)*it;
-        }
-        stream >> m_value;
-    }
-
+    //id
+    ast_ptr<ast_identifier> m_id;
+    
     //get the type's name.
-    virtual string name() const { return m_value; }
+    virtual string name() const { return m_id->m_value; }
 };
 
 
@@ -801,7 +789,7 @@ public:
     virtual void type_check(ast_translation_unit *tu, error_list &errors) = 0;    
 
     //check if the given type is valid.
-    virtual bool is_valid_type(ast_type *type) = 0;
+    virtual bool is_valid_type(ast_id_type *type) = 0;
 };
 
 
@@ -818,7 +806,7 @@ public:
     virtual void type_check(ast_translation_unit *tu, error_list &errors);
     
     //check if the given type is valid.
-    virtual bool is_valid_type(ast_type *type) {
+    virtual bool is_valid_type(ast_id_type *type) {
         return type->name() == m_name->m_value;
     }    
 };
@@ -834,9 +822,7 @@ public:
     virtual void type_check(ast_translation_unit *tu, error_list &errors);
     
     //check if the given type is valid.
-    virtual bool is_valid_type(ast_type *type) {
-        throw std::logic_error("invalid operation");
-    }    
+    virtual bool is_valid_type(ast_id_type *type) { return false; }    
 };
 
 
@@ -859,9 +845,7 @@ public:
     virtual void type_check(ast_translation_unit *tu, error_list &errors); 
     
     //check if the given type is valid.
-    virtual bool is_valid_type(ast_type *type) {
-        throw std::logic_error("invalid operation");
-    }    
+    virtual bool is_valid_type(ast_id_type *type) { return false; }    
 };
 
 
@@ -884,12 +868,14 @@ public:
     
     //check if the given type is defined within the translation unit
     bool check_valid_type(ast_type *type, error_list &errors) {
+        ast_id_type *id_type = dynamic_cast<ast_id_type *>(type);
+        if (!id_type) return true;
         for(ast_list<ast_declaration>::container::const_iterator it = 
             m_declarations.objects().begin();
             it != m_declarations.objects().end();
             ++it)
         {
-            if ((*it)->is_valid_type(type)) return true;
+            if ((*it)->is_valid_type(id_type)) return true;
         }
         stringstream stream;
         stream << "unknown type: ";
