@@ -196,6 +196,22 @@
 			>
 		</File>
 		<File
+			RelativePath="..\pl_ast.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\pl_ast.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\pl_grammar.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\pl_grammar.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\program.txt"
 			>
 		</File>

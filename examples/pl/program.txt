@@ -4,6 +4,10 @@ struct POINT {
 };
 
 
+//var
+var x : int = 1;
+
+
 //main
 func main() : int {
     print "hello world";
