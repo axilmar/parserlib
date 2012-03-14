@@ -699,6 +699,20 @@ static pos _next_pos(const pos &p) {
 }
 
 
+//get syntax error
+static error _syntax_error(_context &con) {
+    std::wstring str = L"syntax error: ";
+    str += (wchar_t)*con.m_error_pos.m_it;
+    return error(con.m_error_pos, _next_pos(con.m_error_pos), str.c_str());
+}
+
+
+//get eof error
+static error _eof_error(_context &con) {
+    return error(con.m_error_pos, con.m_error_pos, "invalid end of file");
+}
+
+
 /** constructor from input.
     @param i input.
  */
@@ -789,11 +803,21 @@ expr expr::operator !() const {
 /** constructor.
     @param b begin position.
     @param e end position.
+ */
+input_range::input_range(const pos &b, const pos &e) :
+    m_begin(b),
+    m_end(e)
+{
+}
+
+
+/** constructor.
+    @param b begin position.
+    @param e end position.
     @param m message.
  */
 error::error(const pos &b, const pos &e, const char *m) :
-    m_begin(b),
-    m_end(e),
+    input_range(b, e),
     m_msg(m, m + strlen(m))
 {
 }
@@ -805,8 +829,7 @@ error::error(const pos &b, const pos &e, const char *m) :
     @param m message.
  */
 error::error(const pos &b, const pos &e, const wchar_t *m) :
-    m_begin(b),
-    m_end(e),
+    input_range(b, e),
     m_msg(m, m + wcslen(m))
 {
 }
@@ -1031,10 +1054,7 @@ bool parse(input &i, rule &g, rule &ws, error_list &el, void *d) {
 
     //parse grammar
     if (!con.parse_non_term(g)) {
-        std::wstring str = L"syntax error: ";
-        str += (wchar_t)*con.m_error_pos.m_it;
-        el.push_back(
-            error(con.m_error_pos, _next_pos(con.m_error_pos), str.c_str()));
+        el.push_back(_syntax_error(con));
         return false;
     }
 
@@ -1043,10 +1063,12 @@ bool parse(input &i, rule &g, rule &ws, error_list &el, void *d) {
 
     //if end is not reached, there was an error
     if (!con.end()) {
-        std::wstring str = L"syntax error: ";
-        str += (wchar_t)*con.m_error_pos.m_it;
-        el.push_back(
-            error(con.m_error_pos, _next_pos(con.m_error_pos), str.c_str()));
+        if (con.m_error_pos.m_it < con.m_end) {
+            el.push_back(_syntax_error(con));
+        }
+        else {
+            el.push_back(_eof_error(con));
+        }
         return false;
     }
 

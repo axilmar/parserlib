@@ -21,18 +21,16 @@ typedef std::vector<ast_node *> ast_stack;
 
 /** Base class for AST nodes.
  */
-class ast_node {
+class ast_node : public input_range {
 public:
     ///destructor.
     virtual ~ast_node() {}
 
     /** interface for filling the contents of the node
         from a node stack.
-        @param b begin position in the source.
-        @param e end position in the source.
         @param st stack.
      */
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) = 0;
+    virtual void construct(ast_stack &st) = 0;
 };
 
 
@@ -77,11 +75,9 @@ public:
     /** Asks all members to construct themselves from the stack.
         The members are asked to construct themselves in reverse order.
         from a node stack.
-        @param b begin position in the source.
-        @param e end position in the source.
         @param st stack.
      */
-    virtual void construct(const pos &b, const pos &e, ast_stack &st);
+    virtual void construct(ast_stack &st);
 
 private:
     ast_member_vector m_members;
@@ -269,7 +265,7 @@ public:
     /** returns the container of objects.
         @return the container of objects.
      */
-    container &objects() const {
+    const container &objects() const {
         return m_objects;
     }
 
@@ -326,7 +322,9 @@ private:
     static void _parse_proc(const pos &b, const pos &e, void *d) {
         ast_stack *st = reinterpret_cast<ast_stack *>(d);
         T *obj = new T;
-        obj->construct(b, e, *st);
+        obj->m_begin = b;
+        obj->m_end = e;
+        obj->construct(*st);
         st->push_back(obj);
     }
 };

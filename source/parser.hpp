@@ -119,15 +119,29 @@ private:
 typedef void (*parse_proc)(const pos &b, const pos &e, void *d);
 
 
-///error.
-class error {
+///input range.
+class input_range {
 public:
     ///begin position.
     pos m_begin;
 
     ///end position.
     pos m_end;
+    
+    ///empty constructor.
+    input_range() {}
+    
+    /** constructor.
+        @param b begin position.
+        @param e end position.
+     */
+    input_range(const pos &b, const pos &e);
+};
 
+
+///error.
+class error : public input_range {
+public:
     ///message.
     std::wstring m_msg;
 
@@ -316,6 +330,22 @@ expr eof();
     @return true on parsing success, false on failure.
  */
 bool parse(input &i, rule &g, rule &ws, error_list &el, void *d);
+
+
+/** output the specific input range to the specific stream.
+    @param stream stream.
+    @param ir input range.
+    @return the stream.
+ */
+template <class T> T &operator << (T &stream, const input_range &ir) {
+    for(input::const_iterator it = ir.m_begin.m_it;
+        it != ir.m_end.m_it;
+        ++it)
+    {
+        stream << (typename T::char_type)*it;
+    }
+    return stream;
+} 
 
 
 } //namespace parserlib

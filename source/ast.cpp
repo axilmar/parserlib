@@ -27,11 +27,9 @@ ast_container::ast_container(const ast_container &src) {
 /** Asks all members to construct themselves from the stack.
     The members are asked to construct themselves in reverse order.
     from a node stack.
-    @param b begin position in the source.
-    @param e end position in the source.
     @param st stack.
  */
-void ast_container::construct(const pos &b, const pos &e, ast_stack &st) {
+void ast_container::construct(ast_stack &st) {
     for(ast_member_vector::reverse_iterator it = m_members.rbegin();
         it != m_members.rend();
         ++it)

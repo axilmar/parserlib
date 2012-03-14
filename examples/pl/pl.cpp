@@ -39,7 +39,7 @@ using namespace parserlib;
 
 
 //string character
-#define STRING_CHAR          (('\'' >> set("\"'nr0")) | ANY_CHAR)
+#define STRING_CHAR          (('\'' >> set("\"'nr0")) | (!set("\"'") >> ANY_CHAR))
 
 
 //whitespace
@@ -71,6 +71,10 @@ rule bool_literal = term(expr("true") | "false");
 
 
 /**** TYPES ****/
+
+
+//void type
+rule void_type = "void";
 
 
 //integer type
@@ -231,7 +235,7 @@ rule if_stm = expr("if") >> '(' >> expression >> ')' >> block_stm >> -("else" >>
 
 
 //print statement
-rule print_stm = "print" >> expression >> -(',' >> expression);
+rule print_stm = "print" >> expression >> *(',' >> expression);
 
 
 //reutrn statement
@@ -301,6 +305,9 @@ rule translation_unit = *declaration;
 /******************************************************************************
     AST
  ******************************************************************************/
+ 
+ 
+class ast_translation_unit;
 
 
 /***** TERMINALS ****/
@@ -313,16 +320,21 @@ public:
     string m_value;
 
     //constructs the identifier.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+    virtual void construct(ast_stack &st) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             m_value += (char)*it;
         }
     }
 };
 
 
+//base class for expressions.
+class ast_expr : public ast_container {
+};
+
+
 //base class for literals.
-class ast_literal : public ast_node {
+class ast_literal : public ast_expr {
 public:
 };
 
@@ -334,9 +346,9 @@ public:
     double m_value;
 
     //constructs the value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         stream >> m_value;
@@ -351,9 +363,9 @@ public:
     int m_value;
 
     //constructs the value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         stream >> m_value;
@@ -368,9 +380,9 @@ public:
     string m_value;
 
     //constructs the value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         stream >> m_value;
@@ -385,9 +397,9 @@ public:
     char m_value;
 
     //constructs the value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         stream >> m_value;
@@ -402,9 +414,9 @@ public:
     bool m_value;
 
     //constructs the value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         string v;
@@ -419,46 +431,60 @@ public:
 
 //base class for types.
 class ast_type : public ast_node {
+public:
+    //does nothing.
+    virtual void construct(ast_stack &st) {}
+    
+    //get the type's name.
+    virtual string name() const = 0;
+};
+
+
+//void type.
+class ast_void_type : public ast_type {
+public:    
+    //get the type's name.
+    virtual string name() const { return "void"; }
 };
 
 
 //int type.
 class ast_int_type : public ast_type {
 public:
-    //does nothing. Types do not have a value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
+    //get the type's name.
+    virtual string name() const { return "int"; }
 };
 
 
 //float type.
 class ast_float_type : public ast_type {
 public:
-    //does nothing. Types do not have a value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
+    //get the type's name.
+    virtual string name() const { return "float"; }
 };
 
 
 //boolean type.
 class ast_bool_type : public ast_type {
 public:
-    //does nothing. Types do not have a value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
+    //get the type's name.
+    virtual string name() const { return "bool"; }
 };
 
 
 //string type.
 class ast_string_type : public ast_type {
 public:
-    //does nothing. Types do not have a value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
+    //get the type's name.
+    virtual string name() const { return "string"; }
 };
 
 
 //char type.
 class ast_char_type : public ast_type {
 public:
-    //does nothing. Types do not have a value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
+    //get the type's name.
+    virtual string name() const { return "char"; }
 };
 
 
@@ -469,22 +495,20 @@ public:
     string m_value;
 
     //constructs the value.
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::const_iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         stream >> m_value;
     }
+
+    //get the type's name.
+    virtual string name() const { return m_value; }
 };
 
 
 /***** EXPRESSIONS ****/
-
-
-//base class for expressions.
-class ast_expr : public ast_container {
-};
 
 
 //function call expression
@@ -773,14 +797,11 @@ public:
 //base class for declarations
 class ast_declaration : public ast_container {
 public:
-};
+    //interface for type checking.
+    virtual void type_check(ast_translation_unit *tu, error_list &errors) = 0;    
 
-
-//variable declaration
-class ast_var_decl : public ast_declaration {
-public:
-    //variable
-    ast_ptr<ast_var_def> m_var;
+    //check if the given type is valid.
+    virtual bool is_valid_type(ast_type *type) = 0;
 };
 
 
@@ -792,6 +813,30 @@ public:
 
     //list of member variables
     ast_list<ast_var_inst> m_member_vars;
+
+    //check if the types of the variables are legit
+    virtual void type_check(ast_translation_unit *tu, error_list &errors);
+    
+    //check if the given type is valid.
+    virtual bool is_valid_type(ast_type *type) {
+        return type->name() == m_name->m_value;
+    }    
+};
+
+
+//variable declaration
+class ast_var_decl : public ast_declaration {
+public:
+    //variable
+    ast_ptr<ast_var_def> m_var;
+    
+    //interface for type checking.
+    virtual void type_check(ast_translation_unit *tu, error_list &errors);
+    
+    //check if the given type is valid.
+    virtual bool is_valid_type(ast_type *type) {
+        throw std::logic_error("invalid operation");
+    }    
 };
 
 
@@ -809,6 +854,14 @@ public:
 
     //body
     ast_ptr<ast_block_stm> m_body;
+    
+    //interface for type checking.
+    virtual void type_check(ast_translation_unit *tu, error_list &errors); 
+    
+    //check if the given type is valid.
+    virtual bool is_valid_type(ast_type *type) {
+        throw std::logic_error("invalid operation");
+    }    
 };
 
 
@@ -816,10 +869,70 @@ public:
 class ast_translation_unit : public ast_container {
 public:
     //declarations
-    ast_list<ast_declaration> declarations;
+    ast_list<ast_declaration> m_declarations;
+    
+    //typecheck
+    void type_check(error_list &errors) {
+        for(ast_list<ast_declaration>::container::const_iterator it = 
+            m_declarations.objects().begin();
+            it != m_declarations.objects().end();
+            ++it)
+        {
+            (*it)->type_check(this, errors);
+        }
+    }
+    
+    //check if the given type is defined within the translation unit
+    bool check_valid_type(ast_type *type, error_list &errors) {
+        for(ast_list<ast_declaration>::container::const_iterator it = 
+            m_declarations.objects().begin();
+            it != m_declarations.objects().end();
+            ++it)
+        {
+            if ((*it)->is_valid_type(type)) return true;
+        }
+        stringstream stream;
+        stream << "unknown type: ";
+        stream << input_range(type->m_begin, type->m_end);
+        errors.push_back(error(type->m_begin, type->m_end, stream.str().c_str()));
+        return false;
+    }
 };
 
 
+//check if the types of the variables are legit
+void ast_struct_decl::type_check(ast_translation_unit *tu, error_list &errors) {
+    for(ast_list<ast_var_inst>::container::const_iterator it =
+        m_member_vars.objects().begin();
+        it != m_member_vars.objects().end();
+        ++it)
+    {
+        ast_var_inst *var = *it;
+        
+        //check if the type exists in the translation unit
+        tu->check_valid_type(var->m_type, errors);
+        
+        //check if the struct is recursive
+        if (var->m_type->name() == m_name->m_value) {
+            errors.push_back(error(var->m_type->m_begin, var->m_type->m_end, "recursive struct"));
+        }
+    }
+}
+
+
+//interface for type checking.
+void ast_var_decl::type_check(ast_translation_unit *tu, error_list &errors) {
+    //TODO
+}
+
+
+//interface for type checking.
+void ast_func_decl::type_check(ast_translation_unit *tu, error_list &errors) {
+    //TODO
+}
+
+
+    
 /******************************************************************************
     GRAMMAR-AST
  ******************************************************************************/
@@ -839,6 +952,7 @@ ast<ast_bool_literal> bool_literal_ast(bool_literal);
 /**** TYPES ****/
 
 
+ast<ast_void_type> void_type_ast(void_type);
 ast<ast_int_type> int_type_ast(int_type);
 ast<ast_float_type> float_type_ast(float_type);
 ast<ast_bool_type> bool_type_ast(bool_type);
@@ -968,11 +1082,14 @@ int main(int argc, char *argv[]) {
 
     //process ast tree
     if (ast) {
+        ast->type_check(errors);
         delete ast;
-        cout << "no errors found\n";
     }
 
     //else sort and print errors
+    if (errors.empty()) {
+        cout << "no errors found\n";
+    }
     else {
         cout << "found " << errors.size() << " " << (errors.size() > 1 ? "errors" : "error") << ":\n";
         errors.sort();

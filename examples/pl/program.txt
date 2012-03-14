@@ -1,18 +1,4 @@
-/* block 
-   comments */
-
-//line comments
-
-//struct
-struct POINT {
-    x : int;
-    y : int;
-}
-
-//variable
-var x : int = 0;
-
-//function
-func max(a : int, b : int) : int {
-	return a > b ? a : b;
+//main
+func main() : int {
+    print "hello world";
 }
