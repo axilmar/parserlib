@@ -167,11 +167,27 @@ rule sub_op = '-' >> add_expr;
 rule add_expr = mul_expr >> -(add_op | mul_op);
 
 
+//compare expression
+extern rule cmp_expr;
+rule lt_op = "<" >> cmp_expr;
+rule lte_op = "<=" >> cmp_expr;
+rule gt_op = ">" >> cmp_expr;
+rule gte_op = ">=" >> cmp_expr;
+rule cmp_expr = add_expr >> -(lt_op | lte_op | gt_op | gte_op);
+
+
+//equal expression
+extern rule eq_expr;
+rule eq_op = "==" >> eq_expr;
+rule diff_op = "!=" >> eq_expr;
+rule eq_expr = cmp_expr >> -(eq_op | diff_op);
+
+
 //logical
 extern rule logical_expr;
 rule log_and_op = "&&" >> logical_expr;
 rule log_or_op  = "||" >> logical_expr;
-rule logical_expr = add_expr >> -(log_and_op | log_or_op);
+rule logical_expr = eq_expr >> -(log_and_op | log_or_op);
 
 
 //conditional
@@ -552,6 +568,36 @@ class ast_sub_expr : public ast_binary_expr {
 };
 
 
+//equals expression
+class ast_eq_expr : public ast_binary_expr {
+};
+
+
+//different expression
+class ast_diff_expr : public ast_binary_expr {
+};
+
+
+//less-than expression
+class ast_lt_expr : public ast_binary_expr {
+};
+
+
+//less-than or equal expression
+class ast_lte_expr : public ast_binary_expr {
+};
+
+
+//greater-than expression
+class ast_gt_expr : public ast_binary_expr {
+};
+
+
+//greater-than or equal expression
+class ast_gte_expr : public ast_binary_expr {
+};
+
+
 //logical or
 class ast_log_or_expr : public ast_binary_expr {
 };
@@ -591,8 +637,11 @@ public:
 
 
 //variable definition
-class ast_var_def : public ast_var_inst {
+class ast_var_def : public ast_container {
 public:
+    //var instance
+    ast_ptr<ast_var_inst> m_var_inst;
+
     //initializer expression
     ast_ptr<ast_expr, true> m_init_expr;
 };
@@ -810,6 +859,12 @@ ast<ast_mul_expr> mul_expr_ast(mul_op);
 ast<ast_div_expr> div_expr_ast(div_op);
 ast<ast_add_expr> add_expr_ast(add_op);
 ast<ast_sub_expr> sub_expr_ast(sub_op);
+ast<ast_eq_expr> eq_op_expr_ast(eq_op);
+ast<ast_diff_expr> diff_op_expr_ast(diff_op);
+ast<ast_lt_expr> lt_op_expr_ast(lt_op);
+ast<ast_lte_expr> lte_op_expr_ast(lte_op);
+ast<ast_gt_expr> gt_op_expr_ast(gt_op);
+ast<ast_gte_expr> gte_op_expr_ast(gte_op);
 ast<ast_log_and_expr> log_and_expr_ast(log_and_op);
 ast<ast_log_or_expr> log_or_expr_ast(log_or_op);
 ast<ast_cond_expr> cond_expr_ast(cond_op);
@@ -833,9 +888,10 @@ ast<ast_expr_stm> expr_stm_ast(expression_stm);
 
 /**** DECLARATIONS ****/
 
-
-ast<ast_var_decl> var_decl_ast(var_decl);
 ast<ast_struct_decl> struct_decl_ast(struct_decl);
+ast<ast_var_inst> var_inst_ast(var_inst);
+ast<ast_var_def> var_def_ast(var_def);
+ast<ast_var_decl> var_decl_ast(var_decl);
 ast<ast_func_decl> func_decl_ast(func_decl);
 ast<ast_translation_unit> translation_unit_ast(translation_unit);
 
