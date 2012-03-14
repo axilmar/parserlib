@@ -9,23 +9,23 @@ using namespace parserlib;
 /******************************************************************************
     GRAMMAR
  ******************************************************************************/
- 
- 
-/**** TERMINALS ****/ 
- 
- 
+
+
+/**** TERMINALS ****/
+
+
 //newline
-#define NEWLINE              nl(expr("\r\n") | '\n' | '\r')
- 
- 
+#define NEWLINE              nl(expr("\r\n") | "\n\r" | '\n' | '\r')
+
+
 //any character
 #define ANY_CHAR             range(0, 255)
 
 
 //block comments
 #define BLOCK_COMMENTS       ("/*" >> *(!expr("*/") >> (NEWLINE | ANY_CHAR)) >> "*/")
- 
- 
+
+
 //line comments
 #define LINE_COMMENTS        ("//" >> *(!(NEWLINE | eof()) >> ANY_CHAR) >> (NEWLINE | eof()))
 
@@ -70,9 +70,9 @@ rule char_literal = term('\'' >> STRING_CHAR >> '\'');
 rule bool_literal = term(expr("true") | "false");
 
 
-/**** TYPES ****/ 
- 
- 
+/**** TYPES ****/
+
+
 //integer type
 rule int_type = "int";
 
@@ -169,8 +169,8 @@ rule add_expr = mul_expr >> -(add_op | mul_op);
 
 //logical
 extern rule logical_expr;
-rule log_and_op = '&&' >> logical_expr;
-rule log_or_op  = '||' >> logical_expr;
+rule log_and_op = "&&" >> logical_expr;
+rule log_or_op  = "||" >> logical_expr;
 rule logical_expr = add_expr >> -(log_and_op | log_or_op);
 
 
@@ -182,14 +182,14 @@ rule cond_expr = logical_expr >> -cond_op;
 
 //expression
 rule expression = cond_expr;
- 
- 
-/**** STATEMENTS ****/ 
- 
- 
+
+
+/**** STATEMENTS ****/
+
+
 //local variable statement
 extern rule var_def;
-extern rule var_stm = var_def;
+rule var_stm = var_def;
 
 
 //block statement
@@ -243,13 +243,13 @@ rule statement = var_stm
                | ';';
 
 
-/**** DECLARATIONS ****/ 
+/**** DECLARATIONS ****/
 
 
 //variable instance
 rule var_inst = identifier >> ':' >> type;
- 
- 
+
+
 //variable definition
 rule var_def = "var" >> var_inst >> -('=' >> expression);
 
@@ -261,32 +261,32 @@ rule var_decl = var_def;
 //struct member
 rule struct_member = var_inst
                    | ';';
-               
-                   
+
+
 //struct declaration
 rule struct_decl = "struct" >> identifier >> '{' >> *struct_member >> '}';
 
 
 //function declaration
 rule func_decl = "func" >> identifier >> '(' >> -(var_inst >> *(',' >> var_inst)) >> ')' >> ':' >> type >> block_stm;
-                
-                
+
+
 //declaration
 rule declaration = struct_decl
                  | var_decl
                  | func_decl
                  |  ';';
-                
-                
+
+
 //translation unit
-rule translation_unit = *declaration;                
+rule translation_unit = *declaration;
 
 
 /******************************************************************************
     AST
  ******************************************************************************/
- 
- 
+
+
 /***** TERMINALS ****/
 
 
@@ -295,7 +295,7 @@ class ast_identifier : public ast_node {
 public:
     ///value.
     string m_value;
-    
+
     //constructs the identifier.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         for(input::const_iterator it = b.m_it; it != e.m_it; ++it) {
@@ -316,7 +316,7 @@ class ast_float_literal : public ast_literal {
 public:
     //value
     double m_value;
-    
+
     //constructs the value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         stringstream stream;
@@ -333,7 +333,7 @@ class ast_int_literal : public ast_literal {
 public:
     //value
     int m_value;
-    
+
     //constructs the value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         stringstream stream;
@@ -350,7 +350,7 @@ class ast_string_literal : public ast_literal {
 public:
     //value
     string m_value;
-    
+
     //constructs the value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         stringstream stream;
@@ -360,14 +360,14 @@ public:
         stream >> m_value;
     }
 };
- 
- 
+
+
 //character literal
 class ast_char_literal : public ast_literal {
 public:
     //value
     char m_value;
-    
+
     //constructs the value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         stringstream stream;
@@ -377,14 +377,14 @@ public:
         stream >> m_value;
     }
 };
- 
- 
+
+
 //boolean literal
 class ast_bool_literal : public ast_literal {
 public:
     //value
     bool m_value;
-    
+
     //constructs the value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         stringstream stream;
@@ -396,8 +396,8 @@ public:
         m_value = v == "true";
     }
 };
- 
- 
+
+
 /***** TYPES ****/
 
 
@@ -412,46 +412,46 @@ public:
     //does nothing. Types do not have a value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
 };
- 
- 
+
+
 //float type.
 class ast_float_type : public ast_type {
 public:
     //does nothing. Types do not have a value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
 };
- 
- 
+
+
 //boolean type.
 class ast_bool_type : public ast_type {
 public:
     //does nothing. Types do not have a value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
 };
- 
- 
+
+
 //string type.
 class ast_string_type : public ast_type {
 public:
     //does nothing. Types do not have a value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
 };
- 
- 
+
+
 //char type.
 class ast_char_type : public ast_type {
 public:
     //does nothing. Types do not have a value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {}
 };
- 
- 
+
+
 //id type.
 class ast_id_type : public ast_type {
 public:
     //value
     string m_value;
-    
+
     //constructs the value.
     virtual void construct(const pos &b, const pos &e, ast_stack &st) {
         stringstream stream;
@@ -461,8 +461,8 @@ public:
         stream >> m_value;
     }
 };
- 
- 
+
+
 /***** EXPRESSIONS ****/
 
 
@@ -476,7 +476,7 @@ class ast_func_call : public ast_expr {
 public:
     //name of the function to call
     ast_ptr<ast_identifier> m_name;
-    
+
     //arguments
     ast_list<ast_expr> m_args;
 };
@@ -509,13 +509,13 @@ public:
 //logical not expression
 class ast_log_not_expr : public ast_unary_expr {
 };
- 
- 
+
+
 //positive expression
 class ast_positive_expr : public ast_unary_expr {
 };
- 
- 
+
+
 //negative expression
 class ast_negative_expr : public ast_unary_expr {
 };
@@ -535,28 +535,28 @@ public:
 //mupliplication expression
 class ast_mul_expr : public ast_binary_expr {
 };
- 
- 
+
+
 //division expression
 class ast_div_expr : public ast_binary_expr {
 };
- 
- 
+
+
 //addition expression
 class ast_add_expr : public ast_binary_expr {
 };
- 
- 
+
+
 //subtraction expression
 class ast_sub_expr : public ast_binary_expr {
 };
- 
- 
+
+
 //logical or
 class ast_log_or_expr : public ast_binary_expr {
 };
- 
- 
+
+
 //logical and
 class ast_log_and_expr : public ast_binary_expr {
 };
@@ -567,15 +567,15 @@ class ast_cond_expr : public ast_expr {
 public:
     //condition
     ast_ptr<ast_expr> m_cond;
-    
+
     //the then part
     ast_ptr<ast_expr> m_then;
-    
+
     //the else part
     ast_ptr<ast_expr> m_else;
 };
- 
- 
+
+
 /***** STATEMENTS ****/
 
 
@@ -584,7 +584,7 @@ class ast_var_inst : public ast_container {
 public:
     //name
     ast_ptr<ast_identifier> m_name;
-    
+
     //type
     ast_ptr<ast_type> m_type;
 };
@@ -659,16 +659,16 @@ public:
     //if statement
     ast_ptr<ast_if_stm> m_if;
 };
- 
- 
+
+
 //else block statement
 class ast_else_block_stm : public ast_else_stm {
 public:
     //block statement
     ast_ptr<ast_block_stm> m_block;
 };
- 
- 
+
+
 //if statement
 class ast_if_stm : public ast_stm {
 public:
@@ -708,23 +708,23 @@ public:
     //the rvalue
     ast_ptr<ast_expr> m_rvalue;
 };
- 
- 
+
+
 //expression statement
 class ast_expr_stm : public ast_stm {
 public:
     //the expression
     ast_ptr<ast_expr> m_expr;
-}; 
- 
- 
+};
+
+
 /***** DECLARATIONS ****/
 
 
 //base class for declarations
 class ast_declaration : public ast_container {
 public:
-}; 
+};
 
 
 //variable declaration
@@ -740,7 +740,7 @@ class ast_struct_decl : public ast_declaration {
 public:
     //name
     ast_ptr<ast_identifier> m_name;
-    
+
     //list of member variables
     ast_list<ast_var_inst> m_member_vars;
 };
@@ -751,32 +751,32 @@ class ast_func_decl : public ast_declaration {
 public:
     //name
     ast_ptr<ast_identifier> m_name;
-    
+
     //list of parameter variables
     ast_list<ast_var_inst> m_param_vars;
-    
+
     //return type
     ast_ptr<ast_type> m_ret_type;
-    
+
     //body
     ast_ptr<ast_block_stm> m_body;
 };
- 
- 
+
+
 //unit
 class ast_translation_unit : public ast_container {
 public:
     //declarations
     ast_list<ast_declaration> declarations;
-}; 
+};
 
 
 /******************************************************************************
     GRAMMAR-AST
  ******************************************************************************/
- 
- 
-/**** TERMINALS ****/ 
+
+
+/**** TERMINALS ****/
 
 
 ast<ast_identifier> identifier_ast(identifier);
@@ -785,9 +785,9 @@ ast<ast_int_literal> int_literal_ast(int_literal);
 ast<ast_string_literal> string_literal_ast(string_literal);
 ast<ast_char_literal> char_literal_ast(char_literal);
 ast<ast_bool_literal> bool_literal_ast(bool_literal);
- 
- 
-/**** TYPES ****/ 
+
+
+/**** TYPES ****/
 
 
 ast<ast_int_type> int_type_ast(int_type);
@@ -798,7 +798,7 @@ ast<ast_char_type> char_type_ast(char_type);
 ast<ast_id_type> id_type_ast(id_type);
 
 
-/**** EXPRESSIONS ****/ 
+/**** EXPRESSIONS ****/
 
 
 ast<ast_func_call> func_call_ast(function_call);
@@ -815,7 +815,7 @@ ast<ast_log_or_expr> log_or_expr_ast(log_or_op);
 ast<ast_cond_expr> cond_expr_ast(cond_op);
 
 
-/**** STATEMENTS ****/ 
+/**** STATEMENTS ****/
 
 
 ast<ast_var_stm> var_stm_ast(var_stm);
@@ -829,53 +829,53 @@ ast<ast_print_stm> print_stm_ast(print_stm);
 ast<ast_return_stm> return_stm_ast(return_stm);
 ast<ast_assignment_stm> assignment_stm_ast(assignment_stm);
 ast<ast_expr_stm> expr_stm_ast(expression_stm);
- 
- 
-/**** DECLARATIONS ****/ 
- 
- 
-ast<ast_var_decl> var_decl_ast(var_decl); 
-ast<ast_struct_decl> struct_decl_ast(struct_decl); 
-ast<ast_func_decl> func_decl_ast(func_decl); 
-ast<ast_translation_unit> translation_unit_ast(translation_unit); 
+
+
+/**** DECLARATIONS ****/
+
+
+ast<ast_var_decl> var_decl_ast(var_decl);
+ast<ast_struct_decl> struct_decl_ast(struct_decl);
+ast<ast_func_decl> func_decl_ast(func_decl);
+ast<ast_translation_unit> translation_unit_ast(translation_unit);
 
 
 /******************************************************************************
     MAIN
  ******************************************************************************/
- 
- 
+
+
 //load a text file into memory
 static bool load_text_file(const char *filename, input &i) {
-    //open file    
+    //open file
     FILE *file = fopen(filename, "rt");
     if (!file) return false;
-    
+
     //find its size
     fseek(file, 0, SEEK_END);
     long size = ftell(file);
     fseek(file, 0, SEEK_SET);
-    
+
     //create a buffer to hold the whole file
     vector<unsigned char> buf(size);
-    
+
     //load it
     if (size > 0) {
         fread(&buf[0], 1, size, file);
     }
-    
+
     //test for error
     bool ok = ferror(file) == 0;
-    
+
     //close the file
     fclose(file);
-    
+
     //check for error
     if (!ok) return false;
-    
+
     //convert the file to the input
     i.insert(i.end(), buf.begin(), buf.end());
-    
+
     //success
     return true;
 }
@@ -895,48 +895,48 @@ int main(int argc, char *argv[]) {
         print_help();
         return 0;
     }
-    
+
     //load the file
     input i;
     if (!load_text_file(argv[1], i)) {
         cout << "ERROR: file " << argv[1] << " could not be loaded\n";
         return 0;
     }
-    
+
     cout << "compiling file " << argv[1] << "..." << endl;
-    
+
     //parse the file
     error_list errors;
     ast_translation_unit *ast;
     parse(i, translation_unit, whitespace, errors, ast);
-    
+
     //process ast tree
     if (ast) {
         delete ast;
         cout << "no errors found\n";
     }
-    
+
     //else sort and print errors
     else {
         cout << "found " << errors.size() << " " << (errors.size() > 1 ? "errors" : "error") << ":\n";
-        errors.sort();    
+        errors.sort();
         for(error_list::iterator it = errors.begin();
             it != errors.end();
             ++it)
         {
             error &e = *it;
-            cout << "    line " 
-                 << e.m_begin.m_line 
-                 << ", col " 
-                 << e.m_begin.m_col 
+            cout << "    line "
+                 << e.m_begin.m_line
+                 << ", col "
+                 << e.m_begin.m_col
                  << ": ";
             wcout << e.m_msg;
             wcout << endl;
-        }      
-    }  
+        }
+    }
 
     cout << "finished. Press any key to continue.\n";
-    getchar();    
+    getchar();
     return 0;
 }
 

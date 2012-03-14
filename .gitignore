@@ -4,3 +4,6 @@ Release/
 *.sln
 *.suo
 *.user
+*.cbp
+*.depend
+*.layout

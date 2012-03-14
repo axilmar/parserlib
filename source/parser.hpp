@@ -130,7 +130,7 @@ public:
 
     ///message.
     std::wstring m_msg;
-    
+
     /** constructor.
         @param b begin position.
         @param e end position.
@@ -145,7 +145,7 @@ public:
      */
     error(const pos &b, const pos &e, const wchar_t *m);
 
-    /** compare on begin position. 
+    /** compare on begin position.
         @param e the other error to compare this with.
         @return true if this comes before the previous error, false otherwise.
      */
@@ -161,6 +161,21 @@ typedef std::list<error> error_list;
  */
 class rule {
 public:
+    /** character terminal constructor.
+        @param c character.
+     */
+    rule(int c);
+
+    /** null-terminated string terminal constructor.
+        @param s null-terminated string.
+     */
+    rule(const char *s);
+
+    /** null-terminated wide string terminal constructor.
+        @param s null-terminated string.
+     */
+    rule(const wchar_t *s);
+
     /** constructor from expression.
         @param e expression.
      */

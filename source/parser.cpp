@@ -812,12 +812,39 @@ error::error(const pos &b, const pos &e, const wchar_t *m) :
 }
 
 
-/** compare on begin position. 
+/** compare on begin position.
     @param e the other error to compare this with.
     @return true if this comes before the previous error, false otherwise.
  */
 bool error::operator < (const error &e) const {
     return m_begin.m_it < e.m_begin.m_it;
+}
+
+
+/** character terminal constructor.
+    @param c character.
+ */
+rule::rule(int c) :
+    m_expr(new _char(c))
+{
+}
+
+
+/** null-terminated string terminal constructor.
+    @param s null-terminated string.
+ */
+rule::rule(const char *s) :
+    m_expr(new _string(s))
+{
+}
+
+
+/** null-terminated wide string terminal constructor.
+    @param s null-terminated string.
+ */
+rule::rule(const wchar_t *s) :
+    m_expr(new _string(s))
+{
 }
 
 
