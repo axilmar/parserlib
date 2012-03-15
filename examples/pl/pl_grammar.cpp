@@ -266,8 +266,12 @@ rule statement = var_stm
 rule var_inst = identifier >> ':' >> type;
 
 
+//variable initializer
+rule var_init = '=' >> expression;
+
+
 //variable definition
-rule var_def = "var" >> var_inst >> -('=' >> expression);
+rule var_def = "var" >> var_inst >> -var_init;
 
 
 //variable declaration

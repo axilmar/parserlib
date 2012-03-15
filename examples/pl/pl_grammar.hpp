@@ -50,6 +50,7 @@ extern parserlib::rule assignment_stm;
 extern parserlib::rule expression_stm;
 extern parserlib::rule struct_decl;
 extern parserlib::rule var_inst;
+extern parserlib::rule var_init;
 extern parserlib::rule var_def;
 extern parserlib::rule var_decl;
 extern parserlib::rule func_decl;

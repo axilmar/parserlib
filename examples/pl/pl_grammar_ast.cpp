@@ -74,9 +74,8 @@ ast<ast_expr_stm> expr_stm_ast(expression_stm);
 
 ast<ast_struct_decl> struct_decl_ast(struct_decl);
 ast<ast_var_inst> var_inst_ast(var_inst);
+ast<ast_var_init> var_init_ast(var_init);
 ast<ast_var_def> var_def_ast(var_def);
 ast<ast_var_decl> var_decl_ast(var_decl);
 ast<ast_func_decl> func_decl_ast(func_decl);
 ast<ast_translation_unit> translation_unit_ast(translation_unit);
-
-

@@ -198,22 +198,11 @@ public:
      */
     virtual void construct(ast_stack &st) {
         assert(!st.empty());
-
-        //get a node from the stack
         ast_node *node = st.back();
-
-        //check if the node is of type T
         T *obj = dynamic_cast<T *>(node);
-
-        //throw an error if there is a logic mistake
-        if (!OPT && !obj) {
-            throw std::logic_error("invalid AST node");
-        }
-
-        //remove the node from the stack
+        if (OPT) { if (!obj) return; }
+        else { if (!obj) throw std::logic_error("invalid AST node"); }
         st.pop_back();
-
-        //set the new pointer
         delete m_ptr;
         m_ptr = obj;
     }

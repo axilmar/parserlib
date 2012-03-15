@@ -868,6 +868,30 @@ error::error(const pos &b, const pos &e, const wchar_t *m) :
 }
 
 
+/** constructor.
+    @param b begin position.
+    @param e end position.
+    @param m message.
+ */
+error::error(const pos &b, const pos &e, const std::string &m) :
+    input_range(b, e),
+    m_msg(m.begin(), m.end())
+{
+}
+
+
+/** constructor.
+    @param b begin position.
+    @param e end position.
+    @param m message.
+ */
+error::error(const pos &b, const pos &e, const std::wstring &m) :
+    input_range(b, e),
+    m_msg(m.begin(), m.end())
+{
+}
+
+
 /** compare on begin position.
     @param e the other error to compare this with.
     @return true if this comes before the previous error, false otherwise.

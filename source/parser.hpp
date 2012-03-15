@@ -159,6 +159,20 @@ public:
      */
     error(const pos &b, const pos &e, const wchar_t *m);
 
+    /** constructor.
+        @param b begin position.
+        @param e end position.
+        @param m message.
+     */
+    error(const pos &b, const pos &e, const std::string &m);
+
+    /** constructor.
+        @param b begin position.
+        @param e end position.
+        @param m message.
+     */
+    error(const pos &b, const pos &e, const std::wstring &m);
+
     /** compare on begin position.
         @param e the other error to compare this with.
         @return true if this comes before the previous error, false otherwise.

@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
 
     //process ast tree
     if (ast) {
+        ast->type_check(errors);
         delete ast;
     }
 

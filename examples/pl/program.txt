@@ -1,6 +1,7 @@
 //struct
 struct POINT {
-    x : int;
+    x : POINT;
+    y : FOO;
 };
 
 
@@ -9,6 +10,6 @@ var x : int = 1;
 
 
 //main
-func main() : int {
-    print "hello world";
+func main(argc : long) : BAR {
+    var x : HAHA;
 }
