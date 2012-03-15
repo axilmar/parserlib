@@ -43,6 +43,7 @@ void ast_container::construct(ast_stack &st) {
 //register the AST member to the current container.
 void ast_member::_init() {
     assert(_current);
+    m_container = _current;
     _current->m_members.push_back(this);
 }
 

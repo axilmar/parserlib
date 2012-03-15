@@ -6,6 +6,7 @@
 #include "parserlib.hpp"
 
 
+class ast_assignment_stm;
 class ast_var_inst;
 class ast_var_def;
 class ast_translation_unit;
@@ -33,12 +34,25 @@ public:
 //base class for expressions.
 class ast_expr : public parserlib::ast_container {
 public:
+    //the type name
+    std::string m_type_name;
+
+    //get the type name of the expression
+    virtual std::string type_name() const { return m_type_name; }
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors) = 0;
+    
+    //locate the closest variable with the given name
+    ast_var_inst *find_var(const std::string &name) const;
 };
 
 
 //base class for literals.
 class ast_literal : public ast_expr {
 public:
+    //no type check for most literals
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors) {}
 };
 
 
@@ -48,8 +62,17 @@ public:
     //value
     double m_value;
     
+    //error
+    bool m_error;
+    
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
+
+    //get the type name of the expression
+    virtual std::string type_name() const { return "float"; }
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -58,9 +81,18 @@ class ast_int_literal : public ast_literal {
 public:
     //value
     int m_value;
+    
+    //error
+    bool m_error;
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
+
+    //get the type name of the expression
+    virtual std::string type_name() const { return "int"; }
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -72,6 +104,9 @@ public:
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
+    
+    //get the type name of the expression
+    virtual std::string type_name() const { return "string"; }
 };
 
 
@@ -83,6 +118,9 @@ public:
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
+    
+    //get the type name of the expression
+    virtual std::string type_name() const { return "char"; }
 };
 
 
@@ -94,6 +132,9 @@ public:
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
+    
+    //get the type name of the expression
+    virtual std::string type_name() const { return "bool"; }
 };
 
 
@@ -178,6 +219,15 @@ public:
 
     //arguments
     parserlib::ast_list<ast_expr> m_args;
+    
+    //typename
+    std::string m_type_name;
+    
+    //get the type name of the expression
+    virtual std::string type_name() const { return m_type_name; }
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -186,14 +236,12 @@ class ast_member_access : public ast_expr {
 public:
     //path to member
     parserlib::ast_list<ast_identifier> m_path;
-};
 
+    //get the type name of the expression
+    virtual std::string type_name() const;
 
-//literal value
-class ast_literal_value : public ast_expr {
-public:
-    //literal
-    parserlib::ast_ptr<ast_literal> m_literal;
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -208,18 +256,33 @@ public:
 //logical not expression
 class ast_log_not_expr : public ast_unary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //positive expression
 class ast_positive_expr : public ast_unary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //negative expression
 class ast_negative_expr : public ast_unary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -231,78 +294,125 @@ public:
 
     //right expression
     parserlib::ast_ptr<ast_expr> m_right;
+    
+    //get the type name of the expression
+    virtual std::string type_name() const;
 };
 
 
 //mupliplication expression
 class ast_mul_expr : public ast_binary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //division expression
 class ast_div_expr : public ast_binary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //addition expression
 class ast_add_expr : public ast_binary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //subtraction expression
 class ast_sub_expr : public ast_binary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
-//equals expression
-class ast_eq_expr : public ast_binary_expr {
+//base class for boolean expressions
+class ast_bool_expr : public ast_binary_expr {
 public:
+    //get the type name of the expression
+    virtual std::string type_name() const { return "bool"; }
+};    
+    
+
+//equals expression
+class ast_eq_expr : public ast_bool_expr {
+public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //different expression
-class ast_diff_expr : public ast_binary_expr {
+class ast_diff_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //less-than expression
-class ast_lt_expr : public ast_binary_expr {
+class ast_lt_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //less-than or equal expression
-class ast_lte_expr : public ast_binary_expr {
+class ast_lte_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //greater-than expression
-class ast_gt_expr : public ast_binary_expr {
+class ast_gt_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //greater-than or equal expression
-class ast_gte_expr : public ast_binary_expr {
+class ast_gte_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //logical or
-class ast_log_or_expr : public ast_binary_expr {
+class ast_log_or_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
 //logical and
-class ast_log_and_expr : public ast_binary_expr {
+class ast_log_and_expr : public ast_bool_expr {
 public:
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -317,6 +427,12 @@ public:
 
     //the else part
     parserlib::ast_ptr<ast_expr> m_else;
+
+    //get the type name of the expression
+    virtual std::string type_name() const;
+
+    //type check the expression
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
 };
 
 
@@ -353,17 +469,50 @@ public:
 };
 
 
+//for init
+class ast_for_init : public parserlib::ast_container {
+public:
+    //init statement
+    parserlib::ast_ptr<ast_stm> m_stm;
+
+    //typecheck.
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+};
+
+
+//for conditional
+class ast_for_cond : public parserlib::ast_container {
+public:
+    //expression
+    parserlib::ast_ptr<ast_expr> m_expr;
+
+    //typecheck.
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+};
+
+
+//for step
+class ast_for_step : public parserlib::ast_container {
+public:
+    //assignment statement
+    parserlib::ast_ptr<ast_assignment_stm> m_assignment;
+
+    //typecheck.
+    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+};
+
+
 //for statement
 class ast_for_stm : public ast_stm {
 public:
     //optional initializer statement
-    parserlib::ast_ptr<ast_stm, true> m_init_stm;
+    parserlib::ast_ptr<ast_for_init, true> m_init;
 
     //optional expression for condition
-    parserlib::ast_ptr<ast_expr, true> m_cond;
+    parserlib::ast_ptr<ast_for_cond, true> m_cond;
 
     //optional statement for step
-    parserlib::ast_ptr<ast_stm, true> m_step;
+    parserlib::ast_ptr<ast_for_step, true> m_step;
 
     //body
     parserlib::ast_ptr<ast_block_stm> m_body;
@@ -514,6 +663,9 @@ public:
 
     //typecheck the code.
     virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    
+    //find member variable
+    ast_var_inst *find_member_var(const std::string &name) const;
 };
 
 
@@ -613,6 +765,9 @@ public:
     
     //check if the given type exists; if not, add an error to the error list.
     void check_type(ast_type *type, parserlib::error_list &errors) const;
+    
+    //find a declaration by name
+    ast_declaration *find_decl(const std::string &name) const;
 };    
 
 

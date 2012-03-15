@@ -12,4 +12,5 @@ var x : int = 1;
 //main
 func main(argc : long) : BAR {
     var x : HAHA;
+    for(var x : TYPE1 ; x < 100 ; x = x + 1) {}
 }

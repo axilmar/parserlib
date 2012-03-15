@@ -59,6 +59,9 @@ ast<ast_cond_expr> cond_expr_ast(cond_op);
 
 ast<ast_var_stm> var_stm_ast(var_stm);
 ast<ast_block_stm> block_stm_ast(block_stm);
+ast<ast_for_init> for_init_ast(for_init);
+ast<ast_for_cond> for_cond_ast(for_cond);
+ast<ast_for_step> for_step_ast(for_step);
 ast<ast_for_stm> for_stm_ast(for_stm);
 ast<ast_while_stm> while_stm_ast(while_stm);
 ast<ast_else_if_stm> else_if_stm_ast(else_if_stm);

@@ -216,7 +216,9 @@ rule block_stm = '{' >> *statement >> '}';
 //for statement
 extern rule assignment_stm;
 rule for_init = var_stm | assignment_stm;
-rule for_stm = expr("for") >> '(' >> -for_init >> ';' >> -expression >> -assignment_stm >> ')' >> block_stm;
+rule for_cond = expression;
+rule for_step = assignment_stm;
+rule for_stm = expr("for") >> '(' >> -for_init >> ';' >> -for_cond >> ';' >> -for_step >> ')' >> block_stm;
 
 
 //while statement
@@ -225,7 +227,7 @@ rule while_stm = expr("while") >> '(' >> expression >> ')' >> block_stm;
 
 //if statement
 extern rule if_stm;
-rule else_if_stm    = if_stm;
+rule else_if_stm = if_stm;
 rule else_block_stm = block_stm;
 rule if_stm = expr("if") >> '(' >> expression >> ')' >> block_stm >> -("else" >> (else_if_stm | else_block_stm));
 
