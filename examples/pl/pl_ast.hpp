@@ -2,6 +2,7 @@
 #define PL_AST_HPP
 
 
+#include <stdio.h>
 #include <string>
 #include "parserlib.hpp"
 
@@ -28,31 +29,23 @@ public:
 
     //constructs the identifier.
     virtual void construct(parserlib::ast_stack &st);
+
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
 //base class for expressions.
 class ast_expr : public parserlib::ast_container {
 public:
-    //the type name
-    std::string m_type_name;
-
-    //get the type name of the expression
-    virtual std::string type_name() const { return m_type_name; }
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors) = 0;
-    
-    //locate the closest variable with the given name
-    ast_var_inst *find_var(const std::string &name) const;
+    //emit code
+    virtual void emit_code(FILE *file, int ident) = 0;
 };
 
 
 //base class for literals.
 class ast_literal : public ast_expr {
 public:
-    //no type check for most literals
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors) {}
 };
 
 
@@ -62,17 +55,11 @@ public:
     //value
     double m_value;
     
-    //error
-    bool m_error;
-    
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
 
-    //get the type name of the expression
-    virtual std::string type_name() const { return "float"; }
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -82,17 +69,11 @@ public:
     //value
     int m_value;
     
-    //error
-    bool m_error;
-
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
 
-    //get the type name of the expression
-    virtual std::string type_name() const { return "int"; }
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -104,9 +85,9 @@ public:
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
-    
-    //get the type name of the expression
-    virtual std::string type_name() const { return "string"; }
+
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -118,9 +99,9 @@ public:
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
-    
-    //get the type name of the expression
-    virtual std::string type_name() const { return "char"; }
+
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -132,9 +113,9 @@ public:
 
     //constructs the value.
     virtual void construct(parserlib::ast_stack &st);
-    
-    //get the type name of the expression
-    virtual std::string type_name() const { return "bool"; }
+
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -144,7 +125,7 @@ public:
 //base class for types.
 class ast_type : public parserlib::ast_container {
 public:
-    //return the type's name
+    //get the type's name
     virtual std::string name() const = 0;
 };
 
@@ -152,7 +133,7 @@ public:
 //void type.
 class ast_void_type : public ast_type {
 public:    
-    //return the type's name
+    //get the type's name
     virtual std::string name() const { return "void"; }
 };
 
@@ -160,7 +141,7 @@ public:
 //int type.
 class ast_int_type : public ast_type {
 public:
-    //return the type's name
+    //get the type's name
     virtual std::string name() const { return "int"; }
 };
 
@@ -168,15 +149,15 @@ public:
 //float type.
 class ast_float_type : public ast_type {
 public:
-    //return the type's name
-    virtual std::string name() const { return "float"; }
+    //get the type's name
+    virtual std::string name() const { return "double"; }
 };
 
 
 //boolean type.
 class ast_bool_type : public ast_type {
 public:
-    //return the type's name
+    //get the type's name
     virtual std::string name() const { return "bool"; }
 };
 
@@ -184,7 +165,7 @@ public:
 //string type.
 class ast_string_type : public ast_type {
 public:
-    //return the type's name
+    //get the type's name
     virtual std::string name() const { return "string"; }
 };
 
@@ -192,7 +173,7 @@ public:
 //char type.
 class ast_char_type : public ast_type {
 public:
-    //return the type's name
+    //get the type's name
     virtual std::string name() const { return "char"; }
 };
 
@@ -203,7 +184,7 @@ public:
     //id
     parserlib::ast_ptr<ast_identifier> m_id;
     
-    //return the type's name
+    //get the type's name
     virtual std::string name() const { return m_id->m_value; }
 };
 
@@ -218,16 +199,10 @@ public:
     parserlib::ast_ptr<ast_identifier> m_name;
 
     //arguments
-    parserlib::ast_list<ast_expr> m_args;
-    
-    //typename
-    std::string m_type_name;
-    
-    //get the type name of the expression
-    virtual std::string type_name() const { return m_type_name; }
+    parserlib::ast_list<ast_expr> m_args;    
 
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -237,11 +212,8 @@ public:
     //path to member
     parserlib::ast_list<ast_identifier> m_path;
 
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -256,33 +228,24 @@ public:
 //logical not expression
 class ast_log_not_expr : public ast_unary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //positive expression
 class ast_positive_expr : public ast_unary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //negative expression
 class ast_negative_expr : public ast_unary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -294,125 +257,108 @@ public:
 
     //right expression
     parserlib::ast_ptr<ast_expr> m_right;
-    
-    //get the type name of the expression
-    virtual std::string type_name() const;
 };
 
 
 //mupliplication expression
 class ast_mul_expr : public ast_binary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //division expression
 class ast_div_expr : public ast_binary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //addition expression
 class ast_add_expr : public ast_binary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //subtraction expression
 class ast_sub_expr : public ast_binary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //base class for boolean expressions
 class ast_bool_expr : public ast_binary_expr {
 public:
-    //get the type name of the expression
-    virtual std::string type_name() const { return "bool"; }
 };    
     
 
 //equals expression
 class ast_eq_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //different expression
 class ast_diff_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //less-than expression
 class ast_lt_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //less-than or equal expression
 class ast_lte_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //greater-than expression
 class ast_gt_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //greater-than or equal expression
 class ast_gte_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //logical or
 class ast_log_or_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
 //logical and
 class ast_log_and_expr : public ast_bool_expr {
 public:
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -427,12 +373,8 @@ public:
 
     //the else part
     parserlib::ast_ptr<ast_expr> m_else;
-
-    //get the type name of the expression
-    virtual std::string type_name() const;
-
-    //type check the expression
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -442,8 +384,8 @@ public:
 //base class for statements
 class ast_stm : public parserlib::ast_container {
 public:
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors) = 0;
+    //emit code
+    virtual void emit_code(FILE *file, int ident) = 0;
 };
 
 
@@ -453,8 +395,8 @@ public:
     //variable
     parserlib::ast_ptr<ast_var_def> m_var_def;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -464,8 +406,8 @@ public:
     //list of statements
     parserlib::ast_list<ast_stm> m_stms;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -475,8 +417,8 @@ public:
     //init statement
     parserlib::ast_ptr<ast_stm> m_stm;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
@@ -486,8 +428,8 @@ public:
     //expression
     parserlib::ast_ptr<ast_expr> m_expr;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
@@ -497,8 +439,8 @@ public:
     //assignment statement
     parserlib::ast_ptr<ast_assignment_stm> m_assignment;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
@@ -517,8 +459,8 @@ public:
     //body
     parserlib::ast_ptr<ast_block_stm> m_body;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -530,9 +472,9 @@ public:
 
     //body
     parserlib::ast_ptr<ast_block_stm> m_body;
-    
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -549,8 +491,8 @@ public:
     //if statement
     parserlib::ast_ptr<ast_if_stm> m_if;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -560,8 +502,8 @@ public:
     //block statement
     parserlib::ast_ptr<ast_block_stm> m_block;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -577,8 +519,8 @@ public:
     //the optional else part
     parserlib::ast_ptr<ast_else_stm, true> m_else;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -588,8 +530,8 @@ public:
     //list of expressions to print
     parserlib::ast_list<ast_expr> m_exprs;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -599,8 +541,8 @@ public:
     //expression
     parserlib::ast_ptr<ast_expr, true> m_expr;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -613,8 +555,8 @@ public:
     //the rvalue
     parserlib::ast_ptr<ast_expr> m_right;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -624,8 +566,8 @@ public:
     //the expression
     parserlib::ast_ptr<ast_expr> m_expr;
 
-    //typecheck.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -635,14 +577,8 @@ public:
 //base class for declarations
 class ast_declaration : public parserlib::ast_container {
 public:
-    //check if the declaration is type.
-    virtual bool is_type() const = 0;
-    
-    //get the name of the declaration
-    virtual std::string name() const = 0;
-
-    //typecheck the code.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors) = 0;
+    //emit code
+    virtual void emit_code(FILE *file, int ident) = 0;
 };
 
 
@@ -655,17 +591,8 @@ public:
     //list of member variables
     parserlib::ast_list<ast_var_inst> m_member_vars;
 
-    //check if the declaration is type.
-    virtual bool is_type() const { return true; }
-    
-    //get the name of the declaration
-    virtual std::string name() const { return m_name->m_value; }
-
-    //typecheck the code.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
-    
-    //find member variable
-    ast_var_inst *find_member_var(const std::string &name) const;
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -677,9 +604,9 @@ public:
 
     //type
     parserlib::ast_ptr<ast_type> m_type;
-    
-    //type check
-    void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
@@ -688,9 +615,9 @@ class ast_var_init : public parserlib::ast_container {
 public:
     //expression.
     parserlib::ast_ptr<ast_expr> m_expr;
-    
-    //type check
-    void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
@@ -703,8 +630,8 @@ public:
     //initializer expression
     parserlib::ast_ptr<ast_var_init, true> m_init;
 
-    //type check
-    void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    void emit_code(FILE *file, int ident);
 };
 
 
@@ -714,14 +641,8 @@ public:
     //variable
     parserlib::ast_ptr<ast_var_def> m_var_def;
 
-    //check if the declaration is type.
-    virtual bool is_type() const { return false; }
-    
-    //get the name of the declaration
-    virtual std::string name() const { return m_var_def->m_var_inst->m_name->m_value; }
-
-    //typecheck the code.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -740,14 +661,8 @@ public:
     //body
     parserlib::ast_ptr<ast_block_stm> m_body;
 
-    //check if the declaration is type.
-    virtual bool is_type() const { return false; }
-    
-    //get the name of the declaration
-    virtual std::string name() const { return m_name->m_value; }
-
-    //typecheck the code.
-    virtual void type_check(ast_translation_unit *unit, parserlib::error_list &errors);
+    //emit code
+    virtual void emit_code(FILE *file, int ident);
 };
 
 
@@ -755,19 +670,10 @@ public:
 class ast_translation_unit : public parserlib::ast_container {
 public:
     //declarations
-    parserlib::ast_list<ast_declaration> m_declarations;
+    parserlib::ast_list<ast_declaration> m_declarations;    
     
-    //type check the code
-    void type_check(parserlib::error_list &errors);
-    
-    //find type
-    std::string find_type(const std::string &name) const;
-    
-    //check if the given type exists; if not, add an error to the error list.
-    void check_type(ast_type *type, parserlib::error_list &errors) const;
-    
-    //find a declaration by name
-    ast_declaration *find_decl(const std::string &name) const;
+    //emit code
+    void emit_code(FILE *file, int ident);
 };    
 
 

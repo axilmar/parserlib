@@ -43,7 +43,7 @@ rule whitespace = *(BLOCK_COMMENTS | LINE_COMMENTS | NEWLINE | range(0, 32));
 
 
 //identifier
-rule identifier = term(LETTER >> *(LETTER | DIGIT | '_'));
+rule identifier = term((LETTER | '_') >> *(LETTER | DIGIT | '_'));
 
 
 //float literal
@@ -164,7 +164,7 @@ rule mul_expr = unary_expr >> -(mul_op | div_op);
 extern rule add_expr;
 rule add_op = '+' >> add_expr;
 rule sub_op = '-' >> add_expr;
-rule add_expr = mul_expr >> -(add_op | mul_op);
+rule add_expr = mul_expr >> -(add_op | sub_op);
 
 
 //compare expression
@@ -203,14 +203,14 @@ rule expression = cond_expr;
 /**** STATEMENTS ****/
 
 
-//local variable statement
-extern rule var_def;
-rule var_stm = var_def;
-
-
 //block statement
 extern rule statement;
 rule block_stm = '{' >> *statement >> '}';
+
+
+//local variable statement
+extern rule var_def;
+rule var_stm = var_def;
 
 
 //for statement
@@ -249,8 +249,8 @@ rule expression_stm = expression;
 
 
 //statement
-rule statement = var_stm
-               | block_stm
+rule statement = block_stm
+               | var_stm
                | for_stm
                | while_stm
                | if_stm

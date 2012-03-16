@@ -76,13 +76,7 @@ int main(int argc, char *argv[]) {
     ast_translation_unit *ast;
     parse(i, translation_unit, whitespace, errors, ast);
 
-    //process ast tree
-    if (ast) {
-        ast->type_check(errors);
-        delete ast;
-    }
-
-    //else sort and print errors
+    //sort and print errors
     if (errors.empty()) {
         cout << "no errors found\n";
     }
@@ -102,6 +96,21 @@ int main(int argc, char *argv[]) {
             wcout << e.m_msg;
             wcout << endl;
         }
+    }
+
+    //process ast tree
+    if (ast) {
+        string cpp_filename = argv[1] + string(".cpp");
+        FILE *file = fopen(cpp_filename.c_str(), "wt");
+        if (file) {
+            ast->emit_code(file, 0);
+            fclose(file);
+            cout << "File " << cpp_filename << " was successfully created.\n";
+        }
+        else {
+            cout << "ERROR: file " << cpp_filename << " could not be created.\n";
+        }
+        delete ast;
     }
 
     cout << "finished. Press any key to continue.\n";
