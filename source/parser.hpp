@@ -114,9 +114,11 @@ private:
 /** type of procedure to invoke when a rule is successfully parsed.
     @param b begin position of input.
     @param e end position of input.
+    @param depth depth of match.
+    @param index index of match.
     @param d pointer to user data.
  */
-typedef void (*parse_proc)(const pos &b, const pos &e, void *d);
+typedef void (*parse_proc)(const pos &b, const pos &e, size_t depth, size_t index, void *d);
 
 
 ///input range.
