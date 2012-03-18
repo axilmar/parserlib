@@ -58,6 +58,9 @@ private:
     //parent
     ast_node *m_parent;    
     
+    //list start
+    bool m_list_start;
+    
     template <class T, bool OPT> friend class ast_ptr;
     template <class T> friend class ast_list;
     template <class T> friend class ast;
@@ -349,6 +352,9 @@ public:
             
             //set the object's parent
             obj->m_parent = ast_member::container();
+            
+            //stop if the processed object was the first of the list
+            if (node->m_list_start) return;
         }
     }
 
@@ -392,11 +398,12 @@ public:
 
 private:
     //parse proc
-    static void _parse_proc(const pos &b, const pos &e, void *d) {
+    static void _parse_proc(const pos &b, const pos &e, bool list_start, void *d) {
         ast_stack *st = reinterpret_cast<ast_stack *>(d);
         T *obj = new T;
         obj->m_begin = b;
         obj->m_end = e;
+        obj->m_list_start = list_start;
         obj->construct(*st);
         st->push_back(obj);
     }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1253"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="pl"
 	ProjectGUID="{BA7F16E9-9CBB-488D-BD5B-9BF70F290E0B}"
 	RootNamespace="pl"
@@ -217,6 +217,10 @@
 		</File>
 		<File
 			RelativePath="..\program.txt"
+			>
+		</File>
+		<File
+			RelativePath="..\program1.txt"
 			>
 		</File>
 	</Files>

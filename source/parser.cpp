@@ -94,6 +94,9 @@ public:
     //end position
     pos m_end;
     
+    //list start
+    bool m_list_start;
+    
     //null constructor
     _match() {}
 
@@ -101,7 +104,8 @@ public:
     _match(rule *r, const pos &b, const pos &e) :
         m_rule(r),
         m_begin(b),
-        m_end(e)
+        m_end(e),
+        m_list_start(false)
     {
     }
 };
@@ -190,7 +194,16 @@ public:
             ++it)
         {
             const _match &m = *it;
-            _private::get_parse_proc(*m.m_rule)(m.m_begin, m.m_end, d);
+            parse_proc p = _private::get_parse_proc(*m.m_rule);
+            p(m.m_begin, m.m_end, m.m_list_start, d);
+        }
+    }
+    
+    //set the most recent match with index greater than the given one
+    //to be the list start
+    void set_list_start(size_t index) {
+        if (m_matches.size() > index) {
+            m_matches.back().m_list_start = true;
         }
     }
 };
@@ -411,28 +424,57 @@ public:
 
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
+        //prepare the list start variables
+        size_t match_length = con.m_matches.size();
+        
+        //if parsing of the first fails, restore the context and stop
+        con.parse_ws();
+        _state st(con);        
+        if (!m_expr->parse_non_term(con)) {
+            con.restore(st);
+            return true;
+        }
+        
+        //set the first element to be the list start
+        con.set_list_start(match_length);
+        
+        //parse the rest
         for(;;) {
             con.parse_ws();
             _state st(con);
-            if (m_expr->parse_non_term(con)) {
-                continue;
+            if (!m_expr->parse_non_term(con)) {
+                con.restore(st);
+                break;
             }
-            con.restore(st);
-            break;
         }
+        
         return true;
     }
 
     //parse terminal
     virtual bool parse_term(_context &con) const {
+        //prepare the list start variables
+        size_t match_length = con.m_matches.size();
+        
+        //if parsing of the first fails, restore the context and stop
+        _state st(con);        
+        if (!m_expr->parse_term(con)) {
+            con.restore(st);
+            return true;
+        }
+        
+        //set the first element to be the list start
+        con.set_list_start(match_length);
+        
+        //parse the rest until no more parsing is possible
         for(;;) {
             _state st(con);
-            if (m_expr->parse_term(con)) {
-                continue;
+            if (!m_expr->parse_term(con)) {
+                con.restore(st);
+                break;
             }
-            con.restore(st);
-            break;
         }
+        
         return true;
     }
 };
@@ -449,31 +491,49 @@ public:
 
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
+        //prepare the list start variables
+        size_t match_length = con.m_matches.size();
+        
+        //parse the first; if the first fails, stop
         con.parse_ws();
         if (!m_expr->parse_non_term(con)) return false;
+        
+        //set the first to be the list start
+        con.set_list_start(match_length);
+        
+        //parse the rest until no more parsing is possible
         for(;;) {
             con.parse_ws();
             _state st(con);
-            if (m_expr->parse_non_term(con)) {
-                continue;
+            if (!m_expr->parse_non_term(con)) {
+                con.restore(st);
+                break;
             }
-            con.restore(st);
-            break;
         }
+        
         return true;
     }
 
     //parse terminal
     virtual bool parse_term(_context &con) const {
+        //prepare the list start variables
+        size_t match_length = con.m_matches.size();
+        
+        //parse the first; if the first fails, stop
         if (!m_expr->parse_term(con)) return false;
+        
+        //set the list start
+        con.set_list_start(match_length);
+        
+        //parse the rest until no more parsing is possible
         for(;;) {
             _state st(con);
-            if (m_expr->parse_term(con)) {
-                continue;
+            if (!m_expr->parse_term(con)) {
+                con.restore(st);
+                break;
             }
-            con.restore(st);
-            break;
         }
+        
         return true;
     }
 };
