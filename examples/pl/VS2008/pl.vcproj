@@ -219,10 +219,6 @@
 			RelativePath="..\program.txt"
 			>
 		</File>
-		<File
-			RelativePath="..\program.txt.cpp"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
