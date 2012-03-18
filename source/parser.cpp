@@ -77,9 +77,6 @@ public:
     //size of match vector
     size_t m_matches;
     
-    //current depth
-    size_t m_depth;
-    
     //constructor
     _state(_context &con);
 };
@@ -97,22 +94,14 @@ public:
     //end position
     pos m_end;
     
-    //depth
-    size_t m_depth;
-    
-    //index
-    size_t m_index;
-
     //null constructor
     _match() {}
 
     //constructor from parameters
-    _match(rule *r, const pos &b, const pos &e, size_t d, size_t i) :
+    _match(rule *r, const pos &b, const pos &e) :
         m_rule(r),
         m_begin(b),
-        m_end(e),
-        m_depth(d),
-        m_index(i)
+        m_end(e)
     {
     }
 };
@@ -140,20 +129,12 @@ public:
     //matches
     _match_vector m_matches;
     
-    //current depth
-    size_t m_depth;
-    
-    //current index
-    size_t m_index;
-
     //constructor
     _context(input &i, rule &ws) :
         m_ws(ws),
         m_pos(i),
         m_error_pos(i),
-        m_end(i.end()),
-        m_depth(0),
-        m_index(0)
+        m_end(i.end())
     {
     }
 
@@ -191,7 +172,6 @@ public:
     void restore(const _state &st) {
         m_pos = st.m_pos;
         m_matches.resize(st.m_matches);
-        m_depth = st.m_depth;
     }
 
     //parse non-term rule.
@@ -210,7 +190,7 @@ public:
             ++it)
         {
             const _match &m = *it;
-            _private::get_parse_proc(*m.m_rule)(m.m_begin, m.m_end, m.m_depth, m.m_index, d);
+            _private::get_parse_proc(*m.m_rule)(m.m_begin, m.m_end, d);
         }
     }
 };
@@ -431,36 +411,28 @@ public:
 
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
-        size_t index = 0;
         for(;;) {
             con.parse_ws();
             _state st(con);
-            con.m_index = index;
             if (m_expr->parse_non_term(con)) {
-                ++index;
                 continue;
             }
             con.restore(st);
             break;
         }
-        con.m_index = 0;
         return true;
     }
 
     //parse terminal
     virtual bool parse_term(_context &con) const {
-        size_t index = 0;
         for(;;) {
             _state st(con);
-            con.m_index = index;
             if (m_expr->parse_term(con)) {
-                ++index;
                 continue;
             }
             con.restore(st);
             break;
         }
-        con.m_index = 0;
         return true;
     }
 };
@@ -477,43 +449,31 @@ public:
 
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
-        size_t index = 0;
         con.parse_ws();
-        con.m_index = index;
         if (!m_expr->parse_non_term(con)) return false;
-        ++index;
         for(;;) {
             con.parse_ws();
             _state st(con);
-            con.m_index = index;
             if (m_expr->parse_non_term(con)) {
-                ++index;
                 continue;
             }
             con.restore(st);
             break;
         }
-        con.m_index = 0;
         return true;
     }
 
     //parse terminal
     virtual bool parse_term(_context &con) const {
-        size_t index = 0;
-        con.m_index = index;
         if (!m_expr->parse_term(con)) return false;
-        ++index;
         for(;;) {
             _state st(con);
-            con.m_index = index;
             if (m_expr->parse_term(con)) {
-                ++index;
                 continue;
             }
             con.restore(st);
             break;
         }
-        con.m_index = 0;
         return true;
     }
 };
@@ -738,8 +698,7 @@ public:
 //constructor
 _state::_state(_context &con) :
     m_pos(con.m_pos),
-    m_matches(con.m_matches.size()),
-    m_depth(con.m_depth)
+    m_matches(con.m_matches.size())
 {
 }
 
@@ -748,20 +707,14 @@ _state::_state(_context &con) :
 bool _context::parse_non_term(rule &r) {
     bool ok;    
     if (_private::get_parse_proc(r)) {
-        size_t depth = m_depth;
-        size_t index = m_index;
         pos b = m_pos;
-        ++m_depth;
         ok = _private::get_expr(r)->parse_non_term(*this);
-        --m_depth;
         if (ok) {
-            m_matches.push_back(_match(r.this_ptr(), b, m_pos, depth, index));
+            m_matches.push_back(_match(r.this_ptr(), b, m_pos));
         }
     }
     else {
-        ++m_depth;
         ok = _private::get_expr(r)->parse_non_term(*this);
-        --m_depth;
     }
     return ok;
 }
@@ -771,20 +724,14 @@ bool _context::parse_non_term(rule &r) {
 bool _context::parse_term(rule &r) {
     bool ok;    
     if (_private::get_parse_proc(r)) {
-        size_t depth = m_depth;
-        size_t index = m_index;
         pos b = m_pos;
-        ++m_depth;
         ok = _private::get_expr(r)->parse_term(*this);
-        --m_depth;
         if (ok) {
-            m_matches.push_back(_match(r.this_ptr(), b, m_pos, depth, index));
+            m_matches.push_back(_match(r.this_ptr(), b, m_pos));
         }
     }
     else {
-        ++m_depth;
         ok = _private::get_expr(r)->parse_term(*this);
-        --m_depth;
     }
     return ok;
 }

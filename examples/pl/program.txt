@@ -25,12 +25,7 @@ func max(a : int, b : int) : int {
 func statements() : int {
     //local variable
     var x : int = 0;
-    
-    
-    /*
-        TODO: fix block statement reading more statements than it should.
-     */ 
-    
+        
     //block
     {
         var y : int = 0;
@@ -47,7 +42,6 @@ func statements() : int {
     }
     
     /*
-    TODO fix
     //if
     if (x == 100) {
         print "x is 100\n";
@@ -132,7 +126,6 @@ func expressions() : void {
     r = -x;
     
     /*
-    TODO fix
     //call function
     r = max(x, y);
     */

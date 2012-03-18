@@ -27,12 +27,12 @@ typedef std::vector<ast_node *> ast_stack;
 class ast_node : public input_range {
 public:
     ///constructor.
-    ast_node() : m_parent(0), m_depth(0), m_index(0) {}
+    ast_node() : m_parent(0) {}
     
     /** copy constructor.
         @param n source object.
      */
-    ast_node(const ast_node &n) : m_parent(0), m_index(0) {}
+    ast_node(const ast_node &n) : m_parent(0) {}
 
     ///destructor.
     virtual ~ast_node() {}
@@ -48,16 +48,6 @@ public:
      */
     ast_node *parent() const { return m_parent; }
     
-    /** get the tree depth.
-        @return the tree depth.
-     */
-    size_t depth() const { return m_depth; }
-
-    /** get the tree node index.
-        @return the tree node index.
-     */
-    size_t index() const { return m_index; }
-
     /** interface for filling the contents of the node
         from a node stack.
         @param st stack.
@@ -67,12 +57,6 @@ public:
 private:
     //parent
     ast_node *m_parent;    
-    
-    //depth
-    size_t m_depth;
-    
-    //index
-    size_t m_index;
     
     template <class T, bool OPT> friend class ast_ptr;
     template <class T> friend class ast_list;
@@ -341,13 +325,11 @@ public:
 
     /** Pops objects of type T from the stack until no more objects can be popped.
         @param st stack.
-        @exception std::logic_error thrown if the stack is empty or a node in
-            the stack is not of the appropriate type known by the list.
      */
     virtual void construct(ast_stack &st) {
         for(;;) {
-            //if the node is empty
-            if (st.empty()) throw std::logic_error("invalid AST stack");
+            //if the stack is empty
+            if (st.empty()) break;
             
             //get the node
             ast_node *node = st.back();
@@ -356,8 +338,8 @@ public:
             T *obj = dynamic_cast<T *>(node);
             
             //if the object was not not of the appropriate type,
-            //throw an exception
-            if (!obj) throw std::logic_error("invalid AST node");
+            //end the list parsing
+            if (!obj) return;
             
             //remove the node from the stack
             st.pop_back();
@@ -367,9 +349,6 @@ public:
             
             //set the object's parent
             obj->m_parent = ast_member::container();
-            
-            //if this was the last object of the list, stop
-            if (node->index() == 0) break;
         }
     }
 
@@ -413,13 +392,11 @@ public:
 
 private:
     //parse proc
-    static void _parse_proc(const pos &b, const pos &e, size_t depth, size_t index, void *d) {
+    static void _parse_proc(const pos &b, const pos &e, void *d) {
         ast_stack *st = reinterpret_cast<ast_stack *>(d);
         T *obj = new T;
         obj->m_begin = b;
         obj->m_end = e;
-        obj->m_depth = depth;
-        obj->m_index = index;
         obj->construct(*st);
         st->push_back(obj);
     }
