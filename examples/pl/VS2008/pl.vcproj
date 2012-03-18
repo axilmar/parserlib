@@ -220,7 +220,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\program1.txt"
+			RelativePath="..\program.txt.cpp"
 			>
 		</File>
 	</Files>

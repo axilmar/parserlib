@@ -205,7 +205,9 @@ rule expression = cond_expr;
 
 //block statement
 extern rule statement;
-rule block_stm = '{' >> *statement >> '}';
+rule block_begin = '{';
+rule block_end = '}';
+rule block_stm = block_begin >> *statement >> block_end;
 
 
 //local variable statement

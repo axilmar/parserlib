@@ -400,11 +400,25 @@ public:
 };
 
 
+//begin block
+class ast_block_begin : public parserlib::ast_node {};
+
+
+//end block
+class ast_block_end : public parserlib::ast_node {};
+
+
 //block statement
 class ast_block_stm : public ast_stm {
 public:
+    //begin block
+    parserlib::ast_ptr<ast_block_begin> m_block_begin;
+
     //list of statements
     parserlib::ast_list<ast_stm> m_stms;
+
+    //end block
+    parserlib::ast_ptr<ast_block_end> m_block_end;
 
     //emit code
     virtual void emit_code(FILE *file, int ident);

@@ -94,9 +94,6 @@ public:
     //end position
     pos m_end;
     
-    //list start
-    bool m_list_start;
-    
     //null constructor
     _match() {}
 
@@ -104,8 +101,7 @@ public:
     _match(rule *r, const pos &b, const pos &e) :
         m_rule(r),
         m_begin(b),
-        m_end(e),
-        m_list_start(false)
+        m_end(e)
     {
     }
 };
@@ -195,15 +191,7 @@ public:
         {
             const _match &m = *it;
             parse_proc p = _private::get_parse_proc(*m.m_rule);
-            p(m.m_begin, m.m_end, m.m_list_start, d);
-        }
-    }
-    
-    //set the most recent match with index greater than the given one
-    //to be the list start
-    void set_list_start(size_t index) {
-        if (m_matches.size() > index) {
-            m_matches.back().m_list_start = true;
+            p(m.m_begin, m.m_end, d);
         }
     }
 };
@@ -435,9 +423,6 @@ public:
             return true;
         }
         
-        //set the first element to be the list start
-        con.set_list_start(match_length);
-        
         //parse the rest
         for(;;) {
             con.parse_ws();
@@ -462,9 +447,6 @@ public:
             con.restore(st);
             return true;
         }
-        
-        //set the first element to be the list start
-        con.set_list_start(match_length);
         
         //parse the rest until no more parsing is possible
         for(;;) {
@@ -498,9 +480,6 @@ public:
         con.parse_ws();
         if (!m_expr->parse_non_term(con)) return false;
         
-        //set the first to be the list start
-        con.set_list_start(match_length);
-        
         //parse the rest until no more parsing is possible
         for(;;) {
             con.parse_ws();
@@ -521,9 +500,6 @@ public:
         
         //parse the first; if the first fails, stop
         if (!m_expr->parse_term(con)) return false;
-        
-        //set the list start
-        con.set_list_start(match_length);
         
         //parse the rest until no more parsing is possible
         for(;;) {

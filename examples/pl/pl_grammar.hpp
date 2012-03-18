@@ -38,6 +38,8 @@ extern parserlib::rule log_and_op;
 extern parserlib::rule log_or_op;
 extern parserlib::rule cond_op;
 extern parserlib::rule var_stm;
+extern parserlib::rule block_begin;
+extern parserlib::rule block_end;
 extern parserlib::rule block_stm;
 extern parserlib::rule for_init;
 extern parserlib::rule for_cond;

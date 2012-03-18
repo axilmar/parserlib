@@ -114,10 +114,9 @@ private:
 /** type of procedure to invoke when a rule is successfully parsed.
     @param b begin position of input.
     @param e end position of input.
-    @param list_start if the rule creates an element which is the first of a list.
     @param d pointer to user data.
  */
-typedef void (*parse_proc)(const pos &b, const pos &e, bool list_start, void *d);
+typedef void (*parse_proc)(const pos &b, const pos &e, void *d);
 
 
 ///input range.
