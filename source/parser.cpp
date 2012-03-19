@@ -76,7 +76,7 @@ public:
 
     //size of match vector
     size_t m_matches;
-    
+
     //constructor
     _state(_context &con);
 };
@@ -93,7 +93,7 @@ public:
 
     //end position
     pos m_end;
-    
+
     //null constructor
     _match() {}
 
@@ -128,7 +128,7 @@ public:
 
     //matches
     _match_vector m_matches;
-    
+
     //constructor
     _context(input &i, rule &ws) :
         m_ws(ws),
@@ -412,17 +412,14 @@ public:
 
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
-        //prepare the list start variables
-        size_t match_length = con.m_matches.size();
-        
         //if parsing of the first fails, restore the context and stop
         con.parse_ws();
-        _state st(con);        
+        _state st(con);
         if (!m_expr->parse_non_term(con)) {
             con.restore(st);
             return true;
         }
-        
+
         //parse the rest
         for(;;) {
             con.parse_ws();
@@ -432,22 +429,19 @@ public:
                 break;
             }
         }
-        
+
         return true;
     }
 
     //parse terminal
     virtual bool parse_term(_context &con) const {
-        //prepare the list start variables
-        size_t match_length = con.m_matches.size();
-        
         //if parsing of the first fails, restore the context and stop
-        _state st(con);        
+        _state st(con);
         if (!m_expr->parse_term(con)) {
             con.restore(st);
             return true;
         }
-        
+
         //parse the rest until no more parsing is possible
         for(;;) {
             _state st(con);
@@ -456,7 +450,7 @@ public:
                 break;
             }
         }
-        
+
         return true;
     }
 };
@@ -473,13 +467,10 @@ public:
 
     //parse with whitespace
     virtual bool parse_non_term(_context &con) const {
-        //prepare the list start variables
-        size_t match_length = con.m_matches.size();
-        
         //parse the first; if the first fails, stop
         con.parse_ws();
         if (!m_expr->parse_non_term(con)) return false;
-        
+
         //parse the rest until no more parsing is possible
         for(;;) {
             con.parse_ws();
@@ -489,18 +480,15 @@ public:
                 break;
             }
         }
-        
+
         return true;
     }
 
     //parse terminal
     virtual bool parse_term(_context &con) const {
-        //prepare the list start variables
-        size_t match_length = con.m_matches.size();
-        
         //parse the first; if the first fails, stop
         if (!m_expr->parse_term(con)) return false;
-        
+
         //parse the rest until no more parsing is possible
         for(;;) {
             _state st(con);
@@ -509,7 +497,7 @@ public:
                 break;
             }
         }
-        
+
         return true;
     }
 };
@@ -741,7 +729,7 @@ _state::_state(_context &con) :
 
 //parse non-term rule.
 bool _context::parse_non_term(rule &r) {
-    bool ok;    
+    bool ok;
     if (_private::get_parse_proc(r)) {
         pos b = m_pos;
         ok = _private::get_expr(r)->parse_non_term(*this);
@@ -758,7 +746,7 @@ bool _context::parse_non_term(rule &r) {
 
 //parse term rule.
 bool _context::parse_term(rule &r) {
-    bool ok;    
+    bool ok;
     if (_private::get_parse_proc(r)) {
         pos b = m_pos;
         ok = _private::get_expr(r)->parse_term(*this);

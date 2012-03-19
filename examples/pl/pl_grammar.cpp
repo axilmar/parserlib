@@ -111,7 +111,9 @@ rule type = int_type
 
 //function call
 extern rule expression;
-rule function_call = identifier >> '(' >> -(expression >> *(',' >> expression)) >> ')';
+rule begin_paren = '(';
+rule end_paren = ')';
+rule function_call = identifier >> begin_paren >> -(expression >> *(',' >> expression)) >> end_paren;
 
 
 //member access

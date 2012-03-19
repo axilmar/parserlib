@@ -49,9 +49,9 @@ public:
 
 class num_t : public expr_t {
 public:
-    virtual void construct(const pos &b, const pos &e, ast_stack &st) {
+    virtual void construct(ast_stack &st) {
         stringstream stream;
-        for(input::iterator it = b.m_it; it != e.m_it; ++it) {
+        for(input::iterator it = m_begin.m_it; it != m_end.m_it; ++it) {
             stream << (char)*it;
         }
         stream >> m_value;

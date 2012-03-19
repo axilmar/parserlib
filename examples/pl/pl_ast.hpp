@@ -192,14 +192,28 @@ public:
 /***** EXPRESSIONS ****/
 
 
+//begin parenthesis
+class ast_begin_paren : public parserlib::ast_node {};
+
+
+//end parenthesis
+class ast_end_paren : public parserlib::ast_node {};
+
+
 //function call expression
 class ast_func_call : public ast_expr {
 public:
     //name of the function to call
     parserlib::ast_ptr<ast_identifier> m_name;
+    
+    //begin parenthesis
+    parserlib::ast_ptr<ast_begin_paren> m_begin_paren;
 
     //arguments
     parserlib::ast_list<ast_expr> m_args;    
+
+    //end parenthesis
+    parserlib::ast_ptr<ast_end_paren> m_end_paren;
 
     //emit code
     virtual void emit_code(FILE *file, int ident);

@@ -19,6 +19,8 @@ extern parserlib::rule bool_type;
 extern parserlib::rule string_type;
 extern parserlib::rule char_type;
 extern parserlib::rule id_type;
+extern parserlib::rule begin_paren;
+extern parserlib::rule end_paren;
 extern parserlib::rule function_call;
 extern parserlib::rule member_access;
 extern parserlib::rule logical_not_expr;

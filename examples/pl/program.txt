@@ -41,7 +41,6 @@ func statements() : int {
         x = x + 1;
     }
     
-    /*
     //if
     if (x == 100) {
         print "x is 100\n";
@@ -52,7 +51,6 @@ func statements() : int {
     else {
         print "x is greater than 100\n";
     }
-    */
     
     //print
     print "the quick brown fox", ' ', 3.14;
@@ -125,10 +123,8 @@ func expressions() : void {
     //negative
     r = -x;
     
-    /*
     //call function
     r = max(x, y);
-    */
     
     //member access
     var p : POINT;

@@ -34,6 +34,8 @@ ast<ast_id_type> id_type_ast(id_type);
 /**** EXPRESSIONS ****/
 
 
+ast<ast_begin_paren> begin_paren_ast(begin_paren);
+ast<ast_end_paren> end_paren_ast(end_paren);
 ast<ast_func_call> func_call_ast(function_call);
 ast<ast_member_access> member_access_ast(member_access);
 ast<ast_log_not_expr> log_not_expr_ast(logical_not_expr);

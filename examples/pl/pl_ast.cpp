@@ -121,53 +121,53 @@ void ast_bool_literal::emit_code(FILE *file, int ident) {
 void ast_func_call::emit_code(FILE *file, int ident) {
     fprintf(file, "%s(", m_name->m_value.c_str());
     int c = 0;
-    for(ast_list<ast_expr>::container::const_iterator it = m_args.objects().begin();    
+    for(ast_list<ast_expr>::container::const_iterator it = m_args.objects().begin();
         it != m_args.objects().end();
         ++it)
     {
         if (c) fprintf(file, ", ");
         (*it)->emit_code(file, ident);
         c = 1;
-    }        
+    }
     fprintf(file, ")");
 }
 
-    
+
 //emit code
 void ast_member_access::emit_code(FILE *file, int ident) {
     int c = 0;
-    for(ast_list<ast_identifier>::container::const_iterator it = m_path.objects().begin();    
+    for(ast_list<ast_identifier>::container::const_iterator it = m_path.objects().begin();
         it != m_path.objects().end();
         ++it)
     {
         if (c) fprintf(file, ".");
         (*it)->emit_code(file, ident);
         c = 1;
-    }        
+    }
 }
 
-    
+
 //emit code
 void ast_log_not_expr::emit_code(FILE *file, int ident) {
     fprintf(file, "!");
     m_expr->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_positive_expr::emit_code(FILE *file, int ident) {
     fprintf(file, "+");
     m_expr->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_negative_expr::emit_code(FILE *file, int ident) {
     fprintf(file, "-");
     m_expr->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_mul_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -175,7 +175,7 @@ void ast_mul_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_div_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -183,7 +183,7 @@ void ast_div_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_add_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -191,7 +191,7 @@ void ast_add_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_sub_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -199,7 +199,7 @@ void ast_sub_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_eq_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -207,7 +207,7 @@ void ast_eq_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_diff_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -215,7 +215,7 @@ void ast_diff_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_lt_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -223,7 +223,7 @@ void ast_lt_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_lte_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -231,7 +231,7 @@ void ast_lte_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_gt_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -239,7 +239,7 @@ void ast_gt_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_gte_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -247,7 +247,7 @@ void ast_gte_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_log_or_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -255,7 +255,7 @@ void ast_log_or_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_log_and_expr::emit_code(FILE *file, int ident) {
     m_left->emit_code(file, ident);
@@ -263,7 +263,7 @@ void ast_log_and_expr::emit_code(FILE *file, int ident) {
     m_right->emit_code(file, ident);
 }
 
-    
+
 //emit code
 void ast_cond_expr::emit_code(FILE *file, int ident) {
     m_cond->emit_code(file, ident);
@@ -273,10 +273,10 @@ void ast_cond_expr::emit_code(FILE *file, int ident) {
     m_else->emit_code(file, ident);
 }
 
-    
+
 /**** STATEMENTS ****/
 
-    
+
 //emit code
 void ast_var_stm::emit_code(FILE *file, int ident) {
     if (ident) _write_ident(file, ident);
@@ -284,25 +284,25 @@ void ast_var_stm::emit_code(FILE *file, int ident) {
     if (ident) fprintf(file, ";\n");
 }
 
-    
+
 //emit code
 void ast_block_stm::emit_code(FILE *file, int ident) {
     _write_ident(file, ident);
-    
+
     fprintf(file, "{\n");
-    
-    for(ast_list<ast_stm>::container::const_iterator it = m_stms.objects().begin();    
+
+    for(ast_list<ast_stm>::container::const_iterator it = m_stms.objects().begin();
         it != m_stms.objects().end();
         ++it)
     {
         (*it)->emit_code(file, ident + 4);
     }
-    
+
     _write_ident(file, ident);
-    fprintf(file, "}\n");    
+    fprintf(file, "}\n");
 }
 
-    
+
 //emit code
 void ast_for_init::emit_code(FILE *file, int ident) {
     m_stm->emit_code(file, ident);
@@ -347,14 +347,16 @@ void ast_while_stm::emit_code(FILE *file, int ident) {
 
 //emit code
 void ast_else_if_stm::emit_code(FILE *file, int ident) {
-    fprintf(file, " else ");
+    _write_ident(file, ident);
+    fprintf(file, "else\n");
     m_if->emit_code(file, ident);
 }
 
 
 //emit code
 void ast_else_block_stm::emit_code(FILE *file, int ident) {
-    fprintf(file, " else\n");
+    _write_ident(file, ident);
+    fprintf(file, "else\n");
     m_block->emit_code(file, ident);
 }
 
@@ -372,24 +374,24 @@ void ast_if_stm::emit_code(FILE *file, int ident) {
 
 //emit code
 void ast_print_stm::emit_code(FILE *file, int ident) {
-    _write_ident(file, ident);    
+    _write_ident(file, ident);
     fprintf(file, "cout");
-    
-    for(ast_list<ast_expr>::container::const_iterator it = m_exprs.objects().begin();    
+
+    for(ast_list<ast_expr>::container::const_iterator it = m_exprs.objects().begin();
         it != m_exprs.objects().end();
         ++it)
     {
         fprintf(file, " << ");
         (*it)->emit_code(file, ident);
     }
-    
+
     fprintf(file, ";\n");
 }
 
 
 //return statement
 void ast_return_stm::emit_code(FILE *file, int ident) {
-    _write_ident(file, ident);    
+    _write_ident(file, ident);
     fprintf(file, "return");
     if (m_expr) {
         fprintf(file, " ");
@@ -401,7 +403,7 @@ void ast_return_stm::emit_code(FILE *file, int ident) {
 
 //assignment statement
 void ast_assignment_stm::emit_code(FILE *file, int ident) {
-    _write_ident(file, ident);    
+    _write_ident(file, ident);
     m_left->emit_code(file, ident);
     fprintf(file, " = ");
     m_right->emit_code(file, ident);
@@ -411,7 +413,7 @@ void ast_assignment_stm::emit_code(FILE *file, int ident) {
 
 //expression statement
 void ast_expr_stm::emit_code(FILE *file, int ident) {
-    _write_ident(file, ident);    
+    _write_ident(file, ident);
     m_expr->emit_code(file, ident);
     fprintf(file, ";\n");
 }
@@ -419,16 +421,16 @@ void ast_expr_stm::emit_code(FILE *file, int ident) {
 
 /**** DECLARATIONS ****/
 
-    
+
 //emit code
 void ast_struct_decl::emit_code(FILE *file, int ident) {
     _write_ident(file, ident);
     fprintf(file, "struct %s\n", m_name->m_value.c_str());
     _write_ident(file, ident);
     fprintf(file, "{\n");
-    
+
     //write member variables
-    for(ast_list<ast_var_inst>::container::const_iterator it = m_member_vars.objects().begin();    
+    for(ast_list<ast_var_inst>::container::const_iterator it = m_member_vars.objects().begin();
         it != m_member_vars.objects().end();
         ++it)
     {
@@ -436,10 +438,10 @@ void ast_struct_decl::emit_code(FILE *file, int ident) {
         (*it)->emit_code(file, ident);
         fprintf(file, ";\n");
     }
-    
+
     _write_ident(file, ident);
-    fprintf(file, "};\n\n", m_name->m_value.c_str());
-    
+    fprintf(file, "};\n\n");
+
     fprintf(file, "inline ostream &operator << (ostream &stream, const %s &var)\n", m_name->m_value.c_str());
     _write_ident(file, ident);
     fprintf(file, "{\n");
@@ -448,7 +450,7 @@ void ast_struct_decl::emit_code(FILE *file, int ident) {
         _write_ident(file, ident + 4);
         fprintf(file, "cout << \"{\"");
         int c = 0;
-        for(ast_list<ast_var_inst>::container::const_iterator it = m_member_vars.objects().begin();    
+        for(ast_list<ast_var_inst>::container::const_iterator it = m_member_vars.objects().begin();
             it != m_member_vars.objects().end();
             ++it)
         {
@@ -502,7 +504,7 @@ void ast_var_decl::emit_code(FILE *file, int ident) {
 void ast_func_decl::emit_code(FILE *file, int ident) {
     _write_ident(file, ident);
     fprintf(file, "%s %s(", m_ret_type->name().c_str(), m_name->m_value.c_str());
-    
+
     //write parameters
     for(ast_list<ast_var_inst>::container::const_iterator it = m_param_vars.objects().begin();
         it != m_param_vars.objects().end();
@@ -512,10 +514,10 @@ void ast_func_decl::emit_code(FILE *file, int ident) {
         (*it)->emit_code(file, 0);
     }
     fprintf(file, ")\n");
-    
+
     //write the block statement
     m_body->emit_code(file, ident);
-    
+
     fprintf(file, "\n");
 }
 
@@ -526,7 +528,7 @@ void ast_translation_unit::emit_code(FILE *file, int ident) {
     fprintf(file, "#include <iostream>\n");
     fprintf(file, "#include <string>\n");
     fprintf(file, "using namespace std;\n\n");
-    
+
     //write declarations
     for(ast_list<ast_declaration>::container::const_iterator it = m_declarations.objects().begin();
         it != m_declarations.objects().end();
