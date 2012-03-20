@@ -25,14 +25,14 @@ rule val = num
          | '(' >> expr_ >> ')';
 
 
-rule mul_op = '*' >> mul;
-rule div_op = '/' >> mul;
-rule mul = val >> -(mul_op | div_op);
+rule mul_op = '*' >> val;
+rule div_op = '/' >> val;
+rule mul = val >> *(mul_op | div_op);
 
 
-rule add_op = '+' >> add;
-rule sub_op = '-' >> add;
-rule add = mul >> -(add_op | sub_op);
+rule add_op = '+' >> mul;
+rule sub_op = '-' >> mul;
+rule add = mul >> *(add_op | sub_op);
 
 
 rule expr_ = add;
