@@ -9,7 +9,7 @@ using namespace parserlib;
 /**** GRAMMAR DECLARATIONS ****/
 
 
-extern rule expr_, add, mul;
+extern rule expr_;
 
 
 rule ws = *expr(' ');
