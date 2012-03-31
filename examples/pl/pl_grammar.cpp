@@ -156,40 +156,35 @@ rule unary_expr = logical_not_expr
 
 
 //multiplication
-extern rule mul_expr;
-rule mul_op = '*' >> mul_expr;
-rule div_op = '/' >> mul_expr;
-rule mul_expr = unary_expr >> -(mul_op | div_op);
+rule mul_op = '*' >> unary_expr;
+rule div_op = '/' >> unary_expr;
+rule mul_expr = unary_expr >> *(mul_op | div_op);
 
 
 //add
-extern rule add_expr;
-rule add_op = '+' >> add_expr;
-rule sub_op = '-' >> add_expr;
-rule add_expr = mul_expr >> -(add_op | sub_op);
+rule add_op = '+' >> mul_expr;
+rule sub_op = '-' >> mul_expr;
+rule add_expr = mul_expr >> *(add_op | sub_op);
 
 
 //compare expression
-extern rule cmp_expr;
-rule lt_op = "<" >> cmp_expr;
-rule lte_op = "<=" >> cmp_expr;
-rule gt_op = ">" >> cmp_expr;
-rule gte_op = ">=" >> cmp_expr;
-rule cmp_expr = add_expr >> -(lt_op | lte_op | gt_op | gte_op);
+rule lt_op  = "<"  >> add_expr;
+rule lte_op = "<=" >> add_expr;
+rule gt_op  = ">"  >> add_expr;
+rule gte_op = ">=" >> add_expr;
+rule cmp_expr = add_expr >> *(lt_op | lte_op | gt_op | gte_op);
 
 
 //equal expression
-extern rule eq_expr;
-rule eq_op = "==" >> eq_expr;
-rule diff_op = "!=" >> eq_expr;
-rule eq_expr = cmp_expr >> -(eq_op | diff_op);
+rule eq_op   = "==" >> cmp_expr;
+rule diff_op = "!=" >> cmp_expr;
+rule eq_expr = cmp_expr >> *(eq_op | diff_op);
 
 
 //logical
-extern rule logical_expr;
-rule log_and_op = "&&" >> logical_expr;
-rule log_or_op  = "||" >> logical_expr;
-rule logical_expr = eq_expr >> -(log_and_op | log_or_op);
+rule log_and_op = "&&" >> eq_expr;
+rule log_or_op  = "||" >> eq_expr;
+rule logical_expr = eq_expr >> *(log_and_op | log_or_op);
 
 
 //conditional
