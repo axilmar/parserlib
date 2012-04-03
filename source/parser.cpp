@@ -740,6 +740,20 @@ _state::_state(_context &con) :
 
 //parse non-term rule.
 bool _context::parse_non_term(rule &r) {
+    //TODO resolve left recursion
+    return _parse_non_term(r);
+}
+
+
+//parse term rule.
+bool _context::parse_term(rule &r) {
+    //TODO copy the algorithm from parse_non_term
+    return _parse_term(r);
+}
+
+
+//parse non-term rule internal.
+bool _context::_parse_non_term(rule &r) {
     bool ok;
     if (_private::get_parse_proc(r)) {
         pos b = m_pos;
@@ -755,8 +769,8 @@ bool _context::parse_non_term(rule &r) {
 }
 
 
-//parse term rule.
-bool _context::parse_term(rule &r) {
+//parse term rule internal.
+bool _context::_parse_term(rule &r) {
     bool ok;
     if (_private::get_parse_proc(r)) {
         pos b = m_pos;
