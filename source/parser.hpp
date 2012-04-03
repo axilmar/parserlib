@@ -19,6 +19,7 @@ namespace parserlib {
 
 class _private;
 class _expr;
+class _context;
 class rule;
 
 
@@ -139,39 +140,31 @@ public:
 };
 
 
+///enum with error types.
+enum ERROR_TYPE {
+    ///syntax error
+    ERROR_SYNTAX_ERROR = 1,
+    
+    ///invalid end of file
+    ERROR_INVALID_EOF,
+    
+    ///first user error
+    ERROR_USER = 100
+};
+
+
 ///error.
 class error : public input_range {
 public:
-    ///message.
-    std::wstring m_msg;
+    ///type
+    int m_type;
 
     /** constructor.
         @param b begin position.
         @param e end position.
-        @param m message.
+        @param t type.
      */
-    error(const pos &b, const pos &e, const char *m);
-
-    /** constructor.
-        @param b begin position.
-        @param e end position.
-        @param m message.
-     */
-    error(const pos &b, const pos &e, const wchar_t *m);
-
-    /** constructor.
-        @param b begin position.
-        @param e end position.
-        @param m message.
-     */
-    error(const pos &b, const pos &e, const std::string &m);
-
-    /** constructor.
-        @param b begin position.
-        @param e end position.
-        @param m message.
-     */
-    error(const pos &b, const pos &e, const std::wstring &m);
+    error(const pos &b, const pos &e, int t);
 
     /** compare on begin position.
         @param e the other error to compare this with.
@@ -265,11 +258,12 @@ private:
 
     //associated parse procedure.
     parse_proc m_parse_proc;
-
+    
     //assignment not allowed
     rule &operator = (rule &);
 
     friend class _private;
+    friend class _context;
 };
 
 

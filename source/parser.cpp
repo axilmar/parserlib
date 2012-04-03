@@ -122,6 +122,9 @@ public:
 
     //error position
     pos m_error_pos;
+    
+    //input begin
+    input::iterator m_begin;
 
     //input end
     input::iterator m_end;
@@ -134,6 +137,7 @@ public:
         m_ws(ws),
         m_pos(i),
         m_error_pos(i),
+        m_begin(i.begin()),
         m_end(i.end())
     {
     }
@@ -194,6 +198,13 @@ public:
             p(m.m_begin, m.m_end, d);
         }
     }
+    
+private:
+    //parse non-term rule.
+    bool _parse_non_term(rule &r);
+
+    //parse term rule.
+    bool _parse_term(rule &r);    
 };
 
 
@@ -774,13 +785,13 @@ static pos _next_pos(const pos &p) {
 static error _syntax_error(_context &con) {
     std::wstring str = L"syntax error: ";
     str += (wchar_t)*con.m_error_pos.m_it;
-    return error(con.m_error_pos, _next_pos(con.m_error_pos), str.c_str());
+    return error(con.m_error_pos, _next_pos(con.m_error_pos), ERROR_SYNTAX_ERROR);
 }
 
 
 //get eof error
 static error _eof_error(_context &con) {
-    return error(con.m_error_pos, con.m_error_pos, "invalid end of file");
+    return error(con.m_error_pos, con.m_error_pos, ERROR_INVALID_EOF);
 }
 
 
@@ -885,47 +896,11 @@ input_range::input_range(const pos &b, const pos &e) :
 /** constructor.
     @param b begin position.
     @param e end position.
-    @param m message.
+    @param t error type.
  */
-error::error(const pos &b, const pos &e, const char *m) :
+error::error(const pos &b, const pos &e, int t) :
     input_range(b, e),
-    m_msg(m, m + strlen(m))
-{
-}
-
-
-/** constructor.
-    @param b begin position.
-    @param e end position.
-    @param m message.
- */
-error::error(const pos &b, const pos &e, const wchar_t *m) :
-    input_range(b, e),
-    m_msg(m, m + wcslen(m))
-{
-}
-
-
-/** constructor.
-    @param b begin position.
-    @param e end position.
-    @param m message.
- */
-error::error(const pos &b, const pos &e, const std::string &m) :
-    input_range(b, e),
-    m_msg(m.begin(), m.end())
-{
-}
-
-
-/** constructor.
-    @param b begin position.
-    @param e end position.
-    @param m message.
- */
-error::error(const pos &b, const pos &e, const std::wstring &m) :
-    input_range(b, e),
-    m_msg(m.begin(), m.end())
+    m_type(t)
 {
 }
 

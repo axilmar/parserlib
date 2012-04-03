@@ -9,7 +9,7 @@ using namespace parserlib;
 /**** GRAMMAR DECLARATIONS ****/
 
 
-extern rule expr_;
+extern rule expr_, add, mul;
 
 
 rule ws = *expr(' ');
@@ -24,7 +24,8 @@ rule num = +digit >> -('.' >> +digit >> -(set("eE") >> -set("+-") >> +digit));
 rule val = num
          | '(' >> expr_ >> ')';
 
-
+/**** non-left recursive grammar ****/
+/*
 rule mul_op = '*' >> val;
 rule div_op = '/' >> val;
 rule mul = val >> *(mul_op | div_op);
@@ -33,6 +34,24 @@ rule mul = val >> *(mul_op | div_op);
 rule add_op = '+' >> mul;
 rule sub_op = '-' >> mul;
 rule add = mul >> *(add_op | sub_op);
+*/
+
+
+/**** left recursive grammar ****/
+
+
+rule mul_op = mul >> '*' >> val;
+rule div_op = mul >> '/' >> val;
+rule mul = mul_op 
+         | div_op
+         | val;
+
+
+rule add_op = add >> '+' >> mul;
+rule sub_op = add >> '-' >> mul;
+rule add = add_op
+         | sub_op
+         | mul;
 
 
 rule expr_ = add;
@@ -121,7 +140,8 @@ ast<div_t_> ast_div(div_op);
 int main() {
 	for(;;) {
 		string s;
-		cout << "enter a math expression (+-*/, floats, parentheses) or enter to exit:\n";
+		
+		cout << "enter a math expression (+ - * /, floats, parentheses) or enter to exit:\n";
 		getline(cin, s);
 		if (s.empty()) break;
 
@@ -149,7 +169,7 @@ int main() {
 			{
 				error &err = *it;
 				cout << "line " << err.m_begin.m_line << ", col " << err.m_begin.m_col << ": ";
-				wcout << err.m_msg << endl;
+				wcout << "syntax error" << endl;
 			}
 		}
 
