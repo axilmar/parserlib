@@ -3,6 +3,8 @@ Introduction
 
 ParserLib is a c++ recursive-descent PEG parser.
 
+It can handle left recursion, as shown in the example below.
+
 Version
 -------
 
@@ -45,14 +47,18 @@ For example, a calculator grammar can be written like this:
              | '(' >> exp >> ')';
 
     //multiplication/division
-    rule mul_op = '*' >> mul;
-    rule div_op = '/' >> mul;
-    rule mul = val >> -(mul_op | div_op);
+    rule mul_op = mul >> '*' >> val;
+    rule div_op = mul >> '/' >> val;
+    rule mul = mul_op 
+             | div_op
+             | val;
 
     //addition/subtraction
-    rule add_op = '+' >> add;
-    rule sub_op = '-' >> add;
-    rule add = mul >> -(add_op | sub_op);
+    rule add_op = add >> '+' >> mul;
+    rule sub_op = add >> '-' >> mul;
+    rule add = add_op
+             | sub_op
+             | mul;
 
     //expression
     rule exp = add;
