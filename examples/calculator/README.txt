@@ -14,3 +14,4 @@ For example:
     
 Press enter to exit the application, when requested to input an expression.
 
+The Calculator example contains a left-recursive grammar.

@@ -26,6 +26,7 @@ rule val = num
 
 /**** non-left recursive grammar ****/
 
+/*
 rule mul_op = '*' >> val;
 rule div_op = '/' >> val;
 rule mul = val >> *(mul_op | div_op);
@@ -40,11 +41,11 @@ rule add = mul >> *(add_op | sub_op);
 /**** left recursive grammar ****/
 
 
-/*rule mul_op = mul >> '*' >> val;
+rule mul_op = mul >> '*' >> val;
 rule div_op = mul >> '/' >> val;
 rule mul = mul_op 
          | div_op
-         | val;*/
+         | val;
 
 
 rule add_op = add >> '+' >> mul;
