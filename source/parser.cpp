@@ -730,6 +730,13 @@ public:
 };
 
 
+//exception thrown when left recursion terminates successfully
+struct _lr_ok {
+    rule *m_rule;
+    _lr_ok(rule *r) : m_rule(r) {}
+};
+
+
 //constructor
 _state::_state(_context &con) :
     m_pos(con.m_pos),
@@ -754,12 +761,6 @@ bool _context::parse_non_term(rule &r) {
     
     //update the rule's state
     r.m_state.m_pos = new_pos;
-    
-    //exception thrown when left recursion terminates successfully
-    struct _lr_ok {
-        rule *m_rule;
-        _lr_ok(rule *r) : m_rule(r) {}
-    };
     
     //handle the mode of the rule
     switch (r.m_state.m_mode) {
@@ -817,14 +818,26 @@ bool _context::parse_non_term(rule &r) {
             
         //reject the left recursive rule
         case rule::_REJECT:
-            assert(lr);
-            ok = false;
+            if (lr) {
+                ok = false;
+            }
+            else {
+                r.m_state.m_mode = rule::_PARSE;
+                ok = _parse_non_term(r);
+                r.m_state.m_mode = rule::_REJECT;
+            }
             break;
             
         //accept the left recursive rule
         case rule::_ACCEPT:
-            assert(lr);
-            ok = true;
+            if (lr) {
+                ok = true;
+            }
+            else {
+                r.m_state.m_mode = rule::_PARSE;
+                ok = _parse_non_term(r);
+                r.m_state.m_mode = rule::_ACCEPT;
+            }
             break;
     }
     
@@ -837,8 +850,104 @@ bool _context::parse_non_term(rule &r) {
 
 //parse term rule.
 bool _context::parse_term(rule &r) {
-    //TODO copy the algorithm from parse_non_term
-    return _parse_term(r);
+    //save the state of the rule
+    rule::_state old_state = r.m_state;
+    
+    //success/failure result
+    bool ok;
+    
+    //compute the new position
+    size_t new_pos = m_pos.m_it - m_begin;
+    
+    //check if we have left recursion
+    bool lr = new_pos == r.m_state.m_pos;
+    
+    //update the rule's state
+    r.m_state.m_pos = new_pos;
+    
+    //handle the mode of the rule
+    switch (r.m_state.m_mode) {
+        //normal parse
+        case rule::_PARSE:
+            if (lr) {
+                //first try to parse the rule by rejecting it, so alternative branches are examined                
+                r.m_state.m_mode = rule::_REJECT;
+                ok = _parse_term(r);
+                
+                //if the first try is successful, try accepting the rule,
+                //so other elements of the sequence are parsed
+                if (ok) {
+                    r.m_state.m_mode = rule::_ACCEPT;
+                    
+                    //loop until no more parsing can be done
+                    for(;;) {
+                        //store the correct state, in order to backtrack if the call fails
+                        _state st(*this);
+                        
+                        //update the rule position to the current position,
+                        //because at this state the rule is resolving the left recursion
+                        r.m_state.m_pos = m_pos.m_it - m_begin;
+                    
+                        //if parsing fails, restore the last good state and stop
+                        if (!_parse_term(r)) {
+                            restore(st);
+                            break;
+                        }
+                    }
+                    
+                    //since the left recursion was resolved successfully,
+                    //return via a non-local exit 
+                    r.m_state = old_state;
+                    throw _lr_ok(r.this_ptr());
+                }
+            }
+            else {
+                try {
+                    ok = _parse_term(r);
+                }
+                catch (const _lr_ok &ex) {                
+                    //since left recursions may be mutual, we must test which rule's left recursion
+                    //was ended successfully
+                    if (ex.m_rule == r.this_ptr()) {
+                        ok = true;
+                    }
+                    else {
+                        r.m_state = old_state;
+                        throw;
+                    }
+                }
+            }
+            break;
+            
+        //reject the left recursive rule
+        case rule::_REJECT:
+            if (lr) {
+                ok = false;
+            }
+            else {
+                r.m_state.m_mode = rule::_PARSE;
+                ok = _parse_term(r);
+                r.m_state.m_mode = rule::_REJECT;
+            }
+            break;
+            
+        //accept the left recursive rule
+        case rule::_ACCEPT:
+            if (lr) {
+                ok = true;
+            }
+            else {
+                r.m_state.m_mode = rule::_PARSE;
+                ok = _parse_term(r);
+                r.m_state.m_mode = rule::_ACCEPT;
+            }
+            break;
+    }
+    
+    //restore the rule's state
+    r.m_state = old_state;
+    
+    return ok;
 }
 
 
