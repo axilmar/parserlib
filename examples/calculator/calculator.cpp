@@ -63,7 +63,8 @@ rule expr_ = add;
 
 class expr_t : public ast_container {
 public:
-    virtual double eval() const = 0;
+    virtual double eval() const = 0;    
+    virtual void print(int depth = 0, int tab = 4) const = 0;
 };
 
 
@@ -81,6 +82,10 @@ public:
         return m_value;
     }
 
+    virtual void print(int depth, int tab) const {
+        cout << string(depth * tab, ' ') << m_value << endl;
+    }
+    
 private:
     double m_value;
 };
@@ -89,6 +94,11 @@ private:
 class binary_expr_t : public expr_t {
 public:
     ast_ptr<expr_t> left, right;
+
+    virtual void print(int depth, int tab) const = 0 {
+        left->print(depth);
+        right->print(depth);
+    }
 };
 
 
@@ -96,6 +106,11 @@ class add_t : public binary_expr_t {
 public:
     virtual double eval() const {
         return left->eval() + right->eval();
+    }
+
+    virtual void print(int depth, int tab) const {
+        cout << string(depth * tab, ' ') << "+" << endl;        
+        binary_expr_t::print(depth+1, tab);
     }
 };
 
@@ -105,6 +120,11 @@ public:
     virtual double eval() const {
         return left->eval() - right->eval();
     }
+
+    virtual void print(int depth, int tab) const {
+        cout << string(depth * tab, ' ') << "-" << endl;        
+        binary_expr_t::print(depth+1, tab);
+    }
 };
 
 
@@ -113,6 +133,11 @@ public:
     virtual double eval() const {
         return left->eval() * right->eval();
     }
+
+    virtual void print(int depth, int tab) const {
+        cout << string(depth * tab, ' ') << "*" << endl;        
+        binary_expr_t::print(depth+1, tab);
+    }
 };
 
 
@@ -120,6 +145,11 @@ class div_t_ : public binary_expr_t {
 public:
     virtual double eval() const {
         return left->eval() / right->eval();
+    }
+
+    virtual void print(int depth, int tab) const {
+        cout << string(depth * tab, ' ') << "/" << endl;        
+        binary_expr_t::print(depth+1, tab);
     }
 };
 
@@ -157,7 +187,10 @@ int main() {
 		//on success
 		if (r) {
 			double v = r->eval();
-			cout << "success; result = " << v << "\n";
+			cout << "success\n";
+			cout << "result = " << v << endl;
+			cout << "parse tree:\n";
+			r->print(0, 2);
 			delete r;
 		}
 

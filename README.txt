@@ -4,6 +4,7 @@ Introduction
 ParserLib is a c++ recursive-descent PEG parser.
 
 It can handle left recursion, as shown in the example below.
+For a full explanation of how this works, see the file LEFT_RECURSION.txt.
 
 Version
 -------
