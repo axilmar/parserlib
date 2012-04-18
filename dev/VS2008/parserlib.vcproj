@@ -246,6 +246,14 @@
 			RelativePath="..\..\source\shared_ptr.hpp"
 			>
 		</File>
+		<File
+			RelativePath="..\..\source\string_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\string_parser.hpp"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
