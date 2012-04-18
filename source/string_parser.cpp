@@ -40,10 +40,10 @@ string_parser::string_parser(const wchar_t *str) {
     @return true if parsing succeeded, false otherwise.
  */
 bool string_parser::parse(parse_context &context, parse_node &parent, input_position &pos) const {
-    for(input_iterator it = m_string.begin();;) {
+    for(input_iterator it = m_string.begin(), end = m_string.end();;) {
     
         //if the whole string was compared, then we have a match
-        if (it == m_string.end()) {
+        if (it == end) {
             return true;
         }
         
