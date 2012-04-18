@@ -183,6 +183,7 @@ For more examples, please look at the folder 'examples'.
 TODO
 ----
 
--more examples.
 -full code documentation.
 -account for tab size.
+-handle multiple errors.
+
