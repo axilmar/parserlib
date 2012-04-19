@@ -171,11 +171,43 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\source\and_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\and_parser.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\source\char_parser.cpp"
 			>
 		</File>
 		<File
 			RelativePath="..\..\source\char_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\choice_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\choice_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\composite_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\composite_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\eof_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\eof_parser.hpp"
 			>
 		</File>
 		<File
@@ -199,6 +231,38 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\source\loop_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\loop_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\newline_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\newline_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\not_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\not_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\optional_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\optional_parser.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\source\parse_context.cpp"
 			>
 		</File>
@@ -215,7 +279,23 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\source\parser_expr.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\parser_expr.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\source\parser_object.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\parser_state.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\parser_state.hpp"
 			>
 		</File>
 		<File
@@ -224,6 +304,22 @@
 		</File>
 		<File
 			RelativePath="..\..\source\range_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\rule_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\rule_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\sequence_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\sequence_parser.hpp"
 			>
 		</File>
 		<File
@@ -252,6 +348,22 @@
 		</File>
 		<File
 			RelativePath="..\..\source\string_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\term_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\term_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\unary_parser.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\unary_parser.hpp"
 			>
 		</File>
 	</Files>

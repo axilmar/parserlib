@@ -37,9 +37,10 @@ string_parser::string_parser(const wchar_t *str) {
     @param context the current parse context.
     @param parent parent parse tree node; children nodes add themselves to this node.
     @param pos parse position; parsing continues from this position, if successful. 
+    @param parse_ws if true, whitespace is parsed between terminals.
     @return true if parsing succeeded, false otherwise.
  */
-bool string_parser::parse(parse_context &context, parse_node &parent, input_position &pos) const {
+bool string_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
     for(input_iterator it = m_string.begin(), end = m_string.end();;) {
     
         //if the whole string was compared, then we have a match

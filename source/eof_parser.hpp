@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_CHAR_PARSER_HPP
-#define PARSERLIB_CHAR_PARSER_HPP
+#ifndef PARSERLIB_EOF_PARSER_HPP
+#define PARSERLIB_EOF_PARSER_HPP
 
 
 #include "parser_object.hpp"
@@ -8,32 +8,24 @@
 namespace parserlib {
 
 
-/** Parses a single character.
+/** a parser that tests if the whole input has been parsed.
  */
-class char_parser : public parser_object {
+class eof_parser : public parser_object {
 public:
-    /** constructor.
-        @param ch character to parse.
-     */
-    char_parser(input_char ch);
-    
-    /** Checks if the character at the current position equals the internal character.
-        If so, the column is incremented.
+    /** True if the end of input has been reached, false otherwise.
+        The parser state after this method is the same as the state before calling this method.
         @param context the current parse context.
         @param parent parent parse tree node; children nodes add themselves to this node.
         @param pos parse position; parsing continues from this position, if successful. 
         @param parse_ws if true, whitespace is parsed between terminals.
         @return true if parsing succeeded, false otherwise.
+        @exception left_recursion_success thrown if left recursion is successfully parsed.
      */
     virtual bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const;
-
-private:
-    //character to parse.
-    input_char m_char;
-}; 
+};
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB_CHAR_PARSER_HPP
+#endif //PARSERLIB_EOF_PARSER_HPP

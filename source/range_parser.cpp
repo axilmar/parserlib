@@ -20,9 +20,10 @@ range_parser::range_parser(input_char min, input_char max) :
     @param context the current parse context.
     @param parent parent parse tree node; children nodes add themselves to this node.
     @param pos parse position; parsing continues from this position, if successful. 
+    @param parse_ws if true, whitespace is parsed between terminals.
     @return true if parsing succeeded, false otherwise.
  */
-bool range_parser::parse(parse_context &context, parse_node &parent, input_position &pos) const {
+bool range_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
     if (context.valid_position(pos) && has_char(*pos.it())) {
         pos.next_col();
         return true;

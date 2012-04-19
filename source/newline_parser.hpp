@@ -1,39 +1,35 @@
-#ifndef PARSERLIB_CHAR_PARSER_HPP
-#define PARSERLIB_CHAR_PARSER_HPP
+#ifndef PARSERLIB_NEWLINE_PARSER_HPP
+#define PARSERLIB_NEWLINE_PARSER_HPP
 
 
-#include "parser_object.hpp"
+#include "unary_parser.hpp"
 
 
 namespace parserlib {
 
 
-/** Parses a single character.
+/** a parser that handles newlines.
  */
-class char_parser : public parser_object {
+class newline_parser : public unary_parser {
 public:
-    /** constructor.
-        @param ch character to parse.
+    /** the constructor.
+        @param p child parser.
      */
-    char_parser(input_char ch);
+    newline_parser(const parser_object_ptr &p);        
     
-    /** Checks if the character at the current position equals the internal character.
-        If so, the column is incremented.
+    /** If the child parser returns true, the line is incremented.
         @param context the current parse context.
         @param parent parent parse tree node; children nodes add themselves to this node.
         @param pos parse position; parsing continues from this position, if successful. 
         @param parse_ws if true, whitespace is parsed between terminals.
         @return true if parsing succeeded, false otherwise.
+        @exception left_recursion_success thrown if left recursion is successfully parsed.
      */
     virtual bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const;
-
-private:
-    //character to parse.
-    input_char m_char;
-}; 
+};
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB_CHAR_PARSER_HPP
+#endif //PARSERLIB_NEWLINE_PARSER_HPP
