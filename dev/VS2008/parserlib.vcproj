@@ -307,6 +307,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\source\rule.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\rule.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\source\rule_parser.cpp"
 			>
 		</File>

@@ -43,6 +43,7 @@ set_parser::set_parser(const wchar_t *set) {
     @return true if parsing succeeded, false otherwise.
  */
 bool set_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+    if (parse_ws) context.parse_whitespace(parent, pos);    
     if (context.valid_position(pos) && has_char(*pos.it())) {
         pos.next_col();
         return true;

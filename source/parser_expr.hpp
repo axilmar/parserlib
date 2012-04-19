@@ -15,6 +15,9 @@ class rule;
  */
 class parser_expr {
 public:
+    ///the default constructor.
+    parser_expr() {}
+
     /** constructs a parser expression out of a pointer to a parser object.
         @param p pointer to a parser object.
      */

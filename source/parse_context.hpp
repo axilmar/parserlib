@@ -2,7 +2,7 @@
 #define PARSERLIB_PARSE_CONTEXT_HPP
 
 
-#include "input_position.hpp"
+#include "parse_node.hpp"
 
 
 namespace parserlib {
@@ -14,8 +14,9 @@ class parse_context {
 public:
     /** the default constructor.
         @param buf input buffer.
+        @param ws whitespace rule.
      */
-    parse_context(input_buffer &buf);
+    parse_context(input_buffer &buf, rule &ws);
     
     /** returns the input end.
         @return the input end.
@@ -38,6 +39,12 @@ public:
         @param pos the new error position.
      */
     void set_error_position(const input_position &pos);
+    
+    /** parse whitespace.
+        @param parent parent parse tree node; children nodes add themselves to this node.
+        @param pos parse position; parsing continues from this position, if successful. 
+     */
+    void parse_whitespace(parse_node &parent, input_position &pos);
 
 private:
     //iterator to end of input buffer.
@@ -45,6 +52,9 @@ private:
     
     //the error position
     input_position m_error_position;
+    
+    //the whitespace rule
+    rule &m_whitespace;
 }; 
 
 

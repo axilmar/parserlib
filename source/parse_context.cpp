@@ -1,4 +1,5 @@
 #include "parse_context.hpp"
+#include "rule.hpp"
 
 
 namespace parserlib {
@@ -6,9 +7,10 @@ namespace parserlib {
 
 /** the default constructor.
     @param buf input buffer.
+    @param ws whitespace rule.
  */
-parse_context::parse_context(input_buffer &buf) : 
-    m_input_end(buf.end()), m_error_position(buf)
+parse_context::parse_context(input_buffer &buf, rule &ws) : 
+    m_input_end(buf.end()), m_error_position(buf), m_whitespace(ws)
 {
 }
 
@@ -46,6 +48,15 @@ void parse_context::set_error_position(const input_position &pos) {
     if (pos > m_error_position) {
         m_error_position = pos;
     }
+}
+
+
+/** parse whitespace.
+    @param parent parent parse tree node; children nodes add themselves to this node.
+    @param pos parse position; parsing continues from this position, if successful. 
+ */
+void parse_context::parse_whitespace(parse_node &parent, input_position &pos) {
+    m_whitespace.parse(*this, parent, pos, false);
 }
 
 
