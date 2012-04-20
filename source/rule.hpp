@@ -10,6 +10,9 @@
 
 
 #include "parser_expr.hpp"
+#include "id_object.hpp"
+#include "rule_state.hpp"
+#include "parse_node_ptr.hpp"
 
 
 namespace parserlib {
@@ -17,7 +20,7 @@ namespace parserlib {
 
 /** Represents a rule of the grammar.
  */
-class rule {
+class rule : public id_object {
 public:
     /** constructor from parser expression.
         @param e expression.
@@ -84,11 +87,24 @@ public:
         @return true if parsing succeeded, false otherwise.
         @exception left_recursion_success thrown if left recursion is successfully parsed.
      */
-    bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws);
+    bool parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws);
+    
+    /** Parses the rule.
+        It does memoization of the parse result, and it also handles left recursion.
+        @param context the current parse context.
+        @param pos parse position; parsing continues from this position, if successful. 
+        @param parse_ws if true, whitespace is parsed between terminals.
+        @param root the result root node of the parse tree.
+        @return true if parsing succeeded, false otherwise.
+     */
+    bool parse(parse_context &context, input_position &pos, bool parse_ws, parse_node_ptr &root);
     
 private:
     //wrapper over a parser expression
     parser_expr m_expr;    
+
+    //internal parse with a different status
+    bool internal_parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws, rule_state::STATUS status);
 }; 
 
 

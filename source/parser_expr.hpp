@@ -3,6 +3,7 @@
 
 
 #include "parser_object.hpp"
+#include "input_char.hpp"
 
 
 namespace parserlib {

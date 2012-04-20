@@ -1,4 +1,5 @@
 #include "string_parser.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
@@ -40,7 +41,7 @@ string_parser::string_parser(const wchar_t *str) {
     @param parse_ws if true, whitespace is parsed between terminals.
     @return true if parsing succeeded, false otherwise.
  */
-bool string_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool string_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     if (parse_ws) context.parse_whitespace(parent, pos);    
     
     for(input_iterator it = m_string.begin(), end = m_string.end();;) {

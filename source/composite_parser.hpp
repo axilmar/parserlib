@@ -2,6 +2,7 @@
 #define PARSERLIB_COMPOSITE_PARSER_HPP
 
 
+#include <vector>
 #include "parser_object.hpp"
 
 

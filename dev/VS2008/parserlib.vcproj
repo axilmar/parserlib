@@ -211,6 +211,14 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\source\id_object.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\id_object.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\source\input_buffer.hpp"
 			>
 		</File>
@@ -228,6 +236,14 @@
 		</File>
 		<File
 			RelativePath="..\..\source\input_position.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\left_recursion_success.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\left_recursion_success.hpp"
 			>
 		</File>
 		<File
@@ -279,6 +295,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\..\source\parse_node_ptr.hpp"
+			>
+		</File>
+		<File
 			RelativePath="..\..\source\parser_expr.cpp"
 			>
 		</File>
@@ -296,6 +316,14 @@
 		</File>
 		<File
 			RelativePath="..\..\source\parser_state.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\parserlib.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\parserlib.hpp"
 			>
 		</File>
 		<File
@@ -320,6 +348,14 @@
 		</File>
 		<File
 			RelativePath="..\..\source\rule_parser.hpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\rule_state.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\source\rule_state.hpp"
 			>
 		</File>
 		<File

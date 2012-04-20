@@ -2,7 +2,9 @@
 #define PARSERLIB_SET_PARSER_HPP
 
 
+#include <vector>
 #include "parser_object.hpp"
+#include "input_char.hpp"
 
 
 namespace parserlib {
@@ -35,7 +37,7 @@ public:
         @param parse_ws if true, whitespace is parsed between terminals.
         @return true if parsing succeeded, false otherwise.
      */
-    virtual bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const;
+    virtual bool parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const;
 
 private:
     //the set of characters are represented as vectors of booleans, for performance reasons.

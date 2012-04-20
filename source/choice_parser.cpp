@@ -23,7 +23,7 @@ choice_parser::choice_parser(const parser_object_ptr &p1, const parser_object_pt
     @return true if parsing succeeded, false otherwise.
     @exception left_recursion_success thrown if left recursion is successfully parsed.
  */
-bool choice_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool choice_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     for(parser_object_container::const_iterator it = parsers().begin(), end = parsers().end();
         it != end;
         ++it)

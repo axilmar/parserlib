@@ -1,5 +1,6 @@
 #include "eof_parser.hpp"
 #include "parser_state.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
@@ -14,8 +15,8 @@ namespace parserlib {
     @return true if parsing succeeded, false otherwise.
     @exception left_recursion_success thrown if left recursion is successfully parsed.
  */
-bool eof_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
-    return pos.it() == context.input_end();
+bool eof_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
+    return context.end_position(pos);
 }
 
 

@@ -3,8 +3,8 @@
 
 
 #include "shared_object.hpp"
-#include "shared_ptr.hpp"
 #include "input_position.hpp"
+#include "parse_node_ptr.hpp"
 
 
 namespace parserlib {
@@ -14,10 +14,6 @@ class rule;
 
 
 class parse_node;
-
-
-///type of pointer to parse node.
-typedef shared_ptr<parse_node> parse_node_ptr;
 
 
 ///container of parse nodes.

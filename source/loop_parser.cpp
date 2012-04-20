@@ -22,7 +22,7 @@ loop_parser::loop_parser(const parser_object_ptr &p) :
     @return always true.
     @exception left_recursion_success thrown if left recursion is successfully parsed.
  */
-bool loop_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool loop_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     for(;;) {
         parser_state state(parent, pos);
         if (parser()->parse(context, parent, pos, parse_ws)) continue;

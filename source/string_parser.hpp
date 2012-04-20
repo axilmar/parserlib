@@ -3,6 +3,7 @@
 
 
 #include "parser_object.hpp"
+#include "input_buffer.hpp"
 
 
 namespace parserlib {
@@ -35,7 +36,7 @@ public:
         @param parse_ws if true, whitespace is parsed between terminals.
         @return true if parsing succeeded, false otherwise.
      */
-    virtual bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const;
+    virtual bool parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const;
 
 private:
     //string of characters

@@ -3,11 +3,15 @@
 
 
 #include "shared_object.hpp"
-#include "parse_context.hpp"
-#include "parse_node.hpp"
+#include "shared_ptr.hpp"
+#include "parse_node_ptr.hpp"
 
 
 namespace parserlib {
+
+
+class parse_context;
+class input_position;
 
 
 /** base class for parser objects.
@@ -28,7 +32,7 @@ public:
         @return true if parsing succeeded, false otherwise.
         @exception left_recursion_success thrown if left recursion is successfully parsed.
      */
-    virtual bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const = 0;
+    virtual bool parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const = 0;
 }; 
 
 

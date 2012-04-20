@@ -22,7 +22,7 @@ term_parser::term_parser(const parser_object_ptr &p) :
     @return true if parsing succeeded, false otherwise.
     @exception left_recursion_success thrown if left recursion is successfully parsed.    
  */
-bool term_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool term_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     return parser()->parse(context, parent, pos, false);
 }
 

@@ -20,7 +20,7 @@ rule_parser::rule_parser(rule &r) : m_rule(r) {
     @return true if parsing succeeded, false otherwise.
     @exception left_recursion_success thrown if left recursion is successfully parsed.
  */
-bool rule_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool rule_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     return m_rule.parse(context, parent, pos, parse_ws);
 }
 

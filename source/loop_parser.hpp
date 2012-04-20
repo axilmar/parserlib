@@ -25,7 +25,7 @@ public:
         @return always true.
         @exception left_recursion_success thrown if left recursion is successfully parsed.
      */
-    virtual bool parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const;
+    virtual bool parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const;
 };
 
 

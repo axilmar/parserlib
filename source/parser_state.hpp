@@ -2,7 +2,8 @@
 #define PARSERLIB_PARSER_STATE_HPP
 
 
-#include "parse_node.hpp"
+#include "parse_node_ptr.hpp"
+#include "input_position.hpp"
 
 
 namespace parserlib {
@@ -17,13 +18,13 @@ public:
         @param parent parent node.
         @param pos current position.
      */
-    parser_state(parse_node &parent, input_position &pos);
+    parser_state(const parse_node_ptr &parent, input_position &pos);
     
     /** restores the parser state.
         @param parent parent node.
         @param pos current position.
      */
-    void restore(parse_node &parent, input_position &pos);
+    void restore(const parse_node_ptr &parent, input_position &pos);
 
 private:
     //number of subnodes in parent

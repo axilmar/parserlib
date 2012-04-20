@@ -23,7 +23,7 @@ and_parser::and_parser(const parser_object_ptr &p) :
     @return true if parsing succeeded, false otherwise.
     @exception left_recursion_success thrown if left recursion is successfully parsed.    
  */
-bool and_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool and_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     parser_state state(parent, pos);
     bool success = parser()->parse(context, parent, pos, parse_ws);
     state.restore(parent, pos);

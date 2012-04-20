@@ -1,4 +1,5 @@
 #include "set_parser.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
@@ -42,7 +43,7 @@ set_parser::set_parser(const wchar_t *set) {
     @param parse_ws if true, whitespace is parsed between terminals.
     @return true if parsing succeeded, false otherwise.
  */
-bool set_parser::parse(parse_context &context, parse_node &parent, input_position &pos, bool parse_ws) const {
+bool set_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     if (parse_ws) context.parse_whitespace(parent, pos);    
     if (context.valid_position(pos) && has_char(*pos.it())) {
         pos.next_col();
