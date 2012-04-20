@@ -1,4 +1,5 @@
 #include "sequence_parser.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
@@ -29,6 +30,7 @@ bool sequence_parser::parse(parse_context &context, const parse_node_ptr &parent
     {
         const parser_object_ptr &p = *it;
         if (!p->parse(context, parent, pos, parse_ws)) return false;
+        if (parse_ws) context.parse_whitespace(parent, pos);    
     }
     return true;
 }

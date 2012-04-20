@@ -25,7 +25,6 @@ range_parser::range_parser(input_char min, input_char max) :
     @return true if parsing succeeded, false otherwise.
  */
 bool range_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
-    if (parse_ws) context.parse_whitespace(parent, pos);    
     if (context.valid_position(pos) && has_char(*pos.it())) {
         pos.next_col();
         return true;

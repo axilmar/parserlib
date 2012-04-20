@@ -10,7 +10,7 @@ namespace parserlib {
     @param begin begin position.
  */
 parse_node::parse_node(rule &mr, const input_position &begin) : 
-    m_matched_rule(mr), m_begin_position(begin), m_end_position(begin)
+    m_matched_rule(&mr), m_begin_position(begin), m_end_position(begin)
 {
 }
     
@@ -19,7 +19,7 @@ parse_node::parse_node(rule &mr, const input_position &begin) :
     @return the matched rule.
  */
 rule &parse_node::matched_rule() const {
-    return m_matched_rule;
+    return *m_matched_rule;
 }
 
 
@@ -52,6 +52,7 @@ const parse_node_container &parse_node::subnodes() const {
  */
 void parse_node::add_subnode(const parse_node_ptr &sn) {
     m_subnodes.push_back(sn);
+    m_end_position = sn->m_end_position;
 }
 
 
@@ -67,7 +68,7 @@ void parse_node::resize_subnodes(size_t n) {
     @param pos the new end position.
  */
 void parse_node::set_end_position(const input_position &pos) {
-    assert(pos > m_begin_position);
+    assert(pos >= m_begin_position);
     m_end_position = pos;
 }
 

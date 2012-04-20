@@ -138,8 +138,8 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
     
     bool success;
     
-    //create a new parse node for this rule
-    pn = new parse_node(*this, pos);
+    //keep the begin position
+    input_iterator begin = pos.it();
     
     //handle the current rule's status
     switch (st.status()) {
@@ -147,16 +147,16 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
         case rule_state::NORMAL:
             if (left_rec) {
                 //first try to parse the rule by rejecting it, so alternative branches are examined                
-                success = internal_parse(context, pn, pos, parse_ws, rule_state::REJECT);
+                success = internal_parse(context, parent, pos, parse_ws, rule_state::REJECT);
                 
                 //if the first try is successful, try accepting the rule,
                 //so other elements of the sequence are parsed
                 if (success) {
                     //loop until no more parsing can be done
                     for(;;) {
-                        parser_state st(pn, pos);
-                        if (!internal_parse(context, pn, pos, parse_ws, rule_state::ACCEPT)) {
-                            st.restore(pn, pos);
+                        parser_state st(parent, pos);
+                        if (!internal_parse(context, parent, pos, parse_ws, rule_state::ACCEPT)) {
+                            st.restore(parent, pos);
                             break;
                         }
                     }
@@ -169,7 +169,13 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
             else {
                 //try normal parsing
                 try {
+                    pn = new parse_node(*this, pos);                
                     success = internal_parse(context, pn, pos, parse_ws, rule_state::NORMAL);
+                    if (success && pos.it() > begin) { //TODO fix the repetition of this piece of code
+                        pn->set_end_position(pos);
+                        parent->add_subnode(pn);
+                        context.memoize_parse_tree(pn);
+                    }                    
                 }
                 
                 //since left recursions may be mutual, 
@@ -178,6 +184,11 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
                 catch (const left_recursion_success &ex) {                
                     if (ex.rule_id() == id()) {
                         success = true;
+                        if (success && pos.it() > begin) {
+                            pn->set_end_position(pos);
+                            parent->add_subnode(pn);
+                            context.memoize_parse_tree(pn);
+                        }                    
                     }
                     else {
                         throw;
@@ -192,7 +203,13 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
                 return false;
             }
             else {
+                pn = new parse_node(*this, pos);                
                 success = internal_parse(context, pn, pos, parse_ws, rule_state::NORMAL);
+                if (success && pos.it() > begin) {
+                    pn->set_end_position(pos);
+                    parent->add_subnode(pn);
+                    context.memoize_parse_tree(pn);
+                }                    
             }
             break;
             
@@ -202,15 +219,15 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
                 return true;
             }
             else {
+                pn = new parse_node(*this, pos);                
                 success = internal_parse(context, pn, pos, parse_ws, rule_state::NORMAL);
+                if (success && pos.it() > begin) {
+                    pn->set_end_position(pos);
+                    parent->add_subnode(pn);
+                    context.memoize_parse_tree(pn);
+                }                    
             }
             break;
-    }
-    
-    //on success, add the node to the parent, and memoize the result
-    if (success) {
-        parent->add_subnode(pn);
-        context.memoize_parse_tree(pn);
     }
     
     return success;
@@ -234,6 +251,11 @@ bool rule::parse(parse_context &context, input_position &pos, bool parse_ws, par
     //create a new parse node for this rule
     root = new parse_node(*this, pos);
     
+    //parse initial whitespace
+    if (parse_ws) context.parse_whitespace(root, pos);    
+    
+    input_iterator begin = pos.it();
+    
     //parse with normal state
     bool success = internal_parse(context, root, pos, parse_ws, rule_state::NORMAL);
     
@@ -241,7 +263,7 @@ bool rule::parse(parse_context &context, input_position &pos, bool parse_ws, par
     //parse the remaining whitespace 
     //and reevaluate the success status by checking
     //if the whole input is consumed
-    if (success) {
+    if (success && pos.it() > begin) {
         context.memoize_parse_tree(root);
         context.parse_whitespace(root, pos);
         success = context.end_position(pos);

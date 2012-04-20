@@ -70,7 +70,7 @@ public:
 
 private:
     //matched rule
-    rule &m_matched_rule;
+    rule *m_matched_rule;
     
     //begin position
     input_position m_begin_position;

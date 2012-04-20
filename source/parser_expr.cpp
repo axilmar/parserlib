@@ -145,6 +145,15 @@ parser_expr term(const parser_expr &e) {
     @param s null-terminated string with characters of the set.
     @return the appropriate parser expression.
  */
+parser_expr set(const char *s) {
+    return new set_parser(s);
+}
+
+
+/** creates a parser expression that is a set.
+    @param s null-terminated string with characters of the set.
+    @return the appropriate parser expression.
+ */
 parser_expr set(const wchar_t *s) {
     return new set_parser(s);
 }

@@ -1,5 +1,6 @@
 #include "loop_parser.hpp"
 #include "parser_state.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
@@ -24,6 +25,7 @@ loop_parser::loop_parser(const parser_object_ptr &p) :
  */
 bool loop_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
     for(;;) {
+        if (parse_ws) context.parse_whitespace(parent, pos);    
         parser_state state(parent, pos);
         if (parser()->parse(context, parent, pos, parse_ws)) continue;
         state.restore(parent, pos);
