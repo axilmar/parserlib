@@ -2,6 +2,7 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
+#include <ostream>
 #include "shared_object.hpp"
 #include "input_position.hpp"
 #include "parse_node_ptr.hpp"
@@ -67,6 +68,12 @@ public:
         @param pos the new end position.
      */
     void set_end_position(const input_position &pos);
+    
+    /** prints the parse tree to the given stream.
+        @param stream stream.
+        @param depth depth of tree.
+     */
+    void print(std::ostream &stream, size_t depth = 0) const;
 
 private:
     //matched rule

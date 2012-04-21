@@ -1,4 +1,6 @@
+#include <string>
 #include "parse_node.hpp"
+#include "rule.hpp"
 
 
 namespace parserlib {
@@ -10,7 +12,7 @@ namespace parserlib {
     @param begin begin position.
  */
 parse_node::parse_node(rule &mr, const input_position &begin) : 
-    m_matched_rule(&mr), m_begin_position(begin), m_end_position(begin)
+    m_matched_rule(mr.this_()), m_begin_position(begin), m_end_position(begin)
 {
 }
     
@@ -70,6 +72,21 @@ void parse_node::resize_subnodes(size_t n) {
 void parse_node::set_end_position(const input_position &pos) {
     assert(pos >= m_begin_position);
     m_end_position = pos;
+}
+
+
+/** prints the parse tree to the given stream.
+    @param stream stream.
+    @param depth depth of tree.
+ */
+void parse_node::print(std::ostream &stream, size_t depth/* = 0*/) const {
+    stream << std::string(depth * 4, ' ') << m_matched_rule->name() << std::endl;
+    for(parse_node_container::const_iterator it = m_subnodes.begin();
+        it != m_subnodes.end();
+        ++it)
+    {
+        (*it)->print(stream, depth + 1);
+    }
 }
 
 

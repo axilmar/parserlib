@@ -99,9 +99,27 @@ public:
      */
     bool parse(parse_context &context, input_position &pos, bool parse_ws, parse_node_ptr &root);
     
+    /** returns the rule's name.
+        @return the rule's name.
+     */
+    const char *name() const;
+    
+    /** sets the rule's name.
+        @param n name.
+     */
+    void set_name(const char *name);
+    
+    /** returns a pointer to this, since the unary operator & is used for operator NOT.
+        @return a pointer to this.
+     */
+    rule *this_() { return this; }
+    
 private:
     //wrapper over a parser expression
     parser_expr m_expr;    
+    
+    //optional name.
+    const char *m_name;
 
     //internal parse with a different status
     bool internal_parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws, rule_state::STATUS status);

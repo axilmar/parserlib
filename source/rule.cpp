@@ -7,62 +7,38 @@
 namespace parserlib {
 
 
-//internal class used to activate a state
-class rule_state_activator {
-public:
-    //activates a rule's state.
-    rule_state_activator(parse_context &context, size_t rule_id, const rule_state &st) :
-        m_context(context), m_rule_id(rule_id)
-    {
-        m_context.push_rule_state(m_rule_id, st);
-    }
-    
-    //deactivates a rule's state
-    ~rule_state_activator() {
-        m_context.pop_rule_state(m_rule_id);
-    }
-
-private:
-    //parse context
-    parse_context &m_context;
-    
-    //rule id
-    size_t m_rule_id;
-};
-
-
 /** constructor from parser expression.
     @param e expression.
  */
-rule::rule(const parser_expr &e) : m_expr(e) {
+rule::rule(const parser_expr &e) : m_expr(e), m_name(0) {
 }
 
 
 /** constructor from character.
     @param c character.
  */
-rule::rule(input_char c) : m_expr(c) {
+rule::rule(input_char c) : m_expr(c), m_name(0) {
 }
 
 
 /** constructor from null-terminated string.
     @param s null-terminated string.
  */
-rule::rule(const char *s) : m_expr(s) {
+rule::rule(const char *s) : m_expr(s), m_name(0) {
 }
 
 
 /** constructor from null-terminated string.
     @param s null-terminated string.
  */
-rule::rule(const wchar_t *s) : m_expr(s) {
+rule::rule(const wchar_t *s) : m_expr(s), m_name(0) {
 }
 
 
 /** constructor from rule reference.
     @param r rule.
  */
-rule::rule(rule &r) : m_expr(r) {
+rule::rule(rule &r) : m_expr(r), m_name(0) {
 }
 
 
@@ -171,11 +147,7 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
                 try {
                     pn = new parse_node(*this, pos);                
                     success = internal_parse(context, pn, pos, parse_ws, rule_state::NORMAL);
-                    if (success && pos.it() > begin) { //TODO fix the repetition of this piece of code
-                        pn->set_end_position(pos);
-                        parent->add_subnode(pn);
-                        context.memoize_parse_tree(pn);
-                    }                    
+                    goto BUILD_PARSE_TREE;
                 }
                 
                 //since left recursions may be mutual, 
@@ -184,11 +156,7 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
                 catch (const left_recursion_success &ex) {                
                     if (ex.rule_id() == id()) {
                         success = true;
-                        if (success && pos.it() > begin) {
-                            pn->set_end_position(pos);
-                            parent->add_subnode(pn);
-                            context.memoize_parse_tree(pn);
-                        }                    
+                        goto BUILD_PARSE_TREE;
                     }
                     else {
                         throw;
@@ -205,11 +173,7 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
             else {
                 pn = new parse_node(*this, pos);                
                 success = internal_parse(context, pn, pos, parse_ws, rule_state::NORMAL);
-                if (success && pos.it() > begin) {
-                    pn->set_end_position(pos);
-                    parent->add_subnode(pn);
-                    context.memoize_parse_tree(pn);
-                }                    
+                goto BUILD_PARSE_TREE;
             }
             break;
             
@@ -221,15 +185,19 @@ bool rule::parse(parse_context &context, const parse_node_ptr &parent, input_pos
             else {
                 pn = new parse_node(*this, pos);                
                 success = internal_parse(context, pn, pos, parse_ws, rule_state::NORMAL);
-                if (success && pos.it() > begin) {
-                    pn->set_end_position(pos);
-                    parent->add_subnode(pn);
-                    context.memoize_parse_tree(pn);
-                }                    
+                goto BUILD_PARSE_TREE;
             }
             break;
     }
     
+    return success;
+
+    BUILD_PARSE_TREE:
+    if (success && pos.it() > begin) {
+        pn->set_end_position(pos);
+        parent->add_subnode(pn);
+        context.memoize_parse_tree(pn);
+    }                    
     return success;
 }
 
@@ -273,10 +241,42 @@ bool rule::parse(parse_context &context, input_position &pos, bool parse_ws, par
 }
 
 
+/** returns the rule's name.
+    @return the rule's name.
+ */
+const char *rule::name() const {
+    return m_name;
+}
+
+
+/** sets the rule's name.
+    @param n name.
+ */
+void rule::set_name(const char *name) {
+    m_name = name;
+}
+
+
 //internal parse with a different status
 bool rule::internal_parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws, rule_state::STATUS status) {
-    rule_state_activator local_rule_state(context, id(), rule_state(pos.it(), status));
-    return m_expr.parser()->parse(context, parent, pos, parse_ws);
+    //create a new state for the rule
+    context.push_rule_state(id(), rule_state(pos.it(), status));
+    
+    bool success;
+    try {
+        //try to parse the internal expression
+        success = m_expr.parser()->parse(context, parent, pos, parse_ws);
+    }
+    
+    //catch left recursion exception in order to pop the rule state
+    catch (const left_recursion_success &) {
+        context.pop_rule_state(id());
+        throw;
+    }
+
+    //pop the rule state    
+    context.pop_rule_state(id());
+    return success;
 }
 
 

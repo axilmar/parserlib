@@ -1,3 +1,4 @@
+#include <iostream>
 #include "parserlib.hpp"
 #include "parse_context.hpp"
 
@@ -21,6 +22,9 @@ bool parse(input_buffer &input, rule &grammar, rule &ws) {
     //parse
     parse_node_ptr parse_tree;
     bool success = grammar.parse(context, pos, true, parse_tree);
+    
+    //TODO remove
+    if (parse_tree) parse_tree->print(std::cout);
     
     //return success
     return success;

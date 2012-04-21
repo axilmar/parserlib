@@ -24,13 +24,20 @@ sequence_parser::sequence_parser(const parser_object_ptr &p1, const parser_objec
     @exception left_recursion_success thrown if left recursion is successfully parsed.
  */
 bool sequence_parser::parse(parse_context &context, const parse_node_ptr &parent, input_position &pos, bool parse_ws) const {
-    for(parser_object_container::const_iterator it = parsers().begin(), end = parsers().end();
-        it != end;
-        ++it)
-    {
+    //iterators
+    parser_object_container::const_iterator it = parsers().begin(), end = parsers().end();
+
+    //parse the first
+    const parser_object_ptr &p = *it;
+    if (!p->parse(context, parent, pos, parse_ws)) return false;
+        
+    //parse the rest        
+    for(++it; it != end; ++it) {
+        //parse whitespace in between
+        if (parse_ws) context.parse_whitespace(parent, pos);    
+        
         const parser_object_ptr &p = *it;
         if (!p->parse(context, parent, pos, parse_ws)) return false;
-        if (parse_ws) context.parse_whitespace(parent, pos);    
     }
     return true;
 }
