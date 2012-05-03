@@ -350,6 +350,26 @@ expr nl(const expr &e);
 expr eof();
 
 
+/** creates a not expression.
+    @param expr expression.
+    @return the appropriate expression.
+ */
+expr not(const expr &expr); 
+
+
+/** creates an and expression.
+    @param expr expression.
+    @return the appropriate expression.
+ */
+expr and(const expr &expr); 
+
+
+/** creates an expression that parses any character.
+    @return the appropriate expression.
+ */
+expr any(); 
+
+
 /** parses the given input.
     The parse procedures of each rule parsed are executed
     before this function returns, if parsing succeeds.

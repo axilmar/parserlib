@@ -730,6 +730,26 @@ public:
 };
 
 
+//any
+class _any : public _expr {
+public:
+    //parse with whitespace
+    virtual bool parse_non_term(_context &con) const {
+        return parse_term(con);
+    }
+
+    //parse terminal
+    virtual bool parse_term(_context &con) const {
+        if (!con.end()) {
+            con.next_col();
+            return true;
+        }
+        con.set_error_pos();
+        return false;
+    }
+};
+
+
 //exception thrown when left recursion terminates successfully
 struct _lr_ok {
     rule *m_rule;
@@ -1321,6 +1341,32 @@ expr nl(const expr &e) {
  */
 expr eof() {
     return _private::construct_expr(new _eof());
+}
+
+
+/** creates a not expression.
+    @param expr expression.
+    @return the appropriate expression.
+ */
+expr not(const expr &expr) {
+    return !expr;
+}
+
+
+/** creates an and expression.
+    @param expr expression.
+    @return the appropriate expression.
+ */
+expr and(const expr &expr) {
+    return &expr;
+}
+
+
+/** creates an expression that parses any character.
+    @return the appropriate expression.
+ */
+expr any() {
+    return _private::construct_expr(new _any());
 }
 
 
