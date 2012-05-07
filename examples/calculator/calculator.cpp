@@ -43,7 +43,7 @@ rule add = mul >> *(add_op | sub_op);
 
 rule mul_op = mul >> '*' >> val;
 rule div_op = mul >> '/' >> val;
-rule mul = mul_op 
+rule mul = mul_op
          | div_op
          | val;
 
@@ -63,7 +63,7 @@ rule expr_ = add;
 
 class expr_t : public ast_container {
 public:
-    virtual double eval() const = 0;    
+    virtual double eval() const = 0;
     virtual void print(int depth = 0, int tab = 4) const = 0;
 };
 
@@ -85,7 +85,7 @@ public:
     virtual void print(int depth, int tab) const {
         cout << string(depth * tab, ' ') << m_value << endl;
     }
-    
+
 private:
     double m_value;
 };
@@ -95,7 +95,7 @@ class binary_expr_t : public expr_t {
 public:
     ast_ptr<expr_t> left, right;
 
-    virtual void print(int depth, int tab) const = 0 {
+    virtual void print(int depth, int tab) const {
         left->print(depth);
         right->print(depth);
     }
@@ -109,7 +109,7 @@ public:
     }
 
     virtual void print(int depth, int tab) const {
-        cout << string(depth * tab, ' ') << "+" << endl;        
+        cout << string(depth * tab, ' ') << "+" << endl;
         binary_expr_t::print(depth+1, tab);
     }
 };
@@ -122,7 +122,7 @@ public:
     }
 
     virtual void print(int depth, int tab) const {
-        cout << string(depth * tab, ' ') << "-" << endl;        
+        cout << string(depth * tab, ' ') << "-" << endl;
         binary_expr_t::print(depth+1, tab);
     }
 };
@@ -135,7 +135,7 @@ public:
     }
 
     virtual void print(int depth, int tab) const {
-        cout << string(depth * tab, ' ') << "*" << endl;        
+        cout << string(depth * tab, ' ') << "*" << endl;
         binary_expr_t::print(depth+1, tab);
     }
 };
@@ -148,7 +148,7 @@ public:
     }
 
     virtual void print(int depth, int tab) const {
-        cout << string(depth * tab, ' ') << "/" << endl;        
+        cout << string(depth * tab, ' ') << "/" << endl;
         binary_expr_t::print(depth+1, tab);
     }
 };
@@ -171,7 +171,7 @@ ast<div_t_> ast_div(div_op);
 int main() {
 	for(;;) {
 		string s;
-		
+
 		cout << "enter a math expression (+ - * /, floats, parentheses) or enter to exit:\n";
 		getline(cin, s);
 		if (s.empty()) break;

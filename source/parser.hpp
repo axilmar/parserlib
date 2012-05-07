@@ -128,10 +128,10 @@ public:
 
     ///end position.
     pos m_end;
-    
+
     ///empty constructor.
     input_range() {}
-    
+
     /** constructor.
         @param b begin position.
         @param e end position.
@@ -144,10 +144,10 @@ public:
 enum ERROR_TYPE {
     ///syntax error
     ERROR_SYNTAX_ERROR = 1,
-    
+
     ///invalid end of file
     ERROR_INVALID_EOF,
-    
+
     ///first user error
     ERROR_USER = 100
 };
@@ -251,7 +251,7 @@ public:
         @return pointer to this.
      */
     rule *this_ptr() { return this; }
-    
+
 private:
     //mode
     enum _MODE {
@@ -259,15 +259,15 @@ private:
         _REJECT,
         _ACCEPT
     };
-    
+
     //state
     struct _state {
         //position in source code, relative to start
         size_t m_pos;
-        
+
         //mode
         _MODE m_mode;
-        
+
         //constructor
         _state(size_t pos = -1, _MODE mode = _PARSE) :
             m_pos(pos), m_mode(mode) {}
@@ -278,10 +278,10 @@ private:
 
     //associated parse procedure.
     parse_proc m_parse_proc;
-    
+
     //state
     _state m_state;
-    
+
     //assignment not allowed
     rule &operator = (rule &);
 
@@ -351,23 +351,23 @@ expr eof();
 
 
 /** creates a not expression.
-    @param expr expression.
+    @param e expression.
     @return the appropriate expression.
  */
-expr not(const expr &expr); 
+expr not_(const expr &e);
 
 
 /** creates an and expression.
-    @param expr expression.
+    @param e expression.
     @return the appropriate expression.
  */
-expr and(const expr &expr); 
+expr and_(const expr &e);
 
 
 /** creates an expression that parses any character.
     @return the appropriate expression.
  */
-expr any(); 
+expr any();
 
 
 /** parses the given input.
@@ -396,7 +396,7 @@ template <class T> T &operator << (T &stream, const input_range &ir) {
         stream << (typename T::char_type)*it;
     }
     return stream;
-} 
+}
 
 
 } //namespace parserlib
