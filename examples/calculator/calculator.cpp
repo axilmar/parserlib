@@ -144,7 +144,13 @@ public:
 class div_t_ : public binary_expr_t {
 public:
     virtual double eval() const {
-        return left->eval() / right->eval();
+		double ret = 0;
+		double rval = right->eval();
+		if (rval != 0)
+		{
+			ret = left->eval() / rval;
+		}
+        return ret;
     }
 
     virtual void print(int depth, int tab) const {
@@ -181,17 +187,17 @@ int main() {
 
 		//parse
 		error_list el;
-		expr_t *r;
-		parse(i, expr_, ::ws, el, r);
+		expr_t* root = 0;
+		parse(i, expr_, ::ws, el, root);
 
 		//on success
-		if (r) {
-			double v = r->eval();
+		if (root) {
+			double v = root->eval();
 			cout << "success\n";
 			cout << "result = " << v << endl;
 			cout << "parse tree:\n";
-			r->print(0, 2);
-			delete r;
+			root->print(0, 2);
+			delete root;
 		}
 
 		//on error
