@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
                  << ", col "
                  << e.m_begin.m_col
                  << ": ";
-            wcout << e.m_msg;
+            //wcout << e.m_msg;
             wcout << endl;
         }
     }
