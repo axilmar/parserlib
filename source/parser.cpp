@@ -1016,8 +1016,6 @@ static pos _next_pos(const pos &p) {
 
 //get syntax error
 static error _syntax_error(_context &con) {
-    std::wstring str = L"syntax error: ";
-    str += (wchar_t)*con.m_error_pos.m_it;
     return error(con.m_error_pos, _next_pos(con.m_error_pos), ERROR_SYNTAX_ERROR);
 }
 
