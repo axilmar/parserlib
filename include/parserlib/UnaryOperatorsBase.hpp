@@ -6,11 +6,11 @@ namespace parserlib
 {
 
 
-    template <class ExpressionType> class ZeroOrMore;
-    template <class ExpressionType> class OneOrMore;
-    template <class ExpressionType> class Optional;
-    template <class ExpressionType> class LogicalAnd;
-    template <class ExpressionType> class LogicalNot;
+    template <typename ExpressionType> class ZeroOrMore;
+    template <typename ExpressionType> class OneOrMore;
+    template <typename ExpressionType> class Optional;
+    template <typename ExpressionType> class LogicalAnd;
+    template <typename ExpressionType> class LogicalNot;
 
 
     /**

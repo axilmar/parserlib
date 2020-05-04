@@ -15,7 +15,7 @@ namespace parserlib
         The given expression can parse one or more times.
         @param ExpressionType expression type to parse in a loop.
      */
-    template <class ExpressionType> class OneOrMore :
+    template <typename ExpressionType> class OneOrMore :
         public Expression,
         public UnaryOperatorsBase<OneOrMore<ExpressionType>>
     {

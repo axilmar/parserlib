@@ -15,7 +15,7 @@ namespace parserlib
         The given expression can parse once, but it does not advance the input position.
         @param ExpressionType expression type to parse.
      */
-    template <class ExpressionType> class LogicalAnd :
+    template <typename ExpressionType> class LogicalAnd :
         public Expression,
         public UnaryOperatorsBase<LogicalAnd<ExpressionType>>
     {

@@ -20,7 +20,7 @@ namespace parserlib
         Allows customization of expression types based on other types.
         @param T type to provide an expression type for.
      */
-    template <class T> class ExpressionType
+    template <typename T> class ExpressionType
     {
     public:
         ///expression type.
@@ -32,7 +32,7 @@ namespace parserlib
         Shortcut for the expression type trait.
         @param T type to provide an expression type for.
      */
-    template <class T>
+    template <typename T>
     using ExpressionTypeT = typename ExpressionType<T>::Type;
 
 

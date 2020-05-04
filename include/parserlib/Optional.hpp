@@ -15,7 +15,7 @@ namespace parserlib
         The given expression can parse once optionally.
         @param ExpressionType expression type to parse optionally.
      */
-    template <class ExpressionType> class Optional :
+    template <typename ExpressionType> class Optional :
         public Expression,
         public UnaryOperatorsBase<Optional<ExpressionType>>
     {

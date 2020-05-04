@@ -15,7 +15,7 @@ namespace parserlib
         A sequence of terminal symbols.
         @param SymbolType type of terminal symbol.
      */
-    template <class SymbolType = char> class TerminalSequence :
+    template <typename SymbolType = char> class TerminalSequence :
         public Expression,
         public UnaryOperatorsBase<TerminalSequence<SymbolType>>
     {

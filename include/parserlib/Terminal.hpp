@@ -14,7 +14,7 @@ namespace parserlib
         A terminal.
         @param SymbolType type of terminal symbol.
      */
-    template <class SymbolType = char> class Terminal :
+    template <typename SymbolType = char> class Terminal :
         public Expression,
         public UnaryOperatorsBase<Terminal<SymbolType>>
     {
@@ -84,7 +84,7 @@ namespace parserlib
 
     /**
         Helper function for creating terminals.
-        @param symbol syhbol.
+        @param symbol symbol.
      */
     template <typename SymbolType>
     Terminal<SymbolType> terminal(const SymbolType& symbol)
