@@ -37,9 +37,9 @@ namespace parserlib
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
             //parse once
-            if (m_expression.parse(pc))
+            if (!m_expression.parse(pc))
             {
-                return true;
+                return false;
             }
 
             //parse multiple types
