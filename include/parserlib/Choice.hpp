@@ -41,7 +41,19 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
-            return false;
+            const auto startPosition = pc.getCurrentPosition();
+
+            //try the left expression
+            if (m_leftExpression.parse(pc))
+            {
+                return true;
+            }
+
+            //restore the current position since the left expression failed
+            pc.setCurrentPosition(startPosition);
+
+            //try the right expression since the left expression failed
+            return m_rightExpression.parse(pc);
         }
 
     private:

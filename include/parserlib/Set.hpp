@@ -36,6 +36,15 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
+            if (pc.isValidPosition())
+            {
+                const auto symbol = pc.getCurrentSymbol();
+                if (m_symbolSet.find(symbol) != m_symbolSet.end())
+                {
+                    pc.advance();
+                    return true;
+                }
+            }
             return false;
         }
 

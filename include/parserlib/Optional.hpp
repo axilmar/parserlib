@@ -36,7 +36,8 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
-            return false;
+            m_expression.parse(pc);
+            return true;
         }
 
     private:

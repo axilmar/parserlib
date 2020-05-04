@@ -41,7 +41,7 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
-            return false;
+            return m_leftExpression.parse(pc) && m_rightExpression.parse(pc);
         }
 
     private:

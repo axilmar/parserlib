@@ -36,7 +36,18 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
-            return false;
+            //parse once
+            if (m_expression.parse(pc))
+            {
+                return true;
+            }
+
+            //parse multiple types
+            while (m_expression.parse(pc))
+            {
+            }
+
+            return true;
         }
 
     private:

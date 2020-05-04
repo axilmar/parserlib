@@ -45,6 +45,35 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
+            const auto startPosition = pc.getCurrentPosition();
+
+            for (auto it = m_symbolArray.begin();;)
+            {
+                //if the current sequence is exhausted, report success
+                if (it == m_symbolArray.end())
+                {
+                    return true;
+                }
+
+                //if the input is exhausted, report a failure
+                if (pc.isEndPosition())
+                {
+                    break;
+                }
+
+                //if the two symbols differ, report an error
+                if (*it != pc.getCurrentSymbol())
+                {
+                    break;
+                }
+
+                //next symbols
+                ++it;
+                pc.advance();
+            }
+
+            //error
+            pc.setCurrentPosition(startPosition);
             return false;
         }
 
