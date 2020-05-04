@@ -29,6 +29,16 @@ namespace parserlib
         {
         }
 
+        /**
+            The parse function.
+            @param pc parse context.
+            @return true on success, false on failure.
+         */
+        template <typename ParseContextType> bool parse(ParseContextType& pc) const
+        {
+            return false;
+        }
+
     private:
         //expression to parse
         const ExpressionType m_expression;
