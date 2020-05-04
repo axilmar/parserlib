@@ -1,0 +1,5 @@
+#ifndef PARSERLIB_RULE_HPP
+#define PARSERLIB_RULE_HPP
+
+
+#endif //PARSERLIB_RULE_HPP

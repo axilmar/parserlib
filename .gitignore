@@ -1,8 +1,1 @@
-Debug/
-Release/
-*.ncb
-*.sln
-*.suo
-*.user
-*.depend
-*.layout
+project/
