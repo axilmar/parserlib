@@ -11,19 +11,19 @@ namespace parserlib
 
     /**
         A parse context implementation class which is based on an std container.
-        @param ContainerType std container type; string by default.
+        @param InputType std container type; string by default.
      */
-    template <typename ContainerType = std::string> class ParseContext
+    template <typename InputType = std::string> class ParseContext
     {
     public:
         ///iterator type.
-        typedef typename ContainerType::const_iterator IteratorType;
+        typedef typename InputType::const_iterator IteratorType;
 
         /**
             Constructor.
             @param input input.
          */
-        ParseContext(ContainerType& input) :
+        ParseContext(InputType& input) :
             m_currentPosition(input.begin()),
             m_endPosition(input.end())
         {
