@@ -37,8 +37,10 @@ namespace parserlib
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
             const auto startPosition = pc.getCurrentPosition();
+            const auto startOutputState = pc.getOutputState();
             const bool result = !m_expression.parse(pc);
             pc.setCurrentPosition(startPosition);
+            pc.setOutputState(startOutputState);
             return result;
         }
 

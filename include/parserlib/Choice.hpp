@@ -42,6 +42,7 @@ namespace parserlib
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
             const auto startPosition = pc.getCurrentPosition();
+            const auto startOutputState = pc.getOutputState();
 
             //try the left expression
             if (m_leftExpression.parse(pc))
@@ -49,8 +50,9 @@ namespace parserlib
                 return true;
             }
 
-            //restore the current position since the left expression failed
+            //restore the current position and output state since the left expression failed
             pc.setCurrentPosition(startPosition);
+            pc.setOutputState(startOutputState);
 
             //try the right expression since the left expression failed
             return m_rightExpression.parse(pc);

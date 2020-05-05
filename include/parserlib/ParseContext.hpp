@@ -3,6 +3,8 @@
 
 
 #include <string>
+#include <vector>
+#include "Match.hpp"
 
 
 namespace parserlib
@@ -13,7 +15,10 @@ namespace parserlib
         A parse context implementation class which is based on an std container.
         @param InputType std container type; string by default.
      */
-    template <typename InputType = std::string> class ParseContext
+    template <
+        typename InputType = std::string, 
+        typename OutputType = std::vector<Match<InputType>>> 
+    class ParseContext
     {
     public:
         ///iterator type.
@@ -91,11 +96,51 @@ namespace parserlib
             return *m_currentPosition;
         }
 
+        /**
+            Returns the current output.
+            @return the current output.
+         */
+        const OutputType& getOutput() const
+        {
+            return m_output;
+        }
+
+        /**
+            Returns the current output state.
+            @return the current output state.
+         */
+        size_t getOutputState() const
+        {
+            return m_output.size();
+        }
+
+        /**
+            Sets the output state.
+            @param state output state.
+         */
+        void setOutputState(size_t state)
+        {
+            m_output.resize(state);
+        }
+
+        /**
+            Adds a match.
+            @param rule rule that was matched.
+            @param start start of input.
+            @param end end of input.
+         */
+        void addMatch(RuleExpression& rule, IteratorType start, IteratorType end)
+        {
+            m_output.emplace_back(rule, start, end);
+        }
+
     private:
         //positions
         IteratorType m_currentPosition;
         IteratorType m_endPosition;
 
+        //output 
+        OutputType m_output;
     };
 
 
