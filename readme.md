@@ -10,9 +10,17 @@ Parserlib is a PEG parser library with the following features:
 
 ## Version ##
 
-The current version is 0.0.2.
+The current version is 0.0.3.
 
-The old version is kept, for now, in the subdirectory *old*.
+## Installation ##
+
+Copy the contents of the include and source folders in your project.
+
+## Folders ##
+
+- include: include files; copy them verbatim to your project.
+- source: source files; copy them verbatim to your project.
+- examples: some examples and tests.
 
 ## Example ##
 
@@ -35,9 +43,10 @@ Here is an example of a calculator grammar:
 	
 	Rule<> expr = add;
 
+You can find the complete calculator example in file [examples/calculator.cpp](file://examples/calculator.cpp "examples/calculator.cpp").
+
 ## To do... ## 
 
-1. support for ASTs.
 2. support for multiple error reporting.
 2. unit tests.
 2. port examples to new version.

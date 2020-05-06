@@ -24,6 +24,9 @@ namespace parserlib
         ///iterator type.
         typedef typename InputType::const_iterator IteratorType;
 
+        ///match type
+        typedef typename OutputType::value_type MatchType;
+
         /**
             Constructor.
             @param input input.

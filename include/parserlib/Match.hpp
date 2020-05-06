@@ -2,6 +2,7 @@
 #define PARSERLIB_MATCH_HPP
 
 
+#include <string>
 #include "RuleExpression.hpp"
 
 
@@ -13,7 +14,7 @@ namespace parserlib
         A parser match.
         @param InputType type of input.
      */
-    template <class InputType> class Match
+    template <typename InputType = std::string> class Match
     {
     public:
         ///type of input iterator.
@@ -65,6 +66,15 @@ namespace parserlib
         IteratorType getEnd() const
         {
             return m_end;
+        }
+
+        /**
+            Conversion to string.
+            @return string that represents the match.
+         */
+        operator std::string () const
+        {
+            return std::string(m_start, m_end);
         }
 
     private:

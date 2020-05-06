@@ -1,4 +1,0 @@
-<root name="foo" size="10">
-  <child name="child1"/>
-  <child name="child2"/>
-</root>

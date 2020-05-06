@@ -7,6 +7,7 @@
 #include "UnaryOperatorsBase.hpp"
 #include "ParseContext.hpp"
 #include "RuleReference.hpp"
+#include "ASTNode.hpp"
 
 
 namespace parserlib
@@ -22,6 +23,12 @@ namespace parserlib
         public UnaryOperatorsBase<Rule<ParseContextType>>
     {
     public:
+        ///match type.
+        typedef typename ParseContextType::MatchType MatchType;
+
+        ///Type of callback function to invoke when this rule is parsed.
+        typedef std::function<void(const MatchType &, ASTNodeStack&)> CallbackType;
+
         /**
             Constructor.
             @param expr expression.
@@ -29,7 +36,7 @@ namespace parserlib
         template <typename ExpressionType>
         Rule(ExpressionType&& expression) :
             m_expression(
-                [expr = std::move(expression)](ParseContextType& pc)
+                [expr = std::move(ExpressionTypeT<ExpressionType>(expression))](ParseContextType& pc)
                 {
                     return expr.parse(pc);
                 })
@@ -58,7 +65,7 @@ namespace parserlib
         Rule(const std::string& name, ExpressionType&& expression) :
             RuleExpression(name),
             m_expression(
-                [expr = std::move(expression)](ParseContextType& pc)
+                [expr = std::move(ExpressionTypeT<ExpressionType>(expression))](ParseContextType& pc)
                 {
                     return expr.parse(pc);
                 })
@@ -92,38 +99,58 @@ namespace parserlib
             switch (m_state)
             {
                 case START:
-                {
-                    m_state = PARSE;
-                    m_lastInput = pc.getCurrentPosition();
-                    const auto startInput = m_lastInput;
-
-                    try
                     {
-                        result = _parse(pc, startInput);
-                    }
+                        auto prevLastInput = m_lastInput;
+                        m_state = PARSE;
+                        m_lastInput = pc.getCurrentPosition();
+                        const auto startInput = m_lastInput;
 
-                    catch (LeftRecursion)
-                    {
-                        m_state = REJECT;
-                        result = _parse(pc, startInput);
-
-                        if (result)
+                        try
                         {
-                            m_state = ACCEPT;
-                            while (true)
+                            result = _parse(pc, startInput);
+                        }
+
+                        catch (LeftRecursion)
+                        {
+                            m_state = REJECT;
+                            try
                             {
-                                m_lastInput = pc.getCurrentPosition();
-                                if (!_parse(pc, startInput))
+                                result = _parse(pc, startInput);
+                            }
+                            catch (LeftRecursion)
+                            {
+                                m_state = START;
+                                m_lastInput = prevLastInput;
+                                throw;
+                            }
+
+                            if (result)
+                            {
+                                m_state = ACCEPT;
+                                while (true)
                                 {
-                                    break;
+                                    m_lastInput = pc.getCurrentPosition();
+                                    try
+                                    {
+                                        if (!_parse(pc, startInput))
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    catch (LeftRecursion)
+                                    {
+                                        m_state = START;
+                                        m_lastInput = prevLastInput;
+                                        throw;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    m_state = START;
+                        m_state = START;
+                        m_lastInput = prevLastInput;
+                    }
                     break;
-                }
 
                 case PARSE:
                     if (pc.getCurrentPosition() > m_lastInput)
@@ -174,6 +201,24 @@ namespace parserlib
             return result;
         }
 
+        /**
+            Returns the callback.
+            @return the callback.
+         */
+        const CallbackType& getCallback() const
+        {
+            return m_callback;
+        }
+
+        /**
+            Sets the callback.
+            @param cb callback.
+         */
+        void setCallback(const CallbackType& cb)
+        {
+            m_callback = cb;
+        }
+
     private:
         //states
         enum State
@@ -197,6 +242,9 @@ namespace parserlib
 
         //grammar
         std::function<bool(ParseContextType&)> m_expression;
+
+        //callback
+        CallbackType m_callback = [](const MatchType &, ASTNodeStack&) {};
 
         //internal parse; if successful, a match is added
         bool _parse(ParseContextType& pc, typename ParseContextType::IteratorType startPosition)
