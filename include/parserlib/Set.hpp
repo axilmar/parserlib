@@ -70,7 +70,7 @@ namespace parserlib
         @return a set expression.
      */
     template <typename SymbolType>
-    Set<SymbolType> one_of(const std::initializer_list<SymbolType>& symbols)
+    Set<SymbolType> oneOf(const std::initializer_list<SymbolType>& symbols)
     {
         return symbols;
     }
@@ -82,7 +82,7 @@ namespace parserlib
         @return a set expression.
      */
     template <typename SymbolType>
-    Set<SymbolType> one_of(const SymbolType* symbols)
+    Set<SymbolType> oneOf(const SymbolType* symbols)
     {
         return symbols;
     }

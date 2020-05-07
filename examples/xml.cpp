@@ -55,7 +55,7 @@ Rule<> opening_tag = '<' >> identifier >> *(+whitespace >> attribute) >> *whites
 
 
 //element content
-Rule<> content = +(!one_of("<\n") >> any_char);
+Rule<> content = +(!oneOf("<\n") >> any_char);
 
 
 //closing tag
