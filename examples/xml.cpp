@@ -291,8 +291,8 @@ static void test()
 
     if (ok && result.empty())
     {
-        cout << "SUCCESS\n";
         auto root = createAST<Element>(parseContext);
+        cout << "SUCCESS\n";
         root->print(cout);
     }
     else
