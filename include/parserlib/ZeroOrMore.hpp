@@ -4,6 +4,7 @@
 
 #include "Expression.hpp"
 #include "UnaryOperatorsBase.hpp"
+#include "parseLoop.hpp"
 
 
 namespace parserlib
@@ -36,9 +37,7 @@ namespace parserlib
          */
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
-            while (m_expression.parse(pc))
-            {
-            }
+            parseLoop(m_expression, pc);
             return true;
         }
 

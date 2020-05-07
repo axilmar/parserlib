@@ -5,6 +5,9 @@ using namespace std;
 using namespace parserlib;
 
 
+namespace calculator_example {
+
+
 /******************************************************************************
     GRAMMAR
  ******************************************************************************/
@@ -236,9 +239,12 @@ static void tests()
 }
 
 
+} //namespace calculator_example
+
+
 void runCalculatorExample()
 {
     cout << "Calculator example - start\n";
-    tests();
+    calculator_example::tests();
     cout << "Calculator example - end\n\n";
 }

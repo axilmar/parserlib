@@ -127,7 +127,7 @@ namespace parserlib
                             if (result)
                             {
                                 m_state = ACCEPT;
-                                while (true)
+                                while (pc.isValidPosition())
                                 {
                                     m_lastInput = pc.getCurrentPosition();
                                     try

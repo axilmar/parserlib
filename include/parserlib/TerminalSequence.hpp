@@ -5,6 +5,7 @@
 #include <vector>
 #include "Expression.hpp"
 #include "UnaryOperatorsBase.hpp"
+#include "endOf.hpp"
 
 
 namespace parserlib
@@ -80,13 +81,6 @@ namespace parserlib
     private:
         //array of symbols.
         std::vector<SymbolType> m_symbolArray;
-
-        //find end of symbol array
-        static const SymbolType* endOf(const SymbolType* s)
-        {
-            for (; *s; ++s) {}
-            return s;
-        }
     };
 
 

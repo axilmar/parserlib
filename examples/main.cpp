@@ -2,11 +2,13 @@
 
 
 extern void runCalculatorExample();
+extern void runXMLExample();
 
 
 int main()
 {
-    runCalculatorExample();
+    //runCalculatorExample();
+    runXMLExample();
     system("pause");
     return 0;
 }

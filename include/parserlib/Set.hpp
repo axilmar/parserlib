@@ -5,6 +5,7 @@
 #include <set>
 #include "Expression.hpp"
 #include "UnaryOperatorsBase.hpp"
+#include "endOf.hpp"
 
 
 namespace parserlib
@@ -26,6 +27,15 @@ namespace parserlib
          */
         Set(const std::initializer_list<SymbolType>& symbols) :
             m_symbolSet(symbols.begin(), symbols.end())
+        {
+        }
+
+        /**
+            Constructor.
+            @param symbols symbols.
+         */
+        Set(const SymbolType* symbols) :
+            m_symbolSet(symbols, endOf(symbols))
         {
         }
 
@@ -60,7 +70,19 @@ namespace parserlib
         @return a set expression.
      */
     template <typename SymbolType>
-    Set<SymbolType> set(const std::initializer_list<SymbolType>& symbols)
+    Set<SymbolType> one_of(const std::initializer_list<SymbolType>& symbols)
+    {
+        return symbols;
+    }
+
+
+    /**
+        Helper function for creating a set.
+        @param symbols.
+        @return a set expression.
+     */
+    template <typename SymbolType>
+    Set<SymbolType> one_of(const SymbolType* symbols)
     {
         return symbols;
     }
