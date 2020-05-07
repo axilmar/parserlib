@@ -211,7 +211,7 @@ static void test(std::string input)
     if (result.empty())
     {
         cout << "SUCCESS; result = ";
-        ExprPtr root = std::dynamic_pointer_cast<Expr>(createAST(parseContext));
+        ExprPtr root = createAST<Expr>(parseContext);
         cout << root->eval() << std::endl;
     }
     else

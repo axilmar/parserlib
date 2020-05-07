@@ -292,7 +292,7 @@ static void test()
     if (ok && result.empty())
     {
         cout << "SUCCESS\n";
-        auto root = std::dynamic_pointer_cast<Element>(createAST(parseContext));
+        auto root = createAST<Element>(parseContext);
         root->print(cout);
     }
     else
