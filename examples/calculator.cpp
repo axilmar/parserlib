@@ -104,10 +104,8 @@ public:
     //get left/right expressions from node stack
     BinExpr(const Match<>& match, ASTNodeStack& ans)
     {
-        m_right = std::dynamic_pointer_cast<Expr>(ans.back());
-        ans.pop_back();
-        m_left = std::dynamic_pointer_cast<Expr>(ans.back());
-        ans.pop_back();
+        m_right = ans.pop<Expr>();
+        m_left = ans.pop<Expr>();
     }
 
 protected:

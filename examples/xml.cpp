@@ -126,11 +126,8 @@ class Attribute : public ASTNode
 public:
     Attribute(const Match<>& match, ASTNodeStack& ans)
     {
-        AttributeValuePtr valuePtr = std::dynamic_pointer_cast<AttributeValue>(ans.back());
-        ans.pop_back();
-        IdentifierPtr idPtr = std::dynamic_pointer_cast<Identifier>(ans.back());
-        ans.pop_back();
-
+        AttributeValuePtr valuePtr = ans.pop<AttributeValue>();
+        IdentifierPtr idPtr = ans.pop<Identifier>();
         m_name = idPtr->getValue();
         m_value = valuePtr->getValue();
     }
