@@ -143,6 +143,10 @@ private:
 };
 
 
+//attribute pointer
+typedef std::shared_ptr<Attribute> AttributePtr;
+
+
 /* XML AST nodes */
 
 
@@ -156,10 +160,6 @@ public:
 
 //xml node pointer type
 typedef std::shared_ptr<XMLNode> XMLNodePtr;
-
-
-//attribute pointer
-typedef std::shared_ptr<Attribute> AttributePtr;
 
 
 //element node
