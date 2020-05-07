@@ -269,11 +269,17 @@ static void test()
     std::string input = R"(
         <root>
             <child0>
+                <childA>
+                </childA>
+                <childB>
+                </childB>
             </child0>
             <child1 id="2">
             </child1>
             <child2 name="foo">
                 the quick brown fox
+                <childC>
+                </childC>
             </child2>
             jumps over the lazy dog
         </root>
