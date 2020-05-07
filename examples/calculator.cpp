@@ -10,16 +10,49 @@ using namespace parserlib;
  ******************************************************************************/
 
 
+//forward reference of rules
 extern Rule<> expr, add, mul;
-Rule<> num   { "num"   , +range('0', '9') };
-Rule<> val   { "val"   , '(' >> expr >> ')' | num };
+
+
+//number is a list of one or more digits
+Rule<> num{ "num", +range('0', '9') };
+
+
+//value is either a parenthesized expression or a number
+Rule<> val{ "val", '(' >> expr >> ')' 
+                 | num };
+
+
+//multiplication operation
 Rule<> mul_op{ "mul_op", mul >> '*' >> val };
+
+
+//division operation
 Rule<> div_op{ "div_op", mul >> '/' >> val };
-Rule<> mul   { "mul"   , mul_op | div_op | val };
+
+
+//multiplication rule
+Rule<> mul{"mul", mul_op 
+                | div_op 
+                | val };
+
+
+//addition operation
 Rule<> add_op{ "add_op", add >> '+' >> mul };
+
+
+//subtraction operation
 Rule<> sub_op{ "sub_op", add >> '-' >> mul };
-Rule<> add   { "add"   , add_op | sub_op | mul };
-Rule<> expr  { "expr"  , add };
+
+
+//addition rule
+Rule<> add{ "add", add_op 
+                 | sub_op 
+                 | mul };
+
+
+//expression
+Rule<> expr{ "expr", add };
 
 
 /******************************************************************************
@@ -27,24 +60,30 @@ Rule<> expr  { "expr"  , add };
  ******************************************************************************/
 
 
+//base class for expressions
 class Expr : public ASTNode
 {
 public:
+    //evaluate expression
     virtual double eval() const = 0;
 };
 
 
+//pointer to expression
 typedef std::shared_ptr<Expr> ExprPtr;
 
 
+//number
 class Number : public Expr
 {
 public:
+    //get number from match
     Number(const Match<>& match, ASTNodeStack& ans)
     {
         m_number = stod(match);
     }
 
+    //return number
     virtual double eval() const
     {
         return m_number;
@@ -55,9 +94,11 @@ private:
 };
 
 
+//base class for binary expressions
 class BinExpr : public Expr
 {
 public:
+    //get left/right expressions from node stack
     BinExpr(const Match<>& match, ASTNodeStack& ans)
     {
         m_right = std::dynamic_pointer_cast<Expr>(ans.back());
@@ -71,11 +112,13 @@ protected:
 };
 
 
+//multiplication
 class Mul : public BinExpr
 {
 public:
     using BinExpr::BinExpr;
 
+    //multiply left to right
     virtual double eval() const
     {
         return m_left->eval() * m_right->eval();
@@ -83,11 +126,13 @@ public:
 };
 
 
+//division
 class Div : public BinExpr
 {
 public:
     using BinExpr::BinExpr;
 
+    //divide left by right
     virtual double eval() const
     {
         return m_left->eval() / m_right->eval();
@@ -95,11 +140,13 @@ public:
 };
 
 
+//addition
 class Add : public BinExpr
 {
 public:
     using BinExpr::BinExpr;
 
+    //add left and right
     virtual double eval() const
     {
         return m_left->eval() + m_right->eval();
@@ -107,11 +154,13 @@ public:
 };
 
 
+//subtraction
 class Sub : public BinExpr
 {
 public:
     using BinExpr::BinExpr;
 
+    //subtract right from left
     virtual double eval() const
     {
         return m_left->eval() - m_right->eval();
@@ -124,10 +173,23 @@ public:
  ******************************************************************************/
 
 
+//rule 'num' creates a 'Number' object
 static AST<Number> ast_num(num);
+
+
+//rule 'mul_op' creates a 'Mul' object
 static AST<Mul> ast_mul(mul_op);
+
+
+//rule 'div_op' creates a 'Div' object
 static AST<Div> ast_div(div_op);
+
+
+//rule 'add_op' creates an 'Add' object
 static AST<Add> ast_add(add_op);
+
+
+//rule 'sub_op' creates a 'Sub' object
 static AST<Sub> ast_sub(sub_op);
 
 
@@ -178,5 +240,5 @@ void runCalculatorExample()
 {
     cout << "Calculator example - start\n";
     tests();
-    cout << "Calculator example - end\n";
+    cout << "Calculator example - end\n\n";
 }
