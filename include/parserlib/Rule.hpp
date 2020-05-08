@@ -3,7 +3,6 @@
 
 
 #include <functional>
-#include "RuleExpression.hpp"
 #include "UnaryOperatorsBase.hpp"
 #include "ParseContext.hpp"
 #include "RuleReference.hpp"
@@ -19,7 +18,7 @@ namespace parserlib
         @param ParseContextType parse context.
      */
     template <typename ParseContextType = ParseContext<>> class Rule :
-        public RuleExpression,
+        public Expression,
         public UnaryOperatorsBase<Rule<ParseContextType>>
     {
     public:
@@ -48,37 +47,6 @@ namespace parserlib
             @param rule rule reference.
          */
         Rule(Rule& rule) :
-            m_expression(
-                [ruleRef = RuleReference<ParseContextType>(rule)](ParseContextType& pc)
-                {
-                    return ruleRef.parse(pc);
-                })
-        {
-        }
-
-        /**
-            Constructor.
-            @param name name.
-            @param expr expression.
-         */
-        template <typename ExpressionType>
-        Rule(const std::string& name, ExpressionType&& expression) :
-            RuleExpression(name),
-            m_expression(
-                [expr = std::move(ExpressionTypeT<ExpressionType>(expression))](ParseContextType& pc)
-                {
-                    return expr.parse(pc);
-                })
-        {
-        }
-
-        /**
-            Constructor.
-            @param name name.
-            @param rule rule reference.
-         */
-        Rule(const std::string& name, Rule& rule) :
-            RuleExpression(name),
             m_expression(
                 [ruleRef = RuleReference<ParseContextType>(rule)](ParseContextType& pc)
                 {
@@ -251,7 +219,7 @@ namespace parserlib
         {
             if (m_expression(pc))
             {
-                pc.addMatch(*this, startPosition, pc.getCurrentPosition());
+                pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
                 return true;
             }
             return false;

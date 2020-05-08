@@ -50,25 +50,6 @@ namespace parserlib
     };
 
 
-    /**
-        Helper function for creating an AST.
-        Objects are create bottom-up, i.e. the inner most objects are created first,
-        then their parents, which pick their children from a stack.
-        @param parseContext parse context after successful parsing.
-        @return pointer to the root object.
-     */
-    template <typename ResultType, typename ParseContextType>
-    std::shared_ptr<ResultType> createAST(const ParseContextType &parseContext)
-    {
-        ASTNodeStack asn;
-        for (const auto& match : parseContext.getOutput())
-        {
-            static_cast<const Rule<ParseContextType> &>(match.getRule()).getCallback()(match, asn);
-        }
-        return std::dynamic_pointer_cast<ResultType>(asn.back());
-    }
-
-
 } //namespace parserlib
 
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "Match.hpp"
+#include "ASTNode.hpp"
 
 
 namespace parserlib
@@ -98,6 +99,15 @@ namespace parserlib
         {
             return *m_currentPosition;
         }
+        
+        /**
+            Returns the remaining input.
+            @return the remaining input.
+         */
+        InputType getRemainingInput() const
+        {
+            return {m_currentPosition, m_endPosition};
+        }
 
         /**
             Returns the current output.
@@ -128,13 +138,55 @@ namespace parserlib
 
         /**
             Adds a match.
-            @param rule rule that was matched.
+            @param expression expression that was matched.
             @param start start of input.
             @param end end of input.
          */
-        void addMatch(RuleExpression& rule, IteratorType start, IteratorType end)
+        template <typename CreateASTFunctionType>
+        void addMatch(
+            const Expression* expression, 
+            IteratorType start, 
+            IteratorType end,
+            CreateASTFunctionType&& createASTFunction)
         {
-            m_output.emplace_back(rule, start, end);
+            m_output.emplace_back(expression, start, end, std::forward<CreateASTFunctionType>(createASTFunction));
+        }
+
+        /**
+            Parses the current input.
+            If the input is parsed successfully, then the AST is created.
+            @param grammar grammar to use for parsing.
+            @return a pointer to the created AST's root node, 
+                or null if there was a parse error.
+            @exception std::logic_error thrown if the AST tree is incomplete.
+         */
+        template <typename ResultType, typename ExpressionType> 
+        std::shared_ptr<ResultType> parse(ExpressionType&& grammar)
+        {
+            //parse
+            const bool parseOK = grammar.parse(*this);
+
+            //if parsing failed or not the whole input was consumed, return error
+            if (!parseOK || !isEndPosition()) return nullptr;
+
+            //use this stack to create objects
+            ASTNodeStack astNodeStack;
+
+            //create the AST
+            for (const MatchType& match : m_output)
+            {
+                match.getCreateASTFunction()(match, astNodeStack);
+            }
+
+            //check if there is only one object in the stack;
+            //if not, then there is an issue
+            if (astNodeStack.size() != 1)
+            {
+                throw std::logic_error("invalid AST configuration");
+            }
+
+            //return the root object
+            return std::dynamic_pointer_cast<ResultType>(std::move(astNodeStack.front()));
         }
 
     private:

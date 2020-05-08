@@ -5,6 +5,7 @@
 #include "parserlib/AST.hpp"
 #include "parserlib/Choice.hpp"
 #include "parserlib/Expression.hpp"
+#include "parserlib/MatchExpression.hpp"
 #include "parserlib/LogicalAnd.hpp"
 #include "parserlib/LogicalNot.hpp"
 #include "parserlib/OneOrMore.hpp"

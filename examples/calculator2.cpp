@@ -5,57 +5,7 @@ using namespace std;
 using namespace parserlib;
 
 
-namespace calculator_example {
-
-
-/******************************************************************************
-    GRAMMAR
- ******************************************************************************/
-
-
-//forward reference of rules
-extern Rule<> expr, add, mul;
-
-
-//number is a list of one or more digits
-Rule<> num = +range('0', '9');
-
-
-//value is either a parenthesized expression or a number
-Rule<> val = '(' >> expr >> ')' 
-           | num;
-
-
-//multiplication operation
-Rule<> mul_op = mul >> '*' >> val;
-
-
-//division operation
-Rule<> div_op = mul >> '/' >> val;
-
-
-//multiplication rule
-Rule<> mul = mul_op 
-           | div_op 
-           | val;
-
-
-//addition operation
-Rule<> add_op = add >> '+' >> mul;
-
-
-//subtraction operation
-Rule<> sub_op = add >> '-' >> mul;
-
-
-//addition rule
-Rule<> add = add_op 
-           | sub_op 
-           | mul;
-
-
-//expression
-Rule<> expr = add;
+namespace calculator_example2 {
 
 
 /******************************************************************************
@@ -170,28 +120,37 @@ public:
 
 
 /******************************************************************************
-    GRAMMAR<->AST
+    GRAMMAR
  ******************************************************************************/
 
 
-//rule 'num' creates a 'Number' object
-static AST<Number> ast_num(num);
+//forward reference of rules
+extern Rule<> expr;
 
 
-//rule 'mul_op' creates a 'Mul' object
-static AST<Mul> ast_mul(mul_op);
+//number
+Rule<> num = +range('0', '9')          == ast<Number>();
 
 
-//rule 'div_op' creates a 'Div' object
-static AST<Div> ast_div(div_op);
+//value
+Rule<> val = '(' >> expr >> ')' 
+           | num;
 
 
-//rule 'add_op' creates an 'Add' object
-static AST<Add> ast_add(add_op);
+//multiplication/division
+Rule<> mul = mul >> '*' >> val         == ast<Mul>()
+           | mul >> '/' >> val         == ast<Div>()
+           | val;
 
 
-//rule 'sub_op' creates a 'Sub' object
-static AST<Sub> ast_sub(sub_op);
+//addition/subtraction
+Rule<> add = add >> '+' >> mul         == ast<Add>()
+           | add >> '-' >> mul         == ast<Sub>()
+           | mul;
+
+
+//expression
+Rule<> expr = add;
 
 
 /******************************************************************************
@@ -202,7 +161,7 @@ static AST<Sub> ast_sub(sub_op);
 static void test(std::string input)
 {
     ParseContext<> parseContext(input);
-    ExprPtr root = parseContext.parse<Expr>(expr);
+    const auto root = parseContext.parse<Expr>(expr);
 
     cout << input << " => ";
     if (root)
@@ -235,12 +194,12 @@ static void tests()
 }
 
 
-} //namespace calculator_example
+} //namespace calculator_example2
 
 
-void runCalculatorExample()
+void runCalculatorExample2()
 {
     cout << "Calculator example - start\n";
-    calculator_example::tests();
+    calculator_example2::tests();
     cout << "Calculator example - end\n\n";
 }

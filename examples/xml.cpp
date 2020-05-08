@@ -283,19 +283,17 @@ static void test()
     )";
 
     ParseContext<> parseContext(input);
-    const bool ok = element.parse(parseContext);
-    const auto result = std::string(parseContext.getCurrentPosition(), parseContext.getEndPosition());
+    auto root = parseContext.parse<Element>(element);
 
-    if (ok && result.empty())
+    if (root)
     {
-        auto root = createAST<Element>(parseContext);
         cout << "SUCCESS\n";
         root->print(cout);
     }
     else
     {
         cout << "FAILURE:\n";
-        cout << result << endl;
+        cout << parseContext.getRemainingInput() << endl;
     }
 }
 

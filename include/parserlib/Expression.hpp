@@ -2,6 +2,9 @@
 #define PARSERLIB_EXPRESSION_HPP
 
 
+#include <string>
+
+
 namespace parserlib
 {
 
@@ -11,7 +14,13 @@ namespace parserlib
      */
     class Expression
     {
-    public:
+    protected:
+        /**
+            Constructor.
+         */
+        Expression()
+        {
+        }
     };
 
 

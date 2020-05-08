@@ -3,7 +3,8 @@
 
 
 #include <string>
-#include "RuleExpression.hpp"
+#include "Expression.hpp"
+#include "ASTNode.hpp"
 
 
 namespace parserlib
@@ -20,34 +21,43 @@ namespace parserlib
         ///type of input iterator.
         typedef typename InputType::const_iterator IteratorType;
 
+        ///type of function that creates an AST node.
+        typedef std::function<void(const Match &, ASTNodeStack&)> CreateASTFunction;
+
         /**
             Constructor.
          */
         Match() :
-            m_rule(nullptr)
+            m_expression(nullptr)
         {
         }
 
         /**
             Constructor.
-            @param rule rule that was matched.
+            @param expression expression that was matched.
             @param start input start.
             @param end input end.
          */
-        Match(RuleExpression& rule, IteratorType start, IteratorType end) :
-            m_rule(&rule),
+        template <typename CreateASTFunctionType>
+        Match(
+            const Expression* expression, 
+            IteratorType start, 
+            IteratorType end, 
+            CreateASTFunctionType&& createASTFunction) :
+            m_expression(expression),
             m_start(start),
-            m_end(end)
+            m_end(end),
+            m_createASTFunction(std::forward<CreateASTFunctionType>(createASTFunction))
         {
         }
 
         /**
-            Returns the rule that was matched.
-            @return the rule that was matched.
+            Returns the expression that was matched.
+            @return the expression that was matched.
          */
-        const RuleExpression& getRule() const
+        const Expression* getExpression() const
         {
-            return *m_rule;
+            return m_expression;
         }
 
         /**
@@ -77,10 +87,21 @@ namespace parserlib
             return std::string(m_start, m_end);
         }
 
+        /**
+            Returns the function that, when invoked,
+            will create the AST node from this match.
+            @return the create AST function.
+         */
+        const CreateASTFunction& getCreateASTFunction() const
+        {
+            return m_createASTFunction;
+        }
+
     private:
-        RuleExpression* m_rule;
+        const Expression* m_expression;
         IteratorType m_start;
         IteratorType m_end;
+        CreateASTFunction m_createASTFunction;
     };
 
 
