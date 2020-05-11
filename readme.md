@@ -52,7 +52,7 @@ You can find the complete calculator example in file [examples/calculator2.cpp](
 2. port examples to new version.
 3. write new and better examples (well, maybe :-)).
 
-## Versions ##
+## Changelog ##
 
 - 0.0.4: introduced new way of declaring AST node creations.
 - 0.0.3: xml example.
