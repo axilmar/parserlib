@@ -189,31 +189,6 @@ namespace parserlib
             return std::dynamic_pointer_cast<ResultType>(std::move(astNodeStack.front()));
         }
 
-        /**
-            Returns the left recursion count.
-            @return the left recursion count.
-         */
-        size_t getLeftRecursionCount() const
-        {
-            return m_leftRecursionCount;
-        }
-
-        /**
-            Increments the left recursion count.
-         */
-        void incrementLeftRecursionCount()
-        {
-            ++m_leftRecursionCount;
-        }
-
-        /**
-            Decrements the left recursion count.
-         */
-        void decrementLeftRecursionCount()
-        {
-            --m_leftRecursionCount;
-        }
-
     private:
         //positions
         IteratorType m_currentPosition;
@@ -221,9 +196,6 @@ namespace parserlib
 
         //output 
         OutputType m_output;
-
-        //left recursion count
-        size_t m_leftRecursionCount = 0;
     };
 
 

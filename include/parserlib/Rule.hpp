@@ -80,7 +80,6 @@ namespace parserlib
 
                         catch (LeftRecursion)
                         {
-                            pc.incrementLeftRecursionCount();
                             m_state = REJECT;
                             try
                             {
@@ -88,34 +87,29 @@ namespace parserlib
                             }
                             catch (LeftRecursion)
                             {
-                                pc.decrementLeftRecursionCount();
                                 m_state = START;
                                 m_lastInput = prevLastInput;
                                 throw;
                             }
-                            pc.decrementLeftRecursionCount();
 
                             if (result)
                             {
                                 m_state = ACCEPT;
-                                if (pc.getLeftRecursionCount() == 0)
+                                while (pc.isValidPosition())
                                 {
-                                    while (pc.isValidPosition())
+                                    m_lastInput = pc.getCurrentPosition();
+                                    try
                                     {
-                                        m_lastInput = pc.getCurrentPosition();
-                                        try
+                                        if (!_parse(pc, startInput))
                                         {
-                                            if (!_parse(pc, startInput))
-                                            {
-                                                break;
-                                            }
+                                            break;
                                         }
-                                        catch (LeftRecursion)
-                                        {
-                                            m_state = START;
-                                            m_lastInput = prevLastInput;
-                                            throw;
-                                        }
+                                    }
+                                    catch (LeftRecursion)
+                                    {
+                                        m_state = START;
+                                        m_lastInput = prevLastInput;
+                                        throw;
                                     }
                                 }
                             }
