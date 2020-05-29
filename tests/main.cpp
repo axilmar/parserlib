@@ -1,19 +1,22 @@
 #include <iostream>
 
 
-extern void runCalculatorExampleTests();
-extern void runCalculatorDemo();
+//extern void runCalculatorExampleTests();
+//extern void runCalculatorDemo();
 extern void runCalculatorExample2Tests();
 extern void runCalculator2Demo();
-extern void runXMLExampleTests();
+//extern void runXMLExampleTests();
+
+
+//#define DEMO
 
 
 int main()
 {
     #ifdef DEMO
-    runCalculatorExampleTests();
+    //runCalculatorExampleTests();
     runCalculatorExample2Tests();
-    runXMLExampleTests();
+    //runXMLExampleTests();
     #ifndef NDEBUG
     system("pause");
     #endif

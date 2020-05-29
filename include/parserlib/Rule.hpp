@@ -97,7 +97,7 @@ namespace parserlib
         std::unique_ptr<IExpression<ParseContextType>> m_expression;
 
         //callback
-        CallbackType m_callback = [](const MatchType &, ASTNodeStack&) {};
+        CallbackType m_callback;
 
         //last known position
         PositionIndexType m_lastKnownPositionIndex = 0;
@@ -116,14 +116,6 @@ namespace parserlib
             const auto startPosition = pc.getCurrentPosition();
             const auto v = scopedValueChange(m_lastKnownPositionIndex, [&]() { return &(m_lastKnownPositionIndex = pc.getCurrentPositionIndex()); });
 
-            const auto addMatch = [&]()
-            {
-                if (m_callback)
-                {
-                    pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
-                }
-            };
-
             try
             {
                 if (!m_expression->parse(pc))
@@ -133,11 +125,12 @@ namespace parserlib
             }
             catch (LeftRecursionEndedSuccessfully)
             {
-                addMatch();
-                throw;
             }
 
-            addMatch();
+            if (m_callback)
+            {
+                pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
+            }
             return true;
         }
 
@@ -154,14 +147,7 @@ namespace parserlib
                     case LR_Init:
                     {
                         const auto v = scopedValueChange(m_LR_State, [&]() { return &(m_LR_State = LR_Reject); });
-                        try
-                        {
-                            result = _parse(pc);
-                        }
-                        catch (LeftRecursionEndedSuccessfully)
-                        {
-                            result = true;
-                        }
+                        result = _parse(pc);
                         if (result)
                         {
                             m_LR_State = LR_Accept;

@@ -44,32 +44,20 @@ namespace parserlib
         {
             const auto startPosition = pc.getCurrentPosition();
 
-            const auto addMatch = [&]()
+            if (!m_expression.parse(pc))
             {
-                pc.addMatch(
-                    this, 
-                    startPosition, 
-                    pc.getCurrentPosition(), 
-                    [](const typename ParseContextType::MatchType &match, ASTNodeStack& asn)
-                {
-                    asn.push_back(std::make_shared<ASTNodeType>(match, asn));
-                });
-            };
-
-            try
-            {
-                if (!m_expression.parse(pc))
-                {
-                    return false;
-                }
-            }
-            catch (LeftRecursionEndedSuccessfully)
-            {
-                addMatch();
-                throw;
+                return false;
             }
 
-            addMatch();
+            const char *type = typeid(ASTNodeType).name();
+            pc.addMatch(
+                this, 
+                startPosition, 
+                pc.getCurrentPosition(), 
+                [](const typename ParseContextType::MatchType &match, ASTNodeStack& asn)
+            {
+                asn.push_back(std::make_shared<ASTNodeType>(match, asn));
+            });
             return true;
         }
 
