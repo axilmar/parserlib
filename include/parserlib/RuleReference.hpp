@@ -34,7 +34,7 @@ namespace parserlib
          */
         bool parse(ParseContextType& pc) const
         {
-            return m_rule.parse(pc);
+            return m_rule._parseLR(pc);
         }
 
     private:

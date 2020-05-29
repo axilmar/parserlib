@@ -9,6 +9,7 @@
 #include "ASTNode.hpp"
 #include "ExpressionWrapper.hpp"
 #include "ScopedValueChange.hpp"
+#include "LeftRecursion.hpp"
 
 
 namespace parserlib
@@ -57,14 +58,20 @@ namespace parserlib
         }
 
         /**
-            Parses the input with the given rule.
-            If the rule is matched, it adds a match to the current context.
+            Parses the input with the current rule.
             @param pc parse context.
             @return true on success, false on failure.
          */
         bool parse(ParseContextType& pc)
         {
-            return _parse(pc);
+            try
+            {
+                return _parseLR(pc);
+            }
+            catch (LeftRecursionEndedSuccessfully)
+            {
+                return true;
+            }
         }
 
         /**
@@ -92,17 +99,101 @@ namespace parserlib
         //callback
         CallbackType m_callback = [](const MatchType &, ASTNodeStack&) {};
 
-        //internal parse
-        bool _parse(ParseContextType& pc) const
+        //last known position
+        PositionIndexType m_lastKnownPositionIndex = 0;
+
+        //left recursion state
+        enum LR_State
+        {
+            LR_Init,
+            LR_Reject,
+            LR_Accept
+        } m_LR_State = LR_Init;
+
+        //internal parse which adds a match
+        bool _parse(ParseContextType& pc)
         {
             const auto startPosition = pc.getCurrentPosition();
-            if (!m_expression->parse(pc))
+            const auto v = scopedValueChange(m_lastKnownPositionIndex, [&]() { return &(m_lastKnownPositionIndex = pc.getCurrentPositionIndex()); });
+
+            const auto addMatch = [&]()
             {
-                return false;
+                if (m_callback)
+                {
+                    pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
+                }
+            };
+
+            try
+            {
+                if (!m_expression->parse(pc))
+                {
+                    return false;
+                }
             }
-            pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
+            catch (LeftRecursionEndedSuccessfully)
+            {
+                addMatch();
+                throw;
+            }
+
+            addMatch();
             return true;
         }
+
+        //Parses the input with the current rule, taking into account the left recursion.
+        bool _parseLR(ParseContextType& pc)
+        {
+            bool result;
+
+            //if left recursion
+            if (pc.getCurrentPositionIndex() == m_lastKnownPositionIndex)
+            {
+                switch (m_LR_State)
+                {
+                    case LR_Init:
+                    {
+                        const auto v = scopedValueChange(m_LR_State, [&]() { return &(m_LR_State = LR_Reject); });
+                        try
+                        {
+                            result = _parse(pc);
+                        }
+                        catch (LeftRecursionEndedSuccessfully)
+                        {
+                            result = true;
+                        }
+                        if (result)
+                        {
+                            m_LR_State = LR_Accept;
+                            while (pc.isValidPosition() && _parse(pc))
+                            {
+                            }
+                            throw LeftRecursionEndedSuccessfully();
+                        }
+                        break;
+                    }
+
+                    case LR_Reject:
+                        result = false;
+                        break;
+
+                    case LR_Accept:
+                        result = true;
+                        break;
+                }
+            }
+
+            //else no left recursion
+            else
+            {
+                const auto v = scopedValueChange(m_LR_State, [&]() { return &(m_LR_State = LR_Init); });
+                result = _parse(pc);
+            }
+
+            return result;
+        }
+
+        friend class RuleReference<ParseContextType>;
     };
 
 

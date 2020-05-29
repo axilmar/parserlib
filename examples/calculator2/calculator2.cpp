@@ -55,6 +55,11 @@ public:
     //get left/right expressions from node stack
     BinExpr(const Match<>& match, ASTNodeStack& ans)
     {
+        if (ans.size() < 2)
+        {
+            int x = 0;
+        }
+
         m_right = ans.pop<Expr>();
         m_left = ans.pop<Expr>();
     }

@@ -16,11 +16,12 @@ namespace parserlib
         /**
             Constructor.
             @param value value on scope enter.
-            @param variable variable to reset on scope exit.
+            @param variable function to obtain the variable reference.
          */
-        ScopedValueChange(const T& value, T& variable)
+        template <typename F>
+        ScopedValueChange(const T& value, F&& variable)
             : m_value(value)
-            , m_variable(variable)
+            , m_variable(*variable())
         {
         }
 
@@ -42,12 +43,12 @@ namespace parserlib
     /**
         Helper function for creating a scoped value change.
         @param value value to set the variable to on scope exit.
-        @param variable variable to reset on scope exit.
+        @param func function to invoke to obtain the variable.
         @return a scope value change object.
      */
-    template <typename T> ScopedValueChange<T> scopedValueChange(const T& value, T& variable)
+    template <typename T, typename F> ScopedValueChange<T> scopedValueChange(const T& value, F&& variable)
     {
-        return { value, variable };
+        return { value, std::forward<F>(variable) };
     }
 
 

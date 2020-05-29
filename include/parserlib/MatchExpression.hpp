@@ -5,6 +5,7 @@
 #include <type_traits>
 #include "Expression.hpp"
 #include "UnaryOperatorsBase.hpp"
+#include "LeftRecursion.hpp"
 
 
 namespace parserlib
@@ -42,7 +43,8 @@ namespace parserlib
         template <typename ParseContextType> bool parse(ParseContextType& pc) const
         {
             const auto startPosition = pc.getCurrentPosition();
-            if (m_expression.parse(pc))
+
+            const auto addMatch = [&]()
             {
                 pc.addMatch(
                     this, 
@@ -52,9 +54,23 @@ namespace parserlib
                 {
                     asn.push_back(std::make_shared<ASTNodeType>(match, asn));
                 });
-                return true;
+            };
+
+            try
+            {
+                if (!m_expression.parse(pc))
+                {
+                    return false;
+                }
             }
-            return false;
+            catch (LeftRecursionEndedSuccessfully)
+            {
+                addMatch();
+                throw;
+            }
+
+            addMatch();
+            return true;
         }
 
     private:
