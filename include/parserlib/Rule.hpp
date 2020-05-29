@@ -58,7 +58,7 @@ namespace parserlib
             @param pc parse context.
             @return true on success, false on failure.
          */
-        bool parse(ParseContextType& pc)
+        bool parse(ParseContextType& pc) const
         {
             const auto startPosition = pc.getCurrentPosition();
             const bool result = m_expression->parse(pc);
