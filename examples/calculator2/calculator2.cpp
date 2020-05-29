@@ -1,4 +1,5 @@
 #include <iostream>
+#include <regex>
 #include "parserlib.hpp"
 
 using namespace std;
@@ -128,8 +129,12 @@ public:
 extern Rule<> expr;
 
 
-//number
-Rule<> num = +range('0', '9')          == ast<Number>();
+//number is a double
+auto digit = range('0', '9');
+auto sign = oneOf("+-");
+auto numPart = +digit >> -('.' >> *digit) | '.' >> +digit;
+auto expPart = oneOf("eE") >> -sign >> +digit;
+Rule<> num = -sign >> numPart >> -expPart                  == ast<Number>();
 
 
 //value
@@ -138,14 +143,14 @@ Rule<> val = '(' >> expr >> ')'
 
 
 //multiplication/division
-Rule<> mul = mul >> '*' >> val         == ast<Mul>()
-           | mul >> '/' >> val         == ast<Div>()
+Rule<> mul = mul >> '*' >> val                             == ast<Mul>()
+           | mul >> '/' >> val                             == ast<Div>()
            | val;
 
 
 //addition/subtraction
-Rule<> add = add >> '+' >> mul         == ast<Add>()
-           | add >> '-' >> mul         == ast<Sub>()
+Rule<> add = add >> '+' >> mul                             == ast<Add>()
+           | add >> '-' >> mul                             == ast<Sub>()
            | mul;
 
 
@@ -158,16 +163,24 @@ Rule<> expr = add;
  ******************************************************************************/
 
 
-static void test(std::string input)
+static void test(std::string input, const double value)
 {
     ParseContext<> parseContext(input);
-    const auto root = parseContext.parse<Expr>(expr);
+    ExprPtr root = parseContext.parse<Expr>(expr);
 
     cout << input << " => ";
     if (root)
     {
-        cout << "SUCCESS; result = ";
-        cout << root->eval() << std::endl;
+        const double result = root->eval();
+        if (result == value)
+        {
+            cout << "SUCCESS; result = " << result << endl;
+        }
+        else
+        {
+            cout << "ERROR; result = " << result << ", correct = " << value << endl;
+            throw std::runtime_error("Calculator 2 example error");
+        }
     }
     else
     {
@@ -178,28 +191,65 @@ static void test(std::string input)
 
 static void tests()
 {
-    test("1");
-    test("1+2");
-    test("1+2+3");
-    test("1+2*3");
-    test("1*2+3");
-    test("(1+2)+3");
-    test("1+(2+3)");
-    test("((1)+2)+3");
-    test("1+(2+(3))");
-    test("((1*2)-2)+3");
-    test("1+(2+(3+4))");
-    test("((1*2)/2)+3");
-    test("1+(2*(3-4))");
+    test("1", 1.0);
+    test("1+2", 1.0+2.0);
+    test("1+2+3", 1.0+2.0+3.0);
+    test("1+2*3", 1.0+2.0*3.0);
+    test("1*2+3", 1.0*2.0+3.0);
+    test("(1+2)+3", (1.0+2.0)+3.0);
+    test("1+(2+3)", 1.0+(2.0+3.0));
+    test("((1)+2)+3", ((1.0)+2.0)+3.0);
+    test("1+(2+(3))", 1.0+(2.0+(3.0)));
+    test("((1+2)+2)+3", ((1.0+2.0)+2.0)+3.0);
+    test("1+(2+(3+4))", 1.0+(2.0+(3.0+4.0)));
+    test("((1*2)/2)+3", ((1.0*2.0)/2.0)+3.0);
+    test("1+(2*(3-4))", 1.0+(2.0*(3.0-4.0)));
 }
 
 
 } //namespace calculator_example2
 
 
-void runCalculatorExample2()
+void runCalculatorExample2Tests()
 {
-    cout << "Calculator example - start\n";
+    cout << "Calculator example 2 - start\n";
     calculator_example2::tests();
-    cout << "Calculator example - end\n\n";
+    cout << "Calculator example 2 - end\n\n";
 }
+
+void runCalculator2Demo()
+{
+    std::cout << "Calculator 2 interactive example.\n";
+    for (;;)
+    {
+        std::cout << "enter expression or press enter to exit: ";
+        std::string str;
+        std::getline(std::cin, str);
+        if (str.empty()) break;
+        str = std::regex_replace(str, std::regex("\\s+"), "");
+        ParseContext<> parseContext(str);
+        calculator_example2::ExprPtr root = parseContext.parse<calculator_example2::Expr>(calculator_example2::expr);
+        if (root)
+        {
+            const double result = root->eval();
+            std::cout << "result = " << result << std::endl;
+        }
+        else
+        {
+            std::cout << "ERROR: expression could not be parsed: " << parseContext.getRemainingInput() << std::endl;
+        }
+    }
+}
+
+
+#ifdef DEMO
+
+int main(int argc, char* argv[])
+{
+    runCalculator2Demo();
+    return 0;
+}
+
+#endif
+
+

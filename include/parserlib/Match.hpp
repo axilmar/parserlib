@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <functional>
 #include "Expression.hpp"
 #include "ASTNode.hpp"
 

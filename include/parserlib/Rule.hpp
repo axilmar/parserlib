@@ -2,11 +2,12 @@
 #define PARSERLIB_RULE_HPP
 
 
-#include <functional>
+#include <memory>
 #include "UnaryOperatorsBase.hpp"
 #include "ParseContext.hpp"
 #include "RuleReference.hpp"
 #include "ASTNode.hpp"
+#include "ExpressionWrapper.hpp"
 
 
 namespace parserlib
@@ -22,6 +23,9 @@ namespace parserlib
         public UnaryOperatorsBase<Rule<ParseContextType>>
     {
     public:
+        ///iterator type.
+        typedef typename ParseContextType::IteratorType IteratorType;
+
         ///match type.
         typedef typename ParseContextType::MatchType MatchType;
 
@@ -34,138 +38,34 @@ namespace parserlib
          */
         template <typename ExpressionType>
         Rule(ExpressionType&& expression) :
-            m_expression(
-                [expr = std::move(ExpressionTypeT<ExpressionType>(expression))](ParseContextType& pc)
-                {
-                    return expr.parse(pc);
-                })
+            m_expression(std::make_unique<ExpressionWrapper<ParseContextType, ExpressionTypeT<ExpressionType>>>(std::forward<ExpressionType>(expression)))
         {
         }
 
         /**
             Constructor.
+            It creates a rule reference.
             @param rule rule reference.
          */
         Rule(Rule& rule) :
-            m_expression(
-                [ruleRef = RuleReference<ParseContextType>(rule)](ParseContextType& pc)
-                {
-                    return ruleRef.parse(pc);
-                })
+            m_expression(std::make_unique<ExpressionWrapper<ParseContextType, RuleReference<ParseContextType>>>(rule))
         {
         }
 
         /**
             Parses the input with the given rule.
+            If the rule is matched, it adds a match to the current context.
             @param pc parse context.
             @return true on success, false on failure.
          */
         bool parse(ParseContextType& pc)
         {
-            bool result{};
-
-            switch (m_state)
+            const auto startPosition = pc.getCurrentPosition();
+            const bool result = m_expression->parse(pc);
+            if (result)
             {
-                case START:
-                    {
-                        auto prevLastInput = m_lastInput;
-                        m_state = PARSE;
-                        m_lastInput = pc.getCurrentPosition();
-                        const auto startInput = m_lastInput;
-
-                        try
-                        {
-                            result = _parse(pc, startInput);
-                        }
-
-                        catch (LeftRecursion)
-                        {
-                            m_state = REJECT;
-                            try
-                            {
-                                result = _parse(pc, startInput);
-                            }
-                            catch (LeftRecursion)
-                            {
-                                m_state = START;
-                                m_lastInput = prevLastInput;
-                                throw;
-                            }
-
-                            if (result)
-                            {
-                                m_state = ACCEPT;
-                                while (pc.isValidPosition())
-                                {
-                                    m_lastInput = pc.getCurrentPosition();
-                                    try
-                                    {
-                                        if (!_parse(pc, startInput))
-                                        {
-                                            break;
-                                        }
-                                    }
-                                    catch (LeftRecursion)
-                                    {
-                                        m_state = START;
-                                        m_lastInput = prevLastInput;
-                                        throw;
-                                    }
-                                }
-                            }
-                        }
-
-                        m_state = START;
-                        m_lastInput = prevLastInput;
-                    }
-                    break;
-
-                case PARSE:
-                    if (pc.getCurrentPosition() > m_lastInput)
-                    {
-                        auto prevLastInput = m_lastInput;
-                        m_state = START;
-                        result = parse(pc);
-                        m_state = PARSE;
-                        m_lastInput = prevLastInput;
-                    }
-                    else
-                    {
-                        throw LeftRecursion();
-                    }
-                    break;
-
-                case REJECT:
-                    if (pc.getCurrentPosition() > m_lastInput)
-                    {
-                        auto prevLastInput = m_lastInput;
-                        m_state = START;
-                        result = parse(pc);
-                        m_state = REJECT;
-                        m_lastInput = prevLastInput;
-                    }
-                    else
-                    {
-                        result = false;
-                    }
-                    break;
-
-                case ACCEPT:
-                    if (pc.getCurrentPosition() > m_lastInput)
-                    {
-                        auto prevLastInput = m_lastInput;
-                        m_state = START;
-                        result = parse(pc);
-                        m_state = ACCEPT;
-                        m_lastInput = prevLastInput;
-                    }
-                    else
-                    {
-                        result = true;
-                    }
-                    break;
+                pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
             }
-            
             return result;
         }
 
@@ -188,42 +88,11 @@ namespace parserlib
         }
 
     private:
-        //states
-        enum State
-        {
-            START,
-            PARSE,
-            REJECT,
-            ACCEPT
-        };
-
-        //used for catching left recursion through non-local goto
-        struct LeftRecursion
-        {
-        };
-
-        //current state
-        State m_state = START;
-
-        //last known position
-        typename ParseContextType::IteratorType m_lastInput;
-
         //grammar
-        std::function<bool(ParseContextType&)> m_expression;
+        std::unique_ptr<IExpression<ParseContextType>> m_expression;
 
         //callback
         CallbackType m_callback = [](const MatchType &, ASTNodeStack&) {};
-
-        //internal parse; if successful, a match is added
-        bool _parse(ParseContextType& pc, typename ParseContextType::IteratorType startPosition)
-        {
-            if (m_expression(pc))
-            {
-                pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
-                return true;
-            }
-            return false;
-        }
     };
 
 

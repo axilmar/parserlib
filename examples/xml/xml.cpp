@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <sstream>
 #include "parserlib.hpp"
 
 using namespace std;
@@ -263,32 +264,41 @@ static AST<Content> ast_content(content);
 
 static void test()
 {
-    std::string input = R"(
-        <root>
-            <child0>
-                <childA>
-                </childA>
-                <childB>
-                </childB>
-            </child0>
-            <child1 id="2">
-            </child1>
-            <child2 name="foo">
-                the quick brown fox
-                <childC>
-                </childC>
-            </child2>
-            jumps over the lazy dog
-        </root>
-    )";
+    std::string input = R"(<root>
+    <child0>
+        <childA>
+        </childA>
+        <childB>
+        </childB>
+    </child0>
+    <child1 id="2">
+    </child1>
+    <child2 name="foo">
+        the quick brown fox
+        <childC>
+        </childC>
+    </child2>
+    jumps over the lazy dog
+</root>
+)";
 
     ParseContext<> parseContext(input);
     auto root = parseContext.parse<Element>(element);
 
     if (root)
     {
-        cout << "SUCCESS\n";
-        root->print(cout);
+        stringstream stream;
+        root->print(stream);
+        const std::string output = stream.str();
+        if (output == input)
+        {
+            cout << "SUCCESS\n";
+        }
+        else
+        {
+            cout << "ERROR: input=\n" << input << '\n' << "output=\n" << output << endl;
+            throw std::runtime_error("XML example error");
+        }
     }
     else
     {
@@ -301,7 +311,7 @@ static void test()
 } //namespace xml_example
 
 
-void runXMLExample()
+void runXMLExampleTests()
 {
     cout << "XML example - start\n";
     xml_example::test();

@@ -1,5 +1,7 @@
 #include <iostream>
+#include <regex>
 #include "parserlib.hpp"
+
 
 using namespace std;
 using namespace parserlib;
@@ -17,8 +19,12 @@ namespace calculator_example {
 extern Rule<> expr, add, mul;
 
 
-//number is a list of one or more digits
-Rule<> num = +range('0', '9');
+//number is a double
+auto digit = range('0', '9');
+auto sign = oneOf("+-");
+auto numPart = +digit >> -('.' >> *digit) | '.' >> +digit;
+auto expPart = oneOf("eE") >> -sign >> +digit;
+Rule<> num = -sign >> numPart >> -expPart;
 
 
 //value is either a parenthesized expression or a number
@@ -199,7 +205,7 @@ static AST<Sub> ast_sub(sub_op);
  ******************************************************************************/
 
 
-static void test(std::string input)
+static void test(std::string input, const double value)
 {
     ParseContext<> parseContext(input);
     ExprPtr root = parseContext.parse<Expr>(expr);
@@ -207,8 +213,16 @@ static void test(std::string input)
     cout << input << " => ";
     if (root)
     {
-        cout << "SUCCESS; result = ";
-        cout << root->eval() << std::endl;
+        const double result = root->eval();
+        if (result == value)
+        {
+            cout << "SUCCESS; result = " << result << endl;
+        }
+        else
+        {
+            cout << "ERROR; result = " << result << ", correct = " << value << endl;
+            throw std::runtime_error("Calculator 2 example error");
+        }
     }
     else
     {
@@ -219,28 +233,65 @@ static void test(std::string input)
 
 static void tests()
 {
-    test("1");
-    test("1+2");
-    test("1+2+3");
-    test("1+2*3");
-    test("1*2+3");
-    test("(1+2)+3");
-    test("1+(2+3)");
-    test("((1)+2)+3");
-    test("1+(2+(3))");
-    test("((1+2)+2)+3");
-    test("1+(2+(3+4))");
-    test("((1*2)/2)+3");
-    test("1+(2*(3-4))");
+    test("1", 1.0);
+    test("1+2", 1.0+2.0);
+    test("1+2+3", 1.0+2.0+3.0);
+    test("1+2*3", 1.0+2.0*3.0);
+    test("1*2+3", 1.0*2.0+3.0);
+    test("(1+2)+3", (1.0+2.0)+3.0);
+    test("1+(2+3)", 1.0+(2.0+3.0));
+    test("((1)+2)+3", ((1.0)+2.0)+3.0);
+    test("1+(2+(3))", 1.0+(2.0+(3.0)));
+    test("((1+2)+2)+3", ((1.0+2.0)+2.0)+3.0);
+    test("1+(2+(3+4))", 1.0+(2.0+(3.0+4.0)));
+    test("((1*2)/2)+3", ((1.0*2.0)/2.0)+3.0);
+    test("1+(2*(3-4))", 1.0+(2.0*(3.0-4.0)));
 }
 
 
 } //namespace calculator_example
 
 
-void runCalculatorExample()
+void runCalculatorExampleTests()
 {
     cout << "Calculator example - start\n";
     calculator_example::tests();
     cout << "Calculator example - end\n\n";
 }
+
+void runCalculatorDemo()
+{
+    std::cout << "Calculator interactive example.\n";
+    for (;;)
+    {
+        std::cout << "enter expression or press enter to exit: ";
+        std::string str;
+        std::getline(std::cin, str);
+        if (str.empty()) break;
+        str = std::regex_replace(str, std::regex("\\s+"), "");
+        ParseContext<> parseContext(str);
+        calculator_example::ExprPtr root = parseContext.parse<calculator_example::Expr>(calculator_example::expr);
+        if (root)
+        {
+            const double result = root->eval();
+            std::cout << "result = " << result << std::endl;
+        }
+        else
+        {
+            std::cout << "ERROR: expression could not be parsed: " << parseContext.getRemainingInput() << std::endl;
+        }
+    }
+}
+
+
+#ifdef DEMO
+
+int main(int argc, char* argv[])
+{
+    runCalculatorDemo();
+    return 0;
+}
+
+
+#endif //DEMO
+
