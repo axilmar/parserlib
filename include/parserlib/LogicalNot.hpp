@@ -4,6 +4,7 @@
 
 #include "Expression.hpp"
 #include "UnaryOperatorsBase.hpp"
+#include "ScopeExit.hpp"
 
 
 namespace parserlib
@@ -38,10 +39,11 @@ namespace parserlib
         {
             const auto startPosition = pc.getCurrentPosition();
             const auto startOutputState = pc.getOutputState();
-            const bool result = !m_expression.parse(pc);
-            pc.setCurrentPosition(startPosition);
-            pc.setOutputState(startOutputState);
-            return result;
+            const auto e = onExit([&]() {
+                pc.setCurrentPosition(startPosition);
+                pc.setOutputState(startOutputState);
+            });
+            return !m_expression.parse(pc);
         }
 
     private:

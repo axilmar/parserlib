@@ -8,6 +8,7 @@
 #include "RuleReference.hpp"
 #include "ASTNode.hpp"
 #include "ExpressionWrapper.hpp"
+#include "ScopedValueChange.hpp"
 
 
 namespace parserlib
@@ -25,6 +26,9 @@ namespace parserlib
     public:
         ///iterator type.
         typedef typename ParseContextType::IteratorType IteratorType;
+
+        ///position index type
+        typedef typename ParseContextType::PositionIndexType PositionIndexType;
 
         ///match type.
         typedef typename ParseContextType::MatchType MatchType;
@@ -58,15 +62,9 @@ namespace parserlib
             @param pc parse context.
             @return true on success, false on failure.
          */
-        bool parse(ParseContextType& pc) const
+        bool parse(ParseContextType& pc)
         {
-            const auto startPosition = pc.getCurrentPosition();
-            const bool result = m_expression->parse(pc);
-            if (result)
-            {
-                pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
-            }
-            return result;
+            return _parse(pc);
         }
 
         /**
@@ -93,6 +91,18 @@ namespace parserlib
 
         //callback
         CallbackType m_callback = [](const MatchType &, ASTNodeStack&) {};
+
+        //internal parse
+        bool _parse(ParseContextType& pc) const
+        {
+            const auto startPosition = pc.getCurrentPosition();
+            if (!m_expression->parse(pc))
+            {
+                return false;
+            }
+            pc.addMatch(this, startPosition, pc.getCurrentPosition(), m_callback);
+            return true;
+        }
     };
 
 

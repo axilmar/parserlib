@@ -25,6 +25,9 @@ namespace parserlib
         ///iterator type.
         typedef typename InputType::const_iterator IteratorType;
 
+        ///position index type
+        typedef typename InputType::difference_type PositionIndexType;
+
         ///match type
         typedef typename OutputType::value_type MatchType;
 
@@ -33,6 +36,7 @@ namespace parserlib
             @param input input.
          */
         ParseContext(InputType& input) :
+            m_beginPosition(input.begin()),
             m_currentPosition(input.begin()),
             m_endPosition(input.end())
         {
@@ -45,6 +49,15 @@ namespace parserlib
         IteratorType getCurrentPosition() const
         {
             return m_currentPosition;
+        }
+
+        /**
+            Returns the current parsing position as index from start.
+            @return the current parsing position as index from start.
+         */
+        PositionIndexType getCurrentPositionIndex() const
+        {
+            return m_currentPosition - m_beginPosition;
         }
 
         /**
@@ -191,6 +204,7 @@ namespace parserlib
 
     private:
         //positions
+        IteratorType m_beginPosition;
         IteratorType m_currentPosition;
         IteratorType m_endPosition;
 

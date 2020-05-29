@@ -134,7 +134,7 @@ auto digit = range('0', '9');
 auto sign = oneOf("+-");
 auto numPart = +digit >> -('.' >> *digit) | '.' >> +digit;
 auto expPart = oneOf("eE") >> -sign >> +digit;
-Rule<> num = -sign >> numPart >> -expPart                  == ast<Number>();
+Rule<> num = /*-sign >>*/ numPart >> -expPart                  == ast<Number>();
 
 
 //value
