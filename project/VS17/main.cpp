@@ -4,16 +4,19 @@
 #include <sstream>
 #include <string_view>
 #include <memory>
+#include <map>
+#include <vector>
 
 
 namespace parserlib
 {
 
 
-    template <class ...T> std::string to_string(T&&... args)
+    template <class ...T> 
+    std::string to_string(T&&... args)
     {
         std::stringstream stream;
-        (stream << args)...;
+        (stream << ... << args);
         return stream.str();
     }
 
@@ -64,35 +67,40 @@ namespace parserlib
     class invalid_range : public exception
     {
     public:
-        template <class T> invalid_range(const T& min, const T& max)
+        template <class T> 
+        invalid_range(const T& min, const T& max)
             : exception(to_string("invalid range: ", min, " .. ", max))
         {
         }
     };
 
 
-    template <class T> class expression_type
+    template <class T> 
+    class expression_type
     {
     public:
         typedef T type;
     };
 
 
-    template <class T> class expression_type<const T>
+    template <class T> 
+    class expression_type<const T>
     {
     public:
         typedef typename expression_type<T>::type type;
     };
 
 
-    template <class T> class expression_type<T&>
+    template <class T> 
+    class expression_type<T&>
     {
     public:
         typedef typename expression_type<T>::type type;
     };
 
 
-    template <class T> class expression_type<T&&>
+    template <class T> 
+    class expression_type<T&&>
     {
     public:
         typedef typename expression_type<T>::type type;
@@ -117,7 +125,8 @@ namespace parserlib
     inline constexpr bool has_expression_type = is_expression<expression_type_t<T>>;
 
 
-    template <class ParseContext> class expression_interface : public expression
+    template <class ParseContext> 
+    class expression_interface : public expression
     {
     public:
         virtual ~expression_interface()
@@ -147,7 +156,144 @@ namespace parserlib
     };
 
 
-    template <class T> class expression_reference : public expression
+    template <class T> 
+    class optional_expression;
+
+
+    template <class T> 
+    class loop_expression;
+
+
+    template <class L, class R> 
+    class sequence_expression;
+
+
+    template <class T> 
+    class unary_operations_base : public expression
+    {
+    public:
+        T& self()
+        {
+            return *static_cast<T *>(this);
+        }
+
+        expression_type_t<T> self_expression()
+        {
+            return { self() };
+        }
+
+        optional_expression<expression_type_t<T>> operator -()
+        {
+            return { self_expression() };
+        }
+
+        loop_expression<expression_type_t<T>> operator *()
+        {
+            return { self_expression() };
+        }
+
+        sequence_expression<expression_type_t<T>, loop_expression<expression_type_t<T>>> operator +()
+        {
+            return { self_expression(), self_expression() };
+        }
+    };
+
+
+    template <class T, class X> class unary_expression
+        : public unary_operations_base<T>
+    {
+    public:
+        unary_expression(X&& expression)
+            : m_expression(std::move(expression))
+        {
+        }
+
+    protected:
+        X& expression()
+        {
+            return m_expression;
+        }
+
+    private:
+        X m_expression;
+    };
+
+
+    template <class T> 
+    class optional_expression
+        : public unary_expression<optional_expression<T>, T>
+    {
+    public:
+        using unary_expression<optional_expression<T>, T>::unary_expression;
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        {
+            auto start_state = pc.get_state();
+            
+            parse_result res = expression().parse(pc, lra);
+            
+            switch (res)
+            {
+                case parse_result::accepted:
+                    break;
+
+                case parse_result::rejected:
+                    pc.set_state(start_state);
+                    res = parse_result::accepted;
+                    break;
+
+                case parse_result::rejected_left_recursion:
+                    pc.set_state(start_state);
+                    break;
+            }
+
+            return res;
+        }
+    };
+
+
+    template <class T> 
+    class loop_expression
+        : public unary_expression<loop_expression<T>, T>
+    {
+    public:
+        using unary_expression<loop_expression<T>, T>::unary_expression;
+        using unary_expression<loop_expression<T>, T>::expression;
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        {
+            for(bool loop = true; loop && pc.valid(); )
+            {
+                auto start_state = pc.get_state();
+
+                parse_result res = expression().parse(pc, lra);
+
+                switch (res)
+                {
+                    case parse_result::accepted:
+                        break;
+
+                    case parse_result::rejected:
+                        pc.set_state(start_state);
+                        loop = false;
+                        break;
+
+                    case parse_result::rejected_left_recursion:
+                        pc.set_state(start_state);
+                        return parse_result::rejected_left_recursion;
+                }
+            }
+
+            return parse_result::accepted;
+        }
+    };
+
+
+    template <class T> 
+    class expression_reference 
+        : public unary_operations_base<expression_reference<T>>
     {
     public:
         expression_reference(T& expression)
@@ -166,13 +312,16 @@ namespace parserlib
     };
 
 
-    template <class T> expression_reference<T> make_expression_reference(T& expression)
+    template <class T> 
+    expression_reference<T> make_expression_reference(T& expression)
     {
         return { expression };
     }
 
 
-    template <class T> class terminal_expression : public expression
+    template <class T> 
+    class terminal_expression 
+        : public unary_operations_base<terminal_expression<T>>
     {
     public:
         terminal_expression(T&& value) : m_value(std::move(value))
@@ -190,13 +339,15 @@ namespace parserlib
     };
 
 
-    template <class T> terminal_expression<T> terminal(const T& value)
+    template <class T> 
+    terminal_expression<T> terminal(const T& value)
     {
         return { value };
     }
 
 
-    template <> class expression_type<char>
+    template <> 
+    class expression_type<char>
     {
     public:
         typedef terminal_expression<char> type;
@@ -215,7 +366,8 @@ namespace parserlib
     }
 
 
-    template <class T> class range_symbol
+    template <class T> 
+    class range_symbol
     {
     public:
         range_symbol(const T& min, const T& max)
@@ -231,10 +383,14 @@ namespace parserlib
 
         void test_good() const
         {
-            if (!good()) throw invalid_range(m_min, m_max);
+            if (!good())
+            {
+                throw invalid_range(m_min, m_max);
+            }
         }
 
-        template <class V> bool contains(const V& v) const
+        template <class V> 
+        bool contains(const V& v) const
         {
             return v >= m_min && v <= m_max;
         }
@@ -245,91 +401,121 @@ namespace parserlib
 
 
     template <class T>
-    terminal<range_symbol<T>> range(const T& min, const T& max)
+    terminal_expression<range_symbol<T>> range(const T& min, const T& max)
     {
-        return { min, max };
+        return range_symbol<T>(min, max);
     }
 
 
-    template <class T> class expression_type<range_symbol<T>>
+    template <class T> 
+    class expression_type<range_symbol<T>>
     {
     public:
-        typedef terminal<range_symbol<T>> type;
+        typedef terminal_expression<range_symbol<T>> type;
     };
 
 
-    template <class T, class V> bool symbol_equals(const range_symbol<T> &r, const V& v)
+    template <class T, class V> 
+    bool symbol_equals(const range_symbol<T> &r, const V& v)
     {
         return r.contains(v);
     }
 
 
-    template <class T> size_t symbol_length(const range_symbol<T> &r)
+    template <class T> 
+    size_t symbol_length(const range_symbol<T> &r)
     {
         return 1;
     }
 
 
-    template <class L, class R> class binary_expression : public expression
+    template <class T, class L, class R> 
+    class binary_expression 
+        : public unary_operations_base<T>
     {
     public:
         binary_expression(L&& left, R&& right)
-            : m_left(left), m_right(right)
+            : m_left(std::move(left)), m_right(std::move(right))
         {
         }
 
     protected:
+        L& left_expression()
+        {
+            return m_left;
+        }
+
+        R& right_expression()
+        {
+            return m_right;
+        }
+
+    private:
         L m_left;
         R m_right;
     };
 
 
-    template <class L, class R> class sequence_expression : public binary_expression<L, R>
+    template <class L, class R> 
+    class sequence_expression 
+        : public binary_expression<sequence_expression<L, R>, L, R>
     {
     public:
-        using binary_expression<L, R>::binary_expression;
+        using binary_expression<sequence_expression<L, R>, L, R>::binary_expression;
+        using binary_expression<sequence_expression<L, R>, L, R>::left_expression;
+        using binary_expression<sequence_expression<L, R>, L, R>::right_expression;
 
         template <class ParseContext> 
         parse_result parse(ParseContext& pc, left_recursion_action lra)
         {
+            auto start_state = pc.get_state();
+
             //parse the left expression
-            parse_result left_res = m_left.parse(pc, lra);
+            parse_result left_res = left_expression().parse(pc, lra);
 
             //if the left expression rejected the parse due to left recursion,
             //abort the sequence_expression and give a chance to the caller
             //to solve the left recursion
             if (left_res == parse_result::rejected_left_recursion)
             {
+                pc.set_state(start_state);
                 return parse_result::rejected_left_recursion;
             }
 
             //parse the right expression
-            return m_right.parse(pc, lra);
+            parse_result right_res = right_expression().parse(pc, lra);
+
+            if (right_res != parse_result::accepted)
+            {
+                pc.set_state(start_state);
+            }
+            return right_res;
         }
     };
 
 
     template <class L, class R, typename = std::enable_if_t<has_expression_type<L> && has_expression_type<R>>>
-    sequence_expression<expression_type_t<L>, expression_type_t<R>>, operator >> (L&& left, R&& right)
+    sequence_expression<expression_type_t<L>, expression_type_t<R>> operator >> (L&& left, R&& right)
     {
         return { expression_type_t<L>(std::forward<L>(left)), expression_type_t<R>(std::forward<R>(right)) };
     }
 
 
-    template <class L, class R> class choice_expression : public binary_expression<L, R>
+    template <class L, class R> class choice_expression 
+        : public binary_expression<choice_expression<L, R>, L, R>
     {
     public:
-        using binary_expression<L, R>::binary_expression;
+        using binary_expression<choice_expression<L, R>, L, R>::binary_expression;
+        using binary_expression<choice_expression<L, R>, L, R>::left_expression;
+        using binary_expression<choice_expression<L, R>, L, R>::right_expression;
 
         template <class ParseContext> 
         parse_result parse(ParseContext& pc, left_recursion_action lra)
         {
-            //keep the current state in order to rewind the parser
-            //if the left expression fails
             auto start_state = pc.get_state();
 
             //parse the left expression
-            parse_result left_res = m_left.parse(pc, lra);
+            parse_result left_res = left_expression().parse(pc, lra);
 
             //if the left expression was accepted, do nothing else
             if (left_res == parse_result::accepted)
@@ -341,13 +527,17 @@ namespace parserlib
             pc.set_state(start_state);
 
             //parse the right expression
-            parse_result right_res = m_right.parse(pc, lra);
+            parse_result right_res = right_expression().parse(pc, lra);
 
             //if the left expression result was 'rejected',
             //then there is no need to handle left recursion,
             //and therefore return the right result as is
             if (left_res == parse_result::rejected)
             {
+                if (right_res != parse_result::accepted)
+                {
+                    pc.set_state(start_state);
+                }
                 return right_res;
             }
 
@@ -359,6 +549,7 @@ namespace parserlib
             //it means this part of the grammar is invalid, so abort
             if (right_res == parse_result::rejected_left_recursion)
             {
+                pc.set_state(start_state);
                 throw unsolvable_left_recursion();
             }
 
@@ -367,6 +558,7 @@ namespace parserlib
             //which might try to solve it
             if (right_res == parse_result::rejected)
             {
+                pc.set_state(start_state);
                 return parse_result::rejected_left_recursion;
             }
 
@@ -379,12 +571,12 @@ namespace parserlib
 
                 //parse the left expression again, this time accepting
                 //any left recursion without processing the subexpressions
-                parse_result left_res = m_left.parse(pc, left_recursion_action::accept);
+                parse_result left_res = left_expression().parse(pc, left_recursion_action::accept);
 
                 switch (left_res)
                 {
                     //if parsing suceeded, continue parsing
-                    case parse_result::accepted;
+                    case parse_result::accepted:
                         break;
 
                     //if parsing failed, stop the loop
@@ -395,6 +587,7 @@ namespace parserlib
 
                     //if there is still a left recursion, abort
                     case parse_result::rejected_left_recursion:
+                        pc.set_state(start_state);
                         throw unsolvable_left_recursion();
                 }
             }
@@ -406,13 +599,18 @@ namespace parserlib
 
 
     template <class L, class R, typename = std::enable_if_t<has_expression_type<L> && has_expression_type<R>>>
-    choice_expression<expression_type_t<L>, expression_type_t<R>>, operator | (L&& left, R&& right)
+    choice_expression<expression_type_t<L>, expression_type_t<R>> operator | (L&& left, R&& right)
     {
         return { expression_type_t<L>(std::forward<L>(left)), expression_type_t<R>(std::forward<R>(right)) };
     }
 
 
-    template <class InputIt> class parse_context
+    template <class ParseContext = default_parse_context> 
+    class rule;
+
+
+    template <class InputIt> 
+    class parse_context
     {
     public:
         typedef typename InputIt::value_type value_type;
@@ -472,27 +670,81 @@ namespace parserlib
             m_it = s.m_it;
         }
 
+        bool add(rule<parse_context>& rule)
+        {
+            //find the rule in the recursion map
+            const auto it = m_recursionMap.find(&rule);
+
+            //if not found, then place it and return success
+            if (it == m_recursionMap.end())
+            {
+                m_recursionMap[&rule].push_back(m_it);
+                return true;
+            }
+
+            //if the last position for this rule is the same,
+            //then we have a left recursion and the rule cannot be added
+            if (it->second.back() == m_it)
+            {
+                return false;
+            }
+
+            //add the position
+            it->second.push_back(m_it);
+
+            //the position is successfully added
+            return true;
+        }
+
+        void remove(rule<parse_context>& rule)
+        {
+            //find the rule
+            const auto it = m_recursionMap.find(&rule);
+
+            //if the rule is not found, do nothing
+            if (it == m_recursionMap.end())
+            {
+                return;
+            }
+
+            //pop the last position
+            it->second.pop_back();
+
+            //if there are no more positions for this rule, remove the rule
+            if (it->second.empty())
+            {
+                m_recursionMap.erase(it);
+            }
+        }
+
     private:
         InputIt m_it;
         const InputIt m_end;
+        std::map<rule<parse_context>*, std::vector<InputIt>> m_recursionMap;
     };
 
 
+    template <class T> 
+    parse_context<typename T::const_iterator> make_parse_context(T& container)
+    {
+        return { container.begin(), container.end() };
+    }
+
+
     typedef parse_context<std::string_view::const_iterator> default_parse_context;
-
-
-    template <class ParseContext = default_parse_context> class rule;
 
 
     template <class ParseContext>
     using rule_reference = expression_reference<rule<ParseContext>>;
 
 
-    template <class ParseContext = default_parse_context> class rule : public expression
+    template <class ParseContext> class rule 
+        : public unary_operations_base<rule<ParseContext>>
     {
     public:
-        template <class T> rule(T&& expression)
-            : m_expression(std::make_unique<expression_wrapper<ParseContext, T>>(std::move(expression)))
+        template <class T> 
+        rule(T&& expression)
+            : m_expression(std::make_unique<expression_wrapper<ParseContext, expression_type_t<T>>>(expression_type_t<T>(std::move(expression))))
         {
         }
 
@@ -501,12 +753,49 @@ namespace parserlib
         {
         }
 
+        parse_result parse(ParseContext& pc, left_recursion_action lra = left_recursion_action::reject)
+        {
+            parse_result result;
+
+            //try to add the rule for the current position
+            const bool added = pc.add(*this);
+
+            //if the rule was added, proceed with parsing of the subexpression
+            if (added)
+            {
+                result = m_expression->parse(pc, lra);
+            }
+
+            //else handle left recursion
+            else
+            {
+                switch (lra)
+                {
+                    //reject the parse due to left recursion
+                    case left_recursion_action::reject:
+                        result = parse_result::rejected_left_recursion;
+                        break;
+
+                    //accept the parse due to left recursion
+                    case left_recursion_action::accept:
+                        result = parse_result::accepted;
+                        break;
+                }
+            }
+
+            //remove the rule
+            pc.remove(*this);
+
+            return result;
+        }
+
     private:
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
     };
 
 
-    template <class ParseContext> class expression_type<rule<ParseContext>>
+    template <class ParseContext> 
+    class expression_type<rule<ParseContext>>
     {
     public:
         typedef rule_reference<ParseContext> type;
@@ -517,9 +806,34 @@ namespace parserlib
 
 
 #include <iostream>
+using namespace parserlib;
+
+
+extern rule<> expr;
+
+
+auto num = +range('0', '9');
+
+
+rule<> val = '(' >> expr >> ')'
+           | num;
+
+
+rule<> mul = mul >> '*' >> val
+           | mul >> '/' >> val
+           | val;
+
+
+rule<> add = add >> '+' >> mul
+           | add >> '-' >> mul
+           | mul;
+
+
+rule<> expr = add;
 
 
 int main(int argc, char* argv[])
 {
+    system("pause");
     return 0;
 }
