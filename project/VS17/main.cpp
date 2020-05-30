@@ -25,7 +25,7 @@ namespace parserlib
     {
         accepted,
         rejected,
-        rejected_left_recursion
+        left_recursion
     };
 
 
@@ -243,7 +243,7 @@ namespace parserlib
                     result = parse_result::accepted;
                     break;
 
-                case parse_result::rejected_left_recursion:
+                case parse_result::left_recursion:
                     pc.set_state(start_state);
                     break;
             }
@@ -280,9 +280,9 @@ namespace parserlib
                         loop = false;
                         break;
 
-                    case parse_result::rejected_left_recursion:
+                    case parse_result::left_recursion:
                         pc.set_state(start_state);
-                        return parse_result::rejected_left_recursion;
+                        return parse_result::left_recursion;
                 }
             }
 
@@ -473,14 +473,12 @@ namespace parserlib
             //parse the left expression
             parse_result result = left_expression().parse(pc, lra);
 
-            //handle the left expression result
             switch (result)
             {
                 //if the left expression succeeded, try the right one
                 case parse_result::accepted:
                     result = right_expression().parse(pc, lra);
 
-                    //handle the right expression result
                     switch (result)
                     {
                         //sequence totally accepted
@@ -489,7 +487,7 @@ namespace parserlib
 
                         //sequence rejected; restore the state
                         case parse_result::rejected:
-                        case parse_result::rejected_left_recursion:
+                        case parse_result::left_recursion:
                             pc.set_state(start_state);
                             break;
 
@@ -498,7 +496,7 @@ namespace parserlib
 
                 //if the left expression failed, restore the state
                 case parse_result::rejected:
-                case parse_result::rejected_left_recursion:
+                case parse_result::left_recursion:
                     pc.set_state(start_state);
                     break;
             }
@@ -529,77 +527,66 @@ namespace parserlib
             auto start_state = pc.get_state();
 
             //parse the left expression
-            parse_result left_result = left_expression().parse(pc, lra);
+            parse_result result = left_expression().parse(pc, lra);
 
-            //if the left expression was accepted, do nothing else
-            if (left_result == parse_result::accepted)
+            switch (result)
             {
-                return parse_result::accepted;
-            }
+                //success from left expression
+                case parse_result::accepted:
+                    break;
 
-            //rewind the parse state in order to try the right expression
-            pc.set_state(start_state);
-
-            //parse the right expression
-            parse_result right_result = right_expression().parse(pc, lra);
-
-            //if the left expression result was 'rejected',
-            //then there is no need to handle left recursion,
-            //and therefore return the right result as is
-            if (left_result == parse_result::rejected)
-            {
-                if (right_result != parse_result::accepted)
-                {
+                //failure from left expression; 
+                //try the right expression
+                case parse_result::rejected:
                     pc.set_state(start_state);
-                }
-                return right_result;
+                    result = right_expression().parse(pc, lra);
+                    break;
+
+                //left recursion from left expression; 
+                //try the right expression;
+                //try to resolve the left recursion
+                case parse_result::left_recursion:
+                    pc.set_state(start_state);
+                    result = right_expression().parse(pc, lra);
+
+                    switch (result)
+                    {
+                        //success from right expression;
+                        //try to resolve the left recursion
+                        case parse_result::accepted:
+                            for (bool loop = true; loop && pc.valid(); )
+                            {
+                                auto start_state = pc.get_state();
+                                result = left_expression().parse(pc, left_recursion_action::accept);
+
+                                switch (result)
+                                {
+                                    //left recursion resolved;
+                                    //continue parsing
+                                    case parse_result::accepted:
+                                        break;
+
+                                    //left recursion parsing ended
+                                    case parse_result::rejected:
+                                    case parse_result::left_recursion:
+                                        pc.set_state(start_state);
+                                        loop = false;
+                                        break;
+                                }
+                            }
+                            break;
+
+                        //failure from right expression;
+                        //pass the result to the caller
+                        case parse_result::rejected:
+                        case parse_result::left_recursion:
+                            pc.set_state(start_state);
+                            break;
+                    }
+                    break;
             }
 
-            /******************************************************************
-             handle left recursion as a result of the left expression
-             ******************************************************************/
-
-            //if the right expression failed,
-            //return the left recursion to the caller,
-            //which might try to solve it
-            if (right_result != parse_result::accepted)
-            {
-                pc.set_state(start_state);
-                return parse_result::rejected_left_recursion;
-            }
-
-            //the right expression returned 'accepted',
-            //and therefore the left expression can now be resolved;
-            //parse it in a loop in order to capture repetition
-            for (bool loop = true; loop && pc.valid(); )
-            {
-                auto start_state = pc.get_state();
-
-                //parse the left expression again, this time accepting
-                //any left recursion without processing the subexpressions
-                parse_result left_result = left_expression().parse(pc, left_recursion_action::accept);
-
-                switch (left_result)
-                {
-                    //if parsing suceeded, continue parsing
-                    case parse_result::accepted:
-                        break;
-
-                    //if parsing failed, stop the loop
-                    case parse_result::rejected:
-                        pc.set_state(start_state);
-                        loop = false;
-                        break;
-
-                    //if there is still a left recursion, abort
-                    case parse_result::rejected_left_recursion:
-                        pc.set_state(start_state);
-                        throw unsolvable_left_recursion();
-                }
-            }
-
-            //return 'accepted' since the right expression returned 'accepted'
-            return parse_result::accepted;
+            return result;
         }
     };
 
@@ -787,7 +774,7 @@ namespace parserlib
                 {
                     //reject the parse due to left recursion
                     case left_recursion_action::reject:
-                        result = parse_result::rejected_left_recursion;
+                        result = parse_result::left_recursion;
                         break;
 
                     //accept the parse due to left recursion
