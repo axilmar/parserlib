@@ -231,16 +231,16 @@ namespace parserlib
         {
             auto start_state = pc.get_state();
             
-            parse_result res = expression().parse(pc, lra);
+            parse_result result = expression().parse(pc, lra);
             
-            switch (res)
+            switch (result)
             {
                 case parse_result::accepted:
                     break;
 
                 case parse_result::rejected:
                     pc.set_state(start_state);
-                    res = parse_result::accepted;
+                    result = parse_result::accepted;
                     break;
 
                 case parse_result::rejected_left_recursion:
@@ -248,7 +248,7 @@ namespace parserlib
                     break;
             }
 
-            return res;
+            return result;
         }
     };
 
@@ -268,9 +268,9 @@ namespace parserlib
             {
                 auto start_state = pc.get_state();
 
-                parse_result res = expression().parse(pc, lra);
+                parse_result result = expression().parse(pc, lra);
 
-                switch (res)
+                switch (result)
                 {
                     case parse_result::accepted:
                         break;
@@ -471,25 +471,39 @@ namespace parserlib
             auto start_state = pc.get_state();
 
             //parse the left expression
-            parse_result left_res = left_expression().parse(pc, lra);
+            parse_result result = left_expression().parse(pc, lra);
 
-            //if the left expression rejected the parse due to left recursion,
-            //abort the sequence_expression and give a chance to the caller
-            //to solve the left recursion
-            if (left_res == parse_result::rejected_left_recursion)
+            //handle the left expression result
+            switch (result)
             {
-                pc.set_state(start_state);
-                return parse_result::rejected_left_recursion;
+                //if the left expression succeeded, try the right one
+                case parse_result::accepted:
+                    result = right_expression().parse(pc, lra);
+
+                    //handle the right expression result
+                    switch (result)
+                    {
+                        //sequence totally accepted
+                        case parse_result::accepted:
+                            break;
+
+                        //sequence rejected; restore the state
+                        case parse_result::rejected:
+                        case parse_result::rejected_left_recursion:
+                            pc.set_state(start_state);
+                            break;
+
+                    }
+                    break;
+
+                //if the left expression failed, restore the state
+                case parse_result::rejected:
+                case parse_result::rejected_left_recursion:
+                    pc.set_state(start_state);
+                    break;
             }
 
-            //parse the right expression
-            parse_result right_res = right_expression().parse(pc, lra);
-
-            if (right_res != parse_result::accepted)
-            {
-                pc.set_state(start_state);
-            }
-            return right_res;
+            return result;
         }
     };
 
@@ -515,10 +529,10 @@ namespace parserlib
             auto start_state = pc.get_state();
 
             //parse the left expression
-            parse_result left_res = left_expression().parse(pc, lra);
+            parse_result left_result = left_expression().parse(pc, lra);
 
             //if the left expression was accepted, do nothing else
-            if (left_res == parse_result::accepted)
+            if (left_result == parse_result::accepted)
             {
                 return parse_result::accepted;
             }
@@ -527,36 +541,28 @@ namespace parserlib
             pc.set_state(start_state);
 
             //parse the right expression
-            parse_result right_res = right_expression().parse(pc, lra);
+            parse_result right_result = right_expression().parse(pc, lra);
 
             //if the left expression result was 'rejected',
             //then there is no need to handle left recursion,
             //and therefore return the right result as is
-            if (left_res == parse_result::rejected)
+            if (left_result == parse_result::rejected)
             {
-                if (right_res != parse_result::accepted)
+                if (right_result != parse_result::accepted)
                 {
                     pc.set_state(start_state);
                 }
-                return right_res;
+                return right_result;
             }
 
             /******************************************************************
              handle left recursion as a result of the left expression
              ******************************************************************/
 
-            //if the right expression failed due to left recursion,
-            //it means this part of the grammar is invalid, so abort
-            if (right_res == parse_result::rejected_left_recursion)
-            {
-                pc.set_state(start_state);
-                throw unsolvable_left_recursion();
-            }
-
             //if the right expression failed,
             //return the left recursion to the caller,
             //which might try to solve it
-            if (right_res == parse_result::rejected)
+            if (right_result != parse_result::accepted)
             {
                 pc.set_state(start_state);
                 return parse_result::rejected_left_recursion;
@@ -565,15 +571,15 @@ namespace parserlib
             //the right expression returned 'accepted',
             //and therefore the left expression can now be resolved;
             //parse it in a loop in order to capture repetition
-            for (bool loop = true; loop; )
+            for (bool loop = true; loop && pc.valid(); )
             {
                 auto start_state = pc.get_state();
 
                 //parse the left expression again, this time accepting
                 //any left recursion without processing the subexpressions
-                parse_result left_res = left_expression().parse(pc, left_recursion_action::accept);
+                parse_result left_result = left_expression().parse(pc, left_recursion_action::accept);
 
-                switch (left_res)
+                switch (left_result)
                 {
                     //if parsing suceeded, continue parsing
                     case parse_result::accepted:
@@ -717,6 +723,13 @@ namespace parserlib
             }
         }
 
+        std::basic_string_view<value_type> remaining_input() const
+        {
+            return ended() ? 
+                   std::basic_string_view<value_type>() : 
+                   std::basic_string_view<value_type>(&*m_it, (size_t)std::distance(m_it, m_end));
+        }
+
     private:
         InputIt m_it;
         const InputIt m_end;
@@ -731,7 +744,7 @@ namespace parserlib
     }
 
 
-    typedef parse_context<std::string_view::const_iterator> default_parse_context;
+    typedef parse_context<std::string::const_iterator> default_parse_context;
 
 
     template <class ParseContext>
@@ -763,7 +776,8 @@ namespace parserlib
             //if the rule was added, proceed with parsing of the subexpression
             if (added)
             {
-                result = m_expression->parse(pc, lra);
+                result = m_expression->parse(pc, left_recursion_action::reject);
+                pc.remove(*this);
             }
 
             //else handle left recursion
@@ -782,9 +796,6 @@ namespace parserlib
                         break;
                 }
             }
-
-            //remove the rule
-            pc.remove(*this);
 
             return result;
         }
@@ -815,8 +826,8 @@ extern rule<> expr;
 auto num = +range('0', '9');
 
 
-rule<> val = '(' >> expr >> ')'
-           | num;
+rule<> val = /*'(' >> expr >> ')'
+           | */num;
 
 
 rule<> mul = mul >> '*' >> val
@@ -834,6 +845,15 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
+    std::string input = "1+2";
+
+    auto pc = make_parse_context(input);
+
+    auto pr = expr.parse(pc);
+
+    std::cout << (int)pr << std::endl;
+    std::cout << pc.remaining_input() << std::endl;
+
     system("pause");
     return 0;
 }
