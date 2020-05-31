@@ -125,6 +125,10 @@ namespace parserlib
     inline constexpr bool has_expression_type = is_expression<expression_type_t<T>>;
 
 
+	template <class ParseContext>
+	class rule;
+
+
     template <class ParseContext> 
     class expression_interface : public expression
     {
@@ -132,6 +136,8 @@ namespace parserlib
         virtual ~expression_interface()
         {
         }
+
+		virtual void identify_left_recursive_rule_references(const rule<ParseContext>& rule) = 0;
 
         virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const = 0;
     };
@@ -146,7 +152,12 @@ namespace parserlib
         {
         }
 
-        virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const override
+		virtual void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+			m_expression.identify_left_recursive_rule_references(rule);
+		}
+
+		virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const override
         {
             return m_expression.parse(pc, lra);
         }
@@ -208,7 +219,13 @@ namespace parserlib
         {
         }
 
-    protected:
+		template <class ParseContext>
+		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+			m_expression.identify_left_recursive_rule_references(rule);
+		}
+
+	protected:
         const X& expression() const
         {
             return m_expression;
@@ -227,7 +244,7 @@ namespace parserlib
         using unary_expression<optional_expression<T>, T>::unary_expression;
 		using unary_expression<loop_expression<T>, T>::expression;
 
-        template <class ParseContext>
+		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             return pc.invoke(expression(), lra);
@@ -282,11 +299,23 @@ namespace parserlib
         {
         }
 
-        template <class ParseContext> 
+		template <class ParseContext>
+		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+			m_expression.identify_left_recursive_rule_references(rule);
+		}
+
+		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             return m_expression.parse(pc, lra);
         }
+
+	protected:
+		const T& expression() const
+		{
+			return m_expression;
+		}
 
     private:
         T& m_expression;
@@ -309,7 +338,12 @@ namespace parserlib
         {
         }
 
-        template <class ParseContext>
+		template <class ParseContext>
+		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+		}
+
+		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             return pc.parse(m_value) ? parse_result::accepted : parse_result::rejected;
@@ -420,18 +454,35 @@ namespace parserlib
         {
         }
 
-    protected:
+		template <class ParseContext>
+		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+			m_left.identify_left_recursive_rule_references(rule);
+			m_right.identify_left_recursive_rule_references(rule);
+		}
+
+	protected:
         const L& left_expression() const
         {
             return m_left;
         }
 
-        const R& right_expression() const
+		L& left_expression()
+		{
+			return m_left;
+		}
+
+		const R& right_expression() const
         {
             return m_right;
         }
 
-    private:
+		R& right_expression()
+		{
+			return m_right;
+		}
+
+	private:
         L m_left;
         R m_right;
     };
@@ -446,7 +497,13 @@ namespace parserlib
         using binary_expression<sequence_expression<L, R>, L, R>::left_expression;
         using binary_expression<sequence_expression<L, R>, L, R>::right_expression;
 
-        template <class ParseContext> 
+		template <class ParseContext>
+		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+			left_expression().identify_left_recursive_rule_references(rule);
+		}
+
+		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
 			//invoke the left expression
@@ -558,6 +615,16 @@ namespace parserlib
 			return result;
 		}
 
+		bool get_left_recursion() const
+		{
+			return m_left_recursion;
+		}
+
+		void set_left_recursion(bool v)
+		{
+			m_left_recursion = v;
+		}
+
 		std::basic_string_view<value_type> remaining_input() const
 		{
 			return ended() ?
@@ -579,6 +646,7 @@ namespace parserlib
 
 		InputIt m_it;
         const InputIt m_end;
+		bool m_left_recursion = false;
 
 		state get_state() const
 		{
@@ -607,11 +675,56 @@ namespace parserlib
 	{
 	public:
 		using expression_reference<rule<ParseContext>>::expression_reference;
+		using expression_reference<rule<ParseContext>>::expression;
+
+		template <class ParseContext>
+		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
+		{
+			m_is_left_recursive = &expression() == &rule;
+		}
 
 		parse_result parse(ParseContext& pc, left_recursion_action lra) const
 		{
-			//TODO
-			return parse_result::rejected;
+			parse_result result;
+
+			if (m_is_left_recursive)
+			{
+				switch (lra)
+				{
+					case left_recursion_action::reject:
+						pc.set_left_recursion(true);
+						result = parse_result::left_recursion;
+						break;
+
+					case left_recursion_action::accept:
+						result = parse_result::accepted;
+						break;
+				}
+			}
+			
+			else
+			{
+				result = pc.invoke(expression(), lra);
+			}
+
+			return result;
+		}
+
+	private:
+		bool m_is_left_recursive = false;
+	};
+
+
+	template <class T> 
+	class expression_unique_pointer : public std::unique_ptr<T>
+	{
+	public:
+		using std::unique_ptr<T>::unique_ptr;
+
+		template <class ParseContext>
+		parse_result parse(ParseContext& pc, left_recursion_action lra) const
+		{
+			return std::unique_ptr<T>::get()->parse(pc, lra);
 		}
 	};
 
@@ -624,21 +737,58 @@ namespace parserlib
         rule(T&& expression)
             : m_expression(std::make_unique<expression_wrapper<ParseContext, expression_type_t<T>>>(expression_type_t<T>(std::move(expression))))
         {
+			m_expression->identify_left_recursive_rule_references(*this);
         }
 
         rule(rule& r)
             : m_expression(std::make_unique<expression_wrapper<ParseContext, rule_reference<ParseContext>>>(r))
         {
-        }
+			m_expression->identify_left_recursive_rule_references(*this);
+		}
 
         parse_result parse(ParseContext& pc, left_recursion_action lra = left_recursion_action::reject) const
         {
-			//TODO
-            return parse_result::rejected;
+			const bool was_left_recursion = pc.get_left_recursion();
+
+			const parse_result result = pc.invoke(m_expression, lra);
+
+			//if some progress was made
+			//and there previously wasn't any left recursion
+			//and now there is, attempt to solve the left recursion
+			if (result == parse_result::accepted &&
+				!was_left_recursion &&
+				pc.get_left_recursion())
+			{
+				for (bool loop = true; loop && pc.valid(); )
+				{
+					const parse_result result = 
+						pc.invoke(m_expression, left_recursion_action::accept);
+					
+					switch (result)
+					{
+						//continue parsing for left recursion
+						case parse_result::accepted:
+							break;
+
+						//end parsing for left recursion
+						case parse_result::rejected:
+							loop = false;
+							break;
+
+						//left recursion active; abort
+						case parse_result::left_recursion:
+							throw unsolvable_left_recursion();
+					}
+				}
+
+				pc.set_left_recursion(false);
+			}
+
+            return result;
         }
 
     private:
-        std::unique_ptr<expression_interface<ParseContext>> m_expression;
+        expression_unique_pointer<expression_interface<ParseContext>> m_expression;
     };
 
 
