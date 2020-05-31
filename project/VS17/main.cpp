@@ -133,7 +133,7 @@ namespace parserlib
         {
         }
 
-        virtual parse_result parse(ParseContext& pc, left_recursion_action lra) = 0;
+        virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const = 0;
     };
 
 
@@ -146,7 +146,7 @@ namespace parserlib
         {
         }
 
-        virtual parse_result parse(ParseContext& pc, left_recursion_action lra) override
+        virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const override
         {
             return m_expression.parse(pc, lra);
         }
@@ -209,7 +209,7 @@ namespace parserlib
         }
 
     protected:
-        X& expression()
+        const X& expression() const
         {
             return m_expression;
         }
@@ -225,30 +225,12 @@ namespace parserlib
     {
     public:
         using unary_expression<optional_expression<T>, T>::unary_expression;
+		using unary_expression<loop_expression<T>, T>::expression;
 
         template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
-            auto start_state = pc.get_state();
-            
-            parse_result result = expression().parse(pc, lra);
-            
-            switch (result)
-            {
-                case parse_result::accepted:
-                    break;
-
-                case parse_result::rejected:
-                    pc.set_state(start_state);
-                    result = parse_result::accepted;
-                    break;
-
-                case parse_result::left_recursion:
-                    pc.set_state(start_state);
-                    break;
-            }
-
-            return result;
+            return pc.invoke(expression(), lra);
         }
     };
 
@@ -262,26 +244,25 @@ namespace parserlib
         using unary_expression<loop_expression<T>, T>::expression;
 
         template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             for(bool loop = true; loop && pc.valid(); )
             {
-                auto start_state = pc.get_state();
-
-                parse_result result = expression().parse(pc, lra);
+                parse_result result = pc.invoke(expression(), lra);
 
                 switch (result)
                 {
+					//continue the loop
                     case parse_result::accepted:
                         break;
 
+					//end the loop
                     case parse_result::rejected:
-                        pc.set_state(start_state);
                         loop = false;
                         break;
 
+					//abort the loop
                     case parse_result::left_recursion:
-                        pc.set_state(start_state);
                         return parse_result::left_recursion;
                 }
             }
@@ -302,7 +283,7 @@ namespace parserlib
         }
 
         template <class ParseContext> 
-        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             return m_expression.parse(pc, lra);
         }
@@ -329,7 +310,7 @@ namespace parserlib
         }
 
         template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             return pc.parse(m_value) ? parse_result::accepted : parse_result::rejected;
         }
@@ -440,12 +421,12 @@ namespace parserlib
         }
 
     protected:
-        L& left_expression()
+        const L& left_expression() const
         {
             return m_left;
         }
 
-        R& right_expression()
+        const R& right_expression() const
         {
             return m_right;
         }
@@ -466,42 +447,19 @@ namespace parserlib
         using binary_expression<sequence_expression<L, R>, L, R>::right_expression;
 
         template <class ParseContext> 
-        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
-            auto start_state = pc.get_state();
+			//invoke the left expression
+            parse_result result = pc.invoke(left_expression(), lra);
 
-            //parse the left expression
-            parse_result result = left_expression().parse(pc, lra);
-
-            switch (result)
-            {
-                //if the left expression succeeded, try the right one
-                case parse_result::accepted:
-                    result = right_expression().parse(pc, lra);
-
-                    switch (result)
-                    {
-                        //sequence totally accepted
-                        case parse_result::accepted:
-                            break;
-
-                        //sequence rejected; restore the state
-                        case parse_result::rejected:
-                        case parse_result::left_recursion:
-                            pc.set_state(start_state);
-                            break;
-
-                    }
-                    break;
-
-                //if the left expression failed, restore the state
-                case parse_result::rejected:
-                case parse_result::left_recursion:
-                    pc.set_state(start_state);
-                    break;
-            }
-
-            return result;
+			//the left expression was successful; 
+			//invoke the right expression
+			if (result == parse_result::accepted)
+			{
+				result = pc.invoke(right_expression(), lra);
+			}
+            
+			return result;
         }
     };
 
@@ -522,69 +480,17 @@ namespace parserlib
         using binary_expression<choice_expression<L, R>, L, R>::right_expression;
 
         template <class ParseContext> 
-        parse_result parse(ParseContext& pc, left_recursion_action lra)
+        parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
-            auto start_state = pc.get_state();
+            //invoke the left expression
+            parse_result result = pc.invoke(left_expression(), lra);
 
-            //parse the left expression
-            parse_result result = left_expression().parse(pc, lra);
-
-            switch (result)
-            {
-                //success from left expression
-                case parse_result::accepted:
-                    break;
-
-                //failure from left expression; 
-                //try the right expression
-                case parse_result::rejected:
-                    pc.set_state(start_state);
-                    result = right_expression().parse(pc, lra);
-                    break;
-
-                //left recursion from left expression; 
-                //try the right expression;
-                //try to resolve the left recursion
-                case parse_result::left_recursion:
-                    pc.set_state(start_state);
-                    result = right_expression().parse(pc, lra);
-
-                    switch (result)
-                    {
-                        //success from right expression;
-                        //try to resolve the left recursion
-                        case parse_result::accepted:
-                            for (bool loop = true; loop && pc.valid(); )
-                            {
-                                auto start_state = pc.get_state();
-                                result = left_expression().parse(pc, left_recursion_action::accept);
-
-                                switch (result)
-                                {
-                                    //left recursion resolved;
-                                    //continue parsing
-                                    case parse_result::accepted:
-                                        break;
-
-                                    //left recursion parsing ended
-                                    case parse_result::rejected:
-                                    case parse_result::left_recursion:
-                                        pc.set_state(start_state);
-                                        loop = false;
-                                        break;
-                                }
-                            }
-                            break;
-
-                        //failure from right expression;
-                        //pass the result to the caller
-                        case parse_result::rejected:
-                        case parse_result::left_recursion:
-                            pc.set_state(start_state);
-                            break;
-                    }
-                    break;
-            }
+			//the left expression failed;
+			//invoke the right expression
+			if (result != parse_result::accepted)
+			{
+				result = pc.invoke(right_expression(), lra);
+			}
 
             return result;
         }
@@ -607,25 +513,6 @@ namespace parserlib
     {
     public:
         typedef typename InputIt::value_type value_type;
-
-        class state
-        {
-        public:
-            const InputIt& it() const
-            {
-                return m_it;
-            }
-
-        private:
-            const InputIt m_it;
-
-            state(const InputIt& it)
-                : m_it(it)
-            {
-            }
-
-            friend class parse_context<InputIt>;
-        };
 
         parse_context(const InputIt begin, const InputIt end)
             : m_it(begin), m_end(end)
@@ -653,75 +540,56 @@ namespace parserlib
             return false;
         }
 
-        state get_state() const
-        {
-            return state(m_it);
-        }
+		template <class T>
+		parse_result invoke(const T &expression, const left_recursion_action lra)
+		{
+			//keep the start state locally so that it can be later restored
+			const auto start_state = get_state();
 
-        void set_state(const state& s)
-        {
-            m_it = s.m_it;
-        }
+			//invoke the expression
+			const parse_result result = expression.parse(*this, lra);
+			
+			//if the expression resulted in error, restore the state
+			if (result != parse_result::accepted)
+			{
+				set_state(start_state);
+			}
+			
+			return result;
+		}
 
-        bool add(rule<parse_context>& rule)
-        {
-            //find the rule in the recursion map
-            const auto it = m_recursionMap.find(&rule);
+		std::basic_string_view<value_type> remaining_input() const
+		{
+			return ended() ?
+				std::basic_string_view<value_type>() :
+				std::basic_string_view<value_type>(&*m_it, (size_t)std::distance(m_it, m_end));
+		}
 
-            //if not found, then place it and return success
-            if (it == m_recursionMap.end())
-            {
-                m_recursionMap[&rule].push_back(m_it);
-                return true;
-            }
+	private:
+		class state
+		{
+		public:
+			const InputIt m_it;
 
-            //if the last position for this rule is the same,
-            //then we have a left recursion and the rule cannot be added
-            if (it->second.back() == m_it)
-            {
-                return false;
-            }
+			state(const InputIt& it)
+				: m_it(it)
+			{
+			}
+		};
 
-            //add the position
-            it->second.push_back(m_it);
-
-            //the position is successfully added
-            return true;
-        }
-
-        void remove(rule<parse_context>& rule)
-        {
-            //find the rule
-            const auto it = m_recursionMap.find(&rule);
-
-            //if the rule is not found, do nothing
-            if (it == m_recursionMap.end())
-            {
-                return;
-            }
-
-            //pop the last position
-            it->second.pop_back();
-
-            //if there are no more positions for this rule, remove the rule
-            if (it->second.empty())
-            {
-                m_recursionMap.erase(it);
-            }
-        }
-
-        std::basic_string_view<value_type> remaining_input() const
-        {
-            return ended() ? 
-                   std::basic_string_view<value_type>() : 
-                   std::basic_string_view<value_type>(&*m_it, (size_t)std::distance(m_it, m_end));
-        }
-
-    private:
-        InputIt m_it;
+		InputIt m_it;
         const InputIt m_end;
-        std::map<rule<parse_context>*, std::vector<InputIt>> m_recursionMap;
-    };
+
+		state get_state() const
+		{
+			return state(m_it);
+		}
+
+		void set_state(const state& s)
+		{
+			m_it = s.m_it;
+		}
+	};
 
 
     template <class T> 
@@ -735,7 +603,17 @@ namespace parserlib
 
 
     template <class ParseContext>
-    using rule_reference = expression_reference<rule<ParseContext>>;
+	class rule_reference : public expression_reference<rule<ParseContext>>
+	{
+	public:
+		using expression_reference<rule<ParseContext>>::expression_reference;
+
+		parse_result parse(ParseContext& pc, left_recursion_action lra) const
+		{
+			//TODO
+			return parse_result::rejected;
+		}
+	};
 
 
     template <class ParseContext> class rule 
@@ -753,38 +631,10 @@ namespace parserlib
         {
         }
 
-        parse_result parse(ParseContext& pc, left_recursion_action lra = left_recursion_action::reject)
+        parse_result parse(ParseContext& pc, left_recursion_action lra = left_recursion_action::reject) const
         {
-            parse_result result;
-
-            //try to add the rule for the current position
-            const bool added = pc.add(*this);
-
-            //if the rule was added, proceed with parsing of the subexpression
-            if (added)
-            {
-                result = m_expression->parse(pc, left_recursion_action::reject);
-                pc.remove(*this);
-            }
-
-            //else handle left recursion
-            else
-            {
-                switch (lra)
-                {
-                    //reject the parse due to left recursion
-                    case left_recursion_action::reject:
-                        result = parse_result::left_recursion;
-                        break;
-
-                    //accept the parse due to left recursion
-                    case left_recursion_action::accept:
-                        result = parse_result::accepted;
-                        break;
-                }
-            }
-
-            return result;
+			//TODO
+            return parse_result::rejected;
         }
 
     private:
