@@ -114,6 +114,11 @@ namespace parserlib
     class expression
     {
     public:
+
+    protected:
+        expression()
+        {
+        }
     };
 
 
@@ -573,15 +578,119 @@ namespace parserlib
 
 			//invoke the expression
 			const parse_result result = expression.parse(*this);
-			
-			//if the expression resulted in error, restore the state
-			if (result != parse_result::accepted)
-			{
-				set_state(start_state);
-			}
+
+            switch (result)
+            {
+                case parse_result::accepted:
+                    break;
+
+                case parse_result::rejected:
+				    set_state(start_state);
+                    break;
+
+                case parse_result::left_recursion:
+				    set_state(start_state);
+                    m_is_left_recursion_active = true;
+                    break;
+            }
 			
 			return result;
 		}
+
+		parse_result invoke(const rule<parse_context> &r)
+		{
+			//keep the start state locally so that it can be later restored
+			const auto start_state = get_state();
+
+            const bool was_left_recursion_active = m_is_left_recursion_active;
+
+			//invoke the expression
+			const parse_result result = r.parse(*this);
+
+            switch (result)
+            {
+                case parse_result::accepted:
+                    if (!was_left_recursion_active && m_is_left_recursion_active)
+                    {
+                        m_left_recursion_action = left_recursion_action::accept;
+
+                        for (bool loop = true; loop && valid();)
+                        {
+                            const parse_result result = r.parse(*this);
+
+                            switch (result)
+                            {
+                                case parse_result::accepted:
+                                    break;
+
+                                case parse_result::rejected:
+                                    loop = false;
+                                    break;
+
+                                case parse_result::left_recursion:
+                                    throw unsolvable_left_recursion();
+                            }
+                        }
+
+                        m_is_left_recursion_active = false;
+                        m_left_recursion_action = left_recursion_action::reject;
+                    }
+                    break;
+
+                case parse_result::rejected:
+				    set_state(start_state);
+                    break;
+
+                case parse_result::left_recursion:
+				    set_state(start_state);
+                    m_is_left_recursion_active = true;
+                    break;
+            }
+			
+			return result;
+		}
+
+        bool is_left_recursion_active() const
+        {
+            return m_is_left_recursion_active;
+        }
+
+        bool is_active(const rule<parse_context>& rule) const
+        {
+            auto it = m_active_rule_map.find(&rule);            
+            return it != m_active_rule_map.end() && it->second.back() == m_it;
+        }
+
+        void activate(const rule<parse_context>& rule)
+        {
+            auto it = m_active_rule_map.find(&rule);            
+            if (it != m_active_rule_map.end())
+            {
+                it->second.push_back(m_it);
+            }
+            else
+            {
+                m_active_rule_map.emplace(&rule, std::vector<InputIt>({m_it}));
+            }
+        }
+
+        void deactivate(const rule<parse_context>& rule)
+        {
+            auto it = m_active_rule_map.find(&rule);            
+            if (it != m_active_rule_map.end())
+            {
+                it->second.pop_back();
+                if (it->second.empty())
+                {
+                    m_active_rule_map.erase(it);
+                }
+            }
+        }
+
+        left_recursion_action get_left_recursion_action() const
+        {
+            return m_left_recursion_action;
+        }
 
 		std::basic_string_view<value_type> remaining_input() const
 		{
@@ -604,6 +713,9 @@ namespace parserlib
 
 		InputIt m_it;
         const InputIt m_end;
+        bool m_is_left_recursion_active = false;
+        left_recursion_action m_left_recursion_action = left_recursion_action::reject;
+        std::map<const rule<parse_context>*, std::vector<InputIt>> m_active_rule_map;
 
 		state get_state() const
 		{
@@ -632,11 +744,36 @@ namespace parserlib
     {
     public:
         using expression_reference<rule<ParseContext>>::expression_reference;
+        using expression_reference<rule<ParseContext>>::expression;
+
+        const rule<ParseContext>& rule() const
+        {
+            return expression();
+        }
 
 		parse_result parse(ParseContext& pc) const
 		{
-            //TODO
-			return parse_result::rejected;
+            parse_result result;
+
+            if (!pc.is_active(rule()))
+            {
+                result = pc.invoke(rule());
+            }
+            else
+            {
+                switch (pc.get_left_recursion_action())
+                {
+                    case left_recursion_action::reject:
+                        result = parse_result::left_recursion;
+                        break;
+
+                    case left_recursion_action::accept:
+                        result = parse_result::accepted;
+                        break;
+                }
+            }
+
+            return result;
 		}
     };
 
@@ -672,23 +809,14 @@ namespace parserlib
 
         parse_result parse(ParseContext& pc) const
         {
-            //TODO
-            return parse_result::rejected;
+            pc.activate(*this);
+            parse_result result = pc.invoke(m_expression);
+            pc.deactivate(*this);
+            return result;
         }
 
     private:
         expression_unique_pointer<expression_interface<ParseContext>> m_expression;
-
-        //invoke expression
-        parse_result invoke_expression(ParseContext& pc) const
-        {
-            parse_result result = pc.invoke(m_expression);
-            if (result == parse_result::accepted)
-            {
-                pc.update_active_position(*this);
-            }
-            return result;
-        }
     };
 
 
@@ -713,8 +841,8 @@ extern rule<> expr;
 auto num = -terminal('+') >> +range('0', '9');
 
 
-rule<> val = /*'(' >> expr >> ')'
-           | */num;
+rule<> val = '(' >> expr >> ')'
+           | num;
 
 
 rule<> mul = mul >> '*' >> val
@@ -732,7 +860,7 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    std::string input = "1*2+3";
+    std::string input = "1+2/3-4+1-2+5*7/8/15";
 
     auto pc = make_parse_context(input);
 
