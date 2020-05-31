@@ -137,7 +137,7 @@ namespace parserlib
         {
         }
 
-        virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const = 0;
+        virtual parse_result parse(ParseContext& pc) const = 0;
     };
 
 
@@ -150,9 +150,9 @@ namespace parserlib
         {
         }
 
-		virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const override
+		virtual parse_result parse(ParseContext& pc) const override
         {
-            return m_expression.parse(pc, lra);
+            return m_expression.parse(pc);
         }
 
     private:
@@ -232,9 +232,10 @@ namespace parserlib
 		using unary_expression<optional_expression<T>, T>::expression;
 
 		template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra) const
+        parse_result parse(ParseContext& pc) const
         {
-            return pc.invoke(expression(), lra);
+            pc.invoke(expression());
+            return parse_result::accepted;
         }
     };
 
@@ -248,11 +249,11 @@ namespace parserlib
         using unary_expression<loop_expression<T>, T>::expression;
 
         template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra) const
+        parse_result parse(ParseContext& pc) const
         {
             for(bool loop = true; loop && pc.valid(); )
             {
-                parse_result result = pc.invoke(expression(), lra);
+                parse_result result = pc.invoke(expression());
 
                 switch (result)
                 {
@@ -287,9 +288,9 @@ namespace parserlib
         }
 
 		template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra) const
+        parse_result parse(ParseContext& pc) const
         {
-            return m_expression.parse(pc, lra);
+            return m_expression.parse(pc);
         }
 
 	protected:
@@ -324,7 +325,7 @@ namespace parserlib
         }
 
 		template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra) const
+        parse_result parse(ParseContext& pc) const
         {
             return pc.parse(m_value) ? parse_result::accepted : parse_result::rejected;
         }
@@ -471,16 +472,16 @@ namespace parserlib
         using binary_expression<sequence_expression<L, R>, L, R>::right_expression;
 
 		template <class ParseContext>
-        parse_result parse(ParseContext& pc, left_recursion_action lra) const
+        parse_result parse(ParseContext& pc) const
         {
 			//invoke the left expression
-            parse_result result = pc.invoke(left_expression(), lra);
+            parse_result result = pc.invoke(left_expression());
 
 			//the left expression was successful; 
 			//invoke the right expression
 			if (result == parse_result::accepted)
 			{
-				result = pc.invoke(right_expression(), lra);
+				result = pc.invoke(right_expression());
 			}
             
 			return result;
@@ -504,16 +505,16 @@ namespace parserlib
         using binary_expression<choice_expression<L, R>, L, R>::right_expression;
 
         template <class ParseContext> 
-        parse_result parse(ParseContext& pc, left_recursion_action lra) const
+        parse_result parse(ParseContext& pc) const
         {
             //invoke the left expression
-            parse_result result = pc.invoke(left_expression(), lra);
+            parse_result result = pc.invoke(left_expression());
 
 			//the left expression failed;
 			//invoke the right expression
 			if (result != parse_result::accepted)
 			{
-				result = pc.invoke(right_expression(), lra);
+				result = pc.invoke(right_expression());
 			}
 
             return result;
@@ -565,13 +566,13 @@ namespace parserlib
         }
 
 		template <class T>
-		parse_result invoke(const T &expression, const left_recursion_action lra)
+		parse_result invoke(const T &expression)
 		{
 			//keep the start state locally so that it can be later restored
 			const auto start_state = get_state();
 
 			//invoke the expression
-			const parse_result result = expression.parse(*this, lra);
+			const parse_result result = expression.parse(*this);
 			
 			//if the expression resulted in error, restore the state
 			if (result != parse_result::accepted)
@@ -582,7 +583,7 @@ namespace parserlib
 			return result;
 		}
 
-		bool get_left_recursion() const
+		bool is_left_recursion() const
 		{
 			return m_left_recursion;
 		}
@@ -591,6 +592,16 @@ namespace parserlib
 		{
 			m_left_recursion = v;
 		}
+
+        left_recursion_action get_left_recursion_action() const
+        {
+            return m_left_recursion_action;
+        }
+
+        void set_left_recursion_action(left_recursion_action lra)
+        {
+            m_left_recursion_action = lra;
+        }
 
         bool is_active_position(const rule<parse_context>& rule) const
         {
@@ -656,6 +667,7 @@ namespace parserlib
 		InputIt m_it;
         const InputIt m_end;
 		bool m_left_recursion = false;
+        left_recursion_action m_left_recursion_action = left_recursion_action::reject;
         std::map<const rule<parse_context>*, std::vector<InputIt>> m_active_position_map;
 
 		state get_state() const
@@ -681,44 +693,7 @@ namespace parserlib
 
 
     template <class ParseContext>
-	class rule_reference : public expression_reference<rule<ParseContext>>
-	{
-	public:
-		using expression_reference<rule<ParseContext>>::expression_reference;
-		using expression_reference<rule<ParseContext>>::expression;
-
-		parse_result parse(ParseContext& pc, left_recursion_action lra) const
-		{
-			parse_result result;
-
-			if (pc.is_active_position(expression()))
-			{
-				switch (lra)
-				{
-					case left_recursion_action::reject:
-						pc.set_left_recursion(true);
-						result = parse_result::left_recursion;
-						break;
-
-					case left_recursion_action::accept:
-						result = parse_result::accepted;
-						break;
-				}
-			}
-			
-			else
-			{
-				const bool was_left_recursion = pc.get_left_recursion();
-				pc.set_left_recursion(false);
-				result = pc.invoke(expression(), left_recursion_action::reject);
-				pc.set_left_recursion(was_left_recursion);
-			}
-
-			return result;
-		}
-
-	private:
-	};
+    using rule_reference = expression_reference<rule<ParseContext>>;
 
 
 	template <class T> 
@@ -728,9 +703,9 @@ namespace parserlib
 		using std::unique_ptr<T>::unique_ptr;
 
 		template <class ParseContext>
-		parse_result parse(ParseContext& pc, left_recursion_action lra) const
+		parse_result parse(ParseContext& pc) const
 		{
-			return std::unique_ptr<T>::get()->parse(pc, lra);
+			return std::unique_ptr<T>::get()->parse(pc);
 		}
 	};
 
@@ -750,47 +725,85 @@ namespace parserlib
         {
 		}
 
-        parse_result parse(ParseContext& pc, left_recursion_action lra = left_recursion_action::reject) const
+        parse_result parse(ParseContext& pc) const
         {
-            pc.set_active_position(*this, true);
+            parse_result result;
 
-			const bool was_left_recursion = pc.get_left_recursion();
+            //if there is no left recursion at the current position, continue parsing
+            if (!pc.is_active_position(*this))
+            {
+                pc.set_active_position(*this, true);
 
-			const parse_result result = pc.invoke(m_expression, lra);
+                const bool was_left_recursion = pc.is_left_recursion();
 
-			//if some progress was made
-			//and there previously wasn't any left recursion
-			//and now there is, attempt to solve the left recursion
-			if (result == parse_result::accepted &&
-				!was_left_recursion &&
-				pc.get_left_recursion())
-			{
-				for (bool loop = true; loop && pc.valid(); )
-				{
-					const parse_result result = 
-						pc.invoke(m_expression, left_recursion_action::accept);
-					
-					switch (result)
-					{
-						//continue parsing for left recursion
-						case parse_result::accepted:
-							break;
+                //no left recursion active
+                if (!was_left_recursion)
+                {
+                    result = pc.invoke(m_expression);
 
-						//end parsing for left recursion
-						case parse_result::rejected:
-							loop = false;
-							break;
+                    //if the result was accepted and there was a left recursion,
+                    //try to resolve the left recursion
+                    if (result == parse_result::accepted && pc.is_left_recursion())
+                    {
+                        pc.set_left_recursion_action(left_recursion_action::accept);
 
-						//left recursion active; abort
-						case parse_result::left_recursion:
-							throw unsolvable_left_recursion();
-					}
-				}
+                        for (bool loop = true; loop && pc.valid();)
+                        {
+                            parse_result result = pc.invoke(m_expression);
 
-				pc.set_left_recursion(false);
-			}
+                            switch (result)
+                            {
+                                //continue the left recursion parsing loop
+                                case parse_result::accepted:
+                                    break;
 
-            pc.set_active_position(*this, false);
+                                //stop the left recursion parsing loop
+                                case parse_result::rejected:
+                                    loop = false;
+                                    break;
+
+                                //cannot solve left recursion, abort
+                                case parse_result::left_recursion:
+                                    throw unsolvable_left_recursion();
+                            }
+                        }
+
+                        pc.set_left_recursion(false);
+                        pc.set_left_recursion_action(left_recursion_action::reject);
+                    }
+                }
+
+                //else under left recursion, override the left recursion temporarily
+                else
+                {
+                    pc.set_left_recursion(false);
+                    left_recursion_action prev_left_recursion_action = pc.get_left_recursion_action();
+                    pc.set_left_recursion_action(left_recursion_action::reject);
+                    
+                    result = pc.invoke(m_expression);
+                    
+                    pc.set_left_recursion(true);
+                    pc.set_left_recursion_action(prev_left_recursion_action);
+                }
+
+                pc.set_active_position(*this, false);
+            }
+
+            //else handle left recursion in the current position
+            else
+            {
+                switch (pc.get_left_recursion_action())
+                {
+                    case left_recursion_action::reject:
+                        pc.set_left_recursion(true);
+                        result = parse_result::left_recursion;
+                        break;
+
+                    case left_recursion_action::accept:
+                        result = parse_result::accepted;
+                        break;
+                }
+            }
 
             return result;
         }
