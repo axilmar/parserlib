@@ -242,7 +242,7 @@ namespace parserlib
     {
     public:
         using unary_expression<optional_expression<T>, T>::unary_expression;
-		using unary_expression<loop_expression<T>, T>::expression;
+		using unary_expression<optional_expression<T>, T>::expression;
 
 		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
@@ -334,7 +334,11 @@ namespace parserlib
         : public unary_operations_base<terminal_expression<T>>
     {
     public:
-        terminal_expression(T&& value) : m_value(std::move(value))
+		terminal_expression(const T& value) : m_value(value)
+		{
+		}
+
+		terminal_expression(T&& value) : m_value(std::move(value))
         {
         }
 
@@ -704,7 +708,10 @@ namespace parserlib
 			
 			else
 			{
-				result = pc.invoke(expression(), lra);
+				const bool was_left_recursion = pc.get_left_recursion();
+				pc.set_left_recursion(false);
+				result = pc.invoke(expression(), left_recursion_action::reject);
+				pc.set_left_recursion(was_left_recursion);
 			}
 
 			return result;
@@ -810,11 +817,11 @@ using namespace parserlib;
 extern rule<> expr;
 
 
-auto num = +range('0', '9');
+auto num = -terminal('+') >> +range('0', '9');
 
 
-rule<> val = /*'(' >> expr >> ')'
-           | */num;
+rule<> val = '(' >> expr >> ')'
+           | num;
 
 
 rule<> mul = mul >> '*' >> val
@@ -832,7 +839,7 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    std::string input = "1+2";
+    std::string input = "1";
 
     auto pc = make_parse_context(input);
 
