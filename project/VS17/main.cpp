@@ -137,8 +137,6 @@ namespace parserlib
         {
         }
 
-		virtual void identify_left_recursive_rule_references(const rule<ParseContext>& rule) = 0;
-
         virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const = 0;
     };
 
@@ -151,11 +149,6 @@ namespace parserlib
             : m_expression(std::move(expression))
         {
         }
-
-		virtual void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-			m_expression.identify_left_recursive_rule_references(rule);
-		}
 
 		virtual parse_result parse(ParseContext& pc, left_recursion_action lra) const override
         {
@@ -218,12 +211,6 @@ namespace parserlib
             : m_expression(std::move(expression))
         {
         }
-
-		template <class ParseContext>
-		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-			m_expression.identify_left_recursive_rule_references(rule);
-		}
 
 	protected:
         const X& expression() const
@@ -300,12 +287,6 @@ namespace parserlib
         }
 
 		template <class ParseContext>
-		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-			m_expression.identify_left_recursive_rule_references(rule);
-		}
-
-		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
         {
             return m_expression.parse(pc, lra);
@@ -341,11 +322,6 @@ namespace parserlib
 		terminal_expression(T&& value) : m_value(std::move(value))
         {
         }
-
-		template <class ParseContext>
-		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-		}
 
 		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
@@ -458,13 +434,6 @@ namespace parserlib
         {
         }
 
-		template <class ParseContext>
-		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-			m_left.identify_left_recursive_rule_references(rule);
-			m_right.identify_left_recursive_rule_references(rule);
-		}
-
 	protected:
         const L& left_expression() const
         {
@@ -500,12 +469,6 @@ namespace parserlib
         using binary_expression<sequence_expression<L, R>, L, R>::binary_expression;
         using binary_expression<sequence_expression<L, R>, L, R>::left_expression;
         using binary_expression<sequence_expression<L, R>, L, R>::right_expression;
-
-		template <class ParseContext>
-		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-			left_expression().identify_left_recursive_rule_references(rule);
-		}
 
 		template <class ParseContext>
         parse_result parse(ParseContext& pc, left_recursion_action lra) const
@@ -629,6 +592,48 @@ namespace parserlib
 			m_left_recursion = v;
 		}
 
+        bool is_active_position(const rule<parse_context>& rule) const
+        {
+            const auto it = m_active_position_map.find(&rule);
+
+            if (it == m_active_position_map.end())
+            {
+                return false;
+            }
+
+            return it->second.back() == m_it;
+        }
+
+        void set_active_position(const rule<parse_context>& rule, bool active)
+        {
+            auto it = m_active_position_map.find(&rule);
+
+            if (active)
+            {
+                if (it == m_active_position_map.end())
+                {
+                    m_active_position_map.emplace(&rule, std::vector<InputIt>({ m_it }));
+                }
+                else
+                {
+                    it->second.push_back(m_it);
+                }
+            }
+
+            else
+            {
+                if (it != m_active_position_map.end())
+                {
+                    it->second.pop_back();
+
+                    if (it->second.empty())
+                    {
+                        m_active_position_map.erase(it);
+                    }
+                }
+            }
+        }
+
 		std::basic_string_view<value_type> remaining_input() const
 		{
 			return ended() ?
@@ -651,6 +656,7 @@ namespace parserlib
 		InputIt m_it;
         const InputIt m_end;
 		bool m_left_recursion = false;
+        std::map<const rule<parse_context>*, std::vector<InputIt>> m_active_position_map;
 
 		state get_state() const
 		{
@@ -681,17 +687,11 @@ namespace parserlib
 		using expression_reference<rule<ParseContext>>::expression_reference;
 		using expression_reference<rule<ParseContext>>::expression;
 
-		template <class ParseContext>
-		void identify_left_recursive_rule_references(const rule<ParseContext>& rule)
-		{
-			m_is_left_recursive = &expression() == &rule;
-		}
-
 		parse_result parse(ParseContext& pc, left_recursion_action lra) const
 		{
 			parse_result result;
 
-			if (m_is_left_recursive)
+			if (pc.is_active_position(expression()))
 			{
 				switch (lra)
 				{
@@ -718,7 +718,6 @@ namespace parserlib
 		}
 
 	private:
-		bool m_is_left_recursive = false;
 	};
 
 
@@ -744,17 +743,17 @@ namespace parserlib
         rule(T&& expression)
             : m_expression(std::make_unique<expression_wrapper<ParseContext, expression_type_t<T>>>(expression_type_t<T>(std::move(expression))))
         {
-			m_expression->identify_left_recursive_rule_references(*this);
         }
 
         rule(rule& r)
             : m_expression(std::make_unique<expression_wrapper<ParseContext, rule_reference<ParseContext>>>(r))
         {
-			m_expression->identify_left_recursive_rule_references(*this);
 		}
 
         parse_result parse(ParseContext& pc, left_recursion_action lra = left_recursion_action::reject) const
         {
+            pc.set_active_position(*this, true);
+
 			const bool was_left_recursion = pc.get_left_recursion();
 
 			const parse_result result = pc.invoke(m_expression, lra);
@@ -791,6 +790,8 @@ namespace parserlib
 				pc.set_left_recursion(false);
 			}
 
+            pc.set_active_position(*this, false);
+
             return result;
         }
 
@@ -820,8 +821,8 @@ extern rule<> expr;
 auto num = -terminal('+') >> +range('0', '9');
 
 
-rule<> val = '(' >> expr >> ')'
-           | num;
+rule<> val = /*'(' >> expr >> ')'
+           | */num;
 
 
 rule<> mul = mul >> '*' >> val
