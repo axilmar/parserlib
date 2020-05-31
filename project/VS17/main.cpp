@@ -666,7 +666,15 @@ namespace parserlib
             auto it = m_active_rule_map.find(&rule);            
             if (it != m_active_rule_map.end())
             {
-                it->second.push_back(m_it);
+				if (m_it > it->second.back())
+				{
+					it->second.push_back(m_it);
+					m_is_left_recursion_active = false;
+				}
+				else
+				{
+					throw std::runtime_error("cannot activate rule");
+				}
             }
             else
             {
@@ -680,7 +688,11 @@ namespace parserlib
             if (it != m_active_rule_map.end())
             {
                 it->second.pop_back();
-                if (it->second.empty())
+				if (!it->second.empty())
+				{
+					m_is_left_recursion_active = true;
+				}
+				else
                 {
                     m_active_rule_map.erase(it);
                 }
@@ -838,7 +850,7 @@ using namespace parserlib;
 extern rule<> expr;
 
 
-auto num = -terminal('+') >> +range('0', '9');
+auto num = -terminal('-') >> +range('0', '9');
 
 
 rule<> val = '(' >> expr >> ')'
@@ -860,7 +872,7 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    std::string input = "1+2/3-4+1-2+5*7/8/15";
+    std::string input = "1*(2-3)";
 
     auto pc = make_parse_context(input);
 
