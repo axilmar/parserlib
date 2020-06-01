@@ -14,10 +14,10 @@ namespace parserlib
         ///The input was parsed successfully.
         accepted,
 
-        ///The input was not recognized.
+        ///The input was rejected.
         rejected,
 
-        ///left recursion was found; parsing cannot continue.
+        ///parsing failed due to left recursion.
         left_recursion
     };
 

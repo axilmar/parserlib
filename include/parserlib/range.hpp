@@ -45,7 +45,7 @@ namespace parserlib
         {
             if (pc.valid() && *pc.iterator >= m_min_element && *pc.iterator <= m_max_element)
             {
-                ++pc.iterator;
+                pc.next();
                 return parse_result::accepted;
             }
             return parse_result::rejected;

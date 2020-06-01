@@ -39,7 +39,7 @@ namespace parserlib
         {
             if (pc.valid() && *pc.iterator == m_element)
             {
-                ++pc.iterator;
+                pc.next();
                 return parse_result::accepted;
             }
             return parse_result::rejected;

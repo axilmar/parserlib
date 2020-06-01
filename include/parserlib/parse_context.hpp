@@ -33,20 +33,14 @@ namespace parserlib
             typename Input::const_iterator iterator;
         };
 
+        ///map used in handling recursion.
+        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> positions;
+
         ///current position over the input.
         typename Input::const_iterator iterator;
 
         ///input end.
         const typename Input::const_iterator end;
-
-        ///set if left recursion is detected
-        bool left_recursion = false;
-
-        ///set if left recursion must be accepted without parsing.
-        bool accept_left_recursion = false;
-
-        ///map used in handling left recursion
-        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> rule_positions;
 
         /**
             Constructor.
@@ -93,6 +87,14 @@ namespace parserlib
 		{
 			return Input(iterator, end);
 		}
+
+        /**
+            Proceeds with next token.
+         */
+        void next()
+        {
+            ++iterator;
+        }
     };
 
 
