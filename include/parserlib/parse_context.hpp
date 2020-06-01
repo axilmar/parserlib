@@ -4,10 +4,15 @@
 
 #include <utility>
 #include <string>
+#include <map>
+#include <vector>
 
 
 namespace parserlib
 {
+
+
+    template <typename ParseContext> class rule;
 
 
     /**
@@ -18,6 +23,9 @@ namespace parserlib
     class parse_context
     {
     public:
+        ///input type.
+        typedef Input input_type;
+
         ///state
         struct state
         {
@@ -30,6 +38,15 @@ namespace parserlib
 
         ///input end.
         const typename Input::const_iterator end;
+
+        ///set if left recursion is detected
+        bool left_recursion = false;
+
+        ///set if left recursion must be accepted without parsing.
+        bool accept_left_recursion = false;
+
+        ///map used in handling left recursion
+        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> rule_positions;
 
         /**
             Constructor.

@@ -50,6 +50,7 @@ namespace parserlib
 
                 //left expression failure; try the right expression
                 case parse_result::rejected:
+                case parse_result::left_recursion:
                     pc.set_state(start_state);
                     result = m_right_expression.parse(pc);
 
@@ -65,11 +66,6 @@ namespace parserlib
                             pc.set_state(start_state);
                             break;
                     }
-                    break;
-
-                //left expression left recursion; rewind the state
-                case parse_result::left_recursion:
-                    pc.set_state(start_state);
                     break;
             }
 

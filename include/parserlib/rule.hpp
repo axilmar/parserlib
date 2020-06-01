@@ -47,13 +47,155 @@ namespace parserlib
          */
         parse_result parse(ParseContext& pc) const
         {
-            //TODO
-            return parse_result::rejected;
+            parse_result result;
+
+            //try to activate this rule at the current position
+            const activation_result activation = activate(pc);
+
+            switch (activation)
+            {
+                //first activation
+                case activation_result::first:
+                {
+                    const bool was_left_recursion = pc.left_recursion;
+
+                    //parse
+                    result = m_expression->parse(pc);
+
+                    //process left recursion from the root rule that it appeared from
+                    if (result == parse_result::accepted && !was_left_recursion && pc.left_recursion)
+                    {
+                        //accept the parsing from left-recursive rules without actually parsing
+                        pc.accept_left_recursion = true;
+
+                        //loop until no more parsing can be done
+                        for (bool loop = true; loop && pc.valid(); )
+                        {
+                            //reactivate the rule so as that it captures the new position
+                            pc.rule_positions.find(this)->second.back() = pc.iterator;
+
+                            //reparse
+                            const parse_result lr_result = m_expression->parse(pc);
+
+                            switch (lr_result)
+                            {
+                                //continue the loop
+                                case parse_result::accepted:
+                                    break;
+
+                                //stop the loop
+                                case parse_result::rejected:
+                                    loop = false;
+                                    break;
+
+                                //left recursion should not happen here; abort parsing
+                                case parse_result::left_recursion:
+                                    loop = false;
+                                    result = parse_result::left_recursion;
+                                    break;
+                            }
+                        }
+
+                        //restore the state
+                        pc.left_recursion = false;
+                        pc.accept_left_recursion = false;
+                    }
+                    break;
+                }
+
+                //next activation
+                case activation_result::next:
+                {
+                    //store the current left recursion state in order to restore it later
+                    const bool prev_left_recursion = pc.left_recursion;
+                    const bool prev_accept_left_recursion = pc.accept_left_recursion;
+
+                    //reset the left recursion state since the rule was successfully activated
+                    pc.left_recursion = false;
+                    pc.accept_left_recursion = false;
+
+                    //parse
+                    result = m_expression->parse(pc);
+
+                    //restore the left recursion state
+                    pc.left_recursion = prev_left_recursion;
+                    pc.accept_left_recursion = prev_accept_left_recursion;
+                    break;
+                }
+
+                //handle left recursion
+                case activation_result::left_recursion:
+                    if (!pc.accept_left_recursion)
+                    {
+                        pc.left_recursion = true;
+                        result = parse_result::left_recursion;
+                    }
+                    else
+                    {
+                        result = parse_result::accepted;
+                    }
+
+                    break;
+            }
+
+            //deactivate the rule
+            deactivate(pc);
+
+            return result;
         }
 
     private:
         //the expression is wrapped by a polymorphic type.
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
+
+        //activation result
+        enum class activation_result
+        {
+            first,
+            next,
+            left_recursion
+        };
+
+        //tries to activate the current rule at the current position;
+        //a rule cannot be activated twice at the same position;
+        //that case is left recursion
+        activation_result activate(ParseContext& pc) const
+        {
+            auto it = pc.rule_positions.find(this);
+
+            //if an entry is not found, this is the first rule activation
+            if (it == pc.rule_positions.end())
+            {
+                pc.rule_positions.emplace(this, std::vector<typename ParseContext::input_type::const_iterator>{ pc.iterator });
+                return activation_result::first;
+            }
+
+            //if the current position is not the same as the last position,
+            //add one more entry
+            if (it->second.back() != pc.iterator)
+            {
+                it->second.push_back(pc.iterator);
+                return activation_result::next;
+            }
+
+            //left recursion found
+            it->second.push_back(pc.iterator);
+            return activation_result::left_recursion;
+        }
+
+        //deactivate the rule
+        void deactivate(ParseContext& pc) const
+        {
+            auto it = pc.rule_positions.find(this);
+            if (it != pc.rule_positions.end())
+            {
+                it->second.pop_back();
+                if (it->second.empty())
+                {
+                    pc.rule_positions.erase(it);
+                }
+            }
+        }
     };
 
 
