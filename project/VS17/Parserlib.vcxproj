@@ -20,6 +20,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\parserlib.hpp" />
+    <ClInclude Include="..\..\include\parserlib\choice.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_interface.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_type.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_with_unary_operators.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp" />
+    <ClInclude Include="..\..\include\parserlib\parse_context.hpp" />
+    <ClInclude Include="..\..\include\parserlib\parse_result.hpp" />
+    <ClInclude Include="..\..\include\parserlib\rule_reference.hpp" />
+    <ClInclude Include="..\..\include\parserlib\sequence.hpp" />
+    <ClInclude Include="..\..\include\parserlib\atom.hpp" />
+    <ClInclude Include="..\..\include\parserlib\range.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

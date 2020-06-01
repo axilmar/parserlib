@@ -7,6 +7,42 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\parserlib.hpp" />
+    <ClInclude Include="..\..\include\parserlib\choice.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_type.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\parse_context.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\parse_result.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\sequence.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_with_unary_operators.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_interface.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\atom.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\range.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\rule_reference.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
