@@ -29,6 +29,49 @@ namespace parserlib
         {
         }
 
+        /**
+            Parses the given item.
+            For it to be successful, both left and right expressions must be successful.
+            @param pc parse context.
+            @return parse result.
+         */
+        template <typename ParseContext>
+        parse_result parse(ParseContext& pc) const
+        {
+            const auto start_state = pc.get_state();
+
+            parse_result result = m_left_expression.parse(pc);
+
+            switch (result)
+            {
+                //left expression success; try the right expression
+                case parse_result::accepted:
+                    result = m_right_expression.parse(pc);
+
+                    switch (result)
+                    {
+                        //right expression success
+                        case parse_result::accepted:
+                            break;
+
+                        //right expression failure; rewind the state
+                        case parse_result::rejected:
+                        case parse_result::left_recursion:
+                            pc.set_state(start_state);
+                            break;
+                    }
+                    break;
+
+                //left expression failure; rewind the state
+                case parse_result::rejected:
+                case parse_result::left_recursion:
+                    pc.set_state(start_state);
+                    break;
+            }
+
+            return result;
+        }
+
     private:
         //left and right side expressions
         L m_left_expression;

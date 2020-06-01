@@ -33,6 +33,24 @@ namespace parserlib
             }
         }
 
+        /**
+            Parses the given item.
+            It checks if the input at current position is within range.
+            If so, then the parsing position is advanced.
+            @param pc parse context.
+            @return accepted if the input is within range, rejected otherwise.
+         */
+        template <typename ParseContext>
+        parse_result parse(ParseContext& pc) const
+        {
+            if (pc.valid() && *pc.iterator >= m_min_element && *pc.iterator <= m_max_element)
+            {
+                ++pc.iterator;
+                return parse_result::accepted;
+            }
+            return parse_result::rejected;
+        }
+
     private:
         //range.
         T m_min_element, m_max_element;

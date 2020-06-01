@@ -12,28 +12,70 @@ namespace parserlib
 
     /**
         Struct with data required for parsing.
-        @param InputIterator type of input iterator.
+        @param Input input type.
      */
-    template <typename InputIterator = std::string::const_iterator> 
+    template <typename Input = std::string> 
     class parse_context
     {
     public:
+        ///state
+        struct state
+        {
+            ///position over the input.
+            typename Input::const_iterator iterator;
+        };
+
         ///current position over the input.
-        InputIterator iterator;
+        typename Input::const_iterator iterator;
 
         ///input end.
-        const InputIterator end;
+        const typename Input::const_iterator end;
 
         /**
             Constructor.
             @param container container to create a parse context out of.
             @return the parse context for parsing the input contained in the given container.
          */
-        template <typename Container> 
-        parse_context(Container&& container)
+        parse_context(const Input& container)
             : iterator(container.begin()), end(container.end())
         {
         }
+
+        /**
+            Checks if iterator has reached end.
+            @return true if iterator has not reached end, false otherwise.
+         */
+        bool valid() const
+        {
+            return iterator < end;
+        }
+
+        /**
+            Returns the current state.
+            @return state.
+         */
+        state get_state() const
+        {
+            return { iterator };
+        }
+
+        /**
+            Sets the current state.
+            @param s state.
+         */
+        void set_state(const state& s)
+        {
+            iterator = s.iterator;
+        }
+
+        /**
+            Returns the remaining input.
+            @return the remaining input.
+         */
+		Input get_remaining_input() const
+		{
+			return Input(iterator, end);
+		}
     };
 
 
@@ -42,10 +84,10 @@ namespace parserlib
         @param container container to create a parse context out of.
         @return the parse context for parsing the input contained in the given container.
      */
-    template <typename Container> 
-    parse_context<Container> make_parse_context(Container&& container)
+    template <typename Input> 
+    parse_context<Input> make_parse_context(const Input& container)
     {
-        return std::forward<Container>(container);
+        return  { container };
     }
 
 

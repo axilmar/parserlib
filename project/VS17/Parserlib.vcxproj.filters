@@ -43,6 +43,9 @@
     <ClInclude Include="..\..\include\parserlib\rule_reference.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\rule.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

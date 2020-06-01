@@ -30,6 +30,13 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
+    const std::string input = "1";
+    auto pc = make_parse_context(input);
+    const auto res = expr.parse(pc);
+
+    std::cout << "result = " << (int)res << std::endl;
+    std::cout << "remaining input = " << pc.get_remaining_input() << std::endl;
+
     system("pause");
     return 0;
 }

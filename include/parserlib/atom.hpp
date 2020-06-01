@@ -2,6 +2,7 @@
 #define PARSERLIB__ATOM__HPP
 
 
+#include "parse_result.hpp"
 #include "expression_with_unary_operators.hpp"
 
 
@@ -24,6 +25,24 @@ namespace parserlib
         atom(const T& element)
             : m_element(element)
         {
+        }
+
+        /**
+            Parses the given item.
+            It checks if the element matches the input at current position.
+            If so, then the parsing position is advanced.
+            @param pc parse context.
+            @return accepted if the element matches the input, rejected otherwise.
+         */
+        template <typename ParseContext>
+        parse_result parse(ParseContext& pc) const
+        {
+            if (pc.valid() && *pc.iterator == m_element)
+            {
+                ++pc.iterator;
+                return parse_result::accepted;
+            }
+            return parse_result::rejected;
         }
 
     private:

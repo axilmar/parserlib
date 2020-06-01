@@ -2,6 +2,7 @@
 #define PARSERLIB__RULE_REFERENCE__HPP
 
 
+#include "parse_result.hpp"
 #include "expression_with_unary_operators.hpp"
 
 
@@ -28,6 +29,16 @@ namespace parserlib
         rule_reference(rule<ParseContext>& rule)
             : m_rule(rule)
         {
+        }
+
+        /**
+            Passes the call to the underlying rule.
+            @param pc parse context.
+            @return parse result.
+         */
+        parse_result parse(ParseContext& pc) const
+        {
+            return m_rule.parse(pc);
         }
 
     private:

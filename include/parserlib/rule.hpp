@@ -26,7 +26,7 @@ namespace parserlib
          */
         template <typename T>
         rule(T&& expression)
-            : m_expression(std::make_unique<expression_wrapper<expression_type_t<T>>>(std::forward<T>(expression)))
+            : m_expression(std::make_unique<expression_wrapper<ParseContext, expression_type_t<T>>>(std::forward<T>(expression)))
         {
         }
 
@@ -39,9 +39,21 @@ namespace parserlib
         {
         }
 
+        /**
+            Parses the input with the underlying expression.
+            It handles left recursion.
+            @param pc parse context.
+            @return parse result.
+         */
+        parse_result parse(ParseContext& pc) const
+        {
+            //TODO
+            return parse_result::rejected;
+        }
+
     private:
         //the expression is wrapped by a polymorphic type.
-        std::unique_ptr<expression_interface> m_expression;
+        std::unique_ptr<expression_interface<ParseContext>> m_expression;
     };
 
 
