@@ -15,6 +15,14 @@ namespace parserlib
     template <typename ParseContext> class rule;
 
 
+    enum class left_recursion_state
+    {
+        inactive,
+        reject,
+        accept
+    };
+
+
     /**
         Struct with data required for parsing.
         @param Input input type.
@@ -41,6 +49,16 @@ namespace parserlib
 
         ///input end.
         const typename Input::const_iterator end;
+
+        ///left recursion data.
+        struct left_recursion
+        {
+            ///left recursion state
+            left_recursion_state state = left_recursion_state::inactive;
+
+            ///position left recursion was identified at.
+            typename Input::const_iterator position;
+        } left_recursion;
 
         /**
             Constructor.

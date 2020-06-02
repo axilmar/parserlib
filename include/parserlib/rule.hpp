@@ -49,6 +49,123 @@ namespace parserlib
         {
             parse_result result;
 
+            //activate the rule and check if left recursion is found
+            const bool is_left_recursive = activate(pc);
+
+            switch (pc.left_recursion.state)
+            {
+                //not in left recursion phase
+                case left_recursion_state::inactive:
+
+                    //activate left recursion
+                    if (is_left_recursive)
+                    {
+                        pc.left_recursion.state = left_recursion_state::reject;
+                        result = parse_result::left_recursion;
+                    }
+
+                    //else continue parsing to find the left-most non-recursive rule that can parse the input
+                    else
+                    {
+                        const auto prev_left_recursion = pc.left_recursion;
+
+                        result = m_expression->parse(pc);
+
+                        //start the 'accept' phase of left recursion
+                        if (pc.left_recursion.state == left_recursion_state::reject)
+                        {
+                            if (result == parse_result::accepted)
+                            {
+                                pc.left_recursion.state = left_recursion_state::accept;
+
+                                for (bool loop = true; loop && pc.valid(); )
+                                {
+                                    //setup this rule to immediately report 'accepted'
+                                    pc.positions[this].back() = pc.iterator;
+
+                                    //adjust the left recursion position
+                                    //after something is parsed
+                                    //in order to cause left-recursive rules
+                                    //to return 'accepted'
+                                    pc.left_recursion.position = pc.iterator;
+
+                                    const parse_result lr_result = m_expression->parse(pc);
+
+                                    switch (lr_result)
+                                    {
+                                        //continue left recursion parsing
+                                        case parse_result::accepted:
+                                            break;
+
+                                        //stop parsing left recursion
+                                        case parse_result::rejected:
+                                            loop = false;
+                                            break;
+
+                                        //abort left recursion
+                                        case parse_result::left_recursion:
+                                            result = parse_result::left_recursion;
+                                            loop = false;
+                                            break;
+                                    }
+                                }
+                            }
+
+                            pc.left_recursion = prev_left_recursion;
+                        }
+                    }
+
+                    break;
+
+                //reject phase
+                case left_recursion_state::reject:
+                    
+                    //left recursion found
+                    if (is_left_recursive)
+                    {
+                        result = parse_result::left_recursion;
+                    }
+
+                    //else continue parsing to find the left-most non-recursive rule that can parse the input
+                    else
+                    {
+                        result = m_expression->parse(pc);
+                    }
+                    
+                    break;
+
+                //accept phase
+                case left_recursion_state::accept:
+
+                    //if left recursion is found, return 'accept'
+                    //in order to proceed with the next part of the grammar
+                    if (is_left_recursive)
+                    {
+                        result = parse_result::accepted;
+                    }
+
+                    //else if there was no progress since the accept phase started,
+                    //continue parsing the subrules
+                    else if (pc.iterator == pc.left_recursion.position)
+                    {
+                        result = m_expression->parse(pc);
+                    }
+
+                    //else there was some progress, so reset the current
+                    //left recursion state temporarily
+                    else
+                    {
+                        const auto prev_left_recursion = pc.left_recursion;
+                        pc.left_recursion = { left_recursion_state::inactive, pc.iterator };
+                        result = m_expression->parse(pc);
+                        pc.left_recursion = prev_left_recursion;
+                    }
+                    break;
+            }
+
+            //remove the rule position
+            deactivate(pc);
+
             return result;
         }
 
@@ -56,40 +173,18 @@ namespace parserlib
         //the expression is wrapped by a polymorphic type.
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
 
-        //activate
+        //activate; returns true on left recursion.
         bool activate(ParseContext& pc) const
         {
-            const auto it = pc.positions.find(this);
-            
-            if (it == pc.positions.end())
-            {
-                pc.positions.emplace(this, std::vector<typename ParseContext::input_type::const_iterator>({pc.iterator}));
-                return true;
-            }
-
-            if (pc.iterator > it->second.back())
-            {
-                it->second.push_back(pc.iterator);
-                return true;
-            }
-
-            return false;
+            auto& positions = pc.positions[this];
+            positions.push_back(pc.iterator);
+            return positions.size() >= 2 && positions[positions.size() - 1] == positions[positions.size() - 2];
         }
 
-        //deactivate
+        //deactivate.
         void deactivate(ParseContext& pc) const
         {
-            const auto it = pc.positions.find(this);
-
-            if (it != pc.positions.end())
-            {
-                it->second.pop_back();
-
-                if (it->second.empty())
-                {
-                    pc.positions.erase(it);
-                }
-            }
+            pc.positions.find(this)->second.pop_back();
         }
     };
 
