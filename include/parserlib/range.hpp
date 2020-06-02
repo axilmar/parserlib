@@ -45,7 +45,7 @@ namespace parserlib
         {
             if (pc.valid() && *pc.position >= m_min_element && *pc.position <= m_max_element)
             {
-                pc.next();
+                ++pc.position;
                 return parse_result::accepted;
             }
             return parse_result::rejected;
@@ -55,19 +55,6 @@ namespace parserlib
         //range.
         T m_min_element, m_max_element;
     };
-
-
-    /**
-        Makes an range parser.
-        @param min_element min element.
-        @param max_element max element.
-        @return an range parser instance.
-     */
-    template <typename T>
-    range<T> make_range(const T& min_element, const T& max_element)
-    {
-        return { min_element, max_element };
-    }
 
 
 } //namespace parserlib

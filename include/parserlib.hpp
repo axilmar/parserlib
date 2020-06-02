@@ -2,7 +2,7 @@
 #define PARSERLIB_HPP
 
 
-#include "parserlib/atom.hpp"
+#include "parserlib/terminal.hpp"
 #include "parserlib/range.hpp"
 #include "parserlib/sequence.hpp"
 #include "parserlib/choice.hpp"

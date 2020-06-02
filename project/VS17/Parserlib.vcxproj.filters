@@ -34,9 +34,6 @@
     <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\parserlib\atom.hpp">
-      <Filter>parserlib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\parserlib\range.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
@@ -44,6 +41,12 @@
       <Filter>parserlib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\parserlib\rule.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\terminal.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\traits.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
   </ItemGroup>

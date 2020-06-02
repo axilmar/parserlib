@@ -105,27 +105,7 @@ namespace parserlib
 		{
 			return Input(position, end);
 		}
-
-        /**
-            Proceeds with next token.
-         */
-        void next()
-        {
-            ++position;
-        }
     };
-
-
-    /**
-        Creates a parse context.
-        @param container container to create a parse context out of.
-        @return the parse context for parsing the input contained in the given container.
-     */
-    template <typename Input> 
-    parse_context<Input> make_parse_context(const Input& container)
-    {
-        return  { container };
-    }
 
 
 } //namespace parserlib
