@@ -25,6 +25,8 @@
     <ClInclude Include="..\..\include\parserlib\expression_interface.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_type.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp" />
+    <ClInclude Include="..\..\include\parserlib\logical_and.hpp" />
+    <ClInclude Include="..\..\include\parserlib\logical_not.hpp" />
     <ClInclude Include="..\..\include\parserlib\loop.hpp" />
     <ClInclude Include="..\..\include\parserlib\optional.hpp" />
     <ClInclude Include="..\..\include\parserlib\parse_context.hpp" />

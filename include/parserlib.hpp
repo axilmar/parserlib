@@ -6,6 +6,8 @@
 #include "parserlib/range.hpp"
 #include "parserlib/optional.hpp"
 #include "parserlib/loop.hpp"
+#include "parserlib/logical_and.hpp"
+#include "parserlib/logical_not.hpp"
 #include "parserlib/sequence.hpp"
 #include "parserlib/choice.hpp"
 #include "parserlib/rule.hpp"

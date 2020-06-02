@@ -52,6 +52,12 @@
     <ClInclude Include="..\..\include\parserlib\loop.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\logical_and.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\logical_not.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
