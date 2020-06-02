@@ -17,7 +17,7 @@ namespace parserlib
         @param ParseContext type of parse context to use.
      */
     template <typename ParseContext = parse_context<>>
-    class rule : public expression_with_unary_operators<rule<ParseContext>>
+    class rule : public expression
     {
     public:
         /**

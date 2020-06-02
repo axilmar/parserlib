@@ -8,7 +8,7 @@ using namespace parserlib;
 extern rule<> expr;
 
 
-auto num = terminal('-') >> range('0', '9');
+auto num = -terminal('-') >> range('0', '9');
 
 
 rule<> val = '(' >> expr >> ')'
@@ -30,7 +30,7 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    const std::string input = "1-2";
+    const std::string input = "1+2";
     auto pc = parse_context(input);
     const auto res = expr.parse(pc);
 

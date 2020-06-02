@@ -3,7 +3,7 @@
 
 
 #include "parse_result.hpp"
-#include "expression_with_unary_operators.hpp"
+#include "expression_type.hpp"
 #include "traits.hpp"
 
 
@@ -126,7 +126,7 @@ namespace parserlib
         @param T type of terminal to parse.
      */
     template <typename T>
-    class terminal : public expression_with_unary_operators<terminal<T>>
+    class terminal : public expression
     {
     public:
         /**

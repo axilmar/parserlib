@@ -2,7 +2,7 @@
 #define PARSERLIB__CHOICE__HPP
 
 
-#include "expression_with_unary_operators.hpp"
+#include "expression_type.hpp"
 
 
 namespace parserlib
@@ -15,7 +15,7 @@ namespace parserlib
         @param R right side expression.
      */
     template <typename L, typename R> 
-    class choice : public expression_with_unary_operators<choice<L, R>>
+    class choice : public expression
     {
     public:
         /**

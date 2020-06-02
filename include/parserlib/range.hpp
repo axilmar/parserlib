@@ -3,7 +3,7 @@
 
 
 #include <stdexcept>
-#include "expression_with_unary_operators.hpp"
+#include "expression_type.hpp"
 
 
 namespace parserlib
@@ -15,7 +15,7 @@ namespace parserlib
         @param T type of element to parse.
      */
     template <typename T = char>
-    class range : public expression_with_unary_operators<range<T>>
+    class range : public expression
     {
     public:
         /**

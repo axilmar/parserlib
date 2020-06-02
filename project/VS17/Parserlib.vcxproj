@@ -24,8 +24,8 @@
     <ClInclude Include="..\..\include\parserlib\expression.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_interface.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_type.hpp" />
-    <ClInclude Include="..\..\include\parserlib\expression_with_unary_operators.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp" />
+    <ClInclude Include="..\..\include\parserlib\optional.hpp" />
     <ClInclude Include="..\..\include\parserlib\parse_context.hpp" />
     <ClInclude Include="..\..\include\parserlib\parse_result.hpp" />
     <ClInclude Include="..\..\include\parserlib\rule.hpp" />

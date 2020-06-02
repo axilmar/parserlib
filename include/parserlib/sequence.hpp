@@ -2,7 +2,7 @@
 #define PARSERLIB__SEQUENCE__HPP
 
 
-#include "expression_with_unary_operators.hpp"
+#include "expression_type.hpp"
 
 
 namespace parserlib
@@ -15,7 +15,7 @@ namespace parserlib
         @param R right side expression.
      */
     template <typename L, typename R> 
-    class sequence : public expression_with_unary_operators<sequence<L, R>>
+    class sequence : public expression
     {
     public:
         /**
@@ -30,7 +30,7 @@ namespace parserlib
         }
 
         /**
-            Parses the given item.
+            Parses the sequence.
             For it to be successful, both left and right expressions must be successful.
             @param pc parse context.
             @return parse result.

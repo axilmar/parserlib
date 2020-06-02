@@ -3,7 +3,7 @@
 
 
 #include "parse_result.hpp"
-#include "expression_with_unary_operators.hpp"
+#include "expression_type.hpp"
 
 
 namespace parserlib
@@ -19,7 +19,7 @@ namespace parserlib
         @param ParseContext type of parse context to use in parsing.
      */
     template <typename ParseContext>
-    class rule_reference : public expression_with_unary_operators<rule_reference<ParseContext>>
+    class rule_reference : public expression
     {
     public:
         /**
