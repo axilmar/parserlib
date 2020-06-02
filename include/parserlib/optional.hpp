@@ -9,6 +9,11 @@ namespace parserlib
 {
 
 
+    /**
+        
+        A parser that makes an expression optional.
+        @param T type of expression to make optional.
+     */
     template <typename T> 
     class optional : public expression
     {
@@ -17,8 +22,9 @@ namespace parserlib
             Constructor.
             @param expression expression.
          */
-        optional(const T& expression)
-            : m_expression(expression)
+        template <typename T>
+        optional(T&& expression)
+            : m_expression(std::forward<T>(expression))
         {
         }
 
@@ -57,13 +63,13 @@ namespace parserlib
 
     /**
         Operator that makes an expression optional.
-        @param value value to make optional.
+        @param expression expression to make optional.
         @return an optional expression.
      */
     template <typename T, typename = std::enable_if_t<has_expression_type_v<T>>> 
-    optional<expression_type_t<T>> operator - (T&& value)
+    optional<expression_type_t<T>> operator - (T&& expression)
     {
-        return expression_type_t<T>(std::forward<T>(value));
+        return expression_type_t<T>(std::forward<T>(expression));
     }
 
 

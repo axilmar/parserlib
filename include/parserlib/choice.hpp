@@ -10,7 +10,7 @@ namespace parserlib
 
 
     /**
-        An expression that represents a choice of parsers.
+        A parser that represents a choice of parsers.
         @param L left side expression.
         @param R right side expression.
      */
@@ -23,9 +23,10 @@ namespace parserlib
             @param left_expression left side expression.
             @param right_expression right side expression.
          */
+        template <typename L, typename R>
         choice(L&& left_expression, R&& right_expression)
-            : m_left_expression(std::move(left_expression))
-            , m_right_expression(std::move(right_expression))
+            : m_left_expression(std::forward<L>(left_expression))
+            , m_right_expression(std::forward<R>(right_expression))
         {
         }
 

@@ -36,6 +36,19 @@ namespace parserlib
 
 
     /**
+        Specialization for const reference types.
+        @param T type of parsing class that needs customization.
+     */
+    template <typename T> 
+    class expression_type<const T &>
+    {
+    public:
+        ///removes const from the type.
+        typename expression_type<T>::type type;
+    };
+
+
+    /**
         Specialization for reference types.
         @param T type of parsing class that needs customization.
      */

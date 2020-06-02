@@ -139,6 +139,15 @@ namespace parserlib
         }
 
         /**
+            Constructor from value.
+            @param value to parse.
+         */
+        terminal(T&& value)
+            : m_value(std::move(value))
+        {
+        }
+
+        /**
             Parses the given item.
             It checks if the value matches the input at current position.
             If so, then the parsing position is advanced.

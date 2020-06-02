@@ -49,6 +49,9 @@
     <ClInclude Include="..\..\include\parserlib\optional.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\loop.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
