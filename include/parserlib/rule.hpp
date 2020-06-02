@@ -80,9 +80,11 @@ namespace parserlib
         void deactivate(ParseContext& pc) const
         {
             const auto it = pc.positions.find(this);
+
             if (it != pc.positions.end())
             {
                 it->second.pop_back();
+
                 if (it->second.empty())
                 {
                     pc.positions.erase(it);
