@@ -43,7 +43,7 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
-            if (pc.valid() && *pc.iterator >= m_min_element && *pc.iterator <= m_max_element)
+            if (pc.valid() && *pc.position >= m_min_element && *pc.position <= m_max_element)
             {
                 pc.next();
                 return parse_result::accepted;

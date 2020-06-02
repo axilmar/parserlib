@@ -46,11 +46,12 @@ namespace parserlib
             {
                 //left expression success
                 case parse_result::accepted:
+                case parse_result::accepted_left_recursion:
                     break;
 
                 //left expression failure; try the right expression
                 case parse_result::rejected:
-                case parse_result::left_recursion:
+                case parse_result::rejected_left_recursion:
                     pc.set_state(start_state);
                     result = m_right_expression.parse(pc);
 
@@ -58,11 +59,12 @@ namespace parserlib
                     {
                         //right expression success
                         case parse_result::accepted:
+                        case parse_result::accepted_left_recursion:
                             break;
 
                         //right expression failure; rewind the state
                         case parse_result::rejected:
-                        case parse_result::left_recursion:
+                        case parse_result::rejected_left_recursion:
                             pc.set_state(start_state);
                             break;
                     }

@@ -46,12 +46,128 @@ namespace parserlib
          */
         parse_result parse(ParseContext& pc) const
         {
-            return m_expression->parse(pc);
+            parse_result result;
+
+            const bool is_left_recursive = activate(pc);
+
+            switch (pc.left_recursion.state)
+            {
+                case left_recursion_state::inactive:
+                    if (!is_left_recursive)
+                    {
+                        const auto prev_left_recursion = pc.left_recursion;
+
+                        result = m_expression->parse(pc);
+
+                        if (pc.left_recursion.state == left_recursion_state::reject)
+                        {
+                            if (result == parse_result::accepted)
+                            {
+                                pc.left_recursion.state = left_recursion_state::accept;
+
+                                for (bool loop = true; loop && pc.valid(); )
+                                {
+                                    pc.left_recursion.position = pc.position;
+
+                                    const parse_result lr_result = m_expression->parse(pc);
+
+                                    switch (lr_result)
+                                    {
+                                        case parse_result::accepted:
+                                        case parse_result::accepted_left_recursion:
+                                            break;
+
+                                        case parse_result::rejected:
+                                            loop = false;
+                                            break;
+
+                                        case parse_result::rejected_left_recursion:
+                                            result = parse_result::rejected_left_recursion;
+                                            loop = false;
+                                            break;
+                                    }
+                                }
+                            }
+
+                            pc.left_recursion = prev_left_recursion;
+                        }
+                    }
+                    else
+                    {
+                        pc.left_recursion = { left_recursion_state::reject, pc.position };
+                        result = parse_result::rejected_left_recursion;
+                    }
+                    break;
+
+                case left_recursion_state::reject:
+                    if (!is_left_recursive)
+                    {
+                        if (pc.position > pc.left_recursion.position)
+                        {
+                            const auto prev_left_recursion = pc.left_recursion;
+                            pc.left_recursion = { left_recursion_state::inactive, pc.position };
+                            result = m_expression->parse(pc);
+                            pc.left_recursion = prev_left_recursion;
+                        }
+                        else
+                        {
+                            result = m_expression->parse(pc);
+                        }
+                    }
+                    else
+                    {
+                        result = parse_result::rejected_left_recursion;
+                    }
+                    break;
+
+                case left_recursion_state::accept:
+                    if (!is_left_recursive)
+                    {
+                        if (pc.position > pc.left_recursion.position)
+                        {
+                            const auto prev_left_recursion = pc.left_recursion;
+                            pc.left_recursion = { left_recursion_state::inactive, pc.position };
+                            result = m_expression->parse(pc);
+                            pc.left_recursion = prev_left_recursion;
+                        }
+                        else
+                        {
+                            result = m_expression->parse(pc);
+                            if (result == parse_result::accepted)
+                            {
+                                result = parse_result::accepted_left_recursion;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result = parse_result::accepted;
+                    }
+                    break;
+            }
+
+            deactivate(pc);
+
+            return result;
         }
 
     private:
         //the expression is wrapped by a polymorphic type.
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
+
+        //activate; returns true on left recursion.
+        bool activate(ParseContext& pc) const
+        {
+            auto& positions = pc.positions[this];
+            positions.push_back(pc.position);
+            return positions.size() >= 2 && positions[positions.size() - 1] == positions[positions.size() - 2];
+        }
+
+        //deactivate.
+        void deactivate(ParseContext& pc) const
+        {
+            pc.positions.find(this)->second.pop_back();
+        }
     };
 
 

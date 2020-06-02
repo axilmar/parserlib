@@ -15,6 +15,14 @@ namespace parserlib
     template <typename ParseContext> class rule;
 
 
+    enum class left_recursion_state
+    {
+        inactive,
+        reject,
+        accept
+    };
+
+
     /**
         Struct with data required for parsing.
         @param Input input type.
@@ -30,14 +38,27 @@ namespace parserlib
         struct state
         {
             ///position over the input.
-            typename Input::const_iterator iterator;
+            typename Input::const_iterator position;
         };
 
+        ///map used in handling recursion.
+        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> positions;
+
         ///current position over the input.
-        typename Input::const_iterator iterator;
+        typename Input::const_iterator position;
 
         ///input end.
         const typename Input::const_iterator end;
+
+        ///left recursion data.
+        struct left_recursion
+        {
+            ///left recursion state.
+            left_recursion_state state = left_recursion_state::inactive;
+
+            ///position left recursion is currently at.
+            typename Input::const_iterator position;
+        } left_recursion;
 
         /**
             Constructor.
@@ -45,17 +66,17 @@ namespace parserlib
             @return the parse context for parsing the input contained in the given container.
          */
         parse_context(const Input& container)
-            : iterator(container.begin()), end(container.end())
+            : position(container.begin()), end(container.end())
         {
         }
 
         /**
-            Checks if iterator has reached end.
-            @return true if iterator has not reached end, false otherwise.
+            Checks if position has reached end.
+            @return true if position has not reached end, false otherwise.
          */
         bool valid() const
         {
-            return iterator < end;
+            return position < end;
         }
 
         /**
@@ -64,7 +85,7 @@ namespace parserlib
          */
         state get_state() const
         {
-            return { iterator };
+            return { position };
         }
 
         /**
@@ -73,7 +94,7 @@ namespace parserlib
          */
         void set_state(const state& s)
         {
-            iterator = s.iterator;
+            position = s.position;
         }
 
         /**
@@ -82,7 +103,7 @@ namespace parserlib
          */
 		Input get_remaining_input() const
 		{
-			return Input(iterator, end);
+			return Input(position, end);
 		}
 
         /**
@@ -90,7 +111,7 @@ namespace parserlib
          */
         void next()
         {
-            ++iterator;
+            ++position;
         }
     };
 
