@@ -30,7 +30,7 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    const std::string input = "1+2*3-4/5";
+    const std::string input = "1";
     auto pc = make_parse_context(input);
     const auto res = expr.parse(pc);
 
