@@ -61,11 +61,7 @@ namespace parserlib
                 case left_recursion_state::inactive:
                     if (!is_left_recursive)
                     {
-                        const auto prev_left_recursion = pc.left_recursion;
-                        result = m_expression->parse(pc);
-                        add_match(result, pc);
-                        result = process_left_recursion(result, pc);
-                        pc.left_recursion = prev_left_recursion;
+                        result = start_parse(pc);
                     }
                     else
                     {
@@ -79,12 +75,7 @@ namespace parserlib
                     {
                         if (pc.position > pc.left_recursion.position)
                         {
-                            const auto prev_left_recursion = pc.left_recursion;
-                            pc.left_recursion = { left_recursion_state::inactive, pc.position };
-                            result = m_expression->parse(pc);
-                            add_match(result, pc);
-                            result = process_left_recursion(result, pc);
-                            pc.left_recursion = prev_left_recursion;
+                            result = start_parse(pc);
                         }
                         else
                         {
@@ -102,12 +93,7 @@ namespace parserlib
                     {
                         if (pc.position > pc.left_recursion.position)
                         {
-                            const auto prev_left_recursion = pc.left_recursion;
-                            pc.left_recursion = { left_recursion_state::inactive, pc.position };
-                            result = m_expression->parse(pc);
-                            add_match(result, pc);
-                            result = process_left_recursion(result, pc);
-                            pc.left_recursion = prev_left_recursion;
+                            result = start_parse(pc);
                         }
                         else
                         {
@@ -148,16 +134,6 @@ namespace parserlib
             pc.positions.find(this)->second.pop_back();
         }
 
-        //add match on success
-        template <typename ParseContext>
-        void add_match(const parse_result result, ParseContext& pc) const
-        {
-            if (result == parse_result::accepted && !tag.empty())
-            {
-                pc.add_match(pc.position, pc.position, tag);
-            }
-        }
-
         //processes left recursion
         template <typename ParseContext>
         parse_result process_left_recursion(parse_result result, ParseContext& pc) const
@@ -191,6 +167,36 @@ namespace parserlib
                         }
                     }
                 }
+            }
+
+            return result;
+        }
+
+        template <typename ParseContext>
+        parse_result start_parse(ParseContext &pc) const
+        {
+            //save state
+            const auto prev_left_recursion = pc.left_recursion;
+            const auto prev_match_start_position = pc.match_start_position;
+
+            //init state
+            pc.left_recursion = { left_recursion_state::inactive, pc.position };
+            pc.match_start_position = pc.position;
+
+            //parse
+            parse_result result = m_expression->parse(pc);
+
+            //process left recursion
+            result = process_left_recursion(result, pc);
+
+            //restore state
+            pc.left_recursion = prev_left_recursion;
+            pc.match_start_position = prev_match_start_position;
+
+            //add match if needed
+            if (result == parse_result::accepted && !tag.empty())
+            {
+                pc.add_match(pc.match_start_position, pc.position, tag);
             }
 
             return result;

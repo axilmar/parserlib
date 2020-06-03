@@ -38,11 +38,10 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
-            const auto start_position = pc.position;
             const parse_result result = m_expression.parse(pc);
             if (result == parse_result::accepted)
             {
-                pc.add_match(start_position, pc.position, m_tag);
+                pc.add_match(pc.match_start_position, pc.position, m_tag);
             }
             return result;
         }
@@ -50,7 +49,6 @@ namespace parserlib
     private:
         T m_expression;
         std::string_view m_tag;
-        mutable size_t m_recursion_count = 0;
     };
 
 

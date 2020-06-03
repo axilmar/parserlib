@@ -74,6 +74,9 @@ namespace parserlib
         ///input end.
         const typename Input::const_iterator end;
 
+        ///current match start position.
+        typename Input::const_iterator match_start_position;
+
         ///current position over the input.
         typename Input::const_iterator position;
 
@@ -90,8 +93,9 @@ namespace parserlib
          */
         parse_context(const Input& container)
             : begin(container.begin())
-            , position(container.begin())
             , end(container.end())
+            , match_start_position(container.begin())
+            , position(container.begin())
         {
         }
 
