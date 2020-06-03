@@ -20,6 +20,9 @@ namespace parserlib
     class rule : public expression
     {
     public:
+        ///match tag.
+        std::string_view tag;
+
         /**
             Constructor from expression.
             @param expression expression.
@@ -41,6 +44,9 @@ namespace parserlib
 
         /**
             Parses the input with the underlying expression.
+            It handles left recursion.
+            If the tag is not empty, and there is a match,
+            then the corresponding entry is added to the parse context.
             @param pc parse context.
             @return parse result.
          */
@@ -56,41 +62,10 @@ namespace parserlib
                     if (!is_left_recursive)
                     {
                         const auto prev_left_recursion = pc.left_recursion;
-
                         result = m_expression->parse(pc);
-
-                        if (pc.left_recursion.state == left_recursion_state::reject)
-                        {
-                            if (result == parse_result::accepted)
-                            {
-                                pc.left_recursion.state = left_recursion_state::accept;
-
-                                for (bool loop = true; loop && pc.valid(); )
-                                {
-                                    pc.left_recursion.position = pc.position;
-
-                                    const parse_result lr_result = m_expression->parse(pc);
-
-                                    switch (lr_result)
-                                    {
-                                        case parse_result::accepted:
-                                        case parse_result::accepted_left_recursion:
-                                            break;
-
-                                        case parse_result::rejected:
-                                            loop = false;
-                                            break;
-
-                                        case parse_result::rejected_left_recursion:
-                                            result = parse_result::rejected_left_recursion;
-                                            loop = false;
-                                            break;
-                                    }
-                                }
-                            }
-
-                            pc.left_recursion = prev_left_recursion;
-                        }
+                        add_match(result, pc);
+                        result = process_left_recursion(result, pc);
+                        pc.left_recursion = prev_left_recursion;
                     }
                     else
                     {
@@ -107,6 +82,8 @@ namespace parserlib
                             const auto prev_left_recursion = pc.left_recursion;
                             pc.left_recursion = { left_recursion_state::inactive, pc.position };
                             result = m_expression->parse(pc);
+                            add_match(result, pc);
+                            result = process_left_recursion(result, pc);
                             pc.left_recursion = prev_left_recursion;
                         }
                         else
@@ -128,6 +105,8 @@ namespace parserlib
                             const auto prev_left_recursion = pc.left_recursion;
                             pc.left_recursion = { left_recursion_state::inactive, pc.position };
                             result = m_expression->parse(pc);
+                            add_match(result, pc);
+                            result = process_left_recursion(result, pc);
                             pc.left_recursion = prev_left_recursion;
                         }
                         else
@@ -168,6 +147,54 @@ namespace parserlib
         {
             pc.positions.find(this)->second.pop_back();
         }
+
+        //add match on success
+        template <typename ParseContext>
+        void add_match(const parse_result result, ParseContext& pc) const
+        {
+            if (result == parse_result::accepted && !tag.empty())
+            {
+                pc.add_match(pc.position, pc.position, tag);
+            }
+        }
+
+        //processes left recursion
+        template <typename ParseContext>
+        parse_result process_left_recursion(parse_result result, ParseContext& pc) const
+        {
+            if (pc.left_recursion.state == left_recursion_state::reject)
+            {
+                if (result == parse_result::accepted)
+                {
+                    pc.left_recursion.state = left_recursion_state::accept;
+
+                    for (bool loop = true; loop && pc.valid(); )
+                    {
+                        pc.left_recursion.position = pc.position;
+
+                        const parse_result lr_result = m_expression->parse(pc);
+
+                        switch (lr_result)
+                        {
+                            case parse_result::accepted:
+                            case parse_result::accepted_left_recursion:
+                                break;
+
+                            case parse_result::rejected:
+                                loop = false;
+                                break;
+
+                            case parse_result::rejected_left_recursion:
+                                result = parse_result::rejected_left_recursion;
+                                loop = false;
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
     };
 
 
@@ -186,6 +213,20 @@ namespace parserlib
          */
         typedef rule_reference<ParseContext> type;
     };
+
+
+    /**
+        Operator that the tag for a rule.
+        @param rule rule to set the tag of.
+        @param tag tag to set the rule to.
+        @return the rule.
+     */
+    template <typename ParseContext>
+    rule<ParseContext>& operator >= (rule<ParseContext>& rule, const std::string_view& tag)
+    {
+        rule.tag = tag;
+        return rule;
+    }
 
 
 } //namespace parserlib

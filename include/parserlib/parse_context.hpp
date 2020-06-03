@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <string_view>
 
 
 namespace parserlib
@@ -34,21 +35,25 @@ namespace parserlib
         ///input type.
         typedef Input input_type;
 
+        ///match.
+        struct match
+        {
+            ///matched input.
+            typename std::basic_string_view<typename Input::value_type> input;
+
+            ///tag.
+            std::string_view tag;
+        };
+
         ///state
         struct state
         {
-            ///position over the input.
+            ///current position over the input.
             typename Input::const_iterator position;
+
+            ///matches container size.
+            size_t matches_size;
         };
-
-        ///map used in handling recursion.
-        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> positions;
-
-        ///current position over the input.
-        typename Input::const_iterator position;
-
-        ///input end.
-        const typename Input::const_iterator end;
 
         ///left recursion data.
         struct left_recursion
@@ -58,7 +63,25 @@ namespace parserlib
 
             ///position left recursion is currently at.
             typename Input::const_iterator position;
-        } left_recursion;
+        };
+
+        ///map used in handling recursion.
+        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> positions;
+
+        ///input begin.
+        const typename Input::const_iterator begin;
+
+        ///input end.
+        const typename Input::const_iterator end;
+
+        ///current position over the input.
+        typename Input::const_iterator position;
+
+        ///left recursion data.
+        left_recursion left_recursion;
+
+        ///matches.
+        std::vector<match> matches;
 
         /**
             Constructor.
@@ -66,7 +89,9 @@ namespace parserlib
             @return the parse context for parsing the input contained in the given container.
          */
         parse_context(const Input& container)
-            : position(container.begin()), end(container.end())
+            : begin(container.begin())
+            , position(container.begin())
+            , end(container.end())
         {
         }
 
@@ -85,7 +110,7 @@ namespace parserlib
          */
         state get_state() const
         {
-            return { position };
+            return { position, matches.size() };
         }
 
         /**
@@ -95,6 +120,7 @@ namespace parserlib
         void set_state(const state& s)
         {
             position = s.position;
+            matches.resize(s.matches_size);
         }
 
         /**
@@ -105,6 +131,17 @@ namespace parserlib
 		{
 			return Input(position, end);
 		}
+
+        /**
+            Helper function for adding a match.
+            @param begin input begin.
+            @param end input end.
+            @param tag input tag.
+         */
+        void add_match(const typename Input::const_iterator begin, const typename Input::const_iterator end, const std::string_view& tag)
+        {
+            matches.push_back(match{ {&*begin, (size_t)std::distance(begin, end)}, tag });
+        }
     };
 
 

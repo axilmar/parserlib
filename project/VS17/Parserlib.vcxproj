@@ -28,6 +28,7 @@
     <ClInclude Include="..\..\include\parserlib\logical_and.hpp" />
     <ClInclude Include="..\..\include\parserlib\logical_not.hpp" />
     <ClInclude Include="..\..\include\parserlib\loop.hpp" />
+    <ClInclude Include="..\..\include\parserlib\match.hpp" />
     <ClInclude Include="..\..\include\parserlib\optional.hpp" />
     <ClInclude Include="..\..\include\parserlib\parse_context.hpp" />
     <ClInclude Include="..\..\include\parserlib\parse_result.hpp" />
