@@ -30,20 +30,16 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    const std::string input = "1+2-3";
+    const std::string input = "1";
     auto pc = parse_context(input);
     const auto res = expr.parse(pc);
-    const auto remaining_input = pc.get_remaining_input();
+    const auto remaining_input = pc.remaining_input();
 
     std::cout << "result = " << (int)res << std::endl;
     std::cout << "remaining input = " << remaining_input << std::endl;
-
-    if (res == parse_result::accepted && remaining_input.empty())
+    for (const auto& match : pc.matches)
     {
-        for (const auto& match : pc.matches)
-        {
-            std::cout << match.tag << " => " << match.input << std::endl;
-        }
+        std::cout << match.tag << " => " << match << std::endl;
     }
 
     system("pause");

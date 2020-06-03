@@ -36,24 +36,12 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
-            const auto start_state = pc.get_state();
-
-            parse_result result = m_expression.parse(pc);
-
-            switch (result)
-            {
-                case parse_result::accepted:
-                case parse_result::accepted_left_recursion:
-                    break;
-
-                case parse_result::rejected:
-                case parse_result::rejected_left_recursion:
-                    pc.set_state(start_state);
-                    result = parse_result::accepted;
-                    break;
+            const auto start_state = pc.state();
+            if (m_expression.parse(pc) == parse_result::rejected)
+            { 
+                pc.set_state(start_state);
             }
-
-            return result;
+            return parse_result::accepted;
         }
 
     private:

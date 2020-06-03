@@ -33,42 +33,22 @@ namespace parserlib
         /**
             Parses the given expression.
             @param pc parse context.
-            @return 'accepted' or the left recursion result.
+            @returns always 'accepted'.
          */
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
             parse_result result = parse_result::accepted;
-
-            for (bool loop = true; loop && pc.valid();)
+            while (pc.valid())
             {
-                const auto start_state = pc.get_state();
-
-                result = m_expression.parse(pc);
-
-                switch (result)
-                {
-                    case parse_result::accepted:
-                        break;
-
-                    case parse_result::accepted_left_recursion:
-                        loop = false;
-                        break;
-
-                    case parse_result::rejected:
-                        pc.set_state(start_state);
-                        result = parse_result::accepted;
-                        loop = false;
-                        break;
-
-                    case parse_result::rejected_left_recursion:
-                        pc.set_state(start_state);
-                        loop = false;
-                        break;
+                const auto start_state = pc.state();
+                if (m_expression.parse(pc) == parse_result::rejected)
+                { 
+                    pc.set_state(start_state);
+                    break;
                 }
             }
-
-            return result;
+            return parse_result::accepted;
         }
 
     private:

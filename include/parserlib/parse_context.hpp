@@ -4,24 +4,13 @@
 
 #include <utility>
 #include <string>
-#include <map>
-#include <vector>
 #include <string_view>
+#include <vector>
+#include <ostream>
 
 
 namespace parserlib
 {
-
-
-    template <typename ParseContext> class rule;
-
-
-    enum class left_recursion_state
-    {
-        inactive,
-        reject,
-        accept
-    };
 
 
     /**
@@ -38,11 +27,36 @@ namespace parserlib
         ///match.
         struct match
         {
-            ///matched input.
-            typename std::basic_string_view<typename Input::value_type> input;
+            ///begin of match input.
+            typename Input::const_iterator begin;
+
+            ///end of match input.
+            typename Input::const_iterator end;
 
             ///tag.
             std::string_view tag;
+
+            ///automatic conversion to string.
+            operator std::basic_string<typename Input::value_type> () const
+            {
+                return { begin, end };
+            }
+
+            /**
+                Operator used for match output to a stream.
+                @param stream output stream.
+                @param m match.
+                @return the output stream.
+             */
+            template <typename Char, typename Traits>
+            friend std::basic_ostream<Char, Traits>& operator << (std::basic_ostream<Char, Traits>& stream, const match &m)
+            {
+                for (auto it = m.begin; it != m.end; ++it)
+                {
+                    stream << *it;
+                }
+                return stream;
+            }
         };
 
         ///state
@@ -55,33 +69,14 @@ namespace parserlib
             size_t matches_size;
         };
 
-        ///left recursion data.
-        struct left_recursion
-        {
-            ///left recursion state.
-            left_recursion_state state = left_recursion_state::inactive;
-
-            ///position left recursion is currently at.
-            typename Input::const_iterator position;
-        };
-
-        ///map used in handling recursion.
-        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> positions;
+        ///current position over the input.
+        typename Input::const_iterator position;
 
         ///input begin.
         const typename Input::const_iterator begin;
 
         ///input end.
         const typename Input::const_iterator end;
-
-        ///current match start position.
-        typename Input::const_iterator match_start_position;
-
-        ///current position over the input.
-        typename Input::const_iterator position;
-
-        ///left recursion data.
-        left_recursion left_recursion;
 
         ///matches.
         std::vector<match> matches;
@@ -92,10 +87,9 @@ namespace parserlib
             @return the parse context for parsing the input contained in the given container.
          */
         parse_context(const Input& container)
-            : begin(container.begin())
+            : position(container.begin())
+            , begin(container.begin())
             , end(container.end())
-            , match_start_position(container.begin())
-            , position(container.begin())
         {
         }
 
@@ -112,7 +106,7 @@ namespace parserlib
             Returns the current state.
             @return state.
          */
-        state get_state() const
+        struct state state() const
         {
             return { position, matches.size() };
         }
@@ -121,7 +115,7 @@ namespace parserlib
             Sets the current state.
             @param s state.
          */
-        void set_state(const state& s)
+        void set_state(const struct state& s)
         {
             position = s.position;
             matches.resize(s.matches_size);
@@ -131,20 +125,23 @@ namespace parserlib
             Returns the remaining input.
             @return the remaining input.
          */
-		Input get_remaining_input() const
+		Input remaining_input() const
 		{
 			return Input(position, end);
 		}
 
         /**
             Helper function for adding a match.
-            @param begin input begin.
-            @param end input end.
+            @param begin start of matched input.
+            @param end end of matched input.
             @param tag input tag.
          */
-        void add_match(const typename Input::const_iterator begin, const typename Input::const_iterator end, const std::string_view& tag)
+        void add_match(
+            const typename Input::const_iterator begin, 
+            const typename Input::const_iterator end, 
+            const std::string_view& tag)
         {
-            matches.push_back(match{ {&*begin, (size_t)std::distance(begin, end)}, tag });
+            matches.push_back(match{ begin, end, tag });
         }
     };
 

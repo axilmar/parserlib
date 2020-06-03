@@ -36,7 +36,7 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
-            const auto start_state = pc.get_state();
+            const auto start_state = pc.state();
             parse_result result = m_expression.parse(pc);
             pc.set_state(start_state);
             switch (result)

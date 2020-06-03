@@ -3,6 +3,7 @@
 
 
 #include <memory>
+#include <string_view>
 #include "rule_reference.hpp"
 #include "parse_context.hpp"
 #include "expression_wrapper.hpp"
@@ -44,163 +45,25 @@ namespace parserlib
 
         /**
             Parses the input with the underlying expression.
-            It handles left recursion.
-            If the tag is not empty, and there is a match,
-            then the corresponding entry is added to the parse context.
+            If the tag is not empty, and parsing is successful,
+            then the corresponding match is added to the parse context.
             @param pc parse context.
             @return parse result.
          */
         parse_result parse(ParseContext& pc) const
         {
-            parse_result result;
-
-            const bool is_left_recursive = activate(pc);
-
-            switch (pc.left_recursion.state)
+            const auto start_position = pc.position;
+            const parse_result result = m_expression->parse(pc);
+            if (result == parse_result::accepted && !tag.empty())
             {
-                case left_recursion_state::inactive:
-                    if (!is_left_recursive)
-                    {
-                        result = start_parse(pc);
-                    }
-                    else
-                    {
-                        pc.left_recursion = { left_recursion_state::reject, pc.position };
-                        result = parse_result::rejected_left_recursion;
-                    }
-                    break;
-
-                case left_recursion_state::reject:
-                    if (!is_left_recursive)
-                    {
-                        if (pc.position > pc.left_recursion.position)
-                        {
-                            result = start_parse(pc);
-                        }
-                        else
-                        {
-                            result = m_expression->parse(pc);
-                        }
-                    }
-                    else
-                    {
-                        result = parse_result::rejected_left_recursion;
-                    }
-                    break;
-
-                case left_recursion_state::accept:
-                    if (!is_left_recursive)
-                    {
-                        if (pc.position > pc.left_recursion.position)
-                        {
-                            result = start_parse(pc);
-                        }
-                        else
-                        {
-                            result = m_expression->parse(pc);
-                            if (result == parse_result::accepted)
-                            {
-                                result = parse_result::accepted_left_recursion;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        result = parse_result::accepted;
-                    }
-                    break;
+                pc.add_match(start_position, pc.position, tag);
             }
-
-            deactivate(pc);
-
             return result;
         }
 
     private:
         //the expression is wrapped by a polymorphic type.
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
-
-        //activate; returns true on left recursion.
-        bool activate(ParseContext& pc) const
-        {
-            auto& positions = pc.positions[this];
-            positions.push_back(pc.position);
-            return positions.size() >= 2 && positions[positions.size() - 1] == positions[positions.size() - 2];
-        }
-
-        //deactivate.
-        void deactivate(ParseContext& pc) const
-        {
-            pc.positions.find(this)->second.pop_back();
-        }
-
-        //processes left recursion
-        template <typename ParseContext>
-        parse_result process_left_recursion(parse_result result, ParseContext& pc) const
-        {
-            if (pc.left_recursion.state == left_recursion_state::reject)
-            {
-                if (result == parse_result::accepted)
-                {
-                    pc.left_recursion.state = left_recursion_state::accept;
-
-                    for (bool loop = true; loop && pc.valid(); )
-                    {
-                        pc.left_recursion.position = pc.position;
-
-                        const parse_result lr_result = m_expression->parse(pc);
-
-                        switch (lr_result)
-                        {
-                            case parse_result::accepted:
-                            case parse_result::accepted_left_recursion:
-                                break;
-
-                            case parse_result::rejected:
-                                loop = false;
-                                break;
-
-                            case parse_result::rejected_left_recursion:
-                                result = parse_result::rejected_left_recursion;
-                                loop = false;
-                                break;
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        template <typename ParseContext>
-        parse_result start_parse(ParseContext &pc) const
-        {
-            //save state
-            const auto prev_left_recursion = pc.left_recursion;
-            const auto prev_match_start_position = pc.match_start_position;
-
-            //init state
-            pc.left_recursion = { left_recursion_state::inactive, pc.position };
-            pc.match_start_position = pc.position;
-
-            //parse
-            parse_result result = m_expression->parse(pc);
-
-            //process left recursion
-            result = process_left_recursion(result, pc);
-
-            //restore state
-            pc.left_recursion = prev_left_recursion;
-            pc.match_start_position = prev_match_start_position;
-
-            //add match if needed
-            if (result == parse_result::accepted && !tag.empty())
-            {
-                pc.add_match(pc.match_start_position, pc.position, tag);
-            }
-
-            return result;
-        }
     };
 
 
@@ -222,9 +85,9 @@ namespace parserlib
 
 
     /**
-        Operator that the tag for a rule.
+        Operator that adds a tag to a rule.
         @param rule rule to set the tag of.
-        @param tag tag to set the rule to.
+        @param tag tag to set.
         @return the rule.
      */
     template <typename ParseContext>
