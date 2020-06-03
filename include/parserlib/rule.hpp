@@ -52,6 +52,16 @@ namespace parserlib
          */
         parse_result parse(ParseContext& pc) const
         {
+            return parse_(pc);
+        }
+
+    private:
+        //the expression is wrapped by a polymorphic type.
+        std::unique_ptr<expression_interface<ParseContext>> m_expression;
+
+        //internal parse that adds match on success
+        parse_result parse_(ParseContext& pc) const
+        {
             const auto start_position = pc.position;
             const parse_result result = m_expression->parse(pc);
             if (result == parse_result::accepted && !tag.empty())
@@ -60,10 +70,6 @@ namespace parserlib
             }
             return result;
         }
-
-    private:
-        //the expression is wrapped by a polymorphic type.
-        std::unique_ptr<expression_interface<ParseContext>> m_expression;
     };
 
 
