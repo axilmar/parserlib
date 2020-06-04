@@ -85,8 +85,6 @@ namespace parserlib
         ///matches.
         std::vector<match> matches;
 
-        size_t recursion_count = 0;
-
         /**
             Constructor.
             @param container container to create a parse context out of.
