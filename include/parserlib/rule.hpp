@@ -69,6 +69,7 @@ namespace parserlib
                 }
 
                 const auto prev_left_recursion_state = pc.left_recursion.state;
+                const bool prev_left_recursion_active = pc.left_recursion.active;
 
                 result = m_expression->parse(pc);
 
@@ -76,8 +77,7 @@ namespace parserlib
                 {
                     //parse left recursion from the outermost rule 
                     //that left recursion started from
-                    if (prev_left_recursion_state == left_recursion_state::inactive &&
-                        pc.left_recursion.state == left_recursion_state::reject)
+                    if (!prev_left_recursion_active && pc.left_recursion.active)
                     {
                         //parse until rejection or end of input
                         while (pc.valid())
@@ -106,6 +106,7 @@ namespace parserlib
                 }
 
                 pc.left_recursion.state = prev_left_recursion_state;
+                pc.left_recursion.active = prev_left_recursion_active;
             }
 
             //else left recursion found
@@ -115,6 +116,7 @@ namespace parserlib
                 {
                     case left_recursion_state::inactive:
                         pc.left_recursion.state = left_recursion_state::reject;
+                        pc.left_recursion.active = true;
                         result = parse_result::rejected;
                         break;
 

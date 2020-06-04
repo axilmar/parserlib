@@ -88,10 +88,13 @@ namespace parserlib
         struct left_recursion
         {
             ///state.
-            left_recursion_state state = left_recursion_state::inactive;
+            left_recursion_state state;
 
             ///current left recursion position.
             typename Input::const_iterator position;
+
+            ///if left recursion has started or not
+            bool active;
         } left_recursion;
 
         ///input begin.
@@ -113,7 +116,7 @@ namespace parserlib
          */
         parse_context(const Input& container)
             : position(container.begin())
-            , left_recursion{ left_recursion_state::inactive, container.begin() }
+            , left_recursion{ left_recursion_state::inactive, container.begin(), false }
             , begin(container.begin())
             , end(container.end())
         {
