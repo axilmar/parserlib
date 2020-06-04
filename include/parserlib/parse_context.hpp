@@ -14,17 +14,6 @@ namespace parserlib
 {
 
 
-    template <typename ParseContext> class rule;
-
-
-    enum class left_recursion_state
-    {
-        inactive,
-        reject,
-        accept
-    };
-
-
     /**
         Struct with data required for parsing.
         @param Input input type.
@@ -84,27 +73,14 @@ namespace parserlib
         ///current position over the input.
         typename Input::const_iterator position;
 
-        ///left recursion data.
-        struct left_recursion
-        {
-            ///state.
-            left_recursion_state state;
-
-            ///current left recursion position.
-            typename Input::const_iterator position;
-
-            ///if left recursion has started or not
-            bool active;
-        } left_recursion;
-
         ///input begin.
         const typename Input::const_iterator begin;
 
         ///input end.
         const typename Input::const_iterator end;
 
-        ///rule positions.
-        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> rule_positions;
+        ///parse positions.
+        std::map<const void*, std::vector<typename Input::const_iterator>> parse_positions;
 
         ///matches.
         std::vector<match> matches;
@@ -116,7 +92,6 @@ namespace parserlib
          */
         parse_context(const Input& container)
             : position(container.begin())
-            , left_recursion{ left_recursion_state::inactive, container.begin(), false }
             , begin(container.begin())
             , end(container.end())
         {
@@ -174,25 +149,25 @@ namespace parserlib
         }
 
         /**
-            Adds the current position for the given rule.
-            @param rule rule to add the current position for.
+            Helper function for adding a parse position.
+            @param obj object to add a parse position for.
             @return true if the two last positions are the same (useful in recognizing left recursion), false otherwise.
 
          */
-        bool add_position(const rule<parse_context>* rule)
+        bool add_position(const void* obj)
         {
-            auto& pos = rule_positions[rule];
+            auto& pos = parse_positions[obj];
             pos.push_back(position);
             return pos.size() >= 2 && pos.back() == *(pos.end() - 2);
         }
 
         /**
-            Removes the last known position for a rule.
-            @param rule rule to remove the position of.
+            Removes the last parse position.
+            @param obj obj to remove the last parse position of.
          */
-        void remove_position(const rule<parse_context>* rule)
+        void remove_position(const void* obj)
         {
-            rule_positions[rule].pop_back();
+            parse_positions[rule].pop_back();
         }
     };
 
