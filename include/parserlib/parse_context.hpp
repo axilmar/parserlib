@@ -17,6 +17,14 @@ namespace parserlib
     template <typename ParseContext> class rule;
 
 
+    enum class left_recursion_state
+    {
+        inactive,
+        reject,
+        accept
+    };
+
+
     /**
         Struct with data required for parsing.
         @param Input input type.
@@ -75,6 +83,13 @@ namespace parserlib
 
         ///current position over the input.
         typename Input::const_iterator position;
+
+        ///left recursion data.
+        struct left_recursion
+        {
+            ///state.
+            left_recursion_state state = left_recursion_state::inactive;
+        } left_recursion;
 
         ///input begin.
         const typename Input::const_iterator begin;
@@ -170,7 +185,7 @@ namespace parserlib
          */
         void remove_position(const rule<parse_context>* rule)
         {
-            rule_positions[rule].pop_back(rule);
+            rule_positions[rule].pop_back();
         }
     };
 
