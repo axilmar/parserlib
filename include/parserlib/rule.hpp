@@ -65,6 +65,7 @@ namespace parserlib
                 if (pc.position > pc.left_recursion.position)
                 {
                     pc.left_recursion.state = left_recursion_state::inactive;
+                    pc.left_recursion.position = pc.position;
                 }
 
                 const auto prev_left_recursion_state = pc.left_recursion.state;
@@ -78,14 +79,24 @@ namespace parserlib
                     if (prev_left_recursion_state == left_recursion_state::inactive &&
                         pc.left_recursion.state == left_recursion_state::reject)
                     {
-                        //enter the 'accept' state
-                        pc.left_recursion.state = left_recursion_state::accept;
-
                         //parse until rejection or end of input
                         while (pc.valid())
                         {
+                            //enter the 'accept' state
+                            pc.left_recursion.state = left_recursion_state::accept;
+
+                            //set the current left recursion position
+                            //so as that rules know to synchronize their position
                             pc.left_recursion.position = pc.position;
+                            
+                            //synchronize the current rule anyway 
+                            //to avoid rejection by any sequence that includes it
+                            pc.rule_positions[this].back() = pc.position;
+
+                            //parse in accepted state
                             const parse_result result = m_expression->parse(pc);
+
+                            //rejected; end of left recursion parsing
                             if (result == parse_result::rejected)
                             {
                                 break;

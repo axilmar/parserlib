@@ -30,7 +30,7 @@ rule<> expr = add;
 
 int main(int argc, char* argv[])
 {
-    const std::string input = "1+2+3";
+    const std::string input = "1+2-3";
     auto pc = parse_context(input);
     const auto res = expr.parse(pc);
     const auto remaining_input = pc.remaining_input();
