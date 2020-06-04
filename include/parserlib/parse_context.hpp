@@ -7,10 +7,14 @@
 #include <string_view>
 #include <vector>
 #include <ostream>
+#include <map>
 
 
 namespace parserlib
 {
+
+
+    template <typename ParseContext> class rule;
 
 
     /**
@@ -78,6 +82,9 @@ namespace parserlib
         ///input end.
         const typename Input::const_iterator end;
 
+        ///rule positions.
+        std::map<const rule<parse_context>*, std::vector<typename Input::const_iterator>> rule_positions;
+
         ///matches.
         std::vector<match> matches;
 
@@ -142,6 +149,28 @@ namespace parserlib
             const std::string_view& tag)
         {
             matches.push_back(match{ begin, end, tag });
+        }
+
+        /**
+            Adds the current position for the given rule.
+            @param rule rule to add the current position for.
+            @return true if the two last positions are the same (useful in recognizing left recursion), false otherwise.
+
+         */
+        bool add_position(const rule<parse_context>* rule)
+        {
+            auto& pos = rule_positions[rule];
+            pos.push_back(position);
+            return pos.size() >= 2 && pos.back() == *(pos.end() - 2);
+        }
+
+        /**
+            Removes the last known position for a rule.
+            @param rule rule to remove the position of.
+         */
+        void remove_position(const rule<parse_context>* rule)
+        {
+            rule_positions[rule].pop_back(rule);
         }
     };
 
