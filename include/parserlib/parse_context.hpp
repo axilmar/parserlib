@@ -79,9 +79,6 @@ namespace parserlib
         ///input end.
         const typename Input::const_iterator end;
 
-        ///parse positions.
-        std::map<const void*, std::vector<typename Input::const_iterator>> parse_positions;
-
         ///matches.
         std::vector<match> matches;
 
@@ -146,28 +143,6 @@ namespace parserlib
             const std::string_view& tag)
         {
             matches.push_back(match{ begin, end, tag });
-        }
-
-        /**
-            Helper function for adding a parse position.
-            @param obj object to add a parse position for.
-            @return true if the two last positions are the same (useful in recognizing left recursion), false otherwise.
-
-         */
-        bool add_position(const void* obj)
-        {
-            auto& pos = parse_positions[obj];
-            pos.push_back(position);
-            return pos.size() >= 2 && pos.back() == *(pos.end() - 2);
-        }
-
-        /**
-            Removes the last parse position.
-            @param obj obj to remove the last parse position of.
-         */
-        void remove_position(const void* obj)
-        {
-            parse_positions[obj].pop_back();
         }
     };
 
