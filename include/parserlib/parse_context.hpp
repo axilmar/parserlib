@@ -85,9 +85,6 @@ namespace parserlib
         ///matches.
         std::vector<match> matches;
 
-        bool left_recursion = false;
-        bool accept_left_recursion = false;
-
         /**
             Constructor.
             @param container container to create a parse context out of.

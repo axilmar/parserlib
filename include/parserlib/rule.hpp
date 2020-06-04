@@ -52,43 +52,7 @@ namespace parserlib
          */
         parse_result parse(ParseContext& pc) const
         {
-            parse_result result;
-
-            const bool is_left_recursive = pc.add_position(this);
-
-            if (!is_left_recursive)
-            {
-                const bool prev_left_recursion = pc.left_recursion;
-                result = m_expression->parse(pc);
-                if (result == parse_result::accepted && !prev_left_recursion && pc.left_recursion)
-                {
-                    pc.accept_left_recursion = true;
-                    while (pc.valid())
-                    {
-                        const parse_result result = m_expression->parse(pc);
-                        if (result == parse_result::rejected)
-                        {
-                            break;
-                        }
-                    }
-                }
-                pc.left_recursion = prev_left_recursion;
-            }
-
-            else if (!pc.accept_left_recursion)
-            {
-                pc.left_recursion = true;
-                result = parse_result::rejected;
-            }
-
-            else
-            {
-                result = parse_result::accepted;
-            }
-
-            pc.remove_position(this);
-
-            return result;
+            return parse_(pc);
         }
 
     private:
