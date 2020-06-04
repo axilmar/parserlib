@@ -89,6 +89,9 @@ namespace parserlib
         {
             ///state.
             left_recursion_state state = left_recursion_state::inactive;
+
+            ///current left recursion position.
+            typename Input::const_iterator position;
         } left_recursion;
 
         ///input begin.
@@ -110,6 +113,7 @@ namespace parserlib
          */
         parse_context(const Input& container)
             : position(container.begin())
+            , left_recursion{ left_recursion_state::inactive, container.begin() }
             , begin(container.begin())
             , end(container.end())
         {

@@ -52,7 +52,74 @@ namespace parserlib
          */
         parse_result parse(ParseContext& pc) const
         {
-            return parse_(pc);
+            parse_result result;
+
+            const bool is_left_recursive = pc.add_position(this);
+
+            //no left recursion found
+            if (!is_left_recursive)
+            {
+                //if left recursion needs reset temporarily,
+                //set the state to inactive, 
+                //so a new non-left recursion parsing starts
+                if (pc.position > pc.left_recursion.position)
+                {
+                    pc.left_recursion.state = left_recursion_state::inactive;
+                }
+
+                const auto prev_left_recursion_state = pc.left_recursion.state;
+
+                result = m_expression->parse(pc);
+
+                if (result == parse_result::accepted)
+                {
+                    //parse left recursion from the outermost rule 
+                    //that left recursion started from
+                    if (prev_left_recursion_state == left_recursion_state::inactive &&
+                        pc.left_recursion.state == left_recursion_state::reject)
+                    {
+                        //enter the 'accept' state
+                        pc.left_recursion.state = left_recursion_state::accept;
+
+                        //parse until rejection or end of input
+                        while (pc.valid())
+                        {
+                            pc.left_recursion.position = pc.position;
+                            const parse_result result = m_expression->parse(pc);
+                            if (result == parse_result::rejected)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                pc.left_recursion.state = prev_left_recursion_state;
+            }
+
+            //else left recursion found
+            else
+            {
+                switch (pc.left_recursion.state)
+                {
+                    case left_recursion_state::inactive:
+                        pc.left_recursion.state = left_recursion_state::reject;
+                        result = parse_result::rejected;
+                        break;
+
+                    case left_recursion_state::reject:
+                        result = parse_result::rejected;
+                        break;
+
+                    case left_recursion_state::accept:
+                        result = parse_result::accepted;
+                        break;
+                }
+            }
+
+            pc.remove_position(this);
+
+            return result;
         }
 
     private:
