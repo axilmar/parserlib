@@ -166,6 +166,20 @@ namespace parserlib
     }
 
 
+    /**
+        Generic parse function.
+        @param grammar root rule of grammar to use.
+        @param pc parse context.
+        #return true if parsing succeeded (i.e. if the whole input was accepted), otherwise false.
+     */
+    template <typename ParseContext> 
+    parse_result parse(rule<ParseContext>& grammar, ParseContext& pc)
+    {
+        const parse_result result = grammar.parse(pc);
+        return result == parse_result::accepted && pc.remaining_input().empty();
+    }
+
+
 } //namespace parserlib
 
 

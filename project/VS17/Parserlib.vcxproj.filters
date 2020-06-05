@@ -61,6 +61,9 @@
     <ClInclude Include="..\..\include\parserlib\match.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\ast.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

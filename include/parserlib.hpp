@@ -12,6 +12,7 @@
 #include "parserlib/choice.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/match.hpp"
+#include "parserlib/ast.hpp"
 
 
 #endif //PARSERLIB_HPP
