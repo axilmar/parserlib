@@ -52,15 +52,33 @@ namespace parserlib
                 //left expression failure; try the right expression
                 case parse_result::rejected:
                     pc.set_state(start_state);
+                    
                     result = m_right_expression.parse(pc);
 
                     switch (result)
                     {
                         //right expression success
                         case parse_result::accepted:
+                            if (pc.m_left_recursion_state == ParseContext::left_recursion_state::reject)
+                            {
+                                while (pc.valid())
+                                {
+                                    pc.m_left_recursion_state = ParseContext::left_recursion_state::accept;
+                                    pc.m_left_recursion_position = pc.position;
+
+                                    const parse_result result = m_left_expression.parse(pc);
+                                        
+                                    if (result == parse_result::rejected)
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                pc.m_left_recursion_state = ParseContext::left_recursion_state::reject;
+                            }
                             break;
 
-                        //right expression failure; rewind the state
+                            //right expression failure; rewind the state
                         case parse_result::rejected:
                             pc.set_state(start_state);
                             break;
