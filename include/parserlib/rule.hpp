@@ -124,7 +124,7 @@ namespace parserlib
         //internal parse that adds match on success
         parse_result parse_(ParseContext& pc) const
         {
-            const auto start_position = pc.position;
+            const auto start_position = pc.start_position;
             const parse_result result = m_expression->parse(pc);
             if (result == parse_result::accepted && !tag.empty())
             {
