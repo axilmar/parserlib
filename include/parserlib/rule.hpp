@@ -125,12 +125,15 @@ namespace parserlib
         parse_result parse_(ParseContext& pc) const
         {
             const auto start_position = pc.start_position;
-            const parse_result result = m_expression->parse(pc);
-            if (result == parse_result::accepted && !tag.empty())
+            
+			const parse_result result = m_expression->parse(pc);
+            
+			if (result == parse_result::accepted && !tag.empty())
             {
                 pc.add_match(start_position, pc.position, tag);
             }
-            return result;
+            
+			return result;
         }
     };
 
@@ -173,7 +176,7 @@ namespace parserlib
         #return true if parsing succeeded (i.e. if the whole input was accepted), otherwise false.
      */
     template <typename ParseContext> 
-    parse_result parse(rule<ParseContext>& grammar, ParseContext& pc)
+    bool parse(rule<ParseContext>& grammar, ParseContext& pc)
     {
         const parse_result result = grammar.parse(pc);
         return result == parse_result::accepted && pc.remaining_input().empty();
