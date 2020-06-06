@@ -7,9 +7,9 @@ using namespace parserlib;
 //number
 static auto sign = one_of("-+");
 static auto digits = +range('0', '9');
-static auto basic_part = digits >> '.' >> -digits | '.' >> digits;
+static auto basic_part = digits >> -('.' >> -digits) | '.' >> digits;
 static auto exp_part = one_of("eE") >> -sign >> digits;
-static auto num = -sign << basic_part << -exp_part >= "num";
+static auto num = -sign >> basic_part >> -exp_part >= "num";
 
 
 //value

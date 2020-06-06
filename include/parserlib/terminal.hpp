@@ -341,7 +341,7 @@ namespace parserlib
 	template <typename T>
 	terminal<std::set<T>> one_of(const T* elements)
 	{
-		T* elements_end = elements;
+		const T* elements_end = elements;
 		for (; *elements_end; ++elements_end) {}
 		return { std::set<T>(elements, elements_end) };
 	}
