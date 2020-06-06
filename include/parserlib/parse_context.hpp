@@ -65,7 +65,42 @@ namespace parserlib
             }
         };
 
-        ///state
+		///error.
+		struct error
+		{
+			///begin of error input.
+			typename Input::const_iterator begin;
+
+			///end of error input.
+			typename Input::const_iterator end;
+
+			///message.
+			std::string message;
+
+			///automatic conversion to string.
+			operator std::basic_string<typename Input::value_type> () const
+			{
+				return { begin, end };
+			}
+
+			/**
+				Operator used for error output to a stream.
+				@param stream output stream.
+				@param e error.
+				@return the output stream.
+			*/
+			template <typename Char, typename Traits>
+			friend std::basic_ostream<Char, Traits>& operator << (std::basic_ostream<Char, Traits>& stream, const error &e)
+			{
+				for (auto it = e.begin; it != e.end; ++it)
+				{
+					stream << *it;
+				}
+				return stream;
+			}
+		};
+
+		///state
         struct state
         {
             ///current start position over the input.
@@ -93,7 +128,10 @@ namespace parserlib
         ///matches.
         std::vector<match> matches;
 
-        /**
+		///errors.
+		std::vector<match> errors;
+
+		/**
             Constructor.
             @param container container to create a parse context out of.
             @return the parse context for parsing the input contained in the given container.
@@ -158,6 +196,20 @@ namespace parserlib
         {
             matches.push_back(match{ begin, end, tag });
         }
+
+		/**
+			Helper function for adding an error.
+			@param begin start of error input.
+			@param end end of error input.
+			@param message message.
+		*/
+		void add_error(
+			const typename Input::const_iterator begin, 
+			const typename Input::const_iterator end, 
+			const std::string& message)
+		{
+			errors.push_back(error{ begin, end, message });
+		}
 
     private:
         //used for identifying recursion

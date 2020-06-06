@@ -39,12 +39,15 @@ namespace parserlib
         parse_result parse(ParseContext& pc) const
         {
             const auto start_position = pc.start_position;
-            const parse_result result = m_expression.parse(pc);
-            if (result == parse_result::accepted)
+            
+			const parse_result result = m_expression.parse(pc);
+            
+			if (result == parse_result::accepted)
             {
                 pc.add_match(start_position, pc.position, m_tag);
             }
-            return result;
+            
+			return result;
         }
 
     private:

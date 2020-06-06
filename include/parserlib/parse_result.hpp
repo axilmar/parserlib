@@ -7,35 +7,16 @@ namespace parserlib
 
 
     ///parse result.
-    class parse_result
+    enum class parse_result
     {
-    public:
-        ///rejected result.
-        static inline constexpr bool rejected = false;
+		///parse rejected.
+		rejected,
 
-        ///accepted result.
-        static inline constexpr bool accepted = true;
+		///parse accepted.
+		accepted,
 
-        /**
-            Constructor.
-            @param v initial value.
-         */
-        parse_result(const bool v = rejected) : m_value(v)
-        {
-        }
-
-        /**
-            Automatic conversion to bool.
-            @return rejected/accepted.
-         */
-        operator bool() const
-        {
-            return m_value;
-        }
-
-    private:
-        //value
-        bool m_value;
+		///parse continued (in case of error).
+		continued
     };
 
 

@@ -37,11 +37,16 @@ namespace parserlib
         parse_result parse(ParseContext& pc) const
         {
             const auto start_state = pc.state();
-            if (m_expression.parse(pc) == parse_result::rejected)
+
+			parse_result result = m_expression.parse(pc);
+            
+			if (result == parse_result::rejected)
             { 
                 pc.set_state(start_state);
+				result = parse_result::accepted;
             }
-            return parse_result::accepted;
+
+            return result;
         }
 
     private:
