@@ -31,9 +31,6 @@
     <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\parserlib\range.hpp">
-      <Filter>parserlib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\parserlib\rule_reference.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
@@ -64,8 +61,12 @@
     <ClInclude Include="..\..\include\parserlib\ast.hpp">
       <Filter>parserlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\examples\calculator\calculator_ast.hpp" />
+    <ClInclude Include="..\..\examples\calculator\calculator_grammar.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
+    <ClCompile Include="..\..\examples\calculator\calculator_ast.cpp" />
   </ItemGroup>
 </Project>
