@@ -10,7 +10,7 @@ using namespace parserlib;
 #define STRINGIFY(S) STRINGIFY1(S)
 
 
-#define TEST_EXPR 1+2+3
+#define TEST_EXPR 1+2*3
 
 
 int main(int argc, char* argv[])

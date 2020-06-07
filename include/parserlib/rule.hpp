@@ -118,19 +118,10 @@ namespace parserlib
         //the expression is wrapped by a polymorphic type.
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
 
-        //internal parse that adds match on success
+		//helper function
         parse_result parse_(ParseContext& pc) const
         {
-            const auto start_position = pc.start_position;
-            
-			const parse_result result = m_expression->parse(pc);
-            
-			if (result == parse_result::accepted)
-            {
-                pc.add_match(this, start_position, pc.position);
-            }
-            
-			return result;
+			return m_expression->parse(pc);
         }
     };
 

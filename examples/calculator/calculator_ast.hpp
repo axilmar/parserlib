@@ -105,19 +105,17 @@ namespace calculator
 
 
 	template <typename T>
-	void create_binary_ast(
-		const std::string& m, 
-		const char op, 
-		std::vector<std::shared_ptr<ast_expr>>& ast_node_stack)
+	void create_binary_ast(std::vector<std::shared_ptr<ast_expr>>& ast_node_stack)
 	{
-		if (ast_node_stack.size() >= 2 && m.find(op) != std::string::npos)
+		if (ast_node_stack.size() < 2)
 		{
-			auto right = ast_node_stack.back();
-			ast_node_stack.pop_back();
-			auto left = ast_node_stack.back();
-			ast_node_stack.pop_back();
-			ast_node_stack.push_back(std::make_shared<T>(left, right));
+			throw std::logic_error("invalid ast");
 		}
+		auto right = ast_node_stack.back();
+		ast_node_stack.pop_back();
+		auto left = ast_node_stack.back();
+		ast_node_stack.pop_back();
+		ast_node_stack.push_back(std::make_shared<T>(left, right));
 	}
 
 
@@ -128,29 +126,29 @@ namespace calculator
 
 		for (const auto& match : pc.matches)
 		{
-			if (match == calculator::num)
+			if (match.tag == "num")
 			{
 				ast_node_stack.push_back(std::make_shared<ast_num>(std::stod(match)));
 			}
 
-			else if (match == calculator::div)
+			else if (match.tag == "div")
 			{
-				create_binary_ast<ast_div>(match, '/', ast_node_stack);
+				create_binary_ast<ast_div>(ast_node_stack);
 			}
 
-			else if (match == calculator::mul)
+			else if (match.tag == "mul")
 			{
-				create_binary_ast<ast_mul>(match, '*', ast_node_stack);
+				create_binary_ast<ast_mul>(ast_node_stack);
 			}
 
-			else if (match == calculator::sub)
+			else if (match.tag == "sub")
 			{
-				create_binary_ast<ast_sub>(match, '-', ast_node_stack);
+				create_binary_ast<ast_sub>(ast_node_stack);
 			}
 
-			else if (match == calculator::add)
+			else if (match.tag == "add")
 			{
-				create_binary_ast<ast_add>(match, '+', ast_node_stack);
+				create_binary_ast<ast_add>(ast_node_stack);
 			}
 		}
 

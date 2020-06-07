@@ -15,7 +15,7 @@ namespace calculator
 
 
 	//number
-	rule<> num = -sign >> num_basic_part >> -num_exp_part;
+	static rule<> num = -sign >> num_basic_part >> -num_exp_part  == "num";
 
 
 	//value
@@ -23,24 +23,16 @@ namespace calculator
 					| num;
 
 
-	//division
-	rule<> div = div >> '/' >> val
-		       | val;
+	//multiplication/division
+	static rule<> mul = mul >> '*' >> val                         == "mul"
+		              | mul >> '/' >> val                         == "div"
+			          | val;
 
 
-	//multiplication
-	rule<> mul = mul >> '*' >> div
-			   | div;
-
-
-	//subtraction
-	rule<> sub = sub >> '-' >> mul
-		       | mul;
-
-
-	//addition
-	rule<> add = add >> '+' >> sub
-			   | sub;
+	//addition/subtraction
+	static rule<> add = add >> '+' >> mul                         == "add"
+		              | add >> '-' >> mul                         == "sub"
+			          | mul;
 
 
 	//expression

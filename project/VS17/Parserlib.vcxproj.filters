@@ -57,6 +57,9 @@
     </ClInclude>
     <ClInclude Include="..\..\examples\calculator\calculator_grammar.hpp" />
     <ClInclude Include="..\..\examples\calculator\calculator_ast.hpp" />
+    <ClInclude Include="..\..\include\parserlib\match.hpp">
+      <Filter>parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

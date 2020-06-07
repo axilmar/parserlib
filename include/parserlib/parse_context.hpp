@@ -33,8 +33,8 @@ namespace parserlib
         ///match.
         struct match
         {
-			///rule that was matched.
-			const parserlib::rule<parse_context>* rule;
+			///match tag.
+			std::string_view tag;
 
 			///begin of match input.
             typename Input::const_iterator begin;
@@ -63,28 +63,6 @@ namespace parserlib
                 }
                 return stream;
             }
-
-			/**
-				Operator that checks if the given rule
-				was the rule that produced this match.
-				@param rule rule to check.
-				@return true if the given rule produced this match, false otherwise.
-			 */
-			bool operator == (parserlib::rule<parse_context>& rule) const
-			{
-				return this->rule == std::addressof(rule);
-			}
-
-			/**
-				Operator that checks if the given rule
-				was the rule that did not produce this match.
-				@param rule rule to check.
-				@return true if the given rule did not produce this match, false otherwise.
-			 */
-			bool operator != (parserlib::rule<parse_context>& rule) const
-			{
-				return !operator == (rule);
-			}
 		};
 
 		///state
@@ -169,16 +147,16 @@ namespace parserlib
 
         /**
             Helper function for adding a match.
-            @param begin start of matched input.
+			@param tag match tag.
+			@param begin start of matched input.
             @param end end of matched input.
-            @param rule rule that was matched.
          */
         void add_match(
-			const parserlib::rule<parse_context>* rule,
+			const std::string_view& tag,
             const typename Input::const_iterator begin, 
             const typename Input::const_iterator end)
         {
-            matches.push_back(match{ rule, begin, end });
+            matches.push_back(match{ tag, begin, end });
         }
 
     private:

@@ -300,17 +300,6 @@ namespace parserlib
 
 
 	/**
-		Specialization of expression type for basic string view terminal.
-	*/
-	template <typename T, typename Traits> class expression_type<std::basic_string_view<T, Traits>>
-	{
-	public:
-		///terminal parser for string view.
-		typedef terminal<std::basic_string_view<T, Traits>> type;
-	};
-
-
-	/**
 		Specialization of expression type for range terminal.
 	 */
 	template <typename T> class expression_type<range<T>>
