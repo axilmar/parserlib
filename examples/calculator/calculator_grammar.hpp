@@ -9,8 +9,8 @@ namespace calculator
 {
 
 
-	//rules for the calculator
-	extern parserlib::rule<> expr;
+    //rules for the calculator
+    extern parserlib::rule<> expr;
 
 
 } //namespace calculator

@@ -38,13 +38,13 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
-			while (pc.valid())
+            while (pc.valid())
             {
                 const auto start_state = pc.state();
 
-				const parse_result result = m_expression.parse(pc);
+                const parse_result result = m_expression.parse(pc);
                 
-				if (result == parse_result::rejected)
+                if (result == parse_result::rejected)
                 { 
                     pc.set_state(start_state);
                     break;

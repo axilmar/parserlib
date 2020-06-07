@@ -9,11 +9,11 @@ namespace parserlib
     ///parse result.
     enum class parse_result
     {
-		///parse rejected.
-		rejected,
+        ///parse rejected.
+        rejected,
 
-		///parse accepted.
-		accepted
+        ///parse accepted.
+        accepted
     };
 
 

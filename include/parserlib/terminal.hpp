@@ -12,28 +12,28 @@ namespace parserlib
 {
 
 
-	/**
-		A range type.
-	 */
-	template <typename T> class range
-	{
-	public:
-		///min value.
-		const T min;
+    /**
+        A range type.
+     */
+    template <typename T> class range
+    {
+    public:
+        ///min value.
+        const T min;
 
-		///max value.
-		const T max;
+        ///max value.
+        const T max;
 
-		/**
-			Constructor.
-			@param min_ min value.
-			@param max_ max value.
-		 */
-		range(const T& min_, const T& max_)
-			: min(min_), max(max_)
-		{
-		}
-	};
+        /**
+            Constructor.
+            @param min_ min value.
+            @param max_ max value.
+         */
+        range(const T& min_, const T& max_)
+            : min(min_), max(max_)
+        {
+        }
+    };
 
 
     /**
@@ -146,45 +146,45 @@ namespace parserlib
     }
 
 
-	/**
-		The terminal parser for a range.
-		@param r range.
-		@param position current position; on success, the position must have been incremented.
-		@param end end position.
-		@return true on success, false on failure.
-		*/
-	template <typename T, typename It>
-	bool parse_terminal(const range<T>& r, It& position, const It end)
-	{
-		if (position != end && *position >= r.min && *position <= r.max)
-		{
-			++position;
-			return true;
-		}
-		return false;
-	}
+    /**
+        The terminal parser for a range.
+        @param r range.
+        @param position current position; on success, the position must have been incremented.
+        @param end end position.
+        @return true on success, false on failure.
+        */
+    template <typename T, typename It>
+    bool parse_terminal(const range<T>& r, It& position, const It end)
+    {
+        if (position != end && *position >= r.min && *position <= r.max)
+        {
+            ++position;
+            return true;
+        }
+        return false;
+    }
 
 
-	/**
-		The terminal parser for a set.
-		@param s set.
-		@param position current position; on success, the position must have been incremented.
-		@param end end position.
-		@return true on success, false on failure.
-	*/
-	template <typename T, typename Pr, typename Alloc, typename It>
-	bool parse_terminal(const std::set<T, Pr, Alloc>& s, It& position, const It end)
-	{
-		if (position != end && s.find(*position) != s.end())
-		{
-			++position;
-			return true;
-		}
-		return false;
-	}
+    /**
+        The terminal parser for a set.
+        @param s set.
+        @param position current position; on success, the position must have been incremented.
+        @param end end position.
+        @return true on success, false on failure.
+    */
+    template <typename T, typename Pr, typename Alloc, typename It>
+    bool parse_terminal(const std::set<T, Pr, Alloc>& s, It& position, const It end)
+    {
+        if (position != end && s.find(*position) != s.end())
+        {
+            ++position;
+            return true;
+        }
+        return false;
+    }
 
 
-	/**
+    /**
         A parser that parses a terminal.
         @param T type of terminal to parse.
      */
@@ -244,96 +244,96 @@ namespace parserlib
     };
 
 
-	/**
-		Specialization of expression type for char16_t terminal.
-	 */
-	template <> class expression_type<char16_t>
-	{
-	public:
-		///terminal parser for character.
-		typedef terminal<char16_t> type;
-	};
+    /**
+        Specialization of expression type for char16_t terminal.
+     */
+    template <> class expression_type<char16_t>
+    {
+    public:
+        ///terminal parser for character.
+        typedef terminal<char16_t> type;
+    };
 
 
-	/**
-		Specialization of expression type for char32_t terminal.
-	*/
-	template <> class expression_type<char32_t>
-	{
-	public:
-		///terminal parser for character.
-		typedef terminal<char32_t> type;
-	};
+    /**
+        Specialization of expression type for char32_t terminal.
+    */
+    template <> class expression_type<char32_t>
+    {
+    public:
+        ///terminal parser for character.
+        typedef terminal<char32_t> type;
+    };
 
 
-	/**
-		Specialization of expression type for null-terminated string terminal.
-	*/
-	template <typename T> class expression_type<const T *>
-	{
-	public:
-		///terminal parser for null-terminated string.
-		typedef terminal<const T *> type;
-	};
+    /**
+        Specialization of expression type for null-terminated string terminal.
+    */
+    template <typename T> class expression_type<const T *>
+    {
+    public:
+        ///terminal parser for null-terminated string.
+        typedef terminal<const T *> type;
+    };
 
 
-	/**
-		Specialization of expression type for null-terminated string terminal.
-	 */
-	template <typename T> class expression_type<T *>
-	{
-	public:
-		///terminal parser for null-terminated string.
-		typedef terminal<T *> type;
-	};
+    /**
+        Specialization of expression type for null-terminated string terminal.
+     */
+    template <typename T> class expression_type<T *>
+    {
+    public:
+        ///terminal parser for null-terminated string.
+        typedef terminal<T *> type;
+    };
 
 
-	/**
-		Specialization of expression type for basic string terminal.
-	*/
-	template <typename T, typename Traits> class expression_type<std::basic_string<T, Traits>>
-	{
-	public:
-		///terminal parser for string.
-		typedef terminal<std::basic_string<T, Traits>> type;
-	};
+    /**
+        Specialization of expression type for basic string terminal.
+    */
+    template <typename T, typename Traits> class expression_type<std::basic_string<T, Traits>>
+    {
+    public:
+        ///terminal parser for string.
+        typedef terminal<std::basic_string<T, Traits>> type;
+    };
 
 
-	/**
-		Specialization of expression type for range terminal.
-	 */
-	template <typename T> class expression_type<range<T>>
-	{
-	public:
-		///terminal parser for range.
-		typedef terminal<range<T>> type;
-	};
+    /**
+        Specialization of expression type for range terminal.
+     */
+    template <typename T> class expression_type<range<T>>
+    {
+    public:
+        ///terminal parser for range.
+        typedef terminal<range<T>> type;
+    };
 
 
-	/**
-		Specialization of expression type for set terminal.
-	*/
-	template <typename T, typename Pr, typename Alloc> class expression_type<std::set<T, Pr, Alloc>>
-	{
-	public:
-		///terminal parser for set.
-		typedef terminal<std::set<T, Pr, Alloc>> type;
-	};
+    /**
+        Specialization of expression type for set terminal.
+    */
+    template <typename T, typename Pr, typename Alloc> class expression_type<std::set<T, Pr, Alloc>>
+    {
+    public:
+        ///terminal parser for set.
+        typedef terminal<std::set<T, Pr, Alloc>> type;
+    };
 
 
-	/**
-		Creates a set terminal parser out of the characters
-		of the given null-terminated string.
-		@param elements null-terminated string with set characters.
-		@return set terminal parser.
-	 */
-	template <typename T>
-	terminal<std::set<T>> one_of(const T* elements)
-	{
-		const T* elements_end = elements;
-		for (; *elements_end; ++elements_end) {}
-		return { std::set<T>(elements, elements_end) };
-	}
+    /**
+        Creates a set terminal parser out of the characters
+        of the given null-terminated string.
+        @param elements null-terminated string with set characters.
+        @return set terminal parser.
+     */
+    template <typename T>
+    terminal<std::set<T>> one_of(const T* elements)
+    {
+        const T* elements_end = elements;
+        for (; *elements_end; ++elements_end) {}
+        return { std::set<T>(elements, elements_end) };
+    }
 
 
 } //namespace parserlib

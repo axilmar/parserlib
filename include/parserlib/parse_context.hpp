@@ -33,10 +33,10 @@ namespace parserlib
         ///match.
         struct match
         {
-			///match tag.
-			std::string_view tag;
+            ///match tag.
+            std::string_view tag;
 
-			///begin of match input.
+            ///begin of match input.
             typename Input::const_iterator begin;
 
             ///end of match input.
@@ -63,9 +63,9 @@ namespace parserlib
                 }
                 return stream;
             }
-		};
+        };
 
-		///state
+        ///state
         struct state
         {
             ///current start position over the input.
@@ -93,7 +93,7 @@ namespace parserlib
         ///matches.
         std::vector<match> matches;
 
-		/**
+        /**
             Constructor.
             @param container container to create a parse context out of.
             @return the parse context for parsing the input contained in the given container.
@@ -140,19 +140,19 @@ namespace parserlib
             Returns the remaining input.
             @return the remaining input.
          */
-		Input remaining_input() const
-		{
-			return Input(position, end);
-		}
+        Input remaining_input() const
+        {
+            return Input(position, end);
+        }
 
         /**
             Helper function for adding a match.
-			@param tag match tag.
-			@param begin start of matched input.
+            @param tag match tag.
+            @param begin start of matched input.
             @param end end of matched input.
          */
         void add_match(
-			const std::string_view& tag,
+            const std::string_view& tag,
             const typename Input::const_iterator begin, 
             const typename Input::const_iterator end)
         {

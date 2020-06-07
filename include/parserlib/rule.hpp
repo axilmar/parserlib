@@ -118,10 +118,10 @@ namespace parserlib
         //the expression is wrapped by a polymorphic type.
         std::unique_ptr<expression_interface<ParseContext>> m_expression;
 
-		//helper function
+        //helper function
         parse_result parse_(ParseContext& pc) const
         {
-			return m_expression->parse(pc);
+            return m_expression->parse(pc);
         }
     };
 
