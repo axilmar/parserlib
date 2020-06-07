@@ -10,6 +10,7 @@
 #include "parserlib/sequence.hpp"
 #include "parserlib/choice.hpp"
 #include "parserlib/rule.hpp"
+#include "parserlib/event.hpp"
 #include "parserlib/match.hpp"
 #include "parserlib/ast.hpp"
 

@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\include\parserlib.hpp" />
     <ClInclude Include="..\..\include\parserlib\ast.hpp" />
     <ClInclude Include="..\..\include\parserlib\choice.hpp" />
+    <ClInclude Include="..\..\include\parserlib\event.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_interface.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression_type.hpp" />

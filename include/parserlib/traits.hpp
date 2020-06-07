@@ -46,6 +46,25 @@ namespace parserlib
     inline constexpr bool is_container_v = is_container<T>::value;
 
 
+	/**
+		Check for if T is callable, i.e. if it is a function or a functor (that includes lambdas).
+		@param T type to check.
+	 */
+	template <typename T>
+	struct is_callable
+	{
+		//TODO
+	};
+
+
+	/**
+		helper variable.
+		@param T type to check.
+	 */
+	template <typename T>
+	inline constexpr bool is_callable_v = is_callable<T>::value;
+
+
 } //namespace parserlib
 
 

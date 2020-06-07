@@ -129,7 +129,7 @@ namespace parserlib
         std::vector<match> matches;
 
 		///errors.
-		std::vector<match> errors;
+		std::vector<error> errors;
 
 		/**
             Constructor.
