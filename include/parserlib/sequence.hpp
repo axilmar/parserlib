@@ -45,17 +45,14 @@ namespace parserlib
 
             switch (result)
             {
-                //left expression success; try the right expression
-                
-			case parse_result::accepted:
-				case parse_result::continued:
+                //left expression success; try the right expression  
+				case parse_result::accepted:
 					result = m_right_expression.parse(pc);
 
                     switch (result)
                     {
                         //right expression success
                         case parse_result::accepted:
-						case parse_result::continued:
 							break;
 
                         //right expression failure; rewind the state

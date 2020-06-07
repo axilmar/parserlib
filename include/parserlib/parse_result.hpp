@@ -13,10 +13,7 @@ namespace parserlib
 		rejected,
 
 		///parse accepted.
-		accepted,
-
-		///parse continued (in case of error).
-		continued
+		accepted
     };
 
 

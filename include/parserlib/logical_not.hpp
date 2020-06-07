@@ -42,7 +42,6 @@ namespace parserlib
             switch (result)
             {
                 case parse_result::accepted:
-				case parse_result::continued:
 					result = parse_result::rejected;
                     break;
 

@@ -63,7 +63,7 @@ namespace parserlib
         @return the match expression.
      */
     template <typename T, typename = std::enable_if_t<has_expression_type_v<T>>>
-    match<expression_type_t<T>> operator >= (T&& expression, const std::string_view& tag)
+    match<expression_type_t<T>> operator == (T&& expression, const std::string_view& tag)
     {
         return { expression_type_t<T>(std::forward<T>(expression)), tag };
     }

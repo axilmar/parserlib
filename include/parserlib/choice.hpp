@@ -47,7 +47,6 @@ namespace parserlib
             {
                 //left expression success
                 case parse_result::accepted:
-				case parse_result::continued:
 					break;
 
                 //left expression failure; try the right expression
@@ -60,7 +59,6 @@ namespace parserlib
                     {
                         //right expression success
                         case parse_result::accepted:
-						case parse_result::continued:
 							if (pc.m_left_recursion_state == ParseContext::left_recursion_state::reject)
                             {
                                 while (pc.valid())
