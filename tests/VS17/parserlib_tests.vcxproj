@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\examples\calculator\calculator_ast.cpp" />
     <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
     <ClCompile Include="..\calculator_tests.cpp" />
     <ClCompile Include="..\parserlib_tests_main.cpp" />

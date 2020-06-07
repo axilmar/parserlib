@@ -13,12 +13,12 @@ static void do_test(const std::string& input, const double expected_result, int 
 	++test_count;
 
 	auto pc = parse_context(input);
-	const auto res = parse(calculator_expr, pc);
+	const auto res = parse(calculator::expr, pc);
 	const auto remaining_input = pc.remaining_input();
 
 	if (res)
 	{
-		std::shared_ptr<ast_expr> root = std::dynamic_pointer_cast<ast_expr>(calculator_match_table.create_ast(pc.matches));
+		std::shared_ptr<calculator::ast_expr> root = calculator::create_ast(pc);
 		const double result = root->eval();
 		if (result == expected_result)
 		{

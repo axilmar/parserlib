@@ -4,30 +4,47 @@
 using namespace parserlib;
 
 
-//number
-static auto sign = one_of("-+");
-static auto digits = +range('0', '9');
-static auto basic_part = digits >> -('.' >> -digits) | '.' >> digits;
-static auto exp_part = one_of("eE") >> -sign >> digits;
-static auto num = -sign >> basic_part >> -exp_part             == "num";
+namespace calculator
+{ 
 
 
-//value
-static rule<> val = '(' >> calculator_expr >> ')'
-                  | num;
+	static auto sign = one_of("-+");
+	static auto digits = +range('0', '9');
+	static auto num_basic_part = digits >> -('.' >> -digits) | '.' >> digits;
+	static auto num_exp_part = one_of("eE") >> -sign >> digits;
 
 
-//multiplication/division
-static rule<> mul = mul >> '*' >> val                          == "mul"
-                  | mul >> '/' >> val                          == "div"
-                  | val;
+	//number
+	rule<> num = -sign >> num_basic_part >> -num_exp_part;
 
 
-//addition/subtraction
-static rule<> add = add >> '+' >> mul                          == "add"
-                  | add >> '-' >> mul                          == "sub"
-                  | mul;
+	//value
+	static auto val = '(' >> expr >> ')'
+					| num;
 
 
-//expression
-rule<> calculator_expr = add;
+	//division
+	rule<> div = div >> '/' >> val
+		       | val;
+
+
+	//multiplication
+	rule<> mul = mul >> '*' >> div
+			   | div;
+
+
+	//subtraction
+	rule<> sub = sub >> '-' >> mul
+		       | mul;
+
+
+	//addition
+	rule<> add = add >> '+' >> sub
+			   | sub;
+
+
+	//expression
+	rule<> expr = add;
+
+
+} //namespace calculator

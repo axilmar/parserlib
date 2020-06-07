@@ -21,9 +21,6 @@ namespace parserlib
     class rule : public expression
     {
     public:
-        ///match tag.
-        std::string_view tag;
-
         /**
             Constructor from expression.
             @param expression expression.
@@ -128,9 +125,9 @@ namespace parserlib
             
 			const parse_result result = m_expression->parse(pc);
             
-			if (result == parse_result::accepted && !tag.empty())
+			if (result == parse_result::accepted)
             {
-                pc.add_match(start_position, pc.position, tag);
+                pc.add_match(this, start_position, pc.position);
             }
             
 			return result;

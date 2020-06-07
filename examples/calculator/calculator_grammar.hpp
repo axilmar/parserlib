@@ -5,7 +5,20 @@
 #include "parserlib.hpp"
 
 
-extern parserlib::rule<> calculator_expr;
+namespace calculator
+{
+
+
+	//rules for the calculator
+	extern parserlib::rule<> expr;
+	extern parserlib::rule<> add;
+	extern parserlib::rule<> sub;
+	extern parserlib::rule<> mul;
+	extern parserlib::rule<> div;
+	extern parserlib::rule<> num;
+
+
+} //namespace calculator
 
 
 #endif //PARSERLIB__EXAMPLES__CALCULATOR__CALCULATOR_GRAMMAR__HPP
