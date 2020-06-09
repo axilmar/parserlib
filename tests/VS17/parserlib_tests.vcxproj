@@ -21,9 +21,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
     <ClCompile Include="..\..\examples\xml\xml_grammar.cpp" />
-    <ClCompile Include="..\..\examples\xml\xml_tests.cpp" />
     <ClCompile Include="..\calculator_tests.cpp" />
     <ClCompile Include="..\parserlib_tests_main.cpp" />
+    <ClCompile Include="..\xml_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\examples\calculator\calculator_ast.hpp" />
