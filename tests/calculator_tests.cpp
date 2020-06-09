@@ -81,6 +81,8 @@ void run_calculator_tests()
 	DO_TEST(1.0/(2.0*3.0));
 	DO_TEST(1.0/((2.0-3.0)*4.0));
 
+    DO_TEST(1.0+2.0*3.0+4.0);
+
 	std::cout << "Calculator tests finished.\n";
 	std::cout << "Tests run: " << test_count << '\n';
 	std::cout << "Tests succeeded: " << success_count << '\n';
