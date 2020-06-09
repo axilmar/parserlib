@@ -2,7 +2,96 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\parserlib_tests_main.cpp" />
-    <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
-    <ClCompile Include="..\calculator_tests.cpp" />
+    <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp">
+      <Filter>calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\calculator_tests.cpp">
+      <Filter>calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\xml\xml_grammar.cpp">
+      <Filter>xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\xml\xml_tests.cpp">
+      <Filter>xml</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="calculator">
+      <UniqueIdentifier>{b45b5f85-0b3c-4983-aa75-02120bc7f6ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="xml">
+      <UniqueIdentifier>{0ddeeb3c-942f-4a60-86c7-8640c80001d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{a22fb7ee-0df2-4cd7-b498-8e5f66e2050a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\parserlib">
+      <UniqueIdentifier>{2101c21b-1f84-4e2d-bbcc-0b95afba8d68}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\examples\calculator\calculator_ast.hpp">
+      <Filter>calculator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\xml\xml_grammar.hpp">
+      <Filter>xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\choice.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_interface.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_type.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\logical_and.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\logical_not.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\loop.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\match.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\optional.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\parse_context.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\parse_result.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\rule.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\rule_reference.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\sequence.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\terminal.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\traits.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\xml\xml_ast.hpp">
+      <Filter>xml</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

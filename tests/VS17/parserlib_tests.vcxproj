@@ -20,8 +20,33 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
+    <ClCompile Include="..\..\examples\xml\xml_grammar.cpp" />
+    <ClCompile Include="..\..\examples\xml\xml_tests.cpp" />
     <ClCompile Include="..\calculator_tests.cpp" />
     <ClCompile Include="..\parserlib_tests_main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\examples\calculator\calculator_ast.hpp" />
+    <ClInclude Include="..\..\examples\xml\xml_ast.hpp" />
+    <ClInclude Include="..\..\examples\xml\xml_grammar.hpp" />
+    <ClInclude Include="..\..\include\parserlib.hpp" />
+    <ClInclude Include="..\..\include\parserlib\choice.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_interface.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_type.hpp" />
+    <ClInclude Include="..\..\include\parserlib\expression_wrapper.hpp" />
+    <ClInclude Include="..\..\include\parserlib\logical_and.hpp" />
+    <ClInclude Include="..\..\include\parserlib\logical_not.hpp" />
+    <ClInclude Include="..\..\include\parserlib\loop.hpp" />
+    <ClInclude Include="..\..\include\parserlib\match.hpp" />
+    <ClInclude Include="..\..\include\parserlib\optional.hpp" />
+    <ClInclude Include="..\..\include\parserlib\parse_context.hpp" />
+    <ClInclude Include="..\..\include\parserlib\parse_result.hpp" />
+    <ClInclude Include="..\..\include\parserlib\rule.hpp" />
+    <ClInclude Include="..\..\include\parserlib\rule_reference.hpp" />
+    <ClInclude Include="..\..\include\parserlib\sequence.hpp" />
+    <ClInclude Include="..\..\include\parserlib\terminal.hpp" />
+    <ClInclude Include="..\..\include\parserlib\traits.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

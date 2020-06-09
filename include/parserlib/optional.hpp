@@ -22,9 +22,8 @@ namespace parserlib
             Constructor.
             @param expression expression.
          */
-        template <typename T>
         optional(T&& expression)
-            : m_expression(std::forward<T>(expression))
+            : m_expression(std::move(expression))
         {
         }
 

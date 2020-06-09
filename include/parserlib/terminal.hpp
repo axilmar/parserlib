@@ -234,6 +234,50 @@ namespace parserlib
 
 
     /**
+        Specialization for null-terminated string.
+     */
+    template <typename T>
+    class terminal<T *> : public terminal<std::string_view>
+    {
+    public:
+        using terminal<std::string_view>::terminal;
+    };
+
+
+    /**
+        Specialization for null-terminated const string.
+     */
+    template <typename T>
+    class terminal<const T *> : public terminal<std::string_view>
+    {
+    public:
+        using terminal<std::string_view>::terminal;
+    };
+
+
+    /**
+        Specialization for static array.
+     */
+    template <typename T, size_t N>
+    class terminal<T[N]> : public terminal<std::string_view>
+    {
+    public:
+        using terminal<std::string_view>::terminal;
+    };
+
+
+    /**
+        Specialization for static array of const elements.
+     */
+    template <typename T, size_t N>
+    class terminal<const T[N]> : public terminal<std::string_view>
+    {
+    public:
+        using terminal<std::string_view>::terminal;
+    };
+
+
+    /**
         Specialization of expression type for character terminal.
      */
     template <> class expression_type<char>
@@ -285,6 +329,28 @@ namespace parserlib
     public:
         ///terminal parser for null-terminated string.
         typedef terminal<T *> type;
+    };
+
+
+    /**
+        Specialization of expression type for character array.
+     */
+    template <typename T, size_t N> class expression_type<T[N]>
+    {
+    public:
+        ///terminal parser for character array.
+        typedef terminal<std::string_view> type;
+    };
+
+
+    /**
+        Specialization of expression type for const character array.
+     */
+    template <typename T, size_t N> class expression_type<const T[N]>
+    {
+    public:
+        ///terminal parser for const character array.
+        typedef terminal<std::string_view> type;
     };
 
 

@@ -68,9 +68,6 @@ namespace parserlib
         ///state
         struct state
         {
-            ///current start position over the input.
-            typename Input::const_iterator start_position;
-
             ///current position over the input.
             typename Input::const_iterator position;
 
@@ -87,9 +84,6 @@ namespace parserlib
         ///current position over the input.
         typename Input::const_iterator position;
 
-        ///current start position over the input.
-        typename Input::const_iterator start_position;
-
         ///matches.
         std::vector<match> matches;
 
@@ -102,7 +96,6 @@ namespace parserlib
             : begin(container.begin())
             , end(container.end())
             , position(container.begin())
-            , start_position(container.begin())
             , m_left_recursion_position(container.begin())
         {
         }
@@ -122,7 +115,7 @@ namespace parserlib
          */
         struct state state() const
         {
-            return { start_position, position, matches.size() };
+            return { position, matches.size() };
         }
 
         /**
@@ -131,7 +124,6 @@ namespace parserlib
          */
         void set_state(const struct state& s)
         {
-            start_position = s.start_position;
             position = s.position;
             matches.resize(s.matches_size);
         }

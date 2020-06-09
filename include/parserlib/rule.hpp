@@ -57,17 +57,14 @@ namespace parserlib
             {
                 if (pc.position > pc.m_left_recursion_position)
                 {
-                    const auto prev_start_position = pc.start_position;
                     const auto prev_left_recursion_state = pc.m_left_recursion_state;
                     const auto prev_left_recursion_position = pc.m_left_recursion_position;
 
-                    pc.start_position = pc.position;
                     pc.m_left_recursion_state = ParseContext::left_recursion_state::inactive;
                     pc.m_left_recursion_position = pc.position;
 
                     result = parse_(pc);
 
-                    pc.start_position = prev_start_position;
                     pc.m_left_recursion_state = prev_left_recursion_state;
                     pc.m_left_recursion_position = prev_left_recursion_position;
                 }

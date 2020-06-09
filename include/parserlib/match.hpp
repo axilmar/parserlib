@@ -23,9 +23,8 @@ namespace parserlib
             @param expression expression.
             @param tag tag.
         */
-        template <typename T>
         match(T&& expression, const std::string_view& tag)
-            : m_expression(std::forward<T>(expression))
+            : m_expression(std::move(expression))
             , m_tag(tag)
         {
         }
@@ -39,12 +38,17 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
-            const auto start_position = pc.start_position;
+            const auto start_position = pc.position;
+
+            if (m_tag == "content")
+            {
+                int x = 0;
+            }
 
             parse_result result = m_expression.parse(pc);
 
             if (result == parse_result::accepted)
-            { 
+            {
                 pc.add_match(m_tag, start_position, pc.position);
             }
 
