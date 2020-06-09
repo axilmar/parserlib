@@ -9,7 +9,7 @@ using namespace xml;
 
 void run_xml_tests()
 {
-	std::cout << "Running xml test...";
+    std::cout << "Running xml test...";
 
     element_ptr xml1 = element(
         name("root"), 
