@@ -56,6 +56,25 @@ namespace parserlib
 
 
     /**
+        Parse terminal using a function.
+        @param fn function to use; non-zero return value means true.
+        @param position current position; on success, the position must have been incremented.
+        @param end end position.
+        @return true on success, false on failure.
+     */
+    template <typename R, typename T, typename It, typename = std::enable_if_t<!is_container_v<T>>>
+    bool parse_terminal(R (*function)(T), It& position, const It end)
+    {
+        if (position != end && function(*position))
+        {
+            ++position;
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
         The default implementation of parse terminal for pointer types.
         It assumes the data are null-terminated.
         @param data data to parse.
@@ -184,6 +203,35 @@ namespace parserlib
     }
 
 
+    //type of terminal value.
+    template <typename T>
+    struct terminal_value
+    {
+        typedef T type;
+    };
+
+
+    //terminal value for array.
+    template <typename T, size_t N>
+    struct terminal_value<T[N]>
+    {
+        typedef std::basic_string_view<const T> type;
+    };
+
+
+    //terminal value for const array.
+    template <typename T, size_t N>
+    struct terminal_value<const T[N]>
+    {
+        typedef std::basic_string_view<const T> type;
+    };
+
+
+    //helper for terminal value trait
+    template <typename T>
+    using terminal_value_t = typename terminal_value<T>::type;
+
+
     /**
         A parser that parses a terminal.
         @param T type of terminal to parse.
@@ -222,6 +270,10 @@ namespace parserlib
         {
             if (parse_terminal(m_value, pc.position, pc.end))
             {
+                if (pc.position > pc.furthest_position)
+                {
+                    pc.furthest_position = pc.position;
+                }
                 return parse_result::accepted;
             }
             return parse_result::rejected;
@@ -229,58 +281,14 @@ namespace parserlib
 
     private:
         //Element to parse.
-        T m_value;
-    };
-
-
-    /**
-        Specialization for null-terminated string.
-     */
-    template <typename T>
-    class terminal<T *> : public terminal<std::string_view>
-    {
-    public:
-        using terminal<std::string_view>::terminal;
-    };
-
-
-    /**
-        Specialization for null-terminated const string.
-     */
-    template <typename T>
-    class terminal<const T *> : public terminal<std::string_view>
-    {
-    public:
-        using terminal<std::string_view>::terminal;
-    };
-
-
-    /**
-        Specialization for static array.
-     */
-    template <typename T, size_t N>
-    class terminal<T[N]> : public terminal<std::string_view>
-    {
-    public:
-        using terminal<std::string_view>::terminal;
-    };
-
-
-    /**
-        Specialization for static array of const elements.
-     */
-    template <typename T, size_t N>
-    class terminal<const T[N]> : public terminal<std::string_view>
-    {
-    public:
-        using terminal<std::string_view>::terminal;
+        terminal_value_t<T> m_value;
     };
 
 
     /**
         Specialization of expression type for character terminal.
      */
-    template <> class expression_type<char>
+    template <> struct expression_type<char>
     {
     public:
         ///terminal parser for character.
@@ -289,9 +297,20 @@ namespace parserlib
 
 
     /**
+        Specialization of expression type for wide character terminal.
+     */
+    template <> struct expression_type<wchar_t>
+    {
+    public:
+        ///terminal parser for character.
+        typedef terminal<wchar_t> type;
+    };
+
+
+    /**
         Specialization of expression type for char16_t terminal.
      */
-    template <> class expression_type<char16_t>
+    template <> struct expression_type<char16_t>
     {
     public:
         ///terminal parser for character.
@@ -302,7 +321,7 @@ namespace parserlib
     /**
         Specialization of expression type for char32_t terminal.
     */
-    template <> class expression_type<char32_t>
+    template <> struct expression_type<char32_t>
     {
     public:
         ///terminal parser for character.
@@ -312,8 +331,8 @@ namespace parserlib
 
     /**
         Specialization of expression type for null-terminated string terminal.
-    */
-    template <typename T> class expression_type<const T *>
+     */
+    template <typename T> struct expression_type<T *>
     {
     public:
         ///terminal parser for null-terminated string.
@@ -323,41 +342,41 @@ namespace parserlib
 
     /**
         Specialization of expression type for null-terminated string terminal.
-     */
-    template <typename T> class expression_type<T *>
+    */
+    template <typename T> struct expression_type<const T *>
     {
     public:
         ///terminal parser for null-terminated string.
-        typedef terminal<T *> type;
+        typedef terminal<const T *> type;
     };
 
 
     /**
         Specialization of expression type for character array.
      */
-    template <typename T, size_t N> class expression_type<T[N]>
+    template <typename T, size_t N> struct expression_type<T[N]>
     {
     public:
         ///terminal parser for character array.
-        typedef terminal<std::string_view> type;
+        typedef terminal<std::basic_string_view<T>> type;
     };
 
 
     /**
         Specialization of expression type for const character array.
      */
-    template <typename T, size_t N> class expression_type<const T[N]>
+    template <typename T, size_t N> struct expression_type<const T[N]>
     {
     public:
         ///terminal parser for const character array.
-        typedef terminal<std::string_view> type;
+        typedef terminal<std::basic_string_view<T>> type;
     };
 
 
     /**
         Specialization of expression type for basic string terminal.
     */
-    template <typename T, typename Traits> class expression_type<std::basic_string<T, Traits>>
+    template <typename T, typename Traits> struct expression_type<std::basic_string<T, Traits>>
     {
     public:
         ///terminal parser for string.
@@ -368,7 +387,7 @@ namespace parserlib
     /**
         Specialization of expression type for range terminal.
      */
-    template <typename T> class expression_type<range<T>>
+    template <typename T> struct expression_type<range<T>>
     {
     public:
         ///terminal parser for range.
@@ -379,7 +398,7 @@ namespace parserlib
     /**
         Specialization of expression type for set terminal.
     */
-    template <typename T, typename Pr, typename Alloc> class expression_type<std::set<T, Pr, Alloc>>
+    template <typename T, typename Pr, typename Alloc> struct expression_type<std::set<T, Pr, Alloc>>
     {
     public:
         ///terminal parser for set.

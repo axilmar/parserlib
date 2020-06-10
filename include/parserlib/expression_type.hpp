@@ -14,10 +14,8 @@ namespace parserlib
         @param T type that needs an expression type.
      */
     template <typename T> 
-    class expression_type
+    struct expression_type
     {
-    public:
-        ///the default expression type for a parser is itself.
         typedef T type;
     };
 
@@ -27,7 +25,7 @@ namespace parserlib
         @param T type of parsing class that needs customization.
      */
     template <typename T> 
-    class expression_type<const T>
+    struct expression_type<const T>
     {
     public:
         ///removes const from the type.
@@ -40,7 +38,7 @@ namespace parserlib
         @param T type of parsing class that needs customization.
      */
     template <typename T> 
-    class expression_type<const T &>
+    struct expression_type<const T &>
     {
     public:
         ///removes const from the type.
@@ -53,7 +51,7 @@ namespace parserlib
         @param T type of parsing class that needs customization.
      */
     template <typename T> 
-    class expression_type<T&>
+    struct expression_type<T&>
     {
     public:
         ///removes the reference from the type.
@@ -66,7 +64,7 @@ namespace parserlib
         @param T type of parsing class that needs customization.
      */
     template <typename T> 
-    class expression_type<T&&>
+    struct expression_type<T&&>
     {
     public:
         ///removes the rvalue from the type.
@@ -88,6 +86,20 @@ namespace parserlib
      */
     template <typename T>
     inline constexpr bool has_expression_type_v = is_expression_v<expression_type_t<T>>;
+
+
+    /**
+        No expression type for pointers.
+     */
+    template <typename T>
+    inline constexpr bool has_expression_type_v<T*> = false;
+
+
+    /**
+        No expression type for functions.
+     */
+    template <typename R, typename ...T>
+    inline constexpr bool has_expression_type_v<R(&)(T...)> = false;
 
 
     /**

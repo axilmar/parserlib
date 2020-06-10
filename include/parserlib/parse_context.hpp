@@ -22,25 +22,35 @@ namespace parserlib
     /**
         Struct with data required for parsing.
         @param Input input type.
+        @param Tag tag type.
      */
-    template <typename Input = std::string> 
+    template <typename Input = std::string, typename Tag = std::string_view> 
     class parse_context
     {
     public:
         ///input type.
         typedef Input input_type;
 
+        ///tag type.
+        typedef Tag tag_type;
+
         ///match.
         struct match
         {
             ///match tag.
-            std::string_view tag;
+            Tag tag;
 
             ///begin of match input.
             typename Input::const_iterator begin;
 
             ///end of match input.
             typename Input::const_iterator end;
+
+            ///automatic conversion to string.
+            std::basic_string<typename Input::value_type> input() const
+            {
+                return { begin, end };
+            }
 
             ///automatic conversion to string.
             operator std::basic_string<typename Input::value_type> () const
@@ -84,6 +94,9 @@ namespace parserlib
         ///current position over the input.
         typename Input::const_iterator position;
 
+        ///furthest position reached.
+        typename Input::const_iterator furthest_position;
+
         ///matches.
         std::vector<match> matches;
 
@@ -96,6 +109,7 @@ namespace parserlib
             : begin(container.begin())
             , end(container.end())
             , position(container.begin())
+            , furthest_position(container.begin())
             , m_left_recursion_position(container.begin())
         {
         }
@@ -144,7 +158,7 @@ namespace parserlib
             @param end end of matched input.
          */
         void add_match(
-            const std::string_view& tag,
+            const Tag& tag,
             const typename Input::const_iterator begin, 
             const typename Input::const_iterator end)
         {

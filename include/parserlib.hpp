@@ -11,6 +11,7 @@
 #include "parserlib/choice.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/match.hpp"
+#include "parserlib/error.hpp"
 
 
 #endif //PARSERLIB_HPP

@@ -129,7 +129,7 @@ namespace parserlib
         @param ParseContext type of parse context to use.
      */
     template <typename ParseContext>
-    class expression_type<rule<ParseContext>>
+    struct expression_type<rule<ParseContext>>
     {
     public:
         /**
@@ -156,12 +156,12 @@ namespace parserlib
 
     /**
         Generic parse function.
-        @param grammar root rule of grammar to use.
+        @param grammar grammar to use.
         @param pc parse context.
         #return true if parsing succeeded (i.e. if the whole input was accepted), otherwise false.
      */
-    template <typename ParseContext> 
-    bool parse(rule<ParseContext>& grammar, ParseContext& pc)
+    template <typename G, typename ParseContext> 
+    bool parse(const G& grammar, ParseContext& pc)
     {
         const parse_result result = grammar.parse(pc);
         return result == parse_result::accepted && pc.remaining_input().empty();

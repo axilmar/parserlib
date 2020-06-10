@@ -2,8 +2,8 @@
 #define PARSERLIB__MATCH__HPP
 
 
-#include <string_view>
-#include "expression_type.hpp"
+#include "error.hpp"
+#include "terminal.hpp"
 
 
 namespace parserlib
@@ -13,8 +13,9 @@ namespace parserlib
     /**
         A parser that adds a match if an expression parses successfully.
         @param T type of expression to add a match for.
+        @param Tag tag type.
     */
-    template <typename T> 
+    template <typename T, typename Tag> 
     class match : public expression
     {
     public:
@@ -23,9 +24,9 @@ namespace parserlib
             @param expression expression.
             @param tag tag.
         */
-        match(T&& expression, const std::string_view& tag)
+        match(T&& expression, Tag&& tag)
             : m_expression(std::move(expression))
-            , m_tag(tag)
+            , m_tag(std::move(tag))
         {
         }
 
@@ -40,24 +41,30 @@ namespace parserlib
         {
             const auto start_position = pc.position;
 
-            if (m_tag == "content")
+            try
             {
-                int x = 0;
+                parse_result result = m_expression.parse(pc);
+
+                if (result == parse_result::accepted)
+                {
+                    pc.add_match(m_tag, start_position, pc.position);
+                }
+
+                return result;
             }
-
-            parse_result result = m_expression.parse(pc);
-
-            if (result == parse_result::accepted)
+            catch (parse_error<ParseContext>& pe)
             {
-                pc.add_match(m_tag, start_position, pc.position);
+                if (pe.m_tag.empty())
+                {
+                    pe.m_tag = m_tag;
+                }
+                throw;
             }
-
-            return result;
         }
 
     private:
         T m_expression;
-        std::string_view m_tag;
+        Tag m_tag;
     };
 
 
@@ -67,10 +74,14 @@ namespace parserlib
         @param tag match tag.
         @return an match expression.
     */
-    template <typename T, typename = std::enable_if_t<has_expression_type_v<T>>> 
-    match<expression_type_t<T>> operator == (T&& expression, const std::string_view& tag)
+    template <typename T, typename Tag, typename = std::enable_if_t<has_expression_type_v<T>>> 
+    match<expression_type_t<T>, terminal_value_t<Tag>> operator == (T&& expression, Tag&& tag)
     {
-        return { expression_type_t<T>(std::forward<T>(expression)), tag };
+        return
+        {
+            expression_type_t<T>(std::forward<T>(expression)), 
+            terminal_value_t<Tag>(std::forward<Tag>(tag))
+        };
     }
 
 
