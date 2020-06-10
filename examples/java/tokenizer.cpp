@@ -20,7 +20,7 @@ namespace java
 
 
     static const auto identifier
-        = letter >> (letter | digit);
+        = letter >> *(letter | digit);
 
 
     static const auto grammar_token
