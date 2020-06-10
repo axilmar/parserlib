@@ -11,6 +11,14 @@ namespace java
     typedef parserlib::parse_context<std::u16string, token_type> java_parse_context;
 
 
+    static const auto whitespace
+        = oneof(" \t\f\n");
+
+
+    static const auto traditional_comment =
+        "/*" >> *(!terminal("*/") >> range((char16_t)0, (char16_t)65535)) >> "*/";
+
+
     static const auto letter =
         terminal(&std::iswalpha) | '_' | '$';
 
@@ -24,7 +32,10 @@ namespace java
 
 
     static const auto grammar_token
-        = terminal(u"abstract")     == token_type::KEYWORD_ABSTRACT
+        = whitespace
+        | traditional_comment
+        | line_comment
+        | terminal(u"abstract")     == token_type::KEYWORD_ABSTRACT
         | terminal(u"assert")       == token_type::KEYWORD_ASSERT
         | terminal(u"boolean")      == token_type::KEYWORD_BOOLEAN
         | terminal(u"break")        == token_type::KEYWORD_BREAK
@@ -74,8 +85,8 @@ namespace java
         | terminal(u"void")         == token_type::KEYWORD_VOID
         | terminal(u"volatile")     == token_type::KEYWORD_VOLATILE
         | terminal(u"while")        == token_type::KEYWORD_WHILE
-
-        | identifier == token_type::IDENTIFIER;
+        | identifier                == token_type::IDENTIFIER
+        | ;
 
 
     static const auto grammar
