@@ -1,14 +1,16 @@
-#include "examples/java/character_parser.hpp"
-#include "examples/java/tokenizer.hpp"
-
-
-using namespace java;
+#include <iostream>
+//using namespace java;
 
 
 void run_java_tests()
 {
-    std::u16string input = u"\\\\2126 \\u2126 \\u212 \\uu2126";
-    std::vector<Error> errors;
-    java_string s = parse_characters(input, errors);
-    std::vector<token> t = tokenize(s, errors);
+    std::cout << "running Java tests...\n";
+
+    size_t test_count = 0;
+    size_t success_count = 0;
+
+    std::cout << "Java tests finished.\n";
+    std::cout << "Tests run: " << test_count << '\n';
+    std::cout << "Tests succeeded: " << success_count << '\n';
+    std::cout << "Tests failed: " << (test_count - success_count) << '\n';
 }

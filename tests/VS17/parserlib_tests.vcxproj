@@ -20,8 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
-    <ClCompile Include="..\..\examples\java\character_parser.cpp" />
-    <ClCompile Include="..\..\examples\java\tokenizer.cpp" />
     <ClCompile Include="..\..\examples\xml\xml_grammar.cpp" />
     <ClCompile Include="..\calculator_tests.cpp" />
     <ClCompile Include="..\java_tests.cpp" />
@@ -30,9 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\examples\calculator\calculator_ast.hpp" />
-    <ClInclude Include="..\..\examples\java\character_parser.hpp" />
-    <ClInclude Include="..\..\examples\java\Error.hpp" />
-    <ClInclude Include="..\..\examples\java\tokenizer.hpp" />
     <ClInclude Include="..\..\examples\xml\xml_ast.hpp" />
     <ClInclude Include="..\..\examples\xml\xml_grammar.hpp" />
     <ClInclude Include="..\..\include\parserlib.hpp" />
