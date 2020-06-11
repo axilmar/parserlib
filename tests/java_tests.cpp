@@ -9,7 +9,7 @@ static void test()
 {
     std::vector<error> errors;
 
-    const java_string input = u"123\n456\r789\r\n\\\\u2126=\\u2126\n101112";
+    const java_string input = u"0 123 123_456";
     std::vector<token> tokens = tokenize(input, errors);
     int x = 0;
 }

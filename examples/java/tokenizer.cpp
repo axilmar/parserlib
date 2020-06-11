@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cwctype>
+#include <clocale>
 #include "parserlib.hpp"
 #include "preprocessor.hpp"
 #include "tokenizer.hpp"
@@ -181,46 +183,73 @@ namespace java
     }
 
 
-    //whitespace
-    static const auto whitespace = *one_of(" \t\f");
+    static const auto whitespace = +one_of(u" \t\f");
 
 
-    //any character
     static const auto any_char = range(java_char(0), std::numeric_limits<java_char>::max());
 
 
-    //traditional comment
     static const auto traditional_comment
         = u"/*" >> *(!terminal(u"*/") >> any_char) >> u"*/";
 
 
-    //end of line comment
     static const auto end_of_line_comment
         = u"//" >> (!eof >> *any_char) >> eof;
 
 
-    //comment
     static const auto comment
         = traditional_comment
         | end_of_line_comment;
 
 
-    //identifier
-    static const auto identifier = terminal("_");
+    static const auto integer_type_suffix = one_of(u"lL");
 
 
-    //literal
-    static const auto literal = terminal("0");
+    static const auto non_zero_digit = one_of(u"123456789");
 
 
-    //token; static input elements come before the dynamic ones
+    static const auto underscores = +terminal(u'_');
+
+
+    static const auto digit = one_of(u"0123456789");
+
+
+    static const auto digits = digit >> *(*terminal(u'_') >> digit);
+
+
+    static const auto decimal_numeral
+        = non_zero_digit >> underscores >> digits
+        | non_zero_digit >> -digits
+        | u'0';
+
+
+    static const auto decimal_integer_literal
+        = decimal_numeral >> -integer_type_suffix;
+
+
+    static const auto integer_literal
+        = decimal_integer_literal;
+
+
+    static const auto literal
+        = integer_literal == token_type::LITERAL_INTEGER;
+
+
+    static const auto letter
+        = terminal(&std::iswalpha)
+        | u'_'
+        | u'$';
+
+
+    static const auto identifier = letter >> (letter | digit);
+
+
     static const auto token_
         = create_input_elements_grammar(static_input_elements)
-        | identifier
-        | literal;
+        | literal
+        | identifier == token_type::IDENTIFIER;
 
 
-    //input element
     static const auto input_element
         = whitespace
         | comment
@@ -231,10 +260,43 @@ namespace java
     static const auto grammar = *input_element;
 
 
+    //tokenize line
+    static void tokenize(const java_string& input, const size_t line, std::vector<error>& errors, std::vector<token> &result)
+    {
+        parse_context<java_string, token_type> pc(input);
+
+        while (pc.valid())
+        {
+            const bool parse_ok = parse(grammar, pc);
+            
+            if (!parse_ok)
+            {
+                const size_t col = (size_t)(pc.position - input.begin());
+                if (errors.empty() || col - errors.back().column > 1)
+                {
+                    errors.push_back(error{ line, col, u"invalid token" });
+                }
+                pc.position = pc.furthest_position;
+                continue;
+            }
+
+            for (const auto& match : pc.matches)
+            {
+                const size_t col = (size_t)(match.begin - input.begin());
+                result.push_back(token{ match.tag, line, col, java_string(match.begin, match.end)});
+            }
+        }
+    }
+
+
     //tokenize lines
     static std::vector<token> tokenize(const std::vector<java_string>& input, std::vector<error>& errors)
     {
         std::vector<token> result;
+        for (size_t index = 0; index < input.size(); ++index)
+        {
+            tokenize(input[index], index, errors, result);
+        }
         return std::move(result);
     }
 
@@ -242,6 +304,7 @@ namespace java
     //tokenize input
     std::vector<token> tokenize(const java_string& input, std::vector<error>& errors)
     {
+        std::setlocale(LC_ALL, "en_US.utf16");
         std::vector<java_string> lines = preprocess(input, errors);
         return tokenize(lines, errors);
     }

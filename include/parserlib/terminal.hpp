@@ -63,7 +63,7 @@ namespace parserlib
         @return true on success, false on failure.
      */
     template <typename R, typename T, typename It, typename = std::enable_if_t<!is_container_v<T>>>
-    bool parse_terminal(R (*function)(T), It& position, const It end)
+    bool parse_terminal(R (*const function)(T), It& position, const It end)
     {
         if (position != end && function(*position))
         {
@@ -82,7 +82,7 @@ namespace parserlib
         @param end end position.
         @return true on success, false on failure.
      */
-    template <typename T, typename It>
+    template <typename T, typename It, typename = std::enable_if_t<!std::is_function_v<T>>>
     bool parse_terminal(const T* data, It& position, const It end)
     {
         const T* dataIt = data;

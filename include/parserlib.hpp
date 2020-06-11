@@ -15,6 +15,7 @@
 #include "parserlib/match.hpp"
 #include "parserlib/error.hpp"
 #include "parserlib/eof.hpp"
+#include "parserlib/debug.hpp"
 
 
 #endif //PARSERLIB_HPP

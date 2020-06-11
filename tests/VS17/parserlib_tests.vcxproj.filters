@@ -129,5 +129,8 @@
     <ClInclude Include="..\..\include\parserlib\sequence_list.hpp">
       <Filter>include\parserlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\debug.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

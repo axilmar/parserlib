@@ -39,6 +39,7 @@
     <ClInclude Include="..\..\include\parserlib.hpp" />
     <ClInclude Include="..\..\include\parserlib\choice.hpp" />
     <ClInclude Include="..\..\include\parserlib\choice_list.hpp" />
+    <ClInclude Include="..\..\include\parserlib\debug.hpp" />
     <ClInclude Include="..\..\include\parserlib\eof.hpp" />
     <ClInclude Include="..\..\include\parserlib\error.hpp" />
     <ClInclude Include="..\..\include\parserlib\expression.hpp" />
