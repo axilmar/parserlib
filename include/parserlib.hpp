@@ -9,6 +9,7 @@
 #include "parserlib/logical_not.hpp"
 #include "parserlib/sequence.hpp"
 #include "parserlib/choice.hpp"
+#include "parserlib/choice_list.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/match.hpp"
 #include "parserlib/error.hpp"

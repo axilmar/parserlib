@@ -20,6 +20,9 @@
     <ClCompile Include="..\..\examples\java\preprocessor.cpp">
       <Filter>java</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\java\tokenizer.cpp">
+      <Filter>java</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="calculator">
@@ -108,10 +111,19 @@
     <ClInclude Include="..\..\examples\java\types.hpp">
       <Filter>java</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\eof.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\java\java_version.hpp">
+      <Filter>java</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\examples\java\preprocessor.hpp">
       <Filter>java</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\parserlib\eof.hpp">
+    <ClInclude Include="..\..\examples\java\tokenizer.hpp">
+      <Filter>java</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\choice_list.hpp">
       <Filter>include\parserlib</Filter>
     </ClInclude>
   </ItemGroup>

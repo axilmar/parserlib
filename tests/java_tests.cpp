@@ -1,5 +1,5 @@
 #include <iostream>
-#include "examples/java/preprocessor.hpp"
+#include "examples/java/tokenizer.hpp"
 
 
 using namespace java;
@@ -10,7 +10,7 @@ static void test()
     std::vector<error> errors;
 
     const java_string input = u"123\n456\r789\r\n\\\\u2126=\\u2126\n101112";
-    std::vector<java_string> lines = preprocess(input, errors);
+    std::vector<token> tokens = tokenize(input, errors);
     int x = 0;
 }
 

@@ -15,6 +15,7 @@ namespace parserlib
 
 
     template <typename L, typename R> class choice;
+    template <typename T> class choice_list;
     template <typename ParseContext> class rule;
 
 
@@ -195,6 +196,7 @@ namespace parserlib
         }
 
         template <typename L, typename R> friend class choice;
+        template <typename T> friend class choice_list;
         friend class rule<parse_context>;
     };
 

@@ -10,6 +10,44 @@ namespace java
 {
 
 
+    //match tags
+    enum
+    {
+        DOUBLE_BACKSLASH,
+        UNICODE_ESCAPE,
+        ANY_CHAR
+    };
+
+
+    //according to the java spec, a legit unicode escape must be preceeded by an even number
+    //of backslashes, and therefore this expression is used to consume two backslashes before 
+    //anything else, preventing non-legit unicode escapes to be parsed as legit unicode escapes.
+    static const auto double_backslash = terminal(u"\\\\");
+
+
+    //hex digit
+    static const auto hex_digit = one_of(u"0123456789abcdefABCDEF");
+
+
+    //a unicode escape; not providing 4 hex digits is an error.
+    static const auto unicode_escape = '\\' >> +terminal(u'u') >> ~(hex_digit >> hex_digit >> hex_digit >> hex_digit);
+
+
+    //any character
+    static const auto any_char = range(java_char(0), std::numeric_limits<java_char>::max());
+
+
+    //input character
+    static const auto input_char 
+        = double_backslash == DOUBLE_BACKSLASH
+        | unicode_escape   == UNICODE_ESCAPE
+        | any_char         == ANY_CHAR;
+
+
+    //grammar
+    static const auto grammar = *input_char;
+
+
     //convert input to lines
     static std::vector<java_string> convert_to_lines(const java_string& input)
     {
@@ -98,37 +136,6 @@ namespace java
     //process unicode escapes for all lines
     static std::vector<java_string> process_unicode_escapes(const std::vector<java_string>& input, std::vector<error>& errors)
     {
-        //match tags
-        enum
-        {
-            DOUBLE_BACKSLASH,
-            UNICODE_ESCAPE,
-            ANY_CHAR
-        };
-
-        //according to the java spec, a legit unicode escape must be preceeded by an even number
-        //of backslashes, and therefore this expression is used to consume two backslashes before 
-        //anything else, preventing non-legit unicode escapes to be parsed as legit unicode escapes.
-        const auto double_backslash = terminal(u"\\\\");
-
-        //hex digit
-        const auto hex_digit = one_of(u"0123456789abcdefABCDEF");
-
-        //a unicode escape; not providing 4 hex digits is an error.
-        const auto unicode_escape = '\\' >> +terminal(u'u') >> ~(hex_digit >> hex_digit >> hex_digit >> hex_digit);
-
-        //any character
-        const auto any_char = range(java_char(0), std::numeric_limits<java_char>::max());
-
-        //input character
-        const auto input_char 
-            = double_backslash == DOUBLE_BACKSLASH
-            | unicode_escape   == UNICODE_ESCAPE
-            | any_char         == ANY_CHAR;
-
-        //grammar
-        const auto grammar = *input_char;
-
         //process lines
         std::vector<java_string> result;
         for (size_t line_index = 0; line_index < input.size(); ++line_index)
