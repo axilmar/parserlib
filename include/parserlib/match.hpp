@@ -54,7 +54,7 @@ namespace parserlib
             }
             catch (parse_error<ParseContext>& pe)
             {
-                if (pe.m_tag.empty())
+                if (!pe.m_tag.has_value())
                 {
                     pe.m_tag = m_tag;
                 }

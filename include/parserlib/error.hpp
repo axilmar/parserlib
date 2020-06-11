@@ -2,7 +2,7 @@
 #define PARSERLIB__ERROR__HPP
 
 
-#include <string_view>
+#include <any>
 #include "expression_type.hpp"
 
 
@@ -21,25 +21,54 @@ namespace parserlib
     class parse_error : public std::runtime_error
     {
     public:
+        ///input iterator type.
         typedef typename ParseContext::input_type::const_iterator input_iterator_type;
+
+        ///tag type.
+        typedef std::any tag_type;
 
         /**
             Constructor.
             @param pc parse context.
+            @param error_position_start error position start.
+            @param error_position_end error position end.
          */
-        parse_error(const ParseContext& pc)
+        parse_error(
+            ParseContext& pc, 
+            const input_iterator_type error_position_start, 
+            const input_iterator_type error_position_end)
             : std::runtime_error("parse error")
-            , m_position(pc.position)
+            , m_parse_context(&pc)
+            , m_error_position_start(error_position_start)
+            , m_error_position_end(error_position_end)
         {
         }
 
         /**
-            Returns the input position.
-            @return the input position.
+            Returns the parse context.
+            @return the parse context.
          */
-        input_iterator_type position() const
+        ParseContext& parse_context() const
         {
-            return m_position;
+            return *m_parse_context;
+        }
+
+        /**
+            Returns the error position start.
+            @return the error position start.
+         */
+        input_iterator_type error_position_start() const
+        {
+            return m_error_position_start;
+        }
+
+        /**
+            Returns the error position end.
+            @return the error position end.
+         */
+        input_iterator_type error_position_end() const
+        {
+            return m_error_position_end;
         }
 
         /**
@@ -47,14 +76,16 @@ namespace parserlib
             A tag is set by the match object that encloses the error object.
             @return the tag.
          */
-        const std::string_view& tag() const
+        const tag_type& tag() const
         {
             return m_tag;
         }
 
     private:
-        input_iterator_type m_position;
-        std::string_view m_tag;
+        ParseContext* m_parse_context;
+        input_iterator_type m_error_position_start;
+        input_iterator_type m_error_position_end;
+        tag_type m_tag;
 
         template <typename T, typename Tag> friend class match;
     };
@@ -86,14 +117,13 @@ namespace parserlib
         template <typename ParseContext>
         parse_result parse(ParseContext& pc) const
         {
+            const auto start_position = pc.position;
             parse_result result = m_expression.parse(pc);
-
-            if (result == parse_result::rejected)
+            if (result == parse_result::accepted)
             {
-                throw parse_error(pc);
+                return result;
             }
-
-            return result;
+            throw parse_error(pc, start_position, pc.furthest_position);
         }
 
     private:

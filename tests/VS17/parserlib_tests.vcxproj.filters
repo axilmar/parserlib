@@ -17,6 +17,9 @@
     <ClCompile Include="..\java_tests.cpp">
       <Filter>java</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\java\preprocessor.cpp">
+      <Filter>java</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="calculator">
@@ -100,6 +103,15 @@
       <Filter>xml</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\parserlib\error.hpp">
+      <Filter>include\parserlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\java\types.hpp">
+      <Filter>java</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\examples\java\preprocessor.hpp">
+      <Filter>java</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\parserlib\eof.hpp">
       <Filter>include\parserlib</Filter>
     </ClInclude>
   </ItemGroup>

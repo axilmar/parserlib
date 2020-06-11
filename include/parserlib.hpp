@@ -12,6 +12,7 @@
 #include "parserlib/rule.hpp"
 #include "parserlib/match.hpp"
 #include "parserlib/error.hpp"
+#include "parserlib/eof.hpp"
 
 
 #endif //PARSERLIB_HPP
