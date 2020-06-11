@@ -8,6 +8,7 @@
 #include "parserlib/logical_and.hpp"
 #include "parserlib/logical_not.hpp"
 #include "parserlib/sequence.hpp"
+#include "parserlib/sequence_list.hpp"
 #include "parserlib/choice.hpp"
 #include "parserlib/choice_list.hpp"
 #include "parserlib/rule.hpp"

@@ -55,6 +55,7 @@
     <ClInclude Include="..\..\include\parserlib\rule.hpp" />
     <ClInclude Include="..\..\include\parserlib\rule_reference.hpp" />
     <ClInclude Include="..\..\include\parserlib\sequence.hpp" />
+    <ClInclude Include="..\..\include\parserlib\sequence_list.hpp" />
     <ClInclude Include="..\..\include\parserlib\terminal.hpp" />
     <ClInclude Include="..\..\include\parserlib\traits.hpp" />
   </ItemGroup>
