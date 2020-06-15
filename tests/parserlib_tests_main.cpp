@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
 {
     run_calculator_tests();
     run_xml_tests();
+    main1();
     system("pause");
     return 0;
 }

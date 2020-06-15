@@ -15,12 +15,15 @@ namespace calculator
 
 
     //number
-    static rule<> num = -sign >> num_basic_part >> -num_exp_part  == "num";
+    static auto num = -sign >> num_basic_part >> -num_exp_part  == "num";
+
+
+    //whitespace
+    static auto ws = *terminal(' ');
 
 
     //value
-    static auto val = '(' >> expr >> ')'
-                    | num;
+    static auto val = ws >> ('(' >> expr >> ')' | num) >> ws;
 
 
     //multiplication/division

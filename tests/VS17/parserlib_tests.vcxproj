@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\examples\calculator\calculator_grammar.cpp" />
+    <ClCompile Include="..\..\examples\calculator\calculator_main.cpp" />
     <ClCompile Include="..\..\examples\xml\xml_grammar.cpp" />
     <ClCompile Include="..\calculator_tests.cpp" />
     <ClCompile Include="..\parserlib_tests_main.cpp" />
