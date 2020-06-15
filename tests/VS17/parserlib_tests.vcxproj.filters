@@ -14,15 +14,6 @@
     <ClCompile Include="..\xml_tests.cpp">
       <Filter>xml</Filter>
     </ClCompile>
-    <ClCompile Include="..\java_tests.cpp">
-      <Filter>java</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\java\preprocessor.cpp">
-      <Filter>java</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\examples\java\tokenizer.cpp">
-      <Filter>java</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="calculator">
@@ -36,9 +27,6 @@
     </Filter>
     <Filter Include="include\parserlib">
       <UniqueIdentifier>{2101c21b-1f84-4e2d-bbcc-0b95afba8d68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="java">
-      <UniqueIdentifier>{535503f8-4b36-40d9-8924-a530e8e7a210}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -108,20 +96,8 @@
     <ClInclude Include="..\..\include\parserlib\error.hpp">
       <Filter>include\parserlib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\examples\java\types.hpp">
-      <Filter>java</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\parserlib\eof.hpp">
       <Filter>include\parserlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\java\java_version.hpp">
-      <Filter>java</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\java\preprocessor.hpp">
-      <Filter>java</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\examples\java\tokenizer.hpp">
-      <Filter>java</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\parserlib\choice_list.hpp">
       <Filter>include\parserlib</Filter>
