@@ -36,7 +36,7 @@ namespace parserlib
             @param r rule.
          */
         rule(rule&& r)
-            : m_expression(std::make_unique<expression_wrapper<rule_reference<ParseContext>>>(r))
+            : m_expression(std::make_unique<expression_wrapper<ParseContext, rule_reference<ParseContext>>>(r))
         {
         }
 

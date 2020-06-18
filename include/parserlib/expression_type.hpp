@@ -29,7 +29,7 @@ namespace parserlib
     {
     public:
         ///removes const from the type.
-        typename expression_type<T>::type type;
+        typedef typename expression_type<T>::type type;
     };
 
 
@@ -42,7 +42,7 @@ namespace parserlib
     {
     public:
         ///removes const from the type.
-        typename expression_type<T>::type type;
+        typedef typename expression_type<T>::type type;
     };
 
 
@@ -55,7 +55,7 @@ namespace parserlib
     {
     public:
         ///removes the reference from the type.
-        typename expression_type<T>::type type;
+        typedef typename expression_type<T>::type type;
     };
 
 
@@ -68,7 +68,7 @@ namespace parserlib
     {
     public:
         ///removes the rvalue from the type.
-        typename expression_type<T>::type type;
+        typedef typename expression_type<T>::type type;
     };
 
 
