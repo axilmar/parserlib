@@ -24,8 +24,9 @@ namespace parserlib
         Struct with data required for parsing.
         @param Input input type.
         @param Tag tag type.
+        @param Output output type.
      */
-    template <typename Input = std::string, typename Tag = std::string_view> 
+    template <typename Input = std::string, typename Tag = std::string_view, typename Output = std::string> 
     class parse_context
     {
     public:
@@ -34,6 +35,9 @@ namespace parserlib
 
         ///tag type.
         typedef Tag tag_type;
+
+        ///output type.
+        typedef Output output_type;
 
         ///match.
         struct match
@@ -50,13 +54,13 @@ namespace parserlib
             ///automatic conversion to string.
             std::basic_string<typename Input::value_type> input() const
             {
-                return { begin, end };
+                return { static_cast<Output::const_iterator>(begin), static_cast<Output::const_iterator>(end) };
             }
 
             ///automatic conversion to string.
             operator std::basic_string<typename Input::value_type> () const
             {
-                return { begin, end };
+                return input();
             }
 
             /**
@@ -147,9 +151,9 @@ namespace parserlib
             Returns the remaining input.
             @return the remaining input.
          */
-        Input remaining_input() const
+        Output remaining_input() const
         {
-            return Input(position, end);
+            return Output(static_cast<Output::const_iterator>(position), static_cast<Output::const_iterator>(end));
         }
 
         /**
