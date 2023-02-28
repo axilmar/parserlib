@@ -2,4 +2,7 @@ Debug/
 Release/
 .vs/
 *.user
+*.vcxproj
+*.vcxproj.*
+
 
