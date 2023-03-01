@@ -128,7 +128,7 @@ namespace calculator
         {
             if (match.tag == "num")
             {
-                ast_node_stack.push_back(std::make_shared<ast_num>(std::stod(match)));
+                ast_node_stack.push_back(std::make_shared<ast_num>(std::stod(std::string(match.begin, match.end))));
             }
 
             else if (match.tag == "div")

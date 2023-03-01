@@ -19,6 +19,51 @@ namespace parserlib
     template <typename ParseContext> class rule;
 
 
+    /**
+     * Class that provides a make function for creating output objects out of iterators.
+     * C++17 does not have std::string_view(begin, end) and therefore this class is used instead.
+     */
+    template <class Output> class output_traits {
+    public:
+        /**
+         * Creates an output based on the given iterator pair.
+         */
+        template <class It> static Output make(const It& begin, const It& end) {
+            return Output(begin, end);
+        }
+    };
+
+
+    /**
+     * Specialization for string_view.
+     */
+    template <class CharT, class Traits> class output_traits<std::basic_string_view<CharT, Traits>> {
+    public:
+        using Output = std::basic_string_view<CharT, Traits>;
+
+        /**
+         * Creates an output based on the given iterator pair.
+         */
+        template <class It> static Output make(const It& begin, const It& end) {
+            if (begin < end) {
+                const auto* const start = &*begin;
+                const auto count = end - begin;
+                return Output(start, count);
+            }
+            else {
+                return Output();
+            }
+        }
+    };
+
+
+    /**
+     * Function that creates an output.
+     */
+    template <class Output, class It> Output make_output(const It& begin, const It& end) {
+        return output_traits<Output>::make(begin, end);
+    }
+
 
     /**
         Struct with data required for parsing.
@@ -26,7 +71,7 @@ namespace parserlib
         @param Tag tag type.
         @param Output output type.
      */
-    template <typename Input = std::string, typename Tag = std::string_view, typename Output = std::string> 
+    template <typename Input = std::string, typename Tag = std::string, typename Output = std::string_view> 
     class parse_context
     {
     public:
@@ -52,13 +97,13 @@ namespace parserlib
             typename Input::const_iterator end;
 
             ///automatic conversion to string.
-            std::basic_string<typename Input::value_type> input() const
+            Output input() const
             {
-                return { static_cast<Output::const_iterator>(begin), static_cast<Output::const_iterator>(end) };
+                return make_output<Output>(begin, end);
             }
 
             ///automatic conversion to string.
-            operator std::basic_string<typename Input::value_type> () const
+            operator auto () const
             {
                 return input();
             }
@@ -153,7 +198,7 @@ namespace parserlib
          */
         Output remaining_input() const
         {
-            return Output(static_cast<Output::const_iterator>(position), static_cast<Output::const_iterator>(end));
+            return make_output<Output>(position, end);
         }
 
         /**

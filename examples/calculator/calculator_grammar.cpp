@@ -1,11 +1,9 @@
 #include "calculator_grammar.hpp"
 
 
-using namespace parserlib;
-
-
 namespace calculator
 { 
+    using namespace parserlib;
 
 
     static auto sign = one_of("-+");

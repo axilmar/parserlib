@@ -35,10 +35,10 @@ namespace parserlib {
 
     /**
      * Input view iterator.
-     * @param It input iterator type.
+     * @param It base input iterator type.
      * @param NewlineTraits newline traits.
      */
-    template <class It, class NewlineTraits = newline_traits> class input_view_iterator {
+    template <class It, class NewlineTraits = newline_traits> class input_view_iterator : public It {
     public:
         /**
          * The default constructor.
@@ -50,7 +50,7 @@ namespace parserlib {
         /**
          * Constructor from iterator.
          */
-        input_view_iterator(const It& it) : m_it(it) {
+        input_view_iterator(const It& it) : It(it) {
         }
 
         /**
@@ -71,69 +71,6 @@ namespace parserlib {
         }
 
         /**
-         * Allows construction of input ranges (const version).
-         */
-        operator const It& () const {
-            return m_it;
-        }
-
-        /**
-         * Allows construction of input ranges.
-         */
-        operator It () {
-            return m_it;
-        }
-
-        /**
-         * Equality test.
-         */
-        bool operator == (const input_view_iterator& other) const {
-            return m_it == other.m_it;
-        }
-
-        /**
-         * Difference test.
-         */
-        bool operator != (const input_view_iterator& other) const {
-            return m_it != other.m_it;
-        }
-
-        /**
-         * Less than test.
-         */
-        bool operator < (const input_view_iterator& other) const {
-            return m_it < other.m_it;
-        }
-
-        /**
-         * Greater than test.
-         */
-        bool operator > (const input_view_iterator& other) const {
-            return m_it > other.m_it;
-        }
-
-        /**
-         * Less than or equal test.
-         */
-        bool operator <= (const input_view_iterator& other) const {
-            return m_it <= other.m_it;
-        }
-
-        /**
-         * Greater than or equal test.
-         */
-        bool operator >= (const input_view_iterator& other) const {
-            return m_it >= other.m_it;
-        }
-
-        /**
-         * The dereference operator.
-         */
-        auto operator *() const {
-            return *m_it;
-        }
-
-        /**
          * Returns the line.
          */
         int line() const {
@@ -148,19 +85,18 @@ namespace parserlib {
         }
 
     private:
-        It m_it;
         int m_line = 1;
         int m_column = 1;
 
         void increment() {
-            if (!NewlineTraits()(m_it)) {
+            if (!NewlineTraits()(*static_cast<It*>(this))) {
                 ++m_column;
-                ++m_it;
+                It::operator++();
             }
             else {
                 ++m_line;
                 m_column = 1;
-                NewlineTraits().skip(m_it);
+                NewlineTraits().skip(*static_cast<It*>(this));
             }
         }
     };
