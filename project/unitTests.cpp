@@ -290,6 +290,35 @@ static void unitTest_Rule() {
 }
 
 
+static void unitTest_sequenceParser() {
+    const auto parser = terminal('a') >> terminal('b') >> terminal('c');
+
+    {
+        const std::string input = "abc";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "dabc";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+
+    {
+        const std::string input = "adbc";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -299,4 +328,5 @@ void runUnitTests() {
     unitTest_NotParser();
     unitTest_OptionalParser();
     unitTest_Rule();
+    unitTest_sequenceParser();
 }
