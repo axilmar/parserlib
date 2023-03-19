@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_MATCHPARSER_HPP
-#define PARSERLIB_MATCHPARSER_HPP
+#ifndef PARSERLIB_MATCH_HPP
+#define PARSERLIB_MATCH_HPP
 
 
 #include <string>
@@ -14,15 +14,15 @@ namespace parserlib {
      * @param ParserNodeType the parser to invoke.
      * @param MatchIdType type of match id.
      */
-    template <class ParserNodeType, class MatchIdType = std::string> class MatchParser 
-        : public ParserNode<MatchParser<ParserNodeType>> {
+    template <class ParserNodeType, class MatchIdType = std::string> class Match 
+        : public ParserNode<Match<ParserNodeType>> {
     public:
         /**
          * The default constructor.
          * @param child child parser to invoke.
          * @param matchId the match id.
          */
-        MatchParser(const ParserNodeType& child, const MatchIdType& matchId) 
+        Match(const ParserNodeType& child, const MatchIdType& matchId) 
             : m_child(child), m_matchId(matchId) {
         }
 
@@ -69,13 +69,13 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParserNodeType, class MatchIdType>
-    MatchParser<ParserNodeType, MatchIdType>
+    Match<ParserNodeType, MatchIdType>
     operator >>= (const ParserNode<ParserNodeType>& node, const MatchIdType& matchId) {
-        return MatchParser<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
+        return Match<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB_MATCHPARSER_HPP
+#endif //PARSERLIB_MATCH_HPP

@@ -12,7 +12,7 @@
 #include "OptionalParser.hpp"
 #include "AndParser.hpp"
 #include "NotParser.hpp"
-#include "MatchParser.hpp"
+#include "Match.hpp"
 
 
 namespace parserlib {
@@ -293,9 +293,9 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParseContextType, class MatchIdType>
-    MatchParser<RuleReference<ParseContextType>, MatchIdType>
+    Match<RuleReference<ParseContextType>, MatchIdType>
         operator >>= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
-        return MatchParser<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+        return Match<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 
