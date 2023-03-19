@@ -319,6 +319,106 @@ static void unitTest_sequenceParser() {
 }
 
 
+static void unitTest_terminalParser() {
+    const auto parser = terminal('a');
+
+    {
+        const std::string input = "a";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "b";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+}
+
+
+static void unitTest_terminalRangeParser() {
+    const auto parser = terminalRange('0', '9');
+
+    {
+        const std::string input = "0";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "b";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+}
+
+
+static void unitTest_terminalSetParser() {
+    const auto parser = terminalSet('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+
+    {
+        const std::string input = "0";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "5";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "9";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "b";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+}
+
+
+static void unitTest_terminalStringParser() {
+    const auto parser = terminal("int");
+
+    {
+        const std::string input = "int";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "b";
+        ParseContext<> pc(input);
+        bool ok = parser(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -329,4 +429,8 @@ void runUnitTests() {
     unitTest_OptionalParser();
     unitTest_Rule();
     unitTest_sequenceParser();
+    unitTest_terminalParser();
+    unitTest_terminalRangeParser();
+    unitTest_terminalSetParser();
+    unitTest_terminalStringParser();
 }
