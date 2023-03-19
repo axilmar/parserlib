@@ -1,174 +1,317 @@
-#ifndef PARSERLIB__RULE__HPP
-#define PARSERLIB__RULE__HPP
+#ifndef PARSERLIB_RULE_HPP
+#define PARSERLIB_RULE_HPP
 
 
 #include <memory>
-#include <string_view>
-#include "rule_reference.hpp"
-#include "parse_context.hpp"
-#include "expression_wrapper.hpp"
+#include "ParserWrapper.hpp"
+#include "RuleReference.hpp"
+#include "SequenceParser.hpp"
+#include "ChoiceParser.hpp"
+#include "LoopParser.hpp"
+#include "Loop1Parser.hpp"
+#include "OptionalParser.hpp"
+#include "AndParser.hpp"
+#include "NotParser.hpp"
+#include "MatchParser.hpp"
 
 
-namespace parserlib
-{
+namespace parserlib {
 
 
     /**
-        A grammar rule.
-        @param ParseContext type of parse context to use.
+     * An interface to a parser that can be recursive.
+     * @param ParseContextType type of context to pass to the parse function.
      */
-    template <typename ParseContext = parse_context<>>
-    class rule : public expression
-    {
+    template <class ParseContextType = ParseContext<>> class Rule {
     public:
         /**
-            Constructor from expression.
-            @param expression expression.
+         * Constructor.
+         * Allocates a copy of the given parser on the heap.
+         * @param parser parser to copy.
          */
-        template <typename T>
-        rule(T&& expression)
-            : m_expression(std::make_unique<expression_wrapper<ParseContext, expression_type_t<T>>>(std::forward<T>(expression)))
+        template <class ParserType> Rule(const ParserType& parser)
+            : m_parser(std::make_shared<ParserWrapper<ParseContextType, ParserType>>(parser))
         {
         }
 
         /**
-            Constructor from rule reference.
-            @param r rule.
+         * Returns the parser.
+         * @return the parser.
          */
-        rule(rule&& r)
-            : m_expression(std::make_unique<expression_wrapper<ParseContext, rule_reference<ParseContext>>>(r))
-        {
+        const std::shared_ptr<ParserInterface<ParseContextType>>& parser() const {
+            return m_parser;
         }
 
         /**
-            Parses the input with the underlying expression.
-            If the tag is not empty, and parsing is successful,
-            then the corresponding match is added to the parse context.
-            @param pc parse context.
-            @return parse result.
+         * Invokes the underlying parser.
+         * @param pc parse context.
+         * @return whatever the underlying parser returns.
          */
-        parse_result parse(ParseContext& pc) const
-        {
-            parse_result result;
-
-            const bool left_recursion = pc.add_position(this);
-
-            if (!left_recursion)
-            {
-                if (pc.position > pc.m_left_recursion_position)
-                {
-                    const auto prev_left_recursion_state = pc.m_left_recursion_state;
-                    const auto prev_left_recursion_position = pc.m_left_recursion_position;
-
-                    pc.m_left_recursion_state = ParseContext::left_recursion_state::inactive;
-                    pc.m_left_recursion_position = pc.position;
-
-                    result = parse_(pc);
-
-                    pc.m_left_recursion_state = prev_left_recursion_state;
-                    pc.m_left_recursion_position = prev_left_recursion_position;
-                }
-                else
-                {
-                    switch (pc.m_left_recursion_state)
-                    {
-                        case ParseContext::left_recursion_state::inactive:
-                            result = parse_(pc);
-                            break;
-
-                        case ParseContext::left_recursion_state::reject:
-                            result = parse_(pc);
-                            break;
-
-                        case ParseContext::left_recursion_state::accept:
-                            result = parse_result::accepted;
-                            break;
-                    }
-                }
-            }
-
-            else
-            {
-                switch (pc.m_left_recursion_state)
-                {
-                    case ParseContext::left_recursion_state::inactive:
-                        pc.m_left_recursion_state = ParseContext::left_recursion_state::reject;
-                        result = parse_result::rejected;
-                        break;
-
-                    case ParseContext::left_recursion_state::reject:
-                        result = parse_result::rejected;
-                        break;
-
-                    case ParseContext::left_recursion_state::accept:
-                        result = parse_result::accepted;
-                        break;
-                }
-            }
-
-            pc.remove_position(this);
-
-            return result;
+        bool operator ()(ParseContextType& pc) const {
+            return m_parser->operator ()(pc);
         }
 
     private:
-        //the expression is wrapped by a polymorphic type.
-        std::unique_ptr<expression_interface<ParseContext>> m_expression;
-
-        //helper function
-        parse_result parse_(ParseContext& pc) const
-        {
-            return m_expression->parse(pc);
-        }
+        std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
     };
 
 
     /**
-        Specialization for rules.
-        Allows the implicit conversion to rules to rule references.
-        @param ParseContext type of parse context to use.
+     * Sequence between two rules.
+     * @param rule1 the 1st rule.
+     * @param rule2 the 2nd rule.
+     * @return a sequence of the two rules.
      */
-    template <typename ParseContext>
-    struct expression_type<rule<ParseContext>>
-    {
-    public:
-        /**
-            The expression type of a rule is a rule reference,
-            in order to allow recursive declarations of rules.
-         */
-        typedef rule_reference<ParseContext> type;
-    };
-
-
-    /**
-        Operator that adds a tag to a rule.
-        @param rule rule to set the tag of.
-        @param tag tag to set.
-        @return the rule.
-     */
-    template <typename ParseContext>
-    rule<ParseContext>& operator >= (rule<ParseContext>& rule, const std::string_view& tag)
-    {
-        rule.tag = tag;
-        return rule;
+    template <class ParseContextType>
+    auto operator >> (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
+        return RuleReference<ParseContextType>(rule1) >> RuleReference<ParseContextType>(rule2);
     }
 
 
     /**
-        Generic parse function.
-        @param grammar grammar to use.
-        @param pc parse context.
-        #return true if parsing succeeded (i.e. if the whole input was accepted), otherwise false.
+     * Sequence between a rule and a parser node.
+     * @param rule the rule parser.
+     * @param node the node parser.
+     * @return a sequence of the rule and node.
      */
-    template <typename G, typename ParseContext> 
-    bool parse(const G& grammar, ParseContext& pc)
-    {
-        const parse_result result = grammar.parse(pc);
-        return result == parse_result::accepted && pc.remaining_input().empty();
+    template <class ParseContextType, class ParserNodeType>
+    auto operator >> (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+        return RuleReference<ParseContextType>(rule) >> node;
     }
+
+
+    /**
+     * Sequence between a parser node and a rule.
+     * @param node the node parser.
+     * @param rule the rule parser.
+     * @return a sequence of the two nodes.
+     */
+    template <class ParserNodeType, class ParseContextType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
+        return node >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries. 
+     */
+    template <class ParseContextType, class T> int operator >> (Rule<ParseContextType>&& rule, T&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator >> (const Rule<ParseContextType>&&, T&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator >> (T&&, Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator >> (T&&, const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Choice between two rules.
+     * @param rule1 the 1st rule.
+     * @param rule2 the 2nd rule.
+     * @return a sequence of the two rules.
+     */
+    template <class ParseContextType>
+    auto operator | (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
+        return RuleReference<ParseContextType>(rule1) | RuleReference<ParseContextType>(rule2);
+    }
+
+
+    /**
+     * Choice between a rule and a parser node.
+     * @param rule the rule parser.
+     * @param node the node parser.
+     * @return a sequence of the rule and node.
+     */
+    template <class ParseContextType, class ParserNodeType>
+    auto operator | (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+        return RuleReference<ParseContextType>(rule) | node;
+    }
+
+
+    /**
+     * Choice between a parser node and a rule.
+     * @param node the node parser.
+     * @param rule the rule parser.
+     * @return a sequence of the two nodes.
+     */
+    template <class ParserNodeType, class ParseContextType>
+    auto operator | (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
+        return node | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator | (Rule<ParseContextType>&& rule, T&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator | (const Rule<ParseContextType>&&, T&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator | (T&&, Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator | (T&&, const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Creates a loop parser out of a rule.
+     * @param rule rule.
+     * @return the loop parser for the given rule.
+     */
+    template <class ParseContextType> auto operator *(const Rule<ParseContextType>& rule) {
+        return *RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator *(Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator *(const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Creates a loop-1 parser out of a rule.
+     * @param rule rule.
+     * @return the loop-1 parser for the given rule.
+     */
+    template <class ParseContextType> auto operator +(const Rule<ParseContextType>& rule) {
+        return +RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator +(Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator +(const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Creates an optional parser out of a rule.
+     * @param rule rule.
+     * @return the optional parser for the given rule.
+     */
+    template <class ParseContextType> auto operator -(const Rule<ParseContextType>& rule) {
+        return -RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator -(Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator -(const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Creates an and parser out of a rule.
+     * @param rule rule.
+     * @return the and parser for the given rule.
+     */
+    template <class ParseContextType> auto operator &(const Rule<ParseContextType>& rule) {
+        return &RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator &(Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator &(const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Creates a not parser out of a rule.
+     * @param rule rule.
+     * @return the not parser for the given rule.
+     */
+    template <class ParseContextType> auto operator !(const Rule<ParseContextType>& rule) {
+        return !RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator !(Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType> int operator !(const Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Operator that allows a match to be inserted into the parser for a rule.
+     * @param rule rule to apply the operator to.
+     * @param matchId match id.
+     * @return a match parser.
+     */
+    template <class ParseContextType, class MatchIdType>
+    MatchParser<RuleReference<ParseContextType>, MatchIdType>
+        operator >>= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
+        return MatchParser<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator >>= (Rule<ParseContextType>&&, T&&) = delete;
+
+
+    /**
+     * Deleted in order to forbid temporaries.
+     */
+    template <class ParseContextType, class T> int operator >>= (const Rule<ParseContextType>&&, T&&) = delete;
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB__RULE__HPP
+#endif //PARSERLIB_RULE_HPP
