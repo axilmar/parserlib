@@ -290,7 +290,7 @@ static void unitTest_Rule() {
 }
 
 
-static void runUnitTests() {
+void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
     unitTest_Loop1Parser();
@@ -299,11 +299,4 @@ static void runUnitTests() {
     unitTest_NotParser();
     unitTest_OptionalParser();
     unitTest_Rule();
-}
-
-
-int main() {
-    runUnitTests();
-    system("pause");
-    return 0;
 }
