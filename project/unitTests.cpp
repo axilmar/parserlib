@@ -17,6 +17,7 @@ static void unitTest_AndParser() {
         assert(ok);
         assert(pc.sourcePosition() == input.begin());
     }
+
     {
         const std::string input = "b";
         ParseContext pc(input);
@@ -222,6 +223,7 @@ static void unitTest_NotParser() {
         assert(ok);
         assert(pc.sourcePosition() == input.begin());
     }
+
     {
         const std::string input = "a";
         ParseContext pc(input);
