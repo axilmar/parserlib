@@ -153,21 +153,6 @@ namespace parserlib {
         }
 
         /**
-         * Saves the current state and invokes the given parser;
-         * if the parser fails, the state is restored.
-         * @param parser the parser; must have signature (ParserContext&).
-         * @return parse result.
-         */
-        template <class ParserType> bool parse(const ParserType& parser) {
-            const State state = this->state();
-            if (parser(*this)) {
-                return true;
-            }
-            setState(state);
-            return false;
-        }
-
-        /**
          * Returns the end position of the source.
          * @return the end position of the source.
          */
