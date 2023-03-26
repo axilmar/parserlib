@@ -3,7 +3,6 @@
 
 
 #include "ParserNode.hpp"
-#include "util.hpp"
 
 
 namespace parserlib {
@@ -39,7 +38,7 @@ namespace parserlib {
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
             const auto state = pc.state();
-            if (tuple_for_each_cond<0, false>(m_children, [&](const auto& childParser) { return childParser(pc); })) {
+            if (parseTuple<0>(pc)) {
                 return true;
             }
             pc.setState(state);
@@ -48,6 +47,20 @@ namespace parserlib {
 
     private:
         std::tuple<Children...> m_children;
+
+        template <size_t Index, class ParseContextType> bool parseTuple(ParseContextType& pc) const {
+            if constexpr (Index < sizeof...(Children)) {
+                if (std::get<Index>(m_children)(pc)) {
+                    return parseTuple<Index + 1>(pc);
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return true;
+            }
+        }
     };
 
 
