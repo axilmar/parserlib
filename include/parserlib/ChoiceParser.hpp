@@ -3,6 +3,7 @@
 
 
 #include "ParserNode.hpp"
+#include "LeftRecursionException.hpp"
 
 
 namespace parserlib {
@@ -47,9 +48,39 @@ namespace parserlib {
         template <size_t Index, class ParseContextType> bool parseTuple(ParseContextType& pc) const {
             if constexpr (Index < sizeof...(Children)) {
                 const auto state = pc.state();
-                if (std::get<Index>(m_children)(pc)) {
+
+                //try branch
+                try {
+                    if (std::get<Index>(m_children)(pc)) {
+                        return true;
+                    }
+                }                
+
+                //found left recursion
+                catch (const LeftRecursionException<ParseContextType>& lre) {
+                    //parse non-left recursive part; on failure, pass the exception up the stack
+                    //for another choice to parse it
+                    lre.rule().setRejectState();
+                    if (!parseTuple<Index + 1>(pc)) {
+                        throw lre;
+                    }
+
+                    //parse after the left recursion until failure or input end
+                    lre.rule().setAcceptState();
+                    while (true) {
+                        lre.rule().setParsePosition(pc.sourcePosition());
+                        if (!std::get<Index>(m_children)(pc)) {
+                            break;
+                        }
+                        if (pc.sourcePosition() == pc.sourceEndPosition()) {
+                            break;
+                        }
+                    }
+
                     return true;
                 }
+
+                //try next branch
                 pc.setState(state);
                 return parseTuple<Index + 1>(pc);
             }

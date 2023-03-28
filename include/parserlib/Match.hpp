@@ -70,7 +70,7 @@ namespace parserlib {
      */
     template <class ParserNodeType, class MatchIdType>
     Match<ParserNodeType, MatchIdType>
-    operator >>= (const ParserNode<ParserNodeType>& node, const MatchIdType& matchId) {
+        operator == (const ParserNode<ParserNodeType>& node, const MatchIdType& matchId) {
         return Match<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
     }
 

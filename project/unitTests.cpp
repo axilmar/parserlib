@@ -1,5 +1,6 @@
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include "parserlib.hpp"
 
 
@@ -188,7 +189,7 @@ static void unitTest_LoopParser() {
 
 
 static void unitTest_MatchParser() {
-    const auto parser = terminal('a') >>= std::string("m");
+    const auto parser = terminal('a') == std::string("m");
 
     {
         const std::string input = "a";
@@ -256,7 +257,7 @@ static void unitTest_OptionalParser() {
 
 
 static void unitTest_Rule() {
-    const Rule<> rule = terminal('a') >> (rule | terminal('b'));
+    Rule<> rule = terminal('a') >> (rule | terminal('b'));
 
     {
         const std::string input = "ab";
@@ -421,6 +422,145 @@ static void unitTest_terminalStringParser() {
 }
 
 
+extern Rule<> add;
+
+const auto val = (+terminalRange('0', '9')) == std::string("num");
+
+const auto num = val
+               | terminal('(') >> add >> terminal(')');
+
+Rule<> mul = (mul >> terminalSet('*', '/') >> num) == std::string("mul")
+           | num;
+
+Rule<> add = (add >> terminalSet('+', '-') >> mul) == std::string("add")
+           | mul;
+
+
+static int to_int(const std::string& str) {
+    std::stringstream stream;
+    stream << str;
+    int r;
+    stream >> r;
+    return r;
+}
+
+
+static int compute(const std::vector<ParseContext<>::Match>& matches) {
+    std::vector<int> stack;
+
+    for (const auto& m : matches) {
+        if (m.id() == "num") {
+            stack.push_back(to_int(std::string(m.begin(), m.end())));
+        }
+        else if (m.id() == "mul") {
+            assert(stack.size() >= 2);
+            const int v2 = stack.back();
+            stack.pop_back();
+            const int v1 = stack.back();
+            stack.pop_back();
+            stack.push_back(v1 * v2);
+        }
+        else if (m.id() == "add") {
+            assert(stack.size() >= 2);
+            const int v2 = stack.back();
+            stack.pop_back();
+            const int v1 = stack.back();
+            stack.pop_back();
+            stack.push_back(v1 + v2);
+        }
+    }
+    assert(stack.size() == 1);
+    return stack.back();
+}
+
+
+static void unitTest_directLeftRecursion() {
+    {
+        Rule<> a = a >> terminal('b')
+                 | terminal('a');
+        const std::string input = "ab";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        Rule<> a = a >> terminal('b')
+                 | terminal('a');
+        const std::string input = "abbb";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        Rule<> a = a >> terminal('b')
+                 | terminal('a');
+        const std::string input = "aabbb";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() != input.end());
+    }
+
+    {
+        const std::string input = "1";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 1);
+    }
+
+    {
+        const std::string input = "1+2";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 3);
+    }
+
+    {
+        const std::string input = "1*2+3";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 5);
+    }
+
+    {
+        const std::string input = "1+2*3";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 7);
+    }
+
+    {
+        const std::string input = "(1*2)+3";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 5);
+    }
+
+    {
+        const std::string input = "1*(2+3)";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 5);
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -435,4 +575,5 @@ void runUnitTests() {
     unitTest_terminalRangeParser();
     unitTest_terminalSetParser();
     unitTest_terminalStringParser();
+    unitTest_directLeftRecursion();
 }

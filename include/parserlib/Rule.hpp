@@ -3,6 +3,7 @@
 
 
 #include <memory>
+#include <optional>
 #include "ParserWrapper.hpp"
 #include "RuleReference.hpp"
 #include "SequenceParser.hpp"
@@ -13,6 +14,7 @@
 #include "AndParser.hpp"
 #include "NotParser.hpp"
 #include "Match.hpp"
+#include "LeftRecursionException.hpp"
 
 
 namespace parserlib {
@@ -46,13 +48,75 @@ namespace parserlib {
          * Invokes the underlying parser.
          * @param pc parse context.
          * @return whatever the underlying parser returns.
+         * @exception LeftRecursionException thrown when left recursion is found upon the referenced rule.
          */
-        bool operator ()(ParseContextType& pc) const {
-            return m_parser->operator ()(pc);
+        bool operator ()(ParseContextType& pc) {
+            //check for left recursion
+            if (m_parsePosition == pc.sourcePosition()) {
+                switch (m_state) {
+                    case Normal: throw LeftRecursionException<ParseContextType>(*this);
+                    case Reject: return false;
+                    case Accept: return true;
+                }
+            }
+
+            //save state
+            const auto prevParsePosition = m_parsePosition;
+            const auto prevState = m_state;
+
+            //set new state
+            m_parsePosition = pc.sourcePosition();
+            m_state = Normal;
+
+            //parse
+            const bool result = m_parser->operator ()(pc);
+
+            //restore state
+            m_parsePosition = prevParsePosition;
+            m_state = prevState;
+
+            return result;
+        }
+
+        /**
+         * Returns the parse position of the rule.
+         * @return the parse position of the rule.
+         */
+        const std::optional<typename ParseContextType::Position> getParsePosition() const {
+            return m_parsePosition;
+        }
+
+        /**
+         * Sets the parse position.
+         * @param position new parse position.
+         */
+        void setParsePosition(const typename ParseContextType::Position& position) {
+            m_parsePosition = position;
+        }
+
+        /**
+         * Sets the state to reject.
+         */
+        void setRejectState() {
+            m_state = Reject;
+        }
+
+        /**
+         * Sets the state to accept.
+         */
+        void setAcceptState() {
+            m_state = Accept;
         }
 
     private:
+        enum State {
+            Normal,
+            Reject,
+            Accept
+        };
         std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
+        std::optional<typename ParseContextType::Position> m_parsePosition;
+        State m_state{ Normal };
     };
 
 
@@ -63,7 +127,7 @@ namespace parserlib {
      * @return a sequence of the two rules.
      */
     template <class ParseContextType>
-    auto operator >> (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
+    auto operator >> (Rule<ParseContextType>& rule1, Rule<ParseContextType>& rule2) {
         return RuleReference<ParseContextType>(rule1) >> RuleReference<ParseContextType>(rule2);
     }
 
@@ -75,7 +139,7 @@ namespace parserlib {
      * @return a sequence of the rule and node.
      */
     template <class ParseContextType, class ParserNodeType>
-    auto operator >> (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+    auto operator >> (Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
         return RuleReference<ParseContextType>(rule) >> node;
     }
 
@@ -87,33 +151,9 @@ namespace parserlib {
      * @return a sequence of the two nodes.
      */
     template <class ParserNodeType, class ParseContextType>
-    auto operator >> (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
+    auto operator >> (const ParserNode<ParserNodeType>& node, Rule<ParseContextType>& rule) {
         return node >> RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries. 
-     */
-    template <class ParseContextType, class T> int operator >> (Rule<ParseContextType>&& rule, T&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator >> (const Rule<ParseContextType>&&, T&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator >> (T&&, Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator >> (T&&, const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -123,7 +163,7 @@ namespace parserlib {
      * @return a sequence of the two rules.
      */
     template <class ParseContextType>
-    auto operator | (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
+    auto operator | (Rule<ParseContextType>& rule1, Rule<ParseContextType>& rule2) {
         return RuleReference<ParseContextType>(rule1) | RuleReference<ParseContextType>(rule2);
     }
 
@@ -135,7 +175,7 @@ namespace parserlib {
      * @return a sequence of the rule and node.
      */
     template <class ParseContextType, class ParserNodeType>
-    auto operator | (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+    auto operator | (Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
         return RuleReference<ParseContextType>(rule) | node;
     }
 
@@ -147,33 +187,9 @@ namespace parserlib {
      * @return a sequence of the two nodes.
      */
     template <class ParserNodeType, class ParseContextType>
-    auto operator | (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
+    auto operator | (const ParserNode<ParserNodeType>& node, Rule<ParseContextType>& rule) {
         return node | RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator | (Rule<ParseContextType>&& rule, T&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator | (const Rule<ParseContextType>&&, T&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator | (T&&, Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator | (T&&, const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -181,21 +197,9 @@ namespace parserlib {
      * @param rule rule.
      * @return the loop parser for the given rule.
      */
-    template <class ParseContextType> auto operator *(const Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator *(Rule<ParseContextType>& rule) {
         return *RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator *(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator *(const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -203,21 +207,9 @@ namespace parserlib {
      * @param rule rule.
      * @return the loop-1 parser for the given rule.
      */
-    template <class ParseContextType> auto operator +(const Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator +(Rule<ParseContextType>& rule) {
         return +RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator +(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator +(const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -225,21 +217,9 @@ namespace parserlib {
      * @param rule rule.
      * @return the optional parser for the given rule.
      */
-    template <class ParseContextType> auto operator -(const Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator -(Rule<ParseContextType>& rule) {
         return -RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator -(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator -(const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -247,21 +227,9 @@ namespace parserlib {
      * @param rule rule.
      * @return the and parser for the given rule.
      */
-    template <class ParseContextType> auto operator &(const Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator &(Rule<ParseContextType>& rule) {
         return &RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator &(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator &(const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -269,21 +237,9 @@ namespace parserlib {
      * @param rule rule.
      * @return the not parser for the given rule.
      */
-    template <class ParseContextType> auto operator !(const Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator !(Rule<ParseContextType>& rule) {
         return !RuleReference<ParseContextType>(rule);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator !(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType> int operator !(const Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -294,21 +250,9 @@ namespace parserlib {
      */
     template <class ParseContextType, class MatchIdType>
     Match<RuleReference<ParseContextType>, MatchIdType>
-        operator >>= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
+        operator == (Rule<ParseContextType>& rule, const MatchIdType& matchId) {
         return Match<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator >>= (Rule<ParseContextType>&&, T&&) = delete;
-
-
-    /**
-     * Deleted in order to forbid temporaries.
-     */
-    template <class ParseContextType, class T> int operator >>= (const Rule<ParseContextType>&&, T&&) = delete;
 
 
 } //namespace parserlib

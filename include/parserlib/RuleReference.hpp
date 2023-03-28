@@ -26,19 +26,9 @@ namespace parserlib {
          * Constructor.
          * @param rule reference to rule.
          */
-        RuleReference(const Rule<ParseContextType>& rule) 
+        RuleReference(Rule<ParseContextType>& rule) 
             : m_rule(rule) {
         }
-
-        /**
-         * Deleted constructor; no temporaries allowed.
-         */
-        RuleReference(Rule<ParseContextType>&&) = delete;
-
-        /**
-         * Deleted constructor; no temporaries allowed.
-         */
-        RuleReference(const Rule<ParseContextType>&&) = delete;
 
         /**
          * Returns the rule.
@@ -58,7 +48,7 @@ namespace parserlib {
         }
 
     private:
-        const Rule<ParseContextType>& m_rule;
+        Rule<ParseContextType>& m_rule;
     };
 
 
