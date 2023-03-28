@@ -47,8 +47,6 @@ namespace parserlib {
         //tuple parse
         template <size_t Index, class ParseContextType> bool parseTuple(ParseContextType& pc) const {
             if constexpr (Index < sizeof...(Children)) {
-                const auto state = pc.state();
-
                 //try branch
                 try {
                     if (std::get<Index>(m_children)(pc)) {
@@ -81,7 +79,6 @@ namespace parserlib {
                 }
 
                 //try next branch
-                pc.setState(state);
                 return parseTuple<Index + 1>(pc);
             }
             else {
