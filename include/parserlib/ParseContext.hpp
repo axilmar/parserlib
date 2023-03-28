@@ -20,6 +20,11 @@ namespace parserlib {
     template <class SourceType = std::string, class MatchIdType = std::string> class ParseContext {
     public:
         /**
+         * Parsing position type.
+         */
+        using Position = typename SourceType::const_iterator;
+
+        /**
          * A successful parse. 
          */
         class Match {
