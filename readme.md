@@ -7,17 +7,17 @@ Example:
 ```cpp
 extern Rule<> add;
 
-const auto val = (+terminalRange('0', '9'));
+const auto val = +terminalRange('0', '9');
 
 const auto num = val
                | terminal('(') >> add >> terminal(')');
 
-Rule<> mul = (mul >> terminal('*') >> num)
-           | (mul >> terminal('/') >> num)
+Rule<> mul = mul >> terminal('*') >> num
+           | mul >> terminal('/') >> num
            | num;
 
-Rule<> add = (add >> terminal('+') >> mul)
-           | (add >> terminal('-') >> mul)
+Rule<> add = add >> terminal('+') >> mul
+           | add >> terminal('-') >> mul
            | mul;
 ```
 
@@ -35,6 +35,6 @@ mul = mul * num
 num = val
     | ( add )
     
-val = digit+
+val = (0..9)+
 ```
 
