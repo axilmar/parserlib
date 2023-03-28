@@ -424,13 +424,17 @@ static void unitTest_terminalStringParser() {
 
 extern Rule<> add;
 
+
 const auto val = (+terminalRange('0', '9')) == std::string("num");
+
 
 const auto num = val
                | terminal('(') >> add >> terminal(')');
 
+
 Rule<> mul = (mul >> terminalSet('*', '/') >> num) == std::string("mul")
            | num;
+
 
 Rule<> add = (add >> terminalSet('+', '-') >> mul) == std::string("add")
            | mul;
@@ -557,6 +561,24 @@ static void unitTest_directLeftRecursion() {
         assert(ok);
         assert(pc.sourcePosition() == input.end());
         assert(compute(pc.matches()) == 5);
+    }
+
+    {
+        const std::string input = "(1*(2+3))*4+5";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 25);
+    }
+
+    {
+        const std::string input = "(1*2+3*4)*(5+6)";
+        ParseContext<> pc(input);
+        bool ok = add(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(compute(pc.matches()) == 154);
     }
 }
 
