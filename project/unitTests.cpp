@@ -432,11 +432,13 @@ const auto num = val
                | terminal('(') >> add >> terminal(')');
 
 
-Rule<> mul = (mul >> terminalSet('*', '/') >> num) == std::string("mul")
+Rule<> mul = (mul >> terminal('*') >> num) == std::string("mul")
+           | (mul >> terminal('/') >> num) == std::string("div")
            | num;
 
 
-Rule<> add = (add >> terminalSet('+', '-') >> mul) == std::string("add")
+Rule<> add = (add >> terminal('+') >> mul) == std::string("add")
+           | (add >> terminal('-') >> mul) == std::string("sub")
            | mul;
 
 
@@ -464,6 +466,14 @@ static int compute(const std::vector<ParseContext<>::Match>& matches) {
             stack.pop_back();
             stack.push_back(v1 * v2);
         }
+        else if (m.id() == "div") {
+            assert(stack.size() >= 2);
+            const int v2 = stack.back();
+            stack.pop_back();
+            const int v1 = stack.back();
+            stack.pop_back();
+            stack.push_back(v1 / v2);
+        }
         else if (m.id() == "add") {
             assert(stack.size() >= 2);
             const int v2 = stack.back();
@@ -471,6 +481,14 @@ static int compute(const std::vector<ParseContext<>::Match>& matches) {
             const int v1 = stack.back();
             stack.pop_back();
             stack.push_back(v1 + v2);
+        }
+        else if (m.id() == "sub") {
+            assert(stack.size() >= 2);
+            const int v2 = stack.back();
+            stack.pop_back();
+            const int v1 = stack.back();
+            stack.pop_back();
+            stack.push_back(v1 - v2);
         }
     }
     assert(stack.size() == 1);
