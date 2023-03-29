@@ -4,7 +4,9 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 ## Table Of Contents
 [Introduction](#Introduction)
+
 [Using the Library](#LibraryUsage)
+
 [Writing a Grammar](#GrammarConstruction)
 
 ## <a name="Introduction"></a>Introduction
