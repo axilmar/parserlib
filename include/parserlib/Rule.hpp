@@ -16,6 +16,7 @@
 #include "Match.hpp"
 #include "LeftRecursionException.hpp"
 #include "UnresolvedLeftRecursionException.hpp"
+#include "util.hpp"
 
 
 namespace parserlib {
@@ -103,24 +104,24 @@ namespace parserlib {
             const auto prevParsePosition = m_parsePosition;
             const auto prevState = m_state;
 
+            //exit handler
+            RAII exitHandler([&]() {
+                m_parsePosition = prevParsePosition;
+                m_state = prevState;
+            });
+
             //set new state
             m_parsePosition = pc.sourcePosition();
             m_state = Normal;
 
-            bool result;
-
             //parse
             try {
-                result = m_parser->operator ()(pc);
+                return m_parser->operator ()(pc);
             }
 
             //if a left recursion exception happens,
             //check if it was for this rule; if so, convert it to unresolved
             catch (const LeftRecursionException<ParseContextType>& lre) {
-                //restore state
-                m_parsePosition = prevParsePosition;
-                m_state = prevState;
-
                 //if the same rule, throw unresolved left recursion
                 if (lre.rule().isSame(this)) {
                     throw UnresolvedLeftRecursionException<ParseContextType>(*this);
@@ -132,19 +133,7 @@ namespace parserlib {
                 }
             }
 
-            //any other exception
-            catch (...) {
-                //restore state
-                m_parsePosition = prevParsePosition;
-                m_state = prevState;
-                throw;
-            }
-
-            //restore state
-            m_parsePosition = prevParsePosition;
-            m_state = prevState;
-
-            return result;
+            throw std::logic_error("Rule: operator (): invalid state.");
         }
 
         /**

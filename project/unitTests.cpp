@@ -601,6 +601,31 @@ static void unitTest_directLeftRecursion() {
 }
 
 
+static void unitTest_indirectLeftRecursion() {
+    {
+        Rule<> a = -(terminal('x')) >> a >> terminal('b')
+                 | terminal('a');
+        const std::string input = "ab";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    /*
+    {
+        Rule<> a = -(terminal('x')) >> a >> terminal('b')
+                 | terminal('a');
+        const std::string input = "xab";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+    */
+}
+
+
 static void unitTest_unresolvedLeftRecursionException() {
     Rule<> grammar = grammar >> terminal('a');
 
@@ -630,5 +655,6 @@ void runUnitTests() {
     unitTest_terminalSetParser();
     unitTest_terminalStringParser();
     unitTest_directLeftRecursion();
+    unitTest_indirectLeftRecursion();
     unitTest_unresolvedLeftRecursionException();
 }
