@@ -15,6 +15,7 @@
 #include "NotParser.hpp"
 #include "Match.hpp"
 #include "LeftRecursionException.hpp"
+#include "UnresolvedLeftRecursionException.hpp"
 
 
 namespace parserlib {
@@ -45,6 +46,44 @@ namespace parserlib {
         }
 
         /**
+         * Returns this ptr.
+         * Operator & is reserved for a specific operation of the library.
+         * @return this ptr.
+         */
+        const Rule<ParseContextType>* ptr() const {
+            return this;
+        }
+
+        /**
+         * Returns this ptr.
+         * Operator & is reserved for a specific operation of the library.
+         * @return this ptr.
+         */
+        Rule<ParseContextType>* ptr() {
+            return this;
+        }
+
+        /**
+         * Compares pointer addresses.
+         * Operator & is reserved for a specific operation of the library.
+         * @param rule rule to check against.
+         * @return true if this and given rule are the same object.
+         */
+        bool isSame(const Rule<ParseContextType>* rule) const {
+            return this == rule;
+        }
+
+        /**
+         * Compares pointer addresses.
+         * Operator & is reserved for a specific operation of the library.
+         * @param rule rule to check against.
+         * @return true if this and given rule are the same object.
+         */
+        bool isSame(const Rule<ParseContextType>& rule) const {
+            return isSame(rule.ptr());
+        }
+
+        /**
          * Invokes the underlying parser.
          * @param pc parse context.
          * @return whatever the underlying parser returns.
@@ -68,8 +107,38 @@ namespace parserlib {
             m_parsePosition = pc.sourcePosition();
             m_state = Normal;
 
+            bool result;
+
             //parse
-            const bool result = m_parser->operator ()(pc);
+            try {
+                result = m_parser->operator ()(pc);
+            }
+
+            //if a left recursion exception happens,
+            //check if it was for this rule; if so, convert it to unresolved
+            catch (const LeftRecursionException<ParseContextType>& lre) {
+                //restore state
+                m_parsePosition = prevParsePosition;
+                m_state = prevState;
+
+                //if the same rule, throw unresolved left recursion
+                if (lre.rule().isSame(this)) {
+                    throw UnresolvedLeftRecursionException<ParseContextType>(*this);
+                }
+
+                //else propagate the exception to the parent
+                else {
+                    throw lre;
+                }
+            }
+
+            //any other exception
+            catch (...) {
+                //restore state
+                m_parsePosition = prevParsePosition;
+                m_state = prevState;
+                throw;
+            }
 
             //restore state
             m_parsePosition = prevParsePosition;

@@ -601,6 +601,20 @@ static void unitTest_directLeftRecursion() {
 }
 
 
+static void unitTest_unresolvedLeftRecursionException() {
+    Rule<> grammar = grammar >> terminal('a');
+
+    const std::string input = "a";
+    ParseContext<> pc(input);
+    try {
+        bool ok = grammar(pc);
+    }
+    catch (const UnresolvedLeftRecursionException<ParseContext<>>& ex) {
+        assert(ex.rule().isSame(grammar));
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -616,4 +630,5 @@ void runUnitTests() {
     unitTest_terminalSetParser();
     unitTest_terminalStringParser();
     unitTest_directLeftRecursion();
+    unitTest_unresolvedLeftRecursionException();
 }

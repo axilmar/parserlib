@@ -1,4 +1,3 @@
-- throw UnresolvedLeftRecursionException from the left-recursive rule that could not be parsed.
 - test indirect left recursion.
 - documentation.
 - write a small programming language compiler/interpreter as a demo.
