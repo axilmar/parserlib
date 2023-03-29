@@ -3,9 +3,9 @@
 A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 ## Table Of Contents
-[Introduction](#Introduction)
+[Introduction](#introduction)
 
-[Using the Library](#LibraryUsage)
+[Using the Library](#using-the-library)
 
 [Writing a Grammar](#writing-a-grammar)
 
@@ -51,7 +51,7 @@ num = val
 val = (0..9)+
 ```
 
-## <a name="LibraryUsage"></a>Using the Library
+## Using the Library
 
 The library is available as headers only, since every class is templated.
 
