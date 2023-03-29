@@ -7,7 +7,7 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Using the Library](#LibraryUsage)
 
-[Writing a Grammar](#GrammarConstruction)
+[Writing a Grammar](#writing-a-grammar)
 
 ## <a id="Introduction"></a>Introduction
 
@@ -71,7 +71,7 @@ All the code is included in the namespace `parserlib`:
 using namespace parserlib;
 ```
 
-## <a id="GrammarConstruction"></a>Writing a Grammar
+## Writing a Grammar
 
 A grammar can be written as a series of parsing expressions, formed by operators and by functions that create parser objects.
 
