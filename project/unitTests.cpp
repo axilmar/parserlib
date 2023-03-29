@@ -496,6 +496,29 @@ static int compute(const std::vector<ParseContext<>::Match>& matches) {
 }
 
 
+static void unitTest_recursion() {
+    {
+        Rule<> a = terminal('x') >> a >> terminal('b')
+               |   terminal('a');
+        const std::string input = "xab";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        Rule<> a = terminal('x') >> a >> terminal('b')
+               |   terminal('a');
+        const std::string input = "xcb";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(!ok);
+        assert(pc.sourcePosition() != input.end());
+    }
+}
+
+
 static void unitTest_directLeftRecursion() {
     {
         Rule<> a = a >> terminal('b')
@@ -654,6 +677,7 @@ void runUnitTests() {
     unitTest_terminalRangeParser();
     unitTest_terminalSetParser();
     unitTest_terminalStringParser();
+    unitTest_recursion();
     unitTest_directLeftRecursion();
     unitTest_indirectLeftRecursion();
     unitTest_unresolvedLeftRecursionException();
