@@ -9,7 +9,7 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Writing a Grammar](#GrammarConstruction)
 
-## <a name="Introduction"></a>Introduction
+## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
 
@@ -71,7 +71,7 @@ All the code is included in the namespace `parserlib`:
 using namespace parserlib;
 ```
 
-## <a name="GrammarConstruction"></a>Writing a Grammar
+## <a id="GrammarConstruction"></a>Writing a Grammar
 
 A grammar can be written as a series of parsing expressions, formed by operators and by functions that create parser objects.
 
