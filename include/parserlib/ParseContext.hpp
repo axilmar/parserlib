@@ -65,6 +65,14 @@ namespace parserlib {
                 return m_end;
             }
 
+            /**
+             * Returns the parsed content.
+             * @return the parsed content.
+             */
+            SourceType content() const {
+                return SourceType(m_begin, m_end);
+            }
+
         private:
             const MatchIdType m_id;
             typename SourceType::const_iterator m_begin;
