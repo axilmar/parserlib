@@ -9,6 +9,12 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Writing a Grammar](#writing-a-grammar)
 
+[Invoking a Parser](#invoking-a-parser)
+
+[Non-Left Recursion](#non-left-recursion)
+
+[Left Recursion](#left-recursion)
+
 ## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
@@ -117,3 +123,86 @@ Branches are followed in top-to-bottom fashion.
 If a branch fails to parse, then the next branch is selected, until a branch is found or no more branches exist to follow.
 
 ### Loops
+
+- The `operator *` parses an expression 0 or more times.
+- The `operator +' parses an expression 1 or more times.
+
+```cpp
++(terminalRange('0', '9')) //parse a digit 1 or more times.
+```
+
+### Optionals
+
+A parser can be made optional by using the `operator -`:
+
+```cpp
+-terminalSet('+', '-') >> terminalRange('0', '9') //parse a number; the sign is optional.
+```
+
+### Conditionals
+
+- The `operator &` allows parsing an expression without consuming any tokens; it returns true if the parsing succeeds, false if it fails. It can be used to test a specific series of tokens before parsing.
+- The `operator !` inverts the result of a parsing expression; it returns true if the expression returns false and vice versa.
+
+```cpp
+!terminalSet('=', -') >> terminalRange('0', '9') //parse an integer without a sign.
+```
+
+### Matches
+
+The `operator ==` allows the assignment of a match when a production parses successfully.
+
+```cpp
+(-terminalSet('+', '-') >> terminalRange('0', '9')) == std::string("int")
+```
+
+## Invoking a Parser
+
+In order to invoke a parser, the appropriate `ParseContext` instance must be created.
+
+```cpp
+const auto grammar = (-terminalSet('+', '-') >> terminalRange('0', '9')) == std::string("int");
+std::string input = "123";
+ParseContext<> pc(input);
+const bool ok = grammar(pc);
+for(const auto& match : pc.matches()) {
+    if (match.id() == "int") {
+	    const auto parsedString = match.content();
+    	//process int
+    }
+}
+```
+
+## Non-left Recursion
+
+Rules allow the writing of recursive grammars.
+
+```cpp
+const auto whitespace = terminal(' ');
+const auto integer = terminalRange('0', '9');
+extern Rule<> values;
+const auto value = integer 
+                 | terminal('(') >> values >> terminal(')');
+Rule<> values = value >> whitespace >> values;
+```
+
+The library stores a reference to a rule inside an expression, and therefore rules shall always be used as lvalues.
+
+## Left Recursion
+
+The library can parse direct left recursive grammars.
+
+```cpp
+extern Rule<> expression;
+const auto integer = +terminalRange('0', '9');
+Rule<> value = integer | terminal('(') >> expression >> terminal(')');
+Rule<> mul = mul >> terminal('*') >> value
+           | mul >> terminal('/') >> value
+           | value;
+Rule<> add = add >> terminal('+') >> mul
+           | add >> terminal('-') >> mul
+           | mul;
+Rule<> expression = add;                      
+```
+
+For recursive grammars, parse expressions must be wrapped into a `Rule<>` instance.
