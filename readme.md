@@ -223,14 +223,14 @@ For example, in order to iterate over an array of enum values, with match id als
 
 ```cpp
 enum TOKEN_TYPE {
-	TOKEN_INT,
+    TOKEN_INT,
     TOKEN_IDENTIFIER,
     TOKEN_STRING,
     TOKEN_TYPEDEF
 };
 
 enum MATCH_ID_TYPE {
-	MATCH_VARIABLE,
+    MATCH_VARIABLE,
     MATCH_FUNCTION,
     MATCH_TYPEDEF
 };
