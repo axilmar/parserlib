@@ -74,7 +74,7 @@ namespace parserlib {
             }
 
         private:
-            const MatchIdType m_id;
+            const MatchIdType m_id{};
             typename SourceType::const_iterator m_begin;
             typename SourceType::const_iterator m_end;
 
@@ -83,7 +83,7 @@ namespace parserlib {
                 : m_id(id), m_begin(begin), m_end(end) {
             }
 
-            friend class ParseContext<SourceType>;
+            friend class ParseContext<SourceType, MatchIdType>;
         };
 
         /**
@@ -116,7 +116,7 @@ namespace parserlib {
                 : m_sourceIt(sourceIt), m_matchCount(matchCount) {
             }
 
-            friend class ParseContext<SourceType>;
+            friend class ParseContext<SourceType, MatchIdType>;
         };
 
         /**

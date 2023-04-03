@@ -2,6 +2,9 @@
 #define PARSERLIB_LEFTRECURSIONEXCEPTION_HPP
 
 
+#include <stdexcept>
+
+
 namespace parserlib {
 
 

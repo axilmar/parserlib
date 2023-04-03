@@ -14,8 +14,8 @@ namespace parserlib {
      * @param ParserNodeType the parser to invoke.
      * @param MatchIdType type of match id.
      */
-    template <class ParserNodeType, class MatchIdType = std::string> class Match 
-        : public ParserNode<Match<ParserNodeType>> {
+    template <class ParserNodeType, class MatchIdType> class Match 
+        : public ParserNode<Match<ParserNodeType, MatchIdType>> {
     public:
         /**
          * The default constructor.
