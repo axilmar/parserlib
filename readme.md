@@ -15,6 +15,8 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Left Recursion](#left-recursion)
 
+[Customizing a Parser](#customizing-a-parser)
+
 ## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
@@ -206,3 +208,35 @@ Rule<> expression = add;
 ```
 
 For recursive grammars, parse expressions must be wrapped into a `Rule<>` instance.
+
+## Customizing a Parser
+
+The default element that the parser operates on is a `char`; the default container type that the parser operates on is `std::string`. The default type for match ids is also `std::string`.
+
+These can be changed via template parameters of the class `ParseContext`. The full declararation of it is as follows:
+
+```cpp
+template <class SourceType, class MatchIdType> class ParseContext;
+```
+
+For example, in order to iterate over an array of enum values, with match id also being an enum value, the following can be written:
+
+```cpp
+enum TOKEN_TYPE {
+	TOKEN_INT,
+    TOKEN_IDENTIFIER,
+    TOKEN_STRING,
+    TOKEN_TYPEDEF
+};
+
+enum MATCH_ID_TYPE {
+	MATCH_VARIABLE,
+    MATCH_FUNCTION,
+    MATCH_TYPEDEF
+};
+
+using ParseContext = parserlib::ParseContext<std::vector<TOKEN_TYPE>, MATCH_ID_TYPE>;
+using Rule = parserlib::Rule<ParseContext>;
+```
+
+The library does not care about the source type and the match id type, they can be anything. The source type should follow STL container conventions.
