@@ -145,7 +145,7 @@ A parser can be made optional by using the `operator -`:
 - The `operator !` inverts the result of a parsing expression; it returns true if the expression returns false and vice versa.
 
 ```cpp
-!terminalSet('=', -') >> terminalRange('0', '9') //parse an integer without a sign.
+!terminalSet('=', '-') >> terminalRange('0', '9') //parse an integer without a sign.
 ```
 
 ### Matches
