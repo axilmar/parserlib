@@ -14,6 +14,7 @@
 #include "AndParser.hpp"
 #include "NotParser.hpp"
 #include "Match.hpp"
+#include "TreeMatch.hpp"
 #include "LeftRecursionException.hpp"
 #include "UnresolvedLeftRecursionException.hpp"
 #include "util.hpp"
@@ -310,6 +311,19 @@ namespace parserlib {
     Match<RuleReference<ParseContextType>, MatchIdType>
         operator == (Rule<ParseContextType>& rule, const MatchIdType& matchId) {
         return Match<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    /**
+     * Operator that allows a tree match to be inserted into the parser for a rule.
+     * @param rule rule to apply the operator to.
+     * @param matchId match id.
+     * @return a tree match parser.
+     */
+    template <class ParseContextType, class MatchIdType>
+    TreeMatch<RuleReference<ParseContextType>, MatchIdType>
+        operator >= (Rule<ParseContextType>& rule, const MatchIdType& matchId) {
+        return TreeMatch<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 

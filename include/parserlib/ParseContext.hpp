@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include "TreeMatchException.hpp"
 
 
 namespace parserlib {
@@ -73,14 +74,26 @@ namespace parserlib {
                 return SourceType(m_begin, m_end);
             }
 
+            /**
+             * Returns the children matches.
+             * @return the children matches.
+             */
+            const std::vector<Match>& children() const {
+                return m_children;
+            }
+
         private:
             const MatchIdType m_id{};
             typename SourceType::const_iterator m_begin;
             typename SourceType::const_iterator m_end;
+            std::vector<Match> m_children;
 
             //internal constructor
-            Match(const MatchIdType& id, const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end) 
-                : m_id(id), m_begin(begin), m_end(end) {
+            Match(const MatchIdType& id, 
+                  const typename SourceType::const_iterator& begin, 
+                  const typename SourceType::const_iterator& end, 
+                  std::vector<Match>&& children = std::vector<Match>()) 
+                : m_id(id), m_begin(begin), m_end(end), m_children(children) {
             }
 
             friend class ParseContext<SourceType, MatchIdType>;
@@ -168,6 +181,23 @@ namespace parserlib {
          */
         void addMatch(const MatchIdType& id, const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end) {
             m_matches.push_back(Match(id, begin, end));
+        }
+
+        /**
+         * Adds a match, moving the given number of matches to children.
+         * @param id match id.
+         * @param begin begin position into the source.
+         * @param end end position into the source.
+         * @param childCount number of matches to add to the parent.
+         * @exception TreeMatchException thrown if the given number of children does not exist in the current match table.
+         */
+        void addMatch(const MatchIdType& id, const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end, size_t childCount) {
+            if (childCount > m_matches.size()) {
+                throw TreeMatchException<ParseContext<SourceType, MatchIdType>>(*this);
+            }
+            Match m(id, begin, end, std::vector<Match>(m_matches.end() - childCount, m_matches.end()));
+            m_matches.resize(m_matches.size() - childCount);
+            m_matches.push_back(std::move(m));
         }
 
         /**

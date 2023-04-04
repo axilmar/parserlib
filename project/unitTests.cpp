@@ -663,6 +663,82 @@ static void unitTest_unresolvedLeftRecursionException() {
 }
 
 
+static void unitTest_TreeMatch() {
+    enum TYPE {
+        ZERO,
+        ONE,
+        TWO,
+        THREE,
+        FOUR,
+        FIVE,
+        SIX,
+        SEVEN,
+        EIGHT,
+        NINE,
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        HEX_DIGIT,
+        HEX_BYTE,
+        IP4_ADDRESS
+    };
+
+    const auto zero  = terminal('0') == ZERO ;
+    const auto one   = terminal('1') == ONE  ;
+    const auto two   = terminal('2') == TWO  ;
+    const auto three = terminal('3') == THREE;
+    const auto four  = terminal('4') == FOUR ;
+    const auto five  = terminal('5') == FIVE ;
+    const auto six   = terminal('6') == SIX  ;
+    const auto seven = terminal('7') == SEVEN;
+    const auto eight = terminal('8') == EIGHT;
+    const auto nine  = terminal('9') == NINE ;
+
+    const auto a = terminal('A') == A;
+    const auto b = terminal('B') == B;
+    const auto c = terminal('C') == C;
+    const auto d = terminal('D') == D;
+    const auto e = terminal('E') == E;
+    const auto f = terminal('F') == F;
+
+    const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) >= HEX_DIGIT;
+
+    const auto hexByte = (hexDigit >> hexDigit) >= HEX_BYTE;
+
+    const auto ip4Address = (hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte) >= IP4_ADDRESS;
+
+    const std::string input = "FF.12.DC.A0";
+
+    ParseContext<std::string, TYPE> pc(input);
+    using Match = typename ParseContext<std::string, TYPE>::Match;
+
+    const bool ok = ip4Address(pc);
+
+    assert(ok);
+    assert(pc.matches().size() == 1);
+
+    const Match& match = pc.matches()[0];
+    
+    std::stringstream stream;
+    stream << match.children()[0].children()[0].content();
+    stream << match.children()[0].children()[1].content();
+    stream << '.';
+    stream << match.children()[1].children()[0].content();
+    stream << match.children()[1].children()[1].content();
+    stream << '.';
+    stream << match.children()[2].children()[0].content();
+    stream << match.children()[2].children()[1].content();
+    stream << '.';
+    stream << match.children()[3].children()[0].content();
+    stream << match.children()[3].children()[1].content();
+    const std::string output = stream.str();
+    assert(input == output);
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -681,4 +757,5 @@ void runUnitTests() {
     unitTest_directLeftRecursion();
     unitTest_indirectLeftRecursion();
     unitTest_unresolvedLeftRecursionException();
+    unitTest_TreeMatch();
 }
