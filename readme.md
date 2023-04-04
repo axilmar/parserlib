@@ -17,6 +17,10 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Customizing a Parser](#customizing-a-parser)
 
+[Simple Matches](#simple-matches)
+
+[Tree Matches](#tree-matches)
+
 ## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
@@ -240,3 +244,137 @@ using Rule = parserlib::Rule<ParseContext>;
 ```
 
 The library does not care about the source type and the match id type, they can be anything. The source type should follow STL container conventions.
+
+## Simple Matches
+
+The `operator ==` allows the creation of a match, when an expression parses successfully. The right hand side should be an expression which evaluates to the match id expected by the parse context. Example:
+
+```cpp
+enum TYPE {
+	A, B, C
+};
+
+const auto a = terminal('A') == A;
+const auto b = terminal('B') == B;
+const auto c = terminal('B') == B;
+const auto grammar = a >> b >> c;
+
+std::string input = "ABC";
+ParseContext<std::string, Type> pc(input);
+
+const bool ok = grammar(pc);
+for(const auto& match : pc.matches()) {
+	std::cout << match.content() << " = " << match.id() << std::endl;
+}
+```
+
+The above produces the output:
+
+```
+A = 0
+B = 1
+C = 2
+```
+
+## Tree Matches
+
+The `operator >=` allows the creation of a match, like the `operator ==`, with a difference: all matches created within the context of the expression are placed as children matches.
+
+This allows matches to also be trees, instead of a flat list. 
+
+In the following example, an IP4 address is returned as a tree match, with the following structure:
+
+```
+IP4_ADDRESS
+	HEX_BYTE
+    	HEX_DIGIT
+    	HEX_DIGIT
+	HEX_BYTE
+    	HEX_DIGIT
+    	HEX_DIGIT
+	HEX_BYTE
+    	HEX_DIGIT
+    	HEX_DIGIT
+	HEX_BYTE
+    	HEX_DIGIT
+    	HEX_DIGIT
+```
+
+Here is the code:
+
+```cpp
+enum TYPE {
+    ZERO,
+    ONE,
+    TWO,
+    THREE,
+    FOUR,
+    FIVE,
+    SIX,
+    SEVEN,
+    EIGHT,
+    NINE,
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    HEX_DIGIT,
+    HEX_BYTE,
+    IP4_ADDRESS
+};
+
+const auto zero  = terminal('0') == ZERO ;
+const auto one   = terminal('1') == ONE  ;
+const auto two   = terminal('2') == TWO  ;
+const auto three = terminal('3') == THREE;
+const auto four  = terminal('4') == FOUR ;
+const auto five  = terminal('5') == FIVE ;
+const auto six   = terminal('6') == SIX  ;
+const auto seven = terminal('7') == SEVEN;
+const auto eight = terminal('8') == EIGHT;
+const auto nine  = terminal('9') == NINE ;
+
+const auto a = terminal('A') == A;
+const auto b = terminal('B') == B;
+const auto c = terminal('C') == C;
+const auto d = terminal('D') == D;
+const auto e = terminal('E') == E;
+const auto f = terminal('F') == F;
+
+const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) >= HEX_DIGIT;
+
+const auto hexByte = (hexDigit >> hexDigit) >= HEX_BYTE;
+
+const auto ip4Address = (hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte) >= IP4_ADDRESS;
+
+const std::string input = "FF.12.DC.A0";
+
+ParseContext<std::string, TYPE> pc(input);
+using Match = typename ParseContext<std::string, TYPE>::Match;
+
+const bool ok = ip4Address(pc);
+
+assert(ok);
+assert(pc.matches().size() == 1);
+
+const Match& match = pc.matches()[0];
+
+std::stringstream stream;
+stream << match.children()[0].children()[0].content();
+stream << match.children()[0].children()[1].content();
+stream << '.';
+stream << match.children()[1].children()[0].content();
+stream << match.children()[1].children()[1].content();
+stream << '.';
+stream << match.children()[2].children()[0].content();
+stream << match.children()[2].children()[1].content();
+stream << '.';
+stream << match.children()[3].children()[0].content();
+stream << match.children()[3].children()[1].content();
+const std::string output = stream.str();
+std::cout << output;
+```
+
+The above prints the input, which is the value `FF.12.DC.A0`.
