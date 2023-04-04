@@ -87,16 +87,19 @@ static const auto keywordToken(const Char* kw, TOKEN_TYPE tokenType) {
 
 //token
 static const auto token = whitespace
-                        | keywordToken("typedef", TOKEN_TYPEDEF)
-                        | keywordToken("struct", TOKEN_STRUCT)
-                        | keywordToken("write", TOKEN_WRITE)
-                        | keywordToken("read", TOKEN_READ)
-                        | keywordToken("new", TOKEN_NEW)
+                        | keywordToken("typedef", TOKEN_KEYWORD_TYPEDEF)
+                        | keywordToken("double", TOKEN_KEYWORD_DOUBLE)
+                        | keywordToken("struct", TOKEN_KEYWORD_STRUCT)
+                        | keywordToken("write", TOKEN_KEYWORD_WRITE)
+                        | keywordToken("char", TOKEN_KEYWORD_CHAR)
+                        | keywordToken("read", TOKEN_KEYWORD_READ)
+                        | keywordToken("int", TOKEN_KEYWORD_INT)
+                        | keywordToken("new", TOKEN_KEYWORD_NEW)
                         | identifier == TOKEN_IDENTIFIER
-                        | floatLiteral == TOKEN_FLOAT
-                        | integerLiteral == TOKEN_INTEGER
-                        | stringLiteral == TOKEN_STRING
-                        | charLiteral == TOKEN_CHAR
+                        | floatLiteral == TOKEN_LITERAL_FLOAT
+                        | integerLiteral == TOKEN_LITERAL_INTEGER
+                        | stringLiteral == TOKEN_LITERAL_STRING
+                        | charLiteral == TOKEN_LITERAL_CHAR
                         | charToken('~', TOKEN_TILDE)
                         | charToken('!', TOKEN_EXCLAMATION_MARK)
                         | charToken('%', TOKEN_PERCENT)
@@ -133,8 +136,6 @@ static const auto syntaxChecker = &token;
 
 //tokenize source
 std::vector<Token> tokenize(const SourceType& input, std::vector<Error>& errors) {
-    std::vector<Token> result;
-
     //the source view over the source type
     SourceView<SourceType> view(input);
 
@@ -167,6 +168,7 @@ std::vector<Token> tokenize(const SourceType& input, std::vector<Error>& errors)
     }
 
     //extract tokens
+    std::vector<Token> result;
     for (const auto& match : pc.matches()) {
         result.push_back(Token{ match.id(), SourceType(match.begin(), match.end()), Position{ match.begin().line(), match.begin().column()} });
     }

@@ -17,16 +17,19 @@ using SourceType = std::basic_string<Char>;
 
 //token type
 enum TOKEN_TYPE {
-    TOKEN_TYPEDEF,
-    TOKEN_STRUCT,
-    TOKEN_WRITE,
-    TOKEN_READ,
-    TOKEN_NEW,
+    TOKEN_KEYWORD_TYPEDEF,
+    TOKEN_KEYWORD_DOUBLE,
+    TOKEN_KEYWORD_STRUCT,
+    TOKEN_KEYWORD_WRITE,
+    TOKEN_KEYWORD_CHAR,
+    TOKEN_KEYWORD_READ,
+    TOKEN_KEYWORD_INT,
+    TOKEN_KEYWORD_NEW,
     TOKEN_IDENTIFIER,
-    TOKEN_INTEGER,
-    TOKEN_FLOAT,
-    TOKEN_STRING,
-    TOKEN_CHAR,
+    TOKEN_LITERAL_INTEGER,
+    TOKEN_LITERAL_FLOAT,
+    TOKEN_LITERAL_STRING,
+    TOKEN_LITERAL_CHAR,
     TOKEN_TILDE,
     TOKEN_EXCLAMATION_MARK,
     TOKEN_PERCENT,
@@ -58,6 +61,10 @@ struct Token {
     TOKEN_TYPE type;
     SourceType value;
     Position position;
+
+    bool operator == (TOKEN_TYPE tokenType) const {
+        return type == tokenType;
+    }
 };
 
 
