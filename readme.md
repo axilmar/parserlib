@@ -173,8 +173,8 @@ ParseContext<> pc(input);
 const bool ok = grammar(pc);
 for(const auto& match : pc.matches()) {
     if (match.id() == "int") {
-	    const auto parsedString = match.content();
-    	//process int
+        const auto parsedString = match.content();
+        //process int
     }
 }
 ```
@@ -251,7 +251,7 @@ The `operator ==` allows the creation of a match, when an expression parses succ
 
 ```cpp
 enum TYPE {
-	A, B, C
+    A, B, C
 };
 
 const auto a = terminal('A') == A;
@@ -264,7 +264,7 @@ ParseContext<std::string, Type> pc(input);
 
 const bool ok = grammar(pc);
 for(const auto& match : pc.matches()) {
-	std::cout << match.content() << " = " << match.id() << std::endl;
+    std::cout << match.content() << " = " << match.id() << std::endl;
 }
 ```
 
@@ -286,18 +286,18 @@ In the following example, an IP4 address is returned as a tree match, with the f
 
 ```
 IP4_ADDRESS
-	HEX_BYTE
-    	HEX_DIGIT
-    	HEX_DIGIT
-	HEX_BYTE
-    	HEX_DIGIT
-    	HEX_DIGIT
-	HEX_BYTE
-    	HEX_DIGIT
-    	HEX_DIGIT
-	HEX_BYTE
-    	HEX_DIGIT
-    	HEX_DIGIT
+    HEX_BYTE
+        HEX_DIGIT
+        HEX_DIGIT
+    HEX_BYTE
+        HEX_DIGIT
+        HEX_DIGIT
+    HEX_BYTE
+        HEX_DIGIT
+        HEX_DIGIT
+    HEX_BYTE
+        HEX_DIGIT
+        HEX_DIGIT
 ```
 
 Here is the code:
