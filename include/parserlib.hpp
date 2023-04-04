@@ -8,6 +8,7 @@
 #include "parserlib/TerminalSetParser.hpp"
 #include "parserlib/EOFParser.hpp"
 #include "parserlib/Rule.hpp"
+#include "parserlib/SourceView.hpp"
 #include "parserlib/util.hpp"
 
 

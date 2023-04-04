@@ -195,6 +195,14 @@ namespace parserlib {
             m_sourceIt += count;
         }
 
+        /**
+         * Checks if the source has ended.
+         * @return true if there is no more source to parse, false otherwise.
+         */
+        bool sourceEnded() const {
+            return m_sourceIt == m_sourceEnd;
+        }
+
     private:
         typename SourceType::const_iterator m_sourceIt;
         const typename SourceType::const_iterator m_sourceEnd;
