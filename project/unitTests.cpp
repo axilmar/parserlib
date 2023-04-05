@@ -649,20 +649,6 @@ static void unitTest_indirectLeftRecursion() {
 }
 
 
-static void unitTest_unresolvedLeftRecursionException() {
-    Rule<> grammar = grammar >> terminal('a');
-
-    const std::string input = "a";
-    ParseContext<> pc(input);
-    try {
-        bool ok = grammar(pc);
-    }
-    catch (const UnresolvedLeftRecursionException<ParseContext<>>& ex) {
-        assert(ex.rule().isSame(grammar));
-    }
-}
-
-
 static void unitTest_TreeMatch() {
     enum TYPE {
         ZERO,
@@ -756,6 +742,5 @@ void runUnitTests() {
     unitTest_recursion();
     unitTest_directLeftRecursion();
     unitTest_indirectLeftRecursion();
-    unitTest_unresolvedLeftRecursionException();
     unitTest_TreeMatch();
 }

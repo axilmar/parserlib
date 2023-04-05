@@ -16,7 +16,6 @@
 #include "Match.hpp"
 #include "TreeMatch.hpp"
 #include "LeftRecursionException.hpp"
-#include "UnresolvedLeftRecursionException.hpp"
 #include "util.hpp"
 
 
@@ -123,9 +122,9 @@ namespace parserlib {
             //if a left recursion exception happens,
             //check if it was for this rule; if so, convert it to unresolved
             catch (const LeftRecursionException<ParseContextType>& lre) {
-                //if the same rule, throw unresolved left recursion
+                //if the same rule, then the rule failed to parse
                 if (lre.rule().isSame(this)) {
-                    throw UnresolvedLeftRecursionException<ParseContextType>(*this);
+                    return false;
                 }
 
                 //else propagate the exception to the parent
