@@ -156,7 +156,9 @@ A parser can be made optional by using the `operator -`:
 
 ### Matches
 
-The `operator ==` allows the assignment of a match when a production parses successfully.
+- The `operator ==` allows the assignment of a match id to a production; [the created match does not have any children](#simple-matches).
+- The `operator >=` allows the assignment of a match id to a production; [the created match has children matches](#tree-matches).
+
 
 ```cpp
 (-terminalSet('+', '-') >> terminalRange('0', '9')) == std::string("int")
