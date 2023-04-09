@@ -8,7 +8,7 @@
 #include "RuleReference.hpp"
 #include "SequenceParser.hpp"
 #include "ChoiceParser.hpp"
-#include "LoopParser.hpp"
+#include "Loop0Parser.hpp"
 #include "Loop1Parser.hpp"
 #include "OptionalParser.hpp"
 #include "AndParser.hpp"
@@ -16,6 +16,7 @@
 #include "Match.hpp"
 #include "TreeMatch.hpp"
 #include "LeftRecursionException.hpp"
+#include "LeftRecursionAccepted.hpp"
 #include "util.hpp"
 
 
@@ -91,90 +92,143 @@ namespace parserlib {
          * @exception LeftRecursionException thrown when left recursion is found upon the referenced rule.
          */
         bool operator ()(ParseContextType& pc) {
-            //check for left recursion
-            if (m_parsePosition == pc.sourcePosition()) {
-                switch (m_state) {
-                    case Normal: throw LeftRecursionException<ParseContextType>(*this);
-                    case Reject: return false;
-                    case Accept: return true;
-                }
-            }
-
-            //save state
-            const auto prevParsePosition = m_parsePosition;
-            const auto prevState = m_state;
-
-            //exit handler
-            RAII exitHandler([&]() {
-                m_parsePosition = prevParsePosition;
-                m_state = prevState;
-            });
-
-            //set new state
-            m_parsePosition = pc.sourcePosition();
-            m_state = Normal;
-
-            //parse
-            try {
-                return m_parser->operator ()(pc);
-            }
-
-            //if a left recursion exception happens,
-            //check if it was for this rule; if so, convert it to unresolved
-            catch (const LeftRecursionException<ParseContextType>& lre) {
-                //if the same rule, then the rule failed to parse
-                if (lre.rule().isSame(this)) {
+            switch (tryParse(pc)) {
+                case Failure:
                     return false;
-                }
 
-                //else propagate the exception to the parent
-                else {
-                    throw lre;
-                }
+                case Success:
+                    return true;
+
+                case LeftRecursion:
+                    throw LeftRecursionException<ParseContextType>(*this);
             }
 
             throw std::logic_error("Rule: operator (): invalid state.");
         }
 
         /**
-         * Returns the parse position of the rule.
-         * @return the parse position of the rule.
+         * Parses a terminal under left recursion.
+         * @param pc parse context.
+         * @return true if a terminal was parsed, false otherwise.
          */
-        const std::optional<typename ParseContextType::Position> getParsePosition() const {
-            return m_parsePosition;
+        bool parseLeftRecursionTerminal(ParseContextType& pc) {
+            switch (tryParse(pc)) {
+                case Failure:
+                    return false;
+
+                case Success:
+                    return true;
+
+                case LeftRecursion:
+                    return false;
+            }
+
+            throw std::logic_error("Rule: parseLeftRecursionTerminal: invalid state.");
         }
 
         /**
-         * Sets the parse position.
-         * @param position new parse position.
+         * Parses a left recursion continuation.
+         * @param pc parse context.
+         * @return true on success, false otherwise.
          */
-        void setParsePosition(const typename ParseContextType::Position& position) {
-            m_parsePosition = position;
-        }
+        bool parseLeftRecursionContinuation(ParseContextType& pc) {
+            switch (tryParse(pc)) {
+                case Failure:
+                    return false;
 
-        /**
-         * Sets the state to reject.
-         */
-        void setRejectState() {
-            m_state = Reject;
-        }
+                case Success:
+                    return true;
 
-        /**
-         * Sets the state to accept.
-         */
-        void setAcceptState() {
-            m_state = Accept;
+                case LeftRecursion:
+                    throw LeftRecursionAccepted();
+            }
+
+            throw std::logic_error("Rule: parseLeftRecursionContinuation: invalid state.");
         }
 
     private:
-        enum State {
-            Normal,
-            Reject,
-            Accept
+        enum ParseResult {
+            Failure,
+            Success,
+            LeftRecursion
         };
-        std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
+
+        const std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
         std::optional<typename ParseContextType::Position> m_parsePosition;
-        State m_state{ Normal };
+
+        //try parsing
+        ParseResult tryParse(ParseContextType& pc) {
+            //if same position, return left recursion
+            if (m_parsePosition == pc.sourcePosition()) {
+                return LeftRecursion;
+            }
+
+            const auto startPosition = m_parsePosition;
+
+            RAII restoreParsePosition = [&]() {
+                m_parsePosition = startPosition;
+            };
+
+            m_parsePosition = pc.sourcePosition();
+
+            //catch left recursion if thrown from normal parsing
+            try {
+                return m_parser->operator ()(pc) ? Success : Failure;
+            }
+
+            //if this object threw the exception, then handle the left recursion,
+            //else propagate the exception to the rule that threw it
+            catch (const LeftRecursionException<ParseContextType>& lre) {
+                if (lre.rule().isSame(this)) {
+                    return handleLeftRecursion(pc) ? Success : Failure;
+                }
+                throw lre;
+            }
+            
+            //if this is thrown, it means there was no sequence to handle it,
+            //and therefore nothing was parsed; return failure
+            catch (LeftRecursionAccepted) {
+                return Failure;
+            }
+        }
+
+        //handle left recursion
+        bool handleLeftRecursion(ParseContextType& pc) {
+            m_parsePosition = pc.sourcePosition();
+
+            //try to parse a terminal under left recursion; 
+            //if it fails, fail the parsing
+            try {
+                if (!m_parser->parseLeftRecursionTerminal(pc)) {
+                    return false;
+                }
+            }
+            catch (const LeftRecursionException<ParseContextType>&) {
+                return false;
+            }
+
+            //parse the left recursion continuation, until no more parsing possible
+            while (!pc.sourceEnded()) {
+                const auto startPosition = pc.sourcePosition();
+
+                m_parsePosition = pc.sourcePosition();
+
+                try {
+                    //parse continuation; stop on failure or if no progress could be made
+                    if (!m_parser->parseLeftRecursionContinuation(pc) || pc.sourcePosition() == startPosition) {
+                        break;
+                    }
+                }
+
+                //no child parser could parse left recursion; stop the continuation
+                catch (const LeftRecursionException<ParseContextType>&) {
+                    break;
+                }
+            }
+
+            //success
+            return true;
+        }
     };
 
 

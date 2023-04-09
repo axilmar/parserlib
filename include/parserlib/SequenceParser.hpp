@@ -3,6 +3,7 @@
 
 
 #include "ParserNode.hpp"
+#include "LeftRecursionAccepted.hpp"
 
 
 namespace parserlib {
@@ -37,25 +38,113 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
+            //keep initial state in order to later restore it if subsequence parser fails
             const auto state = pc.state();
-            if (parseTuple<0>(pc)) {
-                return true;
+
+            //parse children; all children must parse
+            const bool ok = parse<0>(pc);
+
+            //if parsing fails, restore the initial state
+            if (!ok) {
+                pc.setState(state);
             }
-            pc.setState(state);
-            return false;
+
+            return ok;
+        }
+
+        /**
+         * Parses a terminal under left recursion.
+         * @param pc parse context.
+         * @return true if a terminal was parsed, false otherwise.
+         */
+        template <class ParseContextType> bool parseLeftRecursionTerminal(ParseContextType& pc) const {
+            //keep initial state in order to later restore it if subsequence parser fails
+            const auto state = pc.state();
+
+            //parse children; all children must parse
+            const bool ok = parseLRT<0>(pc);
+
+            //if parsing fails, restore the initial state
+            if (!ok) {
+                pc.setState(state);
+            }
+
+            return ok;
+        }
+
+        /**
+         * Parses a left recursion continuation.
+         * @param pc parse context.
+         * @return true on success, false otherwise.
+         */
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc) const {
+            //keep initial state in order to later restore it if subsequence parser fails
+            const auto state = pc.state();
+
+            //parse children; all children must parse
+            const bool ok = parseLRC<0>(pc);
+
+            //if parsing fails, restore the initial state
+            if (!ok) {
+                pc.setState(state);
+            }
+
+            return ok;
         }
 
     private:
         std::tuple<Children...> m_children;
 
-        template <size_t Index, class ParseContextType> bool parseTuple(ParseContextType& pc) const {
+        template <size_t Index, class ParseContextType> bool parse(ParseContextType& pc) const {
             if constexpr (Index < sizeof...(Children)) {
                 if (std::get<Index>(m_children)(pc)) {
-                    return parseTuple<Index + 1>(pc);
+                    return parse<Index + 1>(pc);
                 }
-                else {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        template <size_t Index, class ParseContextType> bool parseLRT(ParseContextType& pc) const {
+            if constexpr (Index < sizeof...(Children)) {
+                const auto startPosition = pc.sourcePosition();
+                
+                //if parsing fails, return failure
+                if (!std::get<Index>(m_children).parseLeftRecursionTerminal(pc)) {
                     return false;
                 }
+
+                //if no input was consumed, find a terminal from the next parser
+                if (pc.sourcePosition() == startPosition) {
+                    return parseLRT<Index + 1>(pc);
+                }
+
+                //input was consumed, so proceed with normal parsing
+                return parse<Index + 1>(pc);
+            }
+            else {
+                return true;
+            }
+        }
+
+        template <size_t Index, class ParseContextType> bool parseLRC(ParseContextType& pc) const {
+            if constexpr (Index < sizeof...(Children)) {
+                try {
+                    //if parsing fails, return failure
+                    if (!std::get<Index>(m_children).parseLeftRecursionContinuation(pc)) {
+                        return false;
+                    }
+                }
+
+                //if a rule accepted the left recursion, then continue with normal parsing
+                catch (LeftRecursionAccepted) {
+                    return parse<Index + 1>(pc);
+                }
+
+                //no rule accepted the left recursion yet, continue with left recursion continuation
+                return parseLRC<Index + 1>(pc);
             }
             else {
                 return true;

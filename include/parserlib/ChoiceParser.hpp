@@ -3,7 +3,6 @@
 
 
 #include "ParserNode.hpp"
-#include "LeftRecursionException.hpp"
 
 
 namespace parserlib {
@@ -38,48 +37,60 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            return parseTuple<0>(pc);
+            return parse<0>(pc);
+        }
+
+        /**
+         * Parses a terminal under left recursion.
+         * @param pc parse context.
+         * @return true if a terminal was parsed, false otherwise.
+         */
+        template <class ParseContextType> bool parseLeftRecursionTerminal(ParseContextType& pc) const {
+            return parseLRT<0>(pc);
+        }
+
+        /**
+         * Parses a left recursion continuation.
+         * @param pc parse context.
+         * @return true on success, false otherwise.
+         */
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc) const {
+            return parseLRC<0>(pc);
         }
 
     private:
         std::tuple<Children...> m_children;
 
-        //tuple parse
-        template <size_t Index, class ParseContextType> bool parseTuple(ParseContextType& pc) const {
+        template <size_t Index, class ParseContextType> bool parse(ParseContextType& pc) const {
             if constexpr (Index < sizeof...(Children)) {
-                //try branch
-                try {
-                    if (std::get<Index>(m_children)(pc)) {
-                        return true;
-                    }
-                }                
-
-                //found left recursion
-                catch (const LeftRecursionException<ParseContextType>& lre) {
-                    //parse non-left recursive part; on failure, pass the exception up the stack
-                    //for another choice to parse it
-                    lre.rule().setRejectState();
-                    if (!parseTuple<Index + 1>(pc)) {
-                        throw lre;
-                    }
-
-                    //parse after the left recursion until failure or input end
-                    lre.rule().setAcceptState();
-                    while (true) {
-                        lre.rule().setParsePosition(pc.sourcePosition());
-                        if (!std::get<Index>(m_children)(pc)) {
-                            break;
-                        }
-                        if (pc.sourcePosition() == pc.sourceEndPosition()) {
-                            break;
-                        }
-                    }
-
+                if (std::get<Index>(m_children)(pc)) {
                     return true;
                 }
+                return parse<Index + 1>(pc);
+            }
+            else {
+                return false;
+            }
+        }
 
-                //try next branch
-                return parseTuple<Index + 1>(pc);
+        template <size_t Index, class ParseContextType> bool parseLRT(ParseContextType& pc) const {
+            if constexpr (Index < sizeof...(Children)) {
+                if (std::get<Index>(m_children).parseLeftRecursionTerminal(pc)) {
+                    return true;
+                }
+                return parseLRT<Index + 1>(pc);
+            }
+            else {
+                return false;
+            }
+        }
+
+        template <size_t Index, class ParseContextType> bool parseLRC(ParseContextType& pc) const {
+            if constexpr (Index < sizeof...(Children)) {
+                if (std::get<Index>(m_children).parseLeftRecursionContinuation(pc)) {
+                    return true;
+                }
+                return parseLRC<Index + 1>(pc);
             }
             else {
                 return false;

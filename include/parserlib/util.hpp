@@ -6,6 +6,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <tuple>
+#include <utility>
 
 
 namespace parserlib {

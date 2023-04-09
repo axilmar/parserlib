@@ -188,32 +188,6 @@ static void unitTest_LoopParser() {
 }
 
 
-static void unitTest_MatchParser() {
-    const auto parser = terminal('a') == std::string("m");
-
-    {
-        const std::string input = "a";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        const auto matches = pc.matches();
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(matches.size() == 1);
-        assert(matches[0].id() == "m");
-    }
-
-    {
-        const std::string input = "b";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        const auto matches = pc.matches();
-        assert(!ok);
-        assert(pc.sourcePosition() == input.begin());
-        assert(matches.size() == 0);
-    }
-}
-
-
 static void unitTest_NotParser() {
     const auto parser = !terminal('a');
 
@@ -496,6 +470,108 @@ static int compute(const std::vector<ParseContext<>::Match>& matches) {
 }
 
 
+static void unitTest_Match() {
+    const auto parser = terminal('a') == std::string("m");
+
+    {
+        const std::string input = "a";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        const auto matches = pc.matches();
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+        assert(matches.size() == 1);
+        assert(matches[0].id() == "m");
+    }
+
+    {
+        const std::string input = "b";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        const auto matches = pc.matches();
+        assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+        assert(matches.size() == 0);
+    }
+}
+
+
+static void unitTest_TreeMatch() {
+    enum TYPE {
+        ZERO,
+        ONE,
+        TWO,
+        THREE,
+        FOUR,
+        FIVE,
+        SIX,
+        SEVEN,
+        EIGHT,
+        NINE,
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        HEX_DIGIT,
+        HEX_BYTE,
+        IP4_ADDRESS
+    };
+
+    const auto zero = terminal('0') == ZERO;
+    const auto one = terminal('1') == ONE;
+    const auto two = terminal('2') == TWO;
+    const auto three = terminal('3') == THREE;
+    const auto four = terminal('4') == FOUR;
+    const auto five = terminal('5') == FIVE;
+    const auto six = terminal('6') == SIX;
+    const auto seven = terminal('7') == SEVEN;
+    const auto eight = terminal('8') == EIGHT;
+    const auto nine = terminal('9') == NINE;
+
+    const auto a = terminal('A') == A;
+    const auto b = terminal('B') == B;
+    const auto c = terminal('C') == C;
+    const auto d = terminal('D') == D;
+    const auto e = terminal('E') == E;
+    const auto f = terminal('F') == F;
+
+    const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) >= HEX_DIGIT;
+
+    const auto hexByte = (hexDigit >> hexDigit) >= HEX_BYTE;
+
+    const auto ip4Address = (hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte) >= IP4_ADDRESS;
+
+    const std::string input = "FF.12.DC.A0";
+
+    ParseContext<std::string, TYPE> pc(input);
+    using Match = typename ParseContext<std::string, TYPE>::Match;
+
+    const bool ok = ip4Address(pc);
+
+    assert(ok);
+    assert(pc.matches().size() == 1);
+
+    const Match& match = pc.matches()[0];
+
+    std::stringstream stream;
+    stream << match.children()[0].children()[0].content();
+    stream << match.children()[0].children()[1].content();
+    stream << '.';
+    stream << match.children()[1].children()[0].content();
+    stream << match.children()[1].children()[1].content();
+    stream << '.';
+    stream << match.children()[2].children()[0].content();
+    stream << match.children()[2].children()[1].content();
+    stream << '.';
+    stream << match.children()[3].children()[0].content();
+    stream << match.children()[3].children()[1].content();
+    const std::string output = stream.str();
+    assert(input == output);
+}
+
+
 static void unitTest_recursion() {
     {
         Rule<> a = terminal('x') >> a >> terminal('b')
@@ -548,6 +624,17 @@ static void unitTest_directLeftRecursion() {
         bool ok = a(pc);
         assert(ok);
         assert(pc.sourcePosition() != input.end());
+    }
+
+    {
+        Rule<> a = a >> terminal('b')
+                 | a >> terminal('c')
+                 | terminal('a');
+        const std::string input = "abcbcbc";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
     }
 
     {
@@ -635,93 +722,15 @@ static void unitTest_indirectLeftRecursion() {
         assert(pc.sourcePosition() == input.end());
     }
 
-    /*
-    {
-        Rule<> a = -(terminal('x')) >> a >> terminal('b')
-                 | terminal('a');
-        const std::string input = "xab";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-    }
-    */
-}
-
-
-static void unitTest_TreeMatch() {
-    enum TYPE {
-        ZERO,
-        ONE,
-        TWO,
-        THREE,
-        FOUR,
-        FIVE,
-        SIX,
-        SEVEN,
-        EIGHT,
-        NINE,
-        A,
-        B,
-        C,
-        D,
-        E,
-        F,
-        HEX_DIGIT,
-        HEX_BYTE,
-        IP4_ADDRESS
-    };
-
-    const auto zero  = terminal('0') == ZERO ;
-    const auto one   = terminal('1') == ONE  ;
-    const auto two   = terminal('2') == TWO  ;
-    const auto three = terminal('3') == THREE;
-    const auto four  = terminal('4') == FOUR ;
-    const auto five  = terminal('5') == FIVE ;
-    const auto six   = terminal('6') == SIX  ;
-    const auto seven = terminal('7') == SEVEN;
-    const auto eight = terminal('8') == EIGHT;
-    const auto nine  = terminal('9') == NINE ;
-
-    const auto a = terminal('A') == A;
-    const auto b = terminal('B') == B;
-    const auto c = terminal('C') == C;
-    const auto d = terminal('D') == D;
-    const auto e = terminal('E') == E;
-    const auto f = terminal('F') == F;
-
-    const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) >= HEX_DIGIT;
-
-    const auto hexByte = (hexDigit >> hexDigit) >= HEX_BYTE;
-
-    const auto ip4Address = (hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte) >= IP4_ADDRESS;
-
-    const std::string input = "FF.12.DC.A0";
-
-    ParseContext<std::string, TYPE> pc(input);
-    using Match = typename ParseContext<std::string, TYPE>::Match;
-
-    const bool ok = ip4Address(pc);
-
-    assert(ok);
-    assert(pc.matches().size() == 1);
-
-    const Match& match = pc.matches()[0];
-    
-    std::stringstream stream;
-    stream << match.children()[0].children()[0].content();
-    stream << match.children()[0].children()[1].content();
-    stream << '.';
-    stream << match.children()[1].children()[0].content();
-    stream << match.children()[1].children()[1].content();
-    stream << '.';
-    stream << match.children()[2].children()[0].content();
-    stream << match.children()[2].children()[1].content();
-    stream << '.';
-    stream << match.children()[3].children()[0].content();
-    stream << match.children()[3].children()[1].content();
-    const std::string output = stream.str();
-    assert(input == output);
+    //{
+    //    Rule<> a = -(terminal('x')) >> a >> terminal('b')
+    //             | terminal('a');
+    //    const std::string input = "xab";
+    //    ParseContext<> pc(input);
+    //    bool ok = a(pc);
+    //    assert(ok);
+    //    assert(pc.sourcePosition() == input.end());
+    //}
 }
 
 
@@ -730,7 +739,6 @@ void runUnitTests() {
     unitTest_ChoiceParser();
     unitTest_Loop1Parser();
     unitTest_LoopParser();
-    unitTest_MatchParser();
     unitTest_NotParser();
     unitTest_OptionalParser();
     unitTest_Rule();
@@ -739,8 +747,9 @@ void runUnitTests() {
     unitTest_terminalRangeParser();
     unitTest_terminalSetParser();
     unitTest_terminalStringParser();
+    unitTest_Match();
+    unitTest_TreeMatch();
     unitTest_recursion();
     unitTest_directLeftRecursion();
     unitTest_indirectLeftRecursion();
-    unitTest_TreeMatch();
 }
