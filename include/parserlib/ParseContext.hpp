@@ -105,6 +105,13 @@ namespace parserlib {
         class State {
         public:
             /**
+             * The default constructor.
+             * The state is invalid and shall not be used until initialized.
+             */
+            State() {
+            }
+
+            /**
              * Returns the current source position.
              * @return the current source position.
              */
