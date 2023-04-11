@@ -2,10 +2,7 @@
 #define PARSERLIB_RULEREFERENCE_HPP
 
 
-#include <optional>
 #include "ParserNode.hpp"
-#include "ParseContext.hpp"
-#include "SVO.hpp"
 
 
 namespace parserlib {
@@ -21,7 +18,7 @@ namespace parserlib {
      * and so they are passed around via rule references.
      * @param ParseContextType type of context to pass to the parse function.
      */
-    template <class ParseContextType = ParseContext<>> class RuleReference
+    template <class ParseContextType> class RuleReference
         : public ParserNode<RuleReference<ParseContextType>> {
     public:
         /**
@@ -46,19 +43,11 @@ namespace parserlib {
          * @return whatever the rule returns.
          */
         bool operator ()(ParseContextType& pc) const {
-            if (m_parsePosition != pc.sourcePosition()) {
-                const SVO svoSourcePosition(m_parsePosition, pc.sourcePosition());
-                return m_rule(pc);
-
-            }
-            else {
-                return false;
-            }
+            return m_rule(pc);
         }
 
     private:
         Rule<ParseContextType>& m_rule;
-        mutable std::optional<typename ParseContextType::Position> m_parsePosition;
     };
 
 

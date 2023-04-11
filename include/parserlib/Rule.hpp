@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <optional>
+#include "ParseContext.hpp"
 #include "ParserWrapper.hpp"
 #include "RuleReference.hpp"
 #include "SequenceParser.hpp"

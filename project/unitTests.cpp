@@ -592,6 +592,44 @@ static void unitTest_recursion() {
         assert(!ok);
         assert(pc.sourcePosition() != input.end());
     }
+
+    {
+        Rule<> r = 'x' >>  r  >> 'b'
+                 |  r  >> 'c'
+                 | 'a';
+
+        {
+            const std::string input = "xacb";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "xab";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "xabc";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "ac";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+        }
+    }
 }
 
 
@@ -735,9 +773,6 @@ static void unitTest_indirectLeftRecursion() {
 
 
 static void testR() {
-    Rule<> r = 'x' >> r >> 'b'
-             | r >> 'c'
-             | 'a';
 }
 
 
@@ -757,7 +792,7 @@ void runUnitTests() {
     //unitTest_terminalStringParser();
     //unitTest_Match();
     //unitTest_TreeMatch();
-    //unitTest_recursion();
+    unitTest_recursion();
     //unitTest_directLeftRecursion();
     //unitTest_indirectLeftRecursion();
 }
