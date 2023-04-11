@@ -15,7 +15,8 @@
 #include "NotParser.hpp"
 #include "Match.hpp"
 #include "TreeMatch.hpp"
-#include "util.hpp"
+#include "TerminalParser.hpp"
+#include "TerminalStringParser.hpp"
 
 
 namespace parserlib {
@@ -50,7 +51,7 @@ namespace parserlib {
          * Operator & is reserved for a specific operation of the library.
          * @return this ptr.
          */
-        const Rule<ParseContextType>* ptr() const {
+        const Rule<ParseContextType>* this_() const {
             return this;
         }
 
@@ -59,28 +60,8 @@ namespace parserlib {
          * Operator & is reserved for a specific operation of the library.
          * @return this ptr.
          */
-        Rule<ParseContextType>* ptr() {
+        Rule<ParseContextType>* this_() {
             return this;
-        }
-
-        /**
-         * Compares pointer addresses.
-         * Operator & is reserved for a specific operation of the library.
-         * @param rule rule to check against.
-         * @return true if this and given rule are the same object.
-         */
-        bool isSame(const Rule<ParseContextType>* rule) const {
-            return this == rule;
-        }
-
-        /**
-         * Compares pointer addresses.
-         * Operator & is reserved for a specific operation of the library.
-         * @param rule rule to check against.
-         * @return true if this and given rule are the same object.
-         */
-        bool isSame(const Rule<ParseContextType>& rule) const {
-            return isSame(rule.ptr());
         }
 
         /**
@@ -136,10 +117,202 @@ namespace parserlib {
 
 
     /**
+     * Sequence between a rule and a character.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a sequence of the rule and a character.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, char ch) {
+        return operator >> (rule, TerminalParser<char>(ch));
+    }
+
+
+    /**
+     * Sequence between a rule and a string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a sequence of the rule and a string.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, const char* str) {
+        return rule >> TerminalStringParser<char>(str);
+    }
+
+
+    /**
+     * Sequence between a rule and a wide character.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a sequence of the rule and a character.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, wchar_t ch) {
+        return rule >> TerminalParser<wchar_t>(ch);
+    }
+
+
+    /**
+     * Sequence between a rule and a wide character string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a sequence of the rule and a string.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, const wchar_t* str) {
+        return rule >> TerminalStringParser<wchar_t>(str);
+    }
+
+
+    /**
+     * Sequence between a rule and a 16-bit character.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a sequence of the rule and a character.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, char16_t ch) {
+        return rule >> TerminalParser<char16_t>(ch);
+    }
+
+
+    /**
+     * Sequence between a rule and a 16-bit character string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a sequence of the rule and a string.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, const char16_t* str) {
+        return rule >> TerminalStringParser<char16_t>(str);
+    }
+
+
+    /**
+     * Sequence between a rule and a 32-bit character.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a sequence of the rule and a character.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, char32_t ch) {
+        return rule >> TerminalParser<char32_t>(ch);
+    }
+
+
+    /**
+     * Sequence between a rule and a 32-bit character string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a sequence of the rule and a string.
+     */
+    template <class ParseContextType>
+    auto operator >> (Rule<ParseContextType>& rule, const char32_t* str) {
+        return rule >> TerminalStringParser<char32_t>(str);
+    }
+
+
+    /**
+     * Sequence between a char and a rule.
+     * @param ch the character.
+     * @param rule the rule parser.
+     * @return a sequence of a char terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (char ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<char>(ch) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a char string and a rule.
+     * @param str the string.
+     * @param rule the rule parser.
+     * @return a sequence of a string terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (const char* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<char>(str) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a wchar_t and a rule.
+     * @param ch the character.
+     * @param rule the rule parser.
+     * @return a sequence of a wchar_t terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (wchar_t ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<wchar_t>(ch) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a wchar_t string and a rule.
+     * @param str the string.
+     * @param rule the rule parser.
+     * @return a sequence of a string terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (const wchar_t* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<wchar_t>(str) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a char16_t and a rule.
+     * @param ch the character.
+     * @param rule the rule parser.
+     * @return a sequence of a char16_t terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (char16_t ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<char16_t>(ch) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a char16_t string and a rule.
+     * @param str the string.
+     * @param rule the rule parser.
+     * @return a sequence of a string terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (const char16_t* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<char16_t>(str) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a char32_t and a rule.
+     * @param ch the character.
+     * @param rule the rule parser.
+     * @return a sequence of a char32_t terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (char32_t ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<char32_t>(ch) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a char32_t string and a rule.
+     * @param str the string.
+     * @param rule the rule parser.
+     * @return a sequence of a string terminal and a rule.
+     */
+    template <class ParseContextType>
+    auto operator >> (const char32_t* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<char32_t>(str) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
      * Choice between two rules.
      * @param rule1 the 1st rule.
      * @param rule2 the 2nd rule.
-     * @return a sequence of the two rules.
+     * @return a choice of the two rules.
      */
     template <class ParseContextType>
     auto operator | (Rule<ParseContextType>& rule1, Rule<ParseContextType>& rule2) {
@@ -151,7 +324,7 @@ namespace parserlib {
      * Choice between a rule and a parser node.
      * @param rule the rule parser.
      * @param node the node parser.
-     * @return a sequence of the rule and node.
+     * @return a choice of the rule and node.
      */
     template <class ParseContextType, class ParserNodeType>
     auto operator | (Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
@@ -163,11 +336,203 @@ namespace parserlib {
      * Choice between a parser node and a rule.
      * @param node the node parser.
      * @param rule the rule parser.
-     * @return a sequence of the two nodes.
+     * @return a choice of the two nodes.
      */
     template <class ParserNodeType, class ParseContextType>
     auto operator | (const ParserNode<ParserNodeType>& node, Rule<ParseContextType>& rule) {
         return node | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a rule and a char.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a choice of the rule and char.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, char ch) {
+        return RuleReference<ParseContextType>(rule) | TerminalParser<char>(ch);
+    }
+
+
+    /**
+     * Choice between a rule and a char string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a choice of the rule and string.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, const char* str) {
+        return RuleReference<ParseContextType>(rule) | TerminalStringParser<char>(str);
+    }
+
+
+    /**
+     * Choice between a rule and a wchar_t.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a choice of the rule and wchar_t.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, wchar_t ch) {
+        return RuleReference<ParseContextType>(rule) | TerminalParser<wchar_t>(ch);
+    }
+
+
+    /**
+     * Choice between a rule and a wchar_t string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a choice of the rule and string.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, const wchar_t* str) {
+        return RuleReference<ParseContextType>(rule) | TerminalStringParser<wchar_t>(str);
+    }
+
+
+    /**
+     * Choice between a rule and a char16_t.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a choice of the rule and char16_t.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, char16_t ch) {
+        return RuleReference<ParseContextType>(rule) | TerminalParser<char16_t>(ch);
+    }
+
+
+    /**
+     * Choice between a rule and a char16_t string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a choice of the rule and string.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, const char16_t* str) {
+        return RuleReference<ParseContextType>(rule) | TerminalStringParser<char16_t>(str);
+    }
+
+
+    /**
+     * Choice between a rule and a char32_t.
+     * @param rule the rule parser.
+     * @param ch the character.
+     * @return a choice of the rule and char32_t.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, char32_t ch) {
+        return RuleReference<ParseContextType>(rule) | TerminalParser<char32_t>(ch);
+    }
+
+
+    /**
+     * Choice between a rule and a char32_t string.
+     * @param rule the rule parser.
+     * @param str the string.
+     * @return a choice of the rule and string.
+     */
+    template <class ParseContextType>
+    auto operator | (Rule<ParseContextType>& rule, const char32_t* str) {
+        return RuleReference<ParseContextType>(rule) | TerminalStringParser<char32_t>(str);
+    }
+
+
+    /**
+     * Choice between a char and a rule.
+     * @param ch the char.
+     * @param rule the rule parser.
+     * @return a choice between a char and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (char ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<char>(ch) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a char string and a rule.
+     * @param str the char string.
+     * @param rule the rule parser.
+     * @return a choice between a char string and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (const char* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<char>(str) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a wchar_t and a rule.
+     * @param ch the wchar_t.
+     * @param rule the rule parser.
+     * @return a choice between a wchar_t and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (wchar_t ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<wchar_t>(ch) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a wchar_t string and a rule.
+     * @param str the wchar_t string.
+     * @param rule the rule parser.
+     * @return a choice between a wchar_t string and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (const wchar_t* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<wchar_t>(str) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a char16_t and a rule.
+     * @param ch the char16_t.
+     * @param rule the rule parser.
+     * @return a choice between a char16_t and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (char16_t ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<char16_t>(ch) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a char16_t string and a rule.
+     * @param str the char16_t string.
+     * @param rule the rule parser.
+     * @return a choice between a char16_t string and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (const char16_t* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<char16_t>(str) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a char32_t and a rule.
+     * @param ch the char32_t.
+     * @param rule the rule parser.
+     * @return a choice between a char32_t and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (char32_t ch, Rule<ParseContextType>& rule) {
+        return TerminalParser<char32_t>(ch) | RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Choice between a char32_t string and a rule.
+     * @param str the char32_t string.
+     * @param rule the rule parser.
+     * @return a choice between a char32_t string and a rule.
+     */
+    template <class ParseContextType>
+    auto operator | (const char32_t* str, Rule<ParseContextType>& rule) {
+        return TerminalStringParser<char32_t>(str) | RuleReference<ParseContextType>(rule);
     }
 
 

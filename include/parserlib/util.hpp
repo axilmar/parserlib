@@ -2,40 +2,12 @@
 #define PARSERLIB_UTIL_HPP
 
 
-#include <tuple>
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <tuple>
-#include <utility>
 
 
 namespace parserlib {
-
-
-    /**
-     * Generic implementation of a function to be invoked at scope exit.
-     * @param F type of function to invoke.
-     */
-    template <class F> class RAII {
-    public:
-        /**
-         * Constructor.
-         * @param func function to invoke at exit.
-         */
-        RAII(const F& func) : m_func(func) {
-        }
-
-        /**
-         * Invokes the function.
-         */
-        ~RAII() {
-            m_func();
-        }
-
-    private:
-        F m_func;
-    };
 
 
     /**

@@ -3,6 +3,8 @@
 
 
 #include "ParserNode.hpp"
+#include "TerminalParser.hpp"
+#include "TerminalStringParser.hpp"
 
 
 namespace parserlib {
@@ -131,6 +133,198 @@ namespace parserlib {
             std::tuple_cat(
                 std::make_tuple(static_cast<const ParserNodeType1&>(node1)), 
                 static_cast<const SequenceParser<Children2...>&>(node2).children()));
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a char.
+     * @param node parser node.
+     * @param ch char.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType> 
+    auto operator >> (const ParserNode<ParserNodeType>& node, char ch) {
+        return node >> TerminalParser<char>(ch);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a char string.
+     * @param node parser node.
+     * @param str char string.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, const char* str) {
+        return node >> TerminalStringParser<char>(str);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a wchar_t.
+     * @param node parser node.
+     * @param ch wchar_t.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, wchar_t ch) {
+        return node >> TerminalParser<wchar_t>(ch);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a wchar_t string.
+     * @param node parser node.
+     * @param str wchar_t string.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, const wchar_t* str) {
+        return node >> TerminalStringParser<wchar_t>(str);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a char16_t.
+     * @param node parser node.
+     * @param ch char16_t.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, char16_t ch) {
+        return node >> TerminalParser<char16_t>(ch);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a char16_t string.
+     * @param node parser node.
+     * @param str char16_t string.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, const char16_t* str) {
+        return node >> TerminalStringParser<char16_t>(str);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a char32_t.
+     * @param node parser node.
+     * @param ch char32_t.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, char32_t ch) {
+        return node >> TerminalParser<char32_t>(ch);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a parser and a char32_t string.
+     * @param node parser node.
+     * @param str char32_t string.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const ParserNode<ParserNodeType>& node, const char32_t* str) {
+        return node >> TerminalStringParser<char32_t>(str);
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a char and a parser.
+     * @param ch char.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (char ch, const ParserNode<ParserNodeType>& node) {
+        return TerminalParser<char>(ch) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a char string and a parser.
+     * @param str char string.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const char* str, const ParserNode<ParserNodeType>& node) {
+        return TerminalStringParser<char>(str) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a wchar_t and a parser.
+     * @param ch wchar_t.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (wchar_t ch, const ParserNode<ParserNodeType>& node) {
+        return TerminalParser<wchar_t>(ch) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a wchar_t string and a parser.
+     * @param str wchar_t string.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const wchar_t* str, const ParserNode<ParserNodeType>& node) {
+        return TerminalStringParser<wchar_t>(str) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a char16_t and a parser.
+     * @param ch char16_t.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (char16_t ch, const ParserNode<ParserNodeType>& node) {
+        return TerminalParser<char16_t>(ch) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a char16_t string and a parser.
+     * @param str char16_t string.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const char16_t* str, const ParserNode<ParserNodeType>& node) {
+        return TerminalStringParser<char16_t>(str) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a char32_t and a parser.
+     * @param ch char32_t.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (char32_t ch, const ParserNode<ParserNodeType>& node) {
+        return TerminalParser<char32_t>(ch) >> node;
+    }
+
+
+    /**
+     * Creates a sequence of parsers out of a char32_t string and a parser.
+     * @param str char32_t string.
+     * @param node node.
+     * @return a sequence of parsers.
+     */
+    template <class ParserNodeType>
+    auto operator >> (const char32_t* str, const ParserNode<ParserNodeType>& node) {
+        return TerminalStringParser<char32_t>(str) >> node;
     }
 
 
