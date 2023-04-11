@@ -40,6 +40,62 @@ namespace parserlib {
         }
 
         /**
+         * Constructor from char.
+         * @param ch character.
+         */
+        Rule(char ch) : Rule(TerminalParser<char>(ch)) {
+        }
+
+        /**
+         * Constructor from string.
+         * @param str string.
+         */
+        Rule(const char* str) : Rule(TerminalStringParser<char>(str)) {
+        }
+
+        /**
+         * Constructor from wchar_t.
+         * @param ch character.
+         */
+        Rule(wchar_t ch) : Rule(TerminalParser<wchar_t>(ch)) {
+        }
+
+        /**
+         * Constructor from string.
+         * @param str string.
+         */
+        Rule(const wchar_t* str) : Rule(TerminalStringParser<wchar_t>(str)) {
+        }
+
+        /**
+         * Constructor from char16_t.
+         * @param ch character.
+         */
+        Rule(char16_t ch) : Rule(TerminalParser<char16_t>(ch)) {
+        }
+
+        /**
+         * Constructor from string.
+         * @param str string.
+         */
+        Rule(const char16_t* str) : Rule(TerminalStringParser<char16_t>(str)) {
+        }
+
+        /**
+         * Constructor from char32_t.
+         * @param ch character.
+         */
+        Rule(char32_t ch) : Rule(TerminalParser<char32_t>(ch)) {
+        }
+
+        /**
+         * Constructor from string.
+         * @param str string.
+         */
+        Rule(const char32_t* str) : Rule(TerminalStringParser<char32_t>(str)) {
+        }
+
+        /**
          * Returns the parser.
          * @return the parser.
          */
@@ -71,7 +127,7 @@ namespace parserlib {
          * @return whatever the underlying parser returns.
          * @exception LeftRecursionException thrown when left recursion is found upon the referenced rule.
          */
-        bool operator ()(ParseContextType& pc) {
+        bool operator ()(ParseContextType& pc) const {
             return m_parser->operator ()(pc);
         }
 
@@ -81,6 +137,14 @@ namespace parserlib {
     };
 
 
+    template <class ParseContextType, class R>
+    auto operator >> (Rule<ParseContextType>&&, R&&) = delete;
+
+
+    template <class L, class ParseContextType>
+    auto operator >> (L&&, Rule<ParseContextType>&&) = delete;
+
+
     /**
      * Sequence between two rules.
      * @param rule1 the 1st rule.
@@ -88,7 +152,7 @@ namespace parserlib {
      * @return a sequence of the two rules.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule1, Rule<ParseContextType>& rule2) {
+    auto operator >> (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
         return RuleReference<ParseContextType>(rule1) >> RuleReference<ParseContextType>(rule2);
     }
 
@@ -100,7 +164,7 @@ namespace parserlib {
      * @return a sequence of the rule and node.
      */
     template <class ParseContextType, class ParserNodeType>
-    auto operator >> (Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+    auto operator >> (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
         return RuleReference<ParseContextType>(rule) >> node;
     }
 
@@ -112,7 +176,7 @@ namespace parserlib {
      * @return a sequence of the two nodes.
      */
     template <class ParserNodeType, class ParseContextType>
-    auto operator >> (const ParserNode<ParserNodeType>& node, Rule<ParseContextType>& rule) {
+    auto operator >> (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
         return node >> RuleReference<ParseContextType>(rule);
     }
 
@@ -124,7 +188,7 @@ namespace parserlib {
      * @return a sequence of the rule and a character.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, char ch) {
+    auto operator >> (const Rule<ParseContextType>& rule, char ch) {
         return operator >> (rule, TerminalParser<char>(ch));
     }
 
@@ -136,7 +200,7 @@ namespace parserlib {
      * @return a sequence of the rule and a string.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, const char* str) {
+    auto operator >> (const Rule<ParseContextType>& rule, const char* str) {
         return rule >> TerminalStringParser<char>(str);
     }
 
@@ -148,7 +212,7 @@ namespace parserlib {
      * @return a sequence of the rule and a character.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, wchar_t ch) {
+    auto operator >> (const Rule<ParseContextType>& rule, wchar_t ch) {
         return rule >> TerminalParser<wchar_t>(ch);
     }
 
@@ -160,7 +224,7 @@ namespace parserlib {
      * @return a sequence of the rule and a string.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, const wchar_t* str) {
+    auto operator >> (const Rule<ParseContextType>& rule, const wchar_t* str) {
         return rule >> TerminalStringParser<wchar_t>(str);
     }
 
@@ -172,7 +236,7 @@ namespace parserlib {
      * @return a sequence of the rule and a character.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, char16_t ch) {
+    auto operator >> (const Rule<ParseContextType>& rule, char16_t ch) {
         return rule >> TerminalParser<char16_t>(ch);
     }
 
@@ -184,7 +248,7 @@ namespace parserlib {
      * @return a sequence of the rule and a string.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, const char16_t* str) {
+    auto operator >> (const Rule<ParseContextType>& rule, const char16_t* str) {
         return rule >> TerminalStringParser<char16_t>(str);
     }
 
@@ -196,7 +260,7 @@ namespace parserlib {
      * @return a sequence of the rule and a character.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, char32_t ch) {
+    auto operator >> (const Rule<ParseContextType>& rule, char32_t ch) {
         return rule >> TerminalParser<char32_t>(ch);
     }
 
@@ -208,7 +272,7 @@ namespace parserlib {
      * @return a sequence of the rule and a string.
      */
     template <class ParseContextType>
-    auto operator >> (Rule<ParseContextType>& rule, const char32_t* str) {
+    auto operator >> (const Rule<ParseContextType>& rule, const char32_t* str) {
         return rule >> TerminalStringParser<char32_t>(str);
     }
 
@@ -220,7 +284,7 @@ namespace parserlib {
      * @return a sequence of a char terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (char ch, Rule<ParseContextType>& rule) {
+    auto operator >> (char ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<char>(ch) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -232,7 +296,7 @@ namespace parserlib {
      * @return a sequence of a string terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (const char* str, Rule<ParseContextType>& rule) {
+    auto operator >> (const char* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<char>(str) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -244,7 +308,7 @@ namespace parserlib {
      * @return a sequence of a wchar_t terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (wchar_t ch, Rule<ParseContextType>& rule) {
+    auto operator >> (wchar_t ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<wchar_t>(ch) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -256,7 +320,7 @@ namespace parserlib {
      * @return a sequence of a string terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (const wchar_t* str, Rule<ParseContextType>& rule) {
+    auto operator >> (const wchar_t* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<wchar_t>(str) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -268,7 +332,7 @@ namespace parserlib {
      * @return a sequence of a char16_t terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (char16_t ch, Rule<ParseContextType>& rule) {
+    auto operator >> (char16_t ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<char16_t>(ch) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -280,7 +344,7 @@ namespace parserlib {
      * @return a sequence of a string terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (const char16_t* str, Rule<ParseContextType>& rule) {
+    auto operator >> (const char16_t* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<char16_t>(str) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -292,7 +356,7 @@ namespace parserlib {
      * @return a sequence of a char32_t terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (char32_t ch, Rule<ParseContextType>& rule) {
+    auto operator >> (char32_t ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<char32_t>(ch) >> RuleReference<ParseContextType>(rule);
     }
 
@@ -304,9 +368,17 @@ namespace parserlib {
      * @return a sequence of a string terminal and a rule.
      */
     template <class ParseContextType>
-    auto operator >> (const char32_t* str, Rule<ParseContextType>& rule) {
+    auto operator >> (const char32_t* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<char32_t>(str) >> RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType, class R>
+    auto operator | (Rule<ParseContextType>&&, R&&) = delete;
+
+
+    template <class L, class ParseContextType>
+    auto operator | (L&&, Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -316,7 +388,7 @@ namespace parserlib {
      * @return a choice of the two rules.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule1, Rule<ParseContextType>& rule2) {
+    auto operator | (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
         return RuleReference<ParseContextType>(rule1) | RuleReference<ParseContextType>(rule2);
     }
 
@@ -328,7 +400,7 @@ namespace parserlib {
      * @return a choice of the rule and node.
      */
     template <class ParseContextType, class ParserNodeType>
-    auto operator | (Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+    auto operator | (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
         return RuleReference<ParseContextType>(rule) | node;
     }
 
@@ -340,7 +412,7 @@ namespace parserlib {
      * @return a choice of the two nodes.
      */
     template <class ParserNodeType, class ParseContextType>
-    auto operator | (const ParserNode<ParserNodeType>& node, Rule<ParseContextType>& rule) {
+    auto operator | (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
         return node | RuleReference<ParseContextType>(rule);
     }
 
@@ -352,7 +424,7 @@ namespace parserlib {
      * @return a choice of the rule and char.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, char ch) {
+    auto operator | (const Rule<ParseContextType>& rule, char ch) {
         return RuleReference<ParseContextType>(rule) | TerminalParser<char>(ch);
     }
 
@@ -364,7 +436,7 @@ namespace parserlib {
      * @return a choice of the rule and string.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, const char* str) {
+    auto operator | (const Rule<ParseContextType>& rule, const char* str) {
         return RuleReference<ParseContextType>(rule) | TerminalStringParser<char>(str);
     }
 
@@ -376,7 +448,7 @@ namespace parserlib {
      * @return a choice of the rule and wchar_t.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, wchar_t ch) {
+    auto operator | (const Rule<ParseContextType>& rule, wchar_t ch) {
         return RuleReference<ParseContextType>(rule) | TerminalParser<wchar_t>(ch);
     }
 
@@ -388,7 +460,7 @@ namespace parserlib {
      * @return a choice of the rule and string.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, const wchar_t* str) {
+    auto operator | (const Rule<ParseContextType>& rule, const wchar_t* str) {
         return RuleReference<ParseContextType>(rule) | TerminalStringParser<wchar_t>(str);
     }
 
@@ -400,7 +472,7 @@ namespace parserlib {
      * @return a choice of the rule and char16_t.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, char16_t ch) {
+    auto operator | (const Rule<ParseContextType>& rule, char16_t ch) {
         return RuleReference<ParseContextType>(rule) | TerminalParser<char16_t>(ch);
     }
 
@@ -412,7 +484,7 @@ namespace parserlib {
      * @return a choice of the rule and string.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, const char16_t* str) {
+    auto operator | (const Rule<ParseContextType>& rule, const char16_t* str) {
         return RuleReference<ParseContextType>(rule) | TerminalStringParser<char16_t>(str);
     }
 
@@ -424,7 +496,7 @@ namespace parserlib {
      * @return a choice of the rule and char32_t.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, char32_t ch) {
+    auto operator | (const Rule<ParseContextType>& rule, char32_t ch) {
         return RuleReference<ParseContextType>(rule) | TerminalParser<char32_t>(ch);
     }
 
@@ -436,7 +508,7 @@ namespace parserlib {
      * @return a choice of the rule and string.
      */
     template <class ParseContextType>
-    auto operator | (Rule<ParseContextType>& rule, const char32_t* str) {
+    auto operator | (const Rule<ParseContextType>& rule, const char32_t* str) {
         return RuleReference<ParseContextType>(rule) | TerminalStringParser<char32_t>(str);
     }
 
@@ -448,7 +520,7 @@ namespace parserlib {
      * @return a choice between a char and a rule.
      */
     template <class ParseContextType>
-    auto operator | (char ch, Rule<ParseContextType>& rule) {
+    auto operator | (char ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<char>(ch) | RuleReference<ParseContextType>(rule);
     }
 
@@ -460,7 +532,7 @@ namespace parserlib {
      * @return a choice between a char string and a rule.
      */
     template <class ParseContextType>
-    auto operator | (const char* str, Rule<ParseContextType>& rule) {
+    auto operator | (const char* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<char>(str) | RuleReference<ParseContextType>(rule);
     }
 
@@ -472,7 +544,7 @@ namespace parserlib {
      * @return a choice between a wchar_t and a rule.
      */
     template <class ParseContextType>
-    auto operator | (wchar_t ch, Rule<ParseContextType>& rule) {
+    auto operator | (wchar_t ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<wchar_t>(ch) | RuleReference<ParseContextType>(rule);
     }
 
@@ -484,7 +556,7 @@ namespace parserlib {
      * @return a choice between a wchar_t string and a rule.
      */
     template <class ParseContextType>
-    auto operator | (const wchar_t* str, Rule<ParseContextType>& rule) {
+    auto operator | (const wchar_t* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<wchar_t>(str) | RuleReference<ParseContextType>(rule);
     }
 
@@ -496,7 +568,7 @@ namespace parserlib {
      * @return a choice between a char16_t and a rule.
      */
     template <class ParseContextType>
-    auto operator | (char16_t ch, Rule<ParseContextType>& rule) {
+    auto operator | (char16_t ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<char16_t>(ch) | RuleReference<ParseContextType>(rule);
     }
 
@@ -508,7 +580,7 @@ namespace parserlib {
      * @return a choice between a char16_t string and a rule.
      */
     template <class ParseContextType>
-    auto operator | (const char16_t* str, Rule<ParseContextType>& rule) {
+    auto operator | (const char16_t* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<char16_t>(str) | RuleReference<ParseContextType>(rule);
     }
 
@@ -520,7 +592,7 @@ namespace parserlib {
      * @return a choice between a char32_t and a rule.
      */
     template <class ParseContextType>
-    auto operator | (char32_t ch, Rule<ParseContextType>& rule) {
+    auto operator | (char32_t ch, const Rule<ParseContextType>& rule) {
         return TerminalParser<char32_t>(ch) | RuleReference<ParseContextType>(rule);
     }
 
@@ -532,9 +604,13 @@ namespace parserlib {
      * @return a choice between a char32_t string and a rule.
      */
     template <class ParseContextType>
-    auto operator | (const char32_t* str, Rule<ParseContextType>& rule) {
+    auto operator | (const char32_t* str, const Rule<ParseContextType>& rule) {
         return TerminalStringParser<char32_t>(str) | RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType>
+    auto operator *(Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -542,9 +618,13 @@ namespace parserlib {
      * @param rule rule.
      * @return the loop parser for the given rule.
      */
-    template <class ParseContextType> auto operator *(Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator *(const Rule<ParseContextType>& rule) {
         return *RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType>
+    auto operator +(Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -552,9 +632,13 @@ namespace parserlib {
      * @param rule rule.
      * @return the loop-1 parser for the given rule.
      */
-    template <class ParseContextType> auto operator +(Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator +(const Rule<ParseContextType>& rule) {
         return +RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType>
+    auto operator -(Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -562,9 +646,13 @@ namespace parserlib {
      * @param rule rule.
      * @return the optional parser for the given rule.
      */
-    template <class ParseContextType> auto operator -(Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator -(const Rule<ParseContextType>& rule) {
         return -RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType>
+    auto operator &(Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -572,9 +660,13 @@ namespace parserlib {
      * @param rule rule.
      * @return the and parser for the given rule.
      */
-    template <class ParseContextType> auto operator &(Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator &(const Rule<ParseContextType>& rule) {
         return &RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType>
+    auto operator !(Rule<ParseContextType>&&) = delete;
 
 
     /**
@@ -582,9 +674,13 @@ namespace parserlib {
      * @param rule rule.
      * @return the not parser for the given rule.
      */
-    template <class ParseContextType> auto operator !(Rule<ParseContextType>& rule) {
+    template <class ParseContextType> auto operator !(const Rule<ParseContextType>& rule) {
         return !RuleReference<ParseContextType>(rule);
     }
+
+
+    template <class ParseContextType, class MatchIdType>
+    auto operator == (Rule<ParseContextType>&&, const MatchIdType&) = delete;
 
 
     /**
@@ -595,9 +691,13 @@ namespace parserlib {
      */
     template <class ParseContextType, class MatchIdType>
     Match<RuleReference<ParseContextType>, MatchIdType>
-        operator == (Rule<ParseContextType>& rule, const MatchIdType& matchId) {
+        operator == (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
         return Match<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
+
+
+    template <class ParseContextType, class MatchIdType>
+    auto operator >= (Rule<ParseContextType>&&, const MatchIdType&) = delete;
 
 
     /**
@@ -608,7 +708,7 @@ namespace parserlib {
      */
     template <class ParseContextType, class MatchIdType>
     TreeMatch<RuleReference<ParseContextType>, MatchIdType>
-        operator >= (Rule<ParseContextType>& rule, const MatchIdType& matchId) {
+        operator >= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
         return TreeMatch<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
 

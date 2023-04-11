@@ -231,7 +231,7 @@ static void unitTest_OptionalParser() {
 
 
 static void unitTest_Rule() {
-    Rule<> rule = terminal('a') >> (rule | terminal('b'));
+    const Rule<> rule = terminal('a') >> (rule | terminal('b'));
 
     {
         const std::string input = "ab";
@@ -264,6 +264,19 @@ static void unitTest_Rule() {
         assert(!ok);
         assert(pc.sourcePosition() == input.begin());
     }
+
+    //deleted functions
+    //Rule<>('a') >> 'a';
+    //'a' >> Rule<>('a');
+    //Rule<>('a') | 'a';
+    //'a' | Rule<>('a');
+    //*Rule<>('a');
+    //+Rule<>('a');
+    //-Rule<>('a');
+    //&Rule<>('a');
+    //!Rule<>('a');
+    //Rule<>('a') == std::string("a");
+    //Rule<>('a') >= std::string("a");
 }
 
 
@@ -396,80 +409,6 @@ static void unitTest_terminalStringParser() {
 }
 
 
-extern Rule<> add;
-
-
-const auto val = (+terminalRange('0', '9')) == std::string("num");
-
-
-const auto num = val
-               | terminal('(') >> add >> terminal(')');
-
-
-Rule<> mul = (mul >> terminal('*') >> num) == std::string("mul")
-           | (mul >> terminal('/') >> num) == std::string("div")
-           | num;
-
-
-Rule<> add = (add >> terminal('+') >> mul) == std::string("add")
-           | (add >> terminal('-') >> mul) == std::string("sub")
-           | mul;
-
-
-static int to_int(const std::string& str) {
-    std::stringstream stream;
-    stream << str;
-    int r;
-    stream >> r;
-    return r;
-}
-
-
-static int compute(const std::vector<ParseContext<>::Match>& matches) {
-    std::vector<int> stack;
-
-    for (const auto& m : matches) {
-        if (m.id() == "num") {
-            stack.push_back(to_int(std::string(m.begin(), m.end())));
-        }
-        else if (m.id() == "mul") {
-            assert(stack.size() >= 2);
-            const int v2 = stack.back();
-            stack.pop_back();
-            const int v1 = stack.back();
-            stack.pop_back();
-            stack.push_back(v1 * v2);
-        }
-        else if (m.id() == "div") {
-            assert(stack.size() >= 2);
-            const int v2 = stack.back();
-            stack.pop_back();
-            const int v1 = stack.back();
-            stack.pop_back();
-            stack.push_back(v1 / v2);
-        }
-        else if (m.id() == "add") {
-            assert(stack.size() >= 2);
-            const int v2 = stack.back();
-            stack.pop_back();
-            const int v1 = stack.back();
-            stack.pop_back();
-            stack.push_back(v1 + v2);
-        }
-        else if (m.id() == "sub") {
-            assert(stack.size() >= 2);
-            const int v2 = stack.back();
-            stack.pop_back();
-            const int v1 = stack.back();
-            stack.pop_back();
-            stack.push_back(v1 - v2);
-        }
-    }
-    assert(stack.size() == 1);
-    return stack.back();
-}
-
-
 static void unitTest_Match() {
     const auto parser = terminal('a') == std::string("m");
 
@@ -573,226 +512,59 @@ static void unitTest_TreeMatch() {
 
 
 static void unitTest_recursion() {
+    const Rule<> r = 'x' >> r >> 'b'
+                   | 'a';
+
     {
-        Rule<> a = terminal('x') >> a >> terminal('b')
-               |   terminal('a');
-        const std::string input = "xab";
+        const std::string input = "a";
         ParseContext<> pc(input);
-        bool ok = a(pc);
+        bool ok = r(pc);
         assert(ok);
         assert(pc.sourcePosition() == input.end());
     }
 
     {
-        Rule<> a = terminal('x') >> a >> terminal('b')
-               |   terminal('a');
-        const std::string input = "xcb";
+        const std::string input = "xab";
         ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(!ok);
-        assert(pc.sourcePosition() != input.end());
+        bool ok = r(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
     }
 
     {
-        Rule<> r = 'x' >>  r  >> 'b'
-                 |  r  >> 'c'
-                 | 'a';
-
-        {
-            const std::string input = "xacb";
-            ParseContext pc(input);
-            const bool ok = r(pc);
-            assert(ok);
-            assert(pc.sourceEnded());
-        }
-
-        {
-            const std::string input = "xab";
-            ParseContext pc(input);
-            const bool ok = r(pc);
-            assert(ok);
-            assert(pc.sourceEnded());
-        }
-
-        {
-            const std::string input = "xabc";
-            ParseContext pc(input);
-            const bool ok = r(pc);
-            assert(ok);
-            assert(pc.sourceEnded());
-        }
-
-        {
-            const std::string input = "ac";
-            ParseContext pc(input);
-            const bool ok = r(pc);
-            assert(ok);
-            assert(pc.sourceEnded());
-        }
+        const std::string input = "xxabb";
+        ParseContext<> pc(input);
+        bool ok = r(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
     }
 }
 
 
 static void unitTest_directLeftRecursion() {
-    {
-        Rule<> a = a >> terminal('b')
-                 | terminal('a');
-        const std::string input = "ab";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-    }
-
-    {
-        Rule<> a = a >> terminal('b')
-                 | terminal('a');
-        const std::string input = "abbb";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-    }
-
-    {
-        Rule<> a = a >> terminal('b')
-                 | terminal('a');
-        const std::string input = "aabbb";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() != input.end());
-    }
-
-    {
-        Rule<> a = a >> terminal('b')
-                 | a >> terminal('c')
-                 | terminal('a');
-        const std::string input = "abcbcbc";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-    }
-
-    {
-        const std::string input = "1";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 1);
-    }
-
-    {
-        const std::string input = "1+2";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 3);
-    }
-
-    {
-        const std::string input = "1*2+3";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 5);
-    }
-
-    {
-        const std::string input = "1+2*3";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 7);
-    }
-
-    {
-        const std::string input = "(1*2)+3";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 5);
-    }
-
-    {
-        const std::string input = "1*(2+3)";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 5);
-    }
-
-    {
-        const std::string input = "(1*(2+3))*4+5";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 25);
-    }
-
-    {
-        const std::string input = "(1*2+3*4)*(5+6)";
-        ParseContext<> pc(input);
-        bool ok = add(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-        assert(compute(pc.matches()) == 154);
-    }
 }
 
 
 static void unitTest_indirectLeftRecursion() {
-    {
-        Rule<> a = -(terminal('x')) >> a >> terminal('b')
-                 | terminal('a');
-        const std::string input = "ab";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-    }
-
-    {
-        Rule<> a = -(terminal('x')) >> a >> terminal('b')
-                 | terminal('a');
-        const std::string input = "xab";
-        ParseContext<> pc(input);
-        bool ok = a(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
-    }
-}
-
-
-static void testR() {
 }
 
 
 void runUnitTests() {
-    testR();
-    //unitTest_AndParser();
-    //unitTest_ChoiceParser();
-    //unitTest_Loop1Parser();
-    //unitTest_LoopParser();
-    //unitTest_NotParser();
-    //unitTest_OptionalParser();
-    //unitTest_Rule();
-    //unitTest_sequenceParser();
-    //unitTest_terminalParser();
-    //unitTest_terminalRangeParser();
-    //unitTest_terminalSetParser();
-    //unitTest_terminalStringParser();
-    //unitTest_Match();
-    //unitTest_TreeMatch();
+    unitTest_AndParser();
+    unitTest_ChoiceParser();
+    unitTest_Loop1Parser();
+    unitTest_LoopParser();
+    unitTest_NotParser();
+    unitTest_OptionalParser();
+    unitTest_Rule();
+    unitTest_sequenceParser();
+    unitTest_terminalParser();
+    unitTest_terminalRangeParser();
+    unitTest_terminalSetParser();
+    unitTest_terminalStringParser();
+    unitTest_Match();
+    unitTest_TreeMatch();
     unitTest_recursion();
-    //unitTest_directLeftRecursion();
-    //unitTest_indirectLeftRecursion();
+    unitTest_directLeftRecursion();
+    unitTest_indirectLeftRecursion();
 }
