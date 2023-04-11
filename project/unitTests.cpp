@@ -541,11 +541,11 @@ static void unitTest_recursion() {
 }
 
 
-static void unitTest_directLeftRecursion() {
-}
-
-
-static void unitTest_indirectLeftRecursion() {
+static void unitTest_leftRecursion() {
+    const Rule<> r = -terminal('x') >> r >> 'b'
+                   | 'o' >> r >> 'c'
+                   | r >> 'd'
+                   | 'a';
 }
 
 
@@ -565,6 +565,5 @@ void runUnitTests() {
     unitTest_Match();
     unitTest_TreeMatch();
     unitTest_recursion();
-    unitTest_directLeftRecursion();
-    unitTest_indirectLeftRecursion();
+    unitTest_leftRecursion();
 }
