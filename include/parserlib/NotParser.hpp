@@ -42,30 +42,6 @@ namespace parserlib {
             return result;
         }
 
-        /**
-         * Parses a terminal under left recursion.
-         * @param pc parse context.
-         * @return true if a terminal was parsed, false otherwise.
-         */
-        template <class ParseContextType> bool parseLeftRecursionTerminal(ParseContextType& pc) const {
-            const auto state = pc.state();
-            const bool result = !m_child.parseLeftRecursionTerminal(pc);
-            pc.setState(state);
-            return result;
-        }
-
-        /**
-         * Parses a left recursion continuation.
-         * @param pc parse context.
-         * @return true on success, false otherwise.
-         */
-        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc) const {
-            const auto state = pc.state();
-            const bool result = !m_child.parseLeftRecursionContinuation(pc);
-            pc.setState(state);
-            return result;
-        }
-
     private:
         const ParserNodeType m_child;
     };

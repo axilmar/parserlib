@@ -12,13 +12,13 @@ namespace parserlib {
      * A parser that invokes another parser in a loop.
      * @param ParserNodeType the parser to invoke in a loop.
      */
-    template <class ParserNodeType> class LoopParser : public ParserNode<LoopParser<ParserNodeType>> {
+    template <class ParserNodeType> class Loop0Parser : public ParserNode<Loop0Parser<ParserNodeType>> {
     public:
         /**
          * The default constructor.
          * @param child child parser to invoke in a loop.
          */
-        LoopParser(const ParserNodeType& child) : m_child(child) {
+        Loop0Parser(const ParserNodeType& child) : m_child(child) {
         }
 
         /**
@@ -52,78 +52,6 @@ namespace parserlib {
             return true;
         }
 
-        /**
-         * Parses a terminal under left recursion.
-         * @param pc parse context.
-         * @return true if a terminal was parsed, false otherwise.
-         */
-        template <class ParseContextType> bool parseLeftRecursionTerminal(ParseContextType& pc) const {
-            const auto startPosition = pc.sourcePosition();
-
-            //parse once to establish if parsing consumes input
-            if (!m_child.parseLeftRecursionTerminal(pc)) {
-                return false;
-            }
-
-            //if no input was consumed, stop in order to avoid an infinite loop
-            if (pc.sourcePosition() == startPosition) {
-                return true;
-            }
-
-            //parse loop; normal parsing since at least one terminal was consumed
-            while (true) {
-                const auto startPosition = pc.sourcePosition();
-
-                //if no more parsing possible, stop
-                if (!m_child(pc)) {
-                    break;
-                }
-
-                //if no advance was made, stop in order to avoid infinite an loop
-                if (pc.sourcePosition() == startPosition) {
-                    break;
-                }
-            }
-
-            return true;
-        }
-
-        /**
-         * Parses a left recursion continuation.
-         * @param pc parse context.
-         * @return true on success, false otherwise.
-         */
-        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc) const {
-            const auto startPosition = pc.sourcePosition();
-
-            //parse once to establish if parsing consumes input
-            if (!m_child.parseLeftRecursionContinuation(pc)) {
-                return false;
-            }
-
-            //if no input was consumed, stop in order to avoid an infinite loop
-            if (pc.sourcePosition() == startPosition) {
-                return true;
-            }
-
-            //parse loop; normal parsing since at least one terminal was consumed
-            while (true) {
-                const auto startPosition = pc.sourcePosition();
-
-                //if no more parsing possible, stop
-                if (!m_child(pc)) {
-                    break;
-                }
-
-                //if no advance was made, stop in order to avoid infinite an loop
-                if (pc.sourcePosition() == startPosition) {
-                    break;
-                }
-            }
-
-            return true;
-        }
-
     private:
         const ParserNodeType m_child;
     };
@@ -135,9 +63,9 @@ namespace parserlib {
      * @return a loop parser node.
      */
     template <class ParserNodeType> 
-    LoopParser<ParserNodeType> 
+    Loop0Parser<ParserNodeType> 
     operator *(const ParserNode<ParserNodeType>& node) {
-        return LoopParser<ParserNodeType>(static_cast<const ParserNodeType&>(node));
+        return Loop0Parser<ParserNodeType>(static_cast<const ParserNodeType&>(node));
     }
 
 
@@ -147,8 +75,8 @@ namespace parserlib {
      * @return the given loop parser node.
      */
     template <class ParserNodeType>
-    const LoopParser<ParserNodeType>&
-    operator *(const LoopParser<ParserNodeType>& loop) {
+    const Loop0Parser<ParserNodeType>&
+    operator *(const Loop0Parser<ParserNodeType>& loop) {
         return loop;
     }
 

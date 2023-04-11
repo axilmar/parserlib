@@ -23,20 +23,6 @@ namespace parserlib {
          * @return parsing success.
          */
         virtual bool operator ()(ParseContextType& pc) const = 0;
-
-        /**
-         * Parses a terminal under left recursion.
-         * @param pc parse context.
-         * @return true if a terminal was parsed, false otherwise.
-         */
-        virtual bool parseLeftRecursionTerminal(ParseContextType& pc) const = 0;
-
-        /**
-         * Parses a left recursion continuation.
-         * @param pc parse context.
-         * @return true on success, false otherwise.
-         */
-        virtual bool parseLeftRecursionContinuation(ParseContextType& pc) const = 0;
     };
 
 

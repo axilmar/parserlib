@@ -9,6 +9,10 @@ using namespace parserlib;
 using ParserParseContext = ParseContext<std::vector<Token>, AST_TYPE>;
 
 
+//rule type
+using Rule_ = parserlib::Rule<ParserParseContext>;
+
+
 //char type
 static const auto charType = terminal(TOKEN_KEYWORD_CHAR) == AST_TYPE_CHAR;
 
@@ -31,9 +35,17 @@ static const auto primitiveType = charType
                                 | doubleType;
 
 
+//base type
+static const auto baseType = primitiveType
+                           | namedType;
+
+
+static Rule_ ptrType = (ptrType >> terminal(TOKEN_STAR)) >= AST_TYPE_PTR
+                     | baseType;
+
+
 //type
-static const auto type = primitiveType
-                       | namedType;
+static auto& type = ptrType;
 
 
 //variable name

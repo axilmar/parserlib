@@ -59,40 +59,6 @@ namespace parserlib {
             return false;
         }
 
-        /**
-         * Parses a terminal under left recursion.
-         * @param pc parse context.
-         * @return true if a terminal was parsed, false otherwise.
-         */
-        template <class ParseContextType> bool parseLeftRecursionTerminal(ParseContextType& pc) const {
-            const auto begin = pc.sourcePosition();
-            const size_t beginMatchCount = pc.matches().size();
-            if (m_child.parseLeftRecursionTerminal(pc)) {
-                const size_t endMatchCount = pc.matches().size();
-                const size_t childMatchCount = endMatchCount - beginMatchCount;
-                pc.addMatch(m_matchId, begin, pc.sourcePosition(), childMatchCount);
-                return true;
-            }
-            return false;
-        }
-
-        /**
-         * Parses a left recursion continuation.
-         * @param pc parse context.
-         * @return true on success, false otherwise.
-         */
-        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc) const {
-            const auto begin = pc.sourcePosition();
-            const size_t beginMatchCount = pc.matches().size();
-            if (m_child.parseLeftRecursionContinuation(pc)) {
-                const size_t endMatchCount = pc.matches().size();
-                const size_t childMatchCount = endMatchCount - beginMatchCount;
-                pc.addMatch(m_matchId, begin, pc.sourcePosition(), childMatchCount);
-                return true;
-            }
-            return false;
-        }
-
     private:
         const ParserNodeType m_child;
         const MatchIdType m_matchId;

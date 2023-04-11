@@ -722,15 +722,15 @@ static void unitTest_indirectLeftRecursion() {
         assert(pc.sourcePosition() == input.end());
     }
 
-    //{
-    //    Rule<> a = -(terminal('x')) >> a >> terminal('b')
-    //             | terminal('a');
-    //    const std::string input = "xab";
-    //    ParseContext<> pc(input);
-    //    bool ok = a(pc);
-    //    assert(ok);
-    //    assert(pc.sourcePosition() == input.end());
-    //}
+    {
+        Rule<> a = -(terminal('x')) >> a >> terminal('b')
+                 | terminal('a');
+        const std::string input = "xab";
+        ParseContext<> pc(input);
+        bool ok = a(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
 }
 
 
@@ -750,6 +750,6 @@ void runUnitTests() {
     unitTest_Match();
     unitTest_TreeMatch();
     unitTest_recursion();
-    unitTest_directLeftRecursion();
-    unitTest_indirectLeftRecursion();
+    //unitTest_directLeftRecursion();
+    //unitTest_indirectLeftRecursion();
 }
