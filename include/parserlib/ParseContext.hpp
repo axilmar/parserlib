@@ -4,10 +4,14 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "TreeMatchException.hpp"
 
 
 namespace parserlib {
+
+
+    template <class ParseContextType> class Rule;
 
 
     /**
@@ -28,7 +32,17 @@ namespace parserlib {
         /**
          * Parsing position type.
          */
-        using Position = typename SourceType::const_iterator;
+        using PositionType = typename SourceType::const_iterator;
+
+        /**
+         * this type.
+         */
+        using ThisType = ParseContext<SourceType, MatchIdType>;
+
+        /**
+         * Associated rule type.
+         */
+        using RuleType = Rule<ThisType>;
 
         /**
          * A successful parse. 
@@ -240,10 +254,31 @@ namespace parserlib {
             return m_sourceIt == m_sourceEnd;
         }
 
+        /**
+         * Returns the last known position for the given rule.
+         * @param rule to get the last known position of.
+         * @return the last known position of the rule.
+         */
+        PositionType rulePosition(const RuleType& rule) const {
+            const auto it = m_rulePositions.find(rule.this_());
+            return it != m_rulePositions.end() ? it->second : m_sourceEnd;
+        }
+
+        /**
+         * Sets the given rule's position from the current position.
+         * @param rule rule to set the position of.
+         * @param pos position.
+         * @return true if there is no left recursion found, false if there is a left recursion.
+         */
+        bool setRulePosition(const RuleType& rule, const PositionType& pos) {
+            return m_rulePositions.emplace(rule.this_(),pos).second;
+        }
+
     private:
         typename SourceType::const_iterator m_sourceIt;
         const typename SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
+        std::map<const RuleType*, PositionType> m_rulePositions;
     };
 
 
