@@ -265,7 +265,7 @@ namespace parserlib {
         }
 
         /**
-         * Sets the given rule's position from the current position.
+         * Sets the given rule's position.
          * @param rule rule to set the position of.
          * @param pos position.
          * @return true if there is no left recursion found, false if there is a left recursion.
