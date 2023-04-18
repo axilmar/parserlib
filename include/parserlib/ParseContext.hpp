@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include "TreeMatchException.hpp"
+#include "RuleState.hpp"
 
 
 namespace parserlib {
@@ -43,6 +44,11 @@ namespace parserlib {
          * Associated rule type.
          */
         using RuleType = Rule<ThisType>;
+
+        /**
+         * Associated rule state type. 
+         */
+        using RuleStateType = RuleState<ThisType>;
 
         /**
          * A successful parse. 
@@ -253,32 +259,37 @@ namespace parserlib {
         bool sourceEnded() const {
             return m_sourceIt == m_sourceEnd;
         }
-
+       
         /**
-         * Returns the last known position for the given rule.
-         * @param rule to get the last known position of.
-         * @return the last known position of the rule.
+         * Returns the existing rule state for the given rule.
+         * @param rule rule to get the rule state of.
+         * @return the rule state for the rule.
+         * @exception std::runtime_error thrown if there is no rule state for the given rule.
          */
-        PositionType rulePosition(const RuleType& rule) const {
-            const auto it = m_rulePositions.find(rule.this_());
-            return it != m_rulePositions.end() ? it->second : m_sourceEnd;
+        const RuleStateType& ruleState(const RuleType& rule) const {
+            const auto it = m_ruleStates.find(rule.this_());
+            return it != m_ruleStates.end() ? it->second : throw std::runtime_error("No rule state for the given rule exists.");
         }
 
         /**
-         * Sets the given rule's position.
-         * @param rule rule to set the position of.
-         * @param pos position.
-         * @return true if there is no left recursion found, false if there is a left recursion.
+         * Returns the existing or a new rule state for the given rule.
+         * @param rule rule to get the rule state of.
+         * @return the rule state for the rule.
          */
-        bool setRulePosition(const RuleType& rule, const PositionType& pos) {
-            return m_rulePositions.emplace(rule.this_(),pos).second;
+        RuleStateType& ruleState(const RuleType& rule) {
+            const auto it = m_ruleStates.find(rule.this_());
+            if (it != m_ruleStates.end()) {
+                return it->second;
+            }
+            const auto [it, ok] = m_ruleStates.emplace(rule.this_(), RuleStateType(RuleStateType::Normal, m_sourceIt));
+            return it->second;
         }
 
     private:
         typename SourceType::const_iterator m_sourceIt;
         const typename SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
-        std::map<const RuleType*, PositionType> m_rulePositions;
+        std::map<const RuleType*, RuleStateType> m_ruleStates;
     };
 
 

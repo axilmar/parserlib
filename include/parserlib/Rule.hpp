@@ -3,7 +3,6 @@
 
 
 #include <memory>
-#include <optional>
 #include "ParseContext.hpp"
 #include "ParserWrapper.hpp"
 #include "RuleReference.hpp"
@@ -133,7 +132,6 @@ namespace parserlib {
 
     private:
         const std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
-        std::optional<typename ParseContextType::Position> m_parsePosition;
     };
 
 

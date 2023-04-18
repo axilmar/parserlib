@@ -542,10 +542,6 @@ static void unitTest_recursion() {
 
 
 static void unitTest_leftRecursion() {
-    const Rule<> r = -terminal('x') >> r >> 'b'
-                   | 'o' >> r >> 'c'
-                   | r >> 'd'
-                   | 'a';
 }
 
 
