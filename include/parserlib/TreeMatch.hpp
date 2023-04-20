@@ -96,6 +96,34 @@ namespace parserlib {
     }
 
 
+    template <class ParserNodeType>
+    TreeMatch<ParserNodeType, std::string>
+        operator >= (const ParserNode<ParserNodeType>& node, const char* matchId) {
+        return TreeMatch<ParserNodeType, std::string>(static_cast<const ParserNodeType&>(node), matchId);
+    }
+
+
+    template <class ParserNodeType>
+    TreeMatch<ParserNodeType, std::wstring>
+        operator >= (const ParserNode<ParserNodeType>& node, const wchar_t* matchId) {
+        return TreeMatch<ParserNodeType, std::wstring>(static_cast<const ParserNodeType&>(node), matchId);
+    }
+
+
+    template <class ParserNodeType>
+    TreeMatch<ParserNodeType, std::u16string>
+        operator >= (const ParserNode<ParserNodeType>& node, const char16_t* matchId) {
+        return TreeMatch<ParserNodeType, std::u16string>(static_cast<const ParserNodeType&>(node), matchId);
+    }
+
+
+    template <class ParserNodeType>
+    TreeMatch<ParserNodeType, std::u32string>
+        operator >= (const ParserNode<ParserNodeType>& node, const char32_t* matchId) {
+        return TreeMatch<ParserNodeType, std::u32string>(static_cast<const ParserNodeType&>(node), matchId);
+    }
+
+
 } //namespace parserlib
 
 

@@ -180,39 +180,29 @@ namespace parserlib {
             ruleState.setPosition(pc.sourcePosition());
             ruleState.setLeftRecursion(false);
 
+            //create a left recursion context, if needed later
+            LeftRecursionContext<ParseContextType> lrc(pc.sourcePosition(), pc.matches().size());
+
             //parse
             const bool result = m_parser->operator()(pc);
 
-            //success
-            if (result) {
-                return result;
-            }
-
-            //parse left recursion
-            if (ruleState.leftRecursion()) {
-                return parseLeftRecursion(pc, ruleState);
-            }
-
             //failure
-            return false;
+            if (!result) {
+                return false;
+            }
+
+            //success
+
+            //if left recursion was detected, parse continuation
+            if (ruleState.leftRecursion()) {
+                return parseLeftRecursionContinuation(pc, ruleState, lrc);
+            }
+
+            return true;
         }
 
-        //parse left recursion
-        bool parseLeftRecursion(ParseContextType& pc, RuleStateType& ruleState) const {
-            const auto startPosition = pc.sourcePosition();
-            LeftRecursionContext<ParseContextType> lrc(startPosition, pc.matches().size());
-
-            //first step: find some non-left recursive part to parse
-            if (!m_parser->parseLeftRecursionBase(pc)) {
-                return false;
-            }
-
-            //if there is no advance, then the left recursion cannot be resolved
-            if (pc.sourcePosition() == startPosition) {
-                return false;
-            }
-
-            //success; parse after left recursive rule reference
+        //parse left recursion continuation
+        bool parseLeftRecursionContinuation(ParseContextType& pc, RuleStateType& ruleState, LeftRecursionContext<ParseContextType>& lrc) const {
             while (!pc.sourceEnded()) {
                 const auto startPosition = pc.sourcePosition();
 
@@ -809,6 +799,34 @@ namespace parserlib {
     TreeMatch<RuleReference<ParseContextType>, MatchIdType>
         operator >= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
         return TreeMatch<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    template <class ParseContextType>
+    TreeMatch<RuleReference<ParseContextType>, std::string>
+        operator >= (const Rule<ParseContextType>& rule, const char* matchId) {
+        return TreeMatch<RuleReference<ParseContextType>, std::string>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    template <class ParseContextType>
+    TreeMatch<RuleReference<ParseContextType>, std::wstring>
+        operator >= (const Rule<ParseContextType>& rule, const wchar_t* matchId) {
+        return TreeMatch<RuleReference<ParseContextType>, std::wstring>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    template <class ParseContextType>
+    TreeMatch<RuleReference<ParseContextType>, std::u16string>
+        operator >= (const Rule<ParseContextType>& rule, const char16_t* matchId) {
+        return TreeMatch<RuleReference<ParseContextType>, std::u16string>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    template <class ParseContextType>
+    TreeMatch<RuleReference<ParseContextType>, std::u32string>
+        operator >= (const Rule<ParseContextType>& rule, const char32_t* matchId) {
+        return TreeMatch<RuleReference<ParseContextType>, std::u32string>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 

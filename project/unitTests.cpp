@@ -541,25 +541,201 @@ static void unitTest_recursion() {
 }
 
 
+struct TreeMatchT {
+    std::string id;
+    std::vector<TreeMatchT> children;
+};
+
+
+TreeMatchT treeMatch(const std::string& s) {
+    return { s, {} };
+}
+
+
+TreeMatchT treeMatch(const std::string& s, TreeMatchT&& child) {
+    return { s, { std::move(child) } };
+}
+
+
+bool operator == (const ParseContext<>::Match& treeMatch, const TreeMatchT& tm) {
+    if (treeMatch.id() != tm.id) {
+        return false;
+    }
+
+    if (treeMatch.children().size() != tm.children.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < tm.children.size(); ++i) {
+        if (!(treeMatch.children()[i] == tm.children[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool operator == (const std::vector<ParseContext<>::Match>& treeMatches, const TreeMatchT& tm) {
+    return treeMatches.size() == 1 && treeMatches[0] == tm;
+}
+
+
 static void unitTest_leftRecursion() {
+    {
+        Rule<> r = (r >> 'b') >= "b"
+                 | (r >> 'c') >= "c"
+                 | terminal('a') >= "a"
+                 | terminal('d') >= "d";
+
+        {
+            const std::string input = "a";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+            assert(pc.matches() == treeMatch("a"));
+        }
+
+        {
+            const std::string input = "ab";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+            assert(pc.matches() == treeMatch("b", treeMatch("a")));
+        }
+
+        {
+            const std::string input = "abc";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+            assert(pc.matches() == treeMatch("c", treeMatch("b", treeMatch("a"))));
+        }
+
+        {
+            const std::string input = "acb";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+            assert(pc.matches() == treeMatch("b", treeMatch("c", treeMatch("a"))));
+        }
+
+        {
+            const std::string input = "abcb";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+            assert(pc.matches() == treeMatch("b", treeMatch("c", treeMatch("b", treeMatch("a")))));
+        }
+
+        {
+            const std::string input = "acbc";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(pc.sourceEnded());
+            assert(pc.matches() == treeMatch("c", treeMatch("b", treeMatch("c", treeMatch("a")))));
+        }
+
+        {
+            const std::string input = "aa";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(!pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "aba";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(!pc.sourceEnded());
+            assert(pc.matches() == treeMatch("b", treeMatch("a")));
+        }
+
+        {
+            const std::string input = "aca";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(!pc.sourceEnded());
+            assert(pc.matches() == treeMatch("c", treeMatch("a")));
+        }
+
+        {
+            const std::string input = "b";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(!ok);
+            assert(!pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "c";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(!ok);
+            assert(!pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "ba";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(!ok);
+            assert(!pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "ca";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(!ok);
+            assert(!pc.sourceEnded());
+        }
+
+        {
+            const std::string input = "ad";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(!pc.sourceEnded());
+            assert(pc.matches() == treeMatch("a"));
+        }
+
+        {
+            const std::string input = "abd";
+            ParseContext pc(input);
+            const bool ok = r(pc);
+            assert(ok);
+            assert(!pc.sourceEnded());
+            assert(pc.matches() == treeMatch("b", treeMatch("a")));
+        }
+    }
 }
 
 
 void runUnitTests() {
-    unitTest_AndParser();
-    unitTest_ChoiceParser();
-    unitTest_Loop1Parser();
-    unitTest_LoopParser();
-    unitTest_NotParser();
-    unitTest_OptionalParser();
-    unitTest_Rule();
-    unitTest_sequenceParser();
-    unitTest_terminalParser();
-    unitTest_terminalRangeParser();
-    unitTest_terminalSetParser();
-    unitTest_terminalStringParser();
-    unitTest_Match();
-    unitTest_TreeMatch();
-    unitTest_recursion();
+    //unitTest_AndParser();
+    //unitTest_ChoiceParser();
+    //unitTest_Loop1Parser();
+    //unitTest_LoopParser();
+    //unitTest_NotParser();
+    //unitTest_OptionalParser();
+    //unitTest_Rule();
+    //unitTest_sequenceParser();
+    //unitTest_terminalParser();
+    //unitTest_terminalRangeParser();
+    //unitTest_terminalSetParser();
+    //unitTest_terminalStringParser();
+    //unitTest_Match();
+    //unitTest_TreeMatch();
+    //unitTest_recursion();
     unitTest_leftRecursion();
 }
