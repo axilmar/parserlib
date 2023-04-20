@@ -825,20 +825,20 @@ static void unitTest_leftRecursion() {
 
 
 void runUnitTests() {
-    //unitTest_AndParser();
-    //unitTest_ChoiceParser();
-    //unitTest_Loop1Parser();
-    //unitTest_LoopParser();
-    //unitTest_NotParser();
-    //unitTest_OptionalParser();
-    //unitTest_Rule();
-    //unitTest_sequenceParser();
-    //unitTest_terminalParser();
-    //unitTest_terminalRangeParser();
-    //unitTest_terminalSetParser();
-    //unitTest_terminalStringParser();
-    //unitTest_Match();
-    //unitTest_TreeMatch();
-    //unitTest_recursion();
+    unitTest_AndParser();
+    unitTest_ChoiceParser();
+    unitTest_Loop1Parser();
+    unitTest_LoopParser();
+    unitTest_NotParser();
+    unitTest_OptionalParser();
+    unitTest_Rule();
+    unitTest_sequenceParser();
+    unitTest_terminalParser();
+    unitTest_terminalRangeParser();
+    unitTest_terminalSetParser();
+    unitTest_terminalStringParser();
+    unitTest_Match();
+    unitTest_TreeMatch();
+    unitTest_recursion();
     unitTest_leftRecursion();
 }
