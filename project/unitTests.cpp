@@ -581,6 +581,53 @@ bool operator == (const std::vector<ParseContext<>::Match>& treeMatches, const T
 }
 
 
+extern Rule<> add;
+
+
+static auto digit = terminalRange('0', '9');
+
+
+static auto integer = +digit >= "int";
+
+
+static auto num = integer
+                | '(' >> add >> ')';
+
+
+static Rule<> mul = (mul >> '*' >> num) >= "mul"
+                  | (mul >> '/' >> num) >= "div"
+                  | num;
+
+
+static Rule<> add = (add >> '+' >> mul) >= "add"
+                  | (add >> '-' >> mul) >= "sub"
+                  | mul;
+
+
+static int eval(const ParseContext<>::Match& m) {
+    if (m.id() == "add") {
+        return eval(m.children()[0]) + eval(m.children()[1]);
+    }
+    if (m.id() == "sub") {
+        return eval(m.children()[0]) - eval(m.children()[1]);
+    }
+    if (m.id() == "mul") {
+        return eval(m.children()[0]) * eval(m.children()[1]);
+    }
+    if (m.id() == "div") {
+        return eval(m.children()[0]) / eval(m.children()[1]);
+    }
+    if (m.id() == "int") {
+        std::stringstream stream;
+        stream << m.content();
+        int v;
+        stream >> v;
+        return v;
+    }
+    throw std::logic_error("Invalid match id");
+}
+
+
 static void unitTest_leftRecursion() {
     {
         Rule<> r = (r >> 'b') >= "b"
@@ -625,12 +672,12 @@ static void unitTest_leftRecursion() {
         }
 
         {
-            const std::string input = "abcb";
-            ParseContext pc(input);
-            const bool ok = r(pc);
-            assert(ok);
-            assert(pc.sourceEnded());
-            assert(pc.matches() == treeMatch("b", treeMatch("c", treeMatch("b", treeMatch("a")))));
+        const std::string input = "abcb";
+        ParseContext pc(input);
+        const bool ok = r(pc);
+        assert(ok);
+        assert(pc.sourceEnded());
+        assert(pc.matches() == treeMatch("b", treeMatch("c", treeMatch("b", treeMatch("a")))));
         }
 
         {
@@ -717,6 +764,62 @@ static void unitTest_leftRecursion() {
             assert(!pc.sourceEnded());
             assert(pc.matches() == treeMatch("b", treeMatch("a")));
         }
+    }
+
+    {
+        std::string input = "1";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 1);
+    }
+
+    {
+        std::string input = "1+2";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 3);
+    }
+
+    {
+        std::string input = "1+2*3";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 7);
+    }
+
+    {
+        std::string input = "1*2+3";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 5);
+    }
+
+    {
+        std::string input = "(1+2)*3";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 9);
+    }
+
+    {
+        std::string input = "1*(2+3)";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 5);
+    }
+
+    {
+        std::string input = "(1*(2+3))*4";
+        ParseContext pc(input);
+        const bool ok = add(pc);
+        const int r = eval(pc.matches()[0]);
+        assert(r == 20);
     }
 }
 
