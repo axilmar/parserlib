@@ -2,6 +2,9 @@
 #define PARSERLIB_PARSERNODE_HPP
 
 
+#include "LeftRecursionContext.hpp"
+
+
 namespace parserlib {
 
 

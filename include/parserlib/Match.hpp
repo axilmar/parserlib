@@ -48,17 +48,30 @@ namespace parserlib {
          * @return true if the 1st parsing succeeded, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
+            return parse(pc, [&]() { return m_child(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionBase(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionContinuation(pc, lrc); });
+        }
+
+    private:
+        const ParserNodeType m_child;
+        const MatchIdType m_matchId;
+
+        template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
             const auto begin = pc.sourcePosition();
-            if (m_child(pc)) {
+            if (pf()) {
                 pc.addMatch(m_matchId, begin, pc.sourcePosition());
                 return true;
             }
             return false;
         }
 
-    private:
-        const ParserNodeType m_child;
-        const MatchIdType m_matchId;
     };
 
 

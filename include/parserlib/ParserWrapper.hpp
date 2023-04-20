@@ -40,6 +40,14 @@ namespace parserlib {
             return m_parser(pc);
         }
 
+        bool parseLeftRecursionBase(ParseContextType& pc) const override {
+            return m_parser.parseLeftRecursionBase(pc);
+        }
+
+        bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const override {
+            return m_parser.parseLeftRecursionContinuation(pc, lrc);
+        }
+
     private:
         const ParserNodeType m_parser;
     };

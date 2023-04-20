@@ -52,6 +52,14 @@ namespace parserlib {
             return true;
         }
 
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return operator ()(pc);
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return false;
+        }
+
     private:
         const TerminalValueType* const m_string;
     };

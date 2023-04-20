@@ -21,6 +21,14 @@ namespace parserlib {
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
             return pc.sourceEnded();
         }
+
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return false;
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return operator ()(pc);
+        }
     };
 
 

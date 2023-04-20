@@ -35,6 +35,37 @@ namespace parserlib {
          * @return always true.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
+            return parse(pc, [&]() { return m_child(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionBase(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionContinuation(pc, lrc); });
+        }
+
+    private:
+        const ParserNodeType m_child;
+
+        template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
+            //parse once with the given function
+            {
+                const auto startPosition = pc.sourcePosition();
+
+                //if no more parsing possible, stop
+                if (!pf()) {
+                    return true;
+                }
+
+                //if no advance was made, stop in order to avoid infinite an loop
+                if (pc.sourcePosition() == startPosition) {
+                    return true;
+                }
+            }
+
+            //since parsing suceeded, parse with normal function from now on
             while (true) {
                 const auto startPosition = pc.sourcePosition();
 
@@ -52,8 +83,6 @@ namespace parserlib {
             return true;
         }
 
-    private:
-        const ParserNodeType m_child;
     };
 
 

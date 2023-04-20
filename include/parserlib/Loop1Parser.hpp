@@ -36,19 +36,36 @@ namespace parserlib {
          * @return true if the 1st parsing succeeded, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            const auto startPosition = pc.sourcePosition();
+            return parse(pc, [&]() { return m_child(pc); });
+        }
 
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionBase(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionContinuation(pc, lrc); });
+        }
+
+    private:
+        ParserNodeType m_child;
+
+        template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
             //parse the child once to define the result
-            if (!m_child(pc)) {
-                return false;
-            }
-             
-            //if no input was consumed, stop in order to avoid an infinite loop
-            if (startPosition == pc.sourcePosition()) {
-                return true;
+            {
+                const auto startPosition = pc.sourcePosition();
+
+                if (!pf()) {
+                    return false;
+                }
+
+                //if no input was consumed, stop in order to avoid an infinite loop
+                if (startPosition == pc.sourcePosition()) {
+                    return false;
+                }
             }
 
-            //parse loop
+            //parse loop; normal function, since advance was made
             while (true) {
                 const auto startPosition = pc.sourcePosition();
 
@@ -66,9 +83,6 @@ namespace parserlib {
             //success
             return true;
         }
-
-    private:
-        ParserNodeType m_child;
     };
 
 

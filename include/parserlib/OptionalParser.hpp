@@ -39,6 +39,16 @@ namespace parserlib {
             return true;
         }
 
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            m_child.parseLeftRecursionBase(pc);
+            return true;
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            m_child.parseLeftRecursionContinuation(pc, lrc);
+            return true;
+        }
+
     private:
         const ParserNodeType m_child;
     };

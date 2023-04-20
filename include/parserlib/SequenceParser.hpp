@@ -39,29 +39,65 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            //keep initial state in order to later restore it if subsequence parser fails
-            const auto state = pc.state();
+            return parse(pc, [&]() { return parseLoop<0>(pc, [&](const auto& child) { return child(pc); }); });
+        }
 
-            //parse children; all children must parse
-            const bool ok = parse<0>(pc);
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return parse(pc, [&]() { return parseLoop<0>(pc, [&](const auto& child) { return child.parseLeftRecursionBase(pc); }); });
+        }
 
-            //if parsing fails, restore the initial state
-            if (!ok) {
-                pc.setState(state);
-            }
-
-            return ok;
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return parse(pc, [&]() { return parseLoopLRC<0>(pc, lrc); });
         }
 
     private:
         std::tuple<Children...> m_children;
 
-        template <size_t Index, class ParseContextType> bool parse(ParseContextType& pc) const {
+        template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
+            //keep initial state in order to later restore it if subsequence parser fails
+            const auto state = pc.state();
+
+            //parse
+            if (pf()) {
+                return true;
+            }
+
+            //parse failed; restore the parse context 
+            pc.setState(state);
+            return false;
+        }
+
+        template <size_t Index, class ParseContextType, class PF> bool parseLoop(ParseContextType& pc, const PF& pf) const {
             if constexpr (Index < sizeof...(Children)) {
-                if (std::get<Index>(m_children)(pc)) {
-                    return parse<Index + 1>(pc);
+                if (pf(std::get<Index>(m_children))) {
+                    return parseLoop<Index + 1>(pc, pf);
                 }
                 return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        template <size_t Index, class ParseContextType> bool parseLoopLRC(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            if constexpr (Index < sizeof...(Children)) {
+                const auto startPosition = pc.sourcePosition();
+
+                //parse child; if it fails, return false
+                if (!std::get<Index>(m_children).parseLeftRecursionContinuation(pc, lrc)) {
+                    return false;
+                }
+
+                //child parsed sucessfully
+                
+                //if the left recursion continuation is started, i.e. the current left recursive rule
+                //has been called to parse the continuation, return to normal parsing
+                if (lrc.continuationResolved()) {
+                    return parseLoop<Index + 1>(pc, [&](const auto& child) { return child(pc); });
+                }
+
+                //try the next child for continuation
+                return parseLoopLRC<Index + 1>(pc, lrc);
             }
             else {
                 return true;

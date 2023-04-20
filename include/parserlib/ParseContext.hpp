@@ -277,12 +277,12 @@ namespace parserlib {
          * @return the rule state for the rule.
          */
         RuleStateType& ruleState(const RuleType& rule) {
-            const auto it = m_ruleStates.find(rule.this_());
-            if (it != m_ruleStates.end()) {
-                return it->second;
+            const auto it1 = m_ruleStates.find(rule.this_());
+            if (it1 != m_ruleStates.end()) {
+                return it1->second;
             }
-            const auto [it, ok] = m_ruleStates.emplace(rule.this_(), RuleStateType(RuleStateType::Normal, m_sourceIt));
-            return it->second;
+            const auto [it2, ok] = m_ruleStates.emplace(rule.this_(), RuleStateType(m_sourceEnd));
+            return it2->second;
         }
 
     private:

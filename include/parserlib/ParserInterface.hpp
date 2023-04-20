@@ -23,6 +23,10 @@ namespace parserlib {
          * @return parsing success.
          */
         virtual bool operator ()(ParseContextType& pc) const = 0;
+
+        virtual bool parseLeftRecursionBase(ParseContextType& pc) const = 0;
+
+        virtual bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const = 0;
     };
 
 

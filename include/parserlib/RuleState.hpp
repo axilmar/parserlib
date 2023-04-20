@@ -12,38 +12,11 @@ namespace parserlib {
     template <class ParseContextType> class RuleState {
     public:
         /**
-         * Status of the rule. 
-         */
-        enum Status {
-            /**
-             * Normal state.
-             */
-            Normal
-        };
-        
-        /**
          * Constructor.
-         * @param status initial status.
          * @param position initial position.
          */
-        RuleState(Status status = Normal, const typename ParseContextType::PositionType& position = {}) 
-            : m_status(status), m_position(position) {
-        }
-
-        /**
-         * Returns the rule's current status.
-         * @return the rule's current status.
-         */
-        Status status() const {
-            return m_status;
-        }
-
-        /**
-         * Sets the rule's current status.
-         * @param status the new status of the rule.
-         */
-        void setStatus(Status status) {
-            m_status = status;
+        RuleState(const typename ParseContextType::PositionType& position = {}) 
+            : m_position(position) {
         }
 
         /**
@@ -62,9 +35,25 @@ namespace parserlib {
             m_position = position;
         }
 
+        /**
+         * Returns the left recursion flag.
+         * @return the left recursion flag.
+         */
+        bool leftRecursion() const {
+            return m_leftRecursion;
+        }
+
+        /**
+         * Sets the left recursion flag.
+         * @param lr left recursion flag.
+         */
+        void setLeftRecursion(bool lr) {
+            m_leftRecursion = lr;
+        }
+
     private:
-        Status m_status;
         typename ParseContextType::PositionType m_position;
+        bool m_leftRecursion{ false };
     };
 
 

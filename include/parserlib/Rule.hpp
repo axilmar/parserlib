@@ -17,6 +17,7 @@
 #include "TreeMatch.hpp"
 #include "TerminalParser.hpp"
 #include "TerminalStringParser.hpp"
+#include "util.hpp"
 
 
 namespace parserlib {
@@ -28,6 +29,11 @@ namespace parserlib {
      */
     template <class ParseContextType = ParseContext<>> class Rule {
     public:
+        /**
+         * Rule state type.
+         */
+        using RuleStateType = RuleState<ParseContextType>;
+
         /**
          * Constructor.
          * Allocates a copy of the given parser on the heap.
@@ -127,11 +133,106 @@ namespace parserlib {
          * @exception LeftRecursionException thrown when left recursion is found upon the referenced rule.
          */
         bool operator ()(ParseContextType& pc) const {
-            return m_parser->operator ()(pc);
+            return parse(pc, 
+                [](RuleStateType& ruleState) {
+                    ruleState.setLeftRecursion(true);
+                    return false;
+                });
+        }
+
+        bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return parse(pc,
+                [](RuleStateType& ruleState) {
+                    return false;
+                });
+        }
+
+        bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            return parse(pc,
+                [&](RuleStateType& ruleState) {
+                    lrc.setContinuationResolved(true);
+                    return true;
+                });
         }
 
     private:
         const std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
+
+        //parse
+        template <class LRF> bool parse(ParseContextType& pc, const LRF& lrf) const {
+            //get the state for the rule
+            RuleStateType& ruleState = pc.ruleState(*this);
+
+            //check if there is left recursion
+            if (ruleState.position() == pc.sourcePosition()) {
+                return lrf(ruleState);
+            }
+
+            //no left recursion; proceed with normal parsing
+
+            //keep the current state to later restore it
+            const RuleStateType prevState = ruleState;
+
+            //at scope exit, restore the rule state
+            const ScopeExit scopeExitHandler([&]() { ruleState = prevState; });
+
+            //initialize the rule state for non-left recursive parsing
+            ruleState.setPosition(pc.sourcePosition());
+            ruleState.setLeftRecursion(false);
+
+            //parse
+            const bool result = m_parser->operator()(pc);
+
+            //success
+            if (result) {
+                return result;
+            }
+
+            //parse left recursion
+            if (ruleState.leftRecursion()) {
+                return parseLeftRecursion(pc, ruleState);
+            }
+
+            //failure
+            return false;
+        }
+
+        //parse left recursion
+        bool parseLeftRecursion(ParseContextType& pc, RuleStateType& ruleState) const {
+            const auto startPosition = pc.sourcePosition();
+            LeftRecursionContext<ParseContextType> lrc(startPosition, pc.matches().size());
+
+            //first step: find some non-left recursive part to parse
+            if (!m_parser->parseLeftRecursionBase(pc)) {
+                return false;
+            }
+
+            //if there is no advance, then the left recursion cannot be resolved
+            if (pc.sourcePosition() == startPosition) {
+                return false;
+            }
+
+            //success; parse after left recursive rule reference
+            while (!pc.sourceEnded()) {
+                const auto startPosition = pc.sourcePosition();
+
+                //set the current position so as that more left recursion is found
+                ruleState.setPosition(pc.sourcePosition());
+
+                //invoke the parser
+                if (!m_parser->parseLeftRecursionContinuation(pc, lrc)) {
+                    break;
+                }
+
+                //if there is no advance, then no more left recursion continuation parsing can be done
+                if (pc.sourcePosition() == startPosition) {
+                    break;
+                }
+            }
+
+            //success
+            return true;
+        }
     };
 
 

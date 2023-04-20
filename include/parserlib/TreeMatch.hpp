@@ -48,12 +48,18 @@ namespace parserlib {
          * @return true if the 1st parsing succeeded, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            const auto begin = pc.sourcePosition();
-            const size_t beginMatchCount = pc.matches().size();
-            if (m_child(pc)) {
+            return parse(pc, [&]() { return m_child(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
+            return parse(pc, [&]() { return m_child.parseLeftRecursionBase(pc); });
+        }
+
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            if (m_child.parseLeftRecursionContinuation(pc, lrc)) {
                 const size_t endMatchCount = pc.matches().size();
-                const size_t childMatchCount = endMatchCount - beginMatchCount;
-                pc.addMatch(m_matchId, begin, pc.sourcePosition(), childMatchCount);
+                const size_t childMatchCount = endMatchCount - lrc.startMatchCount();
+                pc.addMatch(m_matchId, lrc.startPosition(), pc.sourcePosition(), childMatchCount);
                 return true;
             }
             return false;
@@ -62,6 +68,18 @@ namespace parserlib {
     private:
         const ParserNodeType m_child;
         const MatchIdType m_matchId;
+
+        template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
+            const auto begin = pc.sourcePosition();
+            const size_t beginMatchCount = pc.matches().size();
+            if (pf()) {
+                const size_t endMatchCount = pc.matches().size();
+                const size_t childMatchCount = endMatchCount - beginMatchCount;
+                pc.addMatch(m_matchId, begin, pc.sourcePosition(), childMatchCount);
+                return true;
+            }
+            return false;
+        }
     };
 
 
