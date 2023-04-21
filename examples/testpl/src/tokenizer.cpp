@@ -38,10 +38,6 @@ static const auto whitespace = terminal(' ') | terminal('\n') | lineComment | bl
 static const auto letter = terminalRange('a', 'z') | terminalRange('A', 'Z');
 
 
-//identifier
-static const auto identifier = (letter | terminal('_')) >> *(letter | digit | terminal('_'));
-
-
 //integer literal
 static const auto integerLiteral = -terminalSet('+', '-') >> +digit;
 
@@ -85,17 +81,39 @@ static const auto keywordToken(const Char* kw, TOKEN_TYPE tokenType) {
 }
 
 
+//reserved word
+static const auto reserved_word = terminal("typedef")
+                                | terminal("double")
+                                | terminal("struct")
+                                | terminal("write")
+                                | terminal("enum")
+                                | terminal("char")
+                                | terminal("read")
+                                | terminal("int")
+                                | terminal("new");
+
+
+//keyword
+static const auto keyword = keywordToken("typedef", TOKEN_KEYWORD_TYPEDEF)
+                          | keywordToken("double", TOKEN_KEYWORD_DOUBLE)
+                          | keywordToken("struct", TOKEN_KEYWORD_STRUCT)
+                          | keywordToken("write", TOKEN_KEYWORD_WRITE)
+                          | keywordToken("enum", TOKEN_KEYWORD_ENUM)
+                          | keywordToken("char", TOKEN_KEYWORD_CHAR)
+                          | keywordToken("read", TOKEN_KEYWORD_READ)
+                          | keywordToken("int", TOKEN_KEYWORD_INT)
+                          | keywordToken("new", TOKEN_KEYWORD_NEW);
+
+
+//identifier
+static const auto identifier = reserved_word >> +(letter | digit | terminal('_'))
+                             | (letter | terminal('_')) >> *(letter | digit | terminal('_'));
+
+
 //token
 static const auto token = whitespace
-                        | keywordToken("typedef", TOKEN_KEYWORD_TYPEDEF)
-                        | keywordToken("double", TOKEN_KEYWORD_DOUBLE)
-                        | keywordToken("struct", TOKEN_KEYWORD_STRUCT)
-                        | keywordToken("write", TOKEN_KEYWORD_WRITE)
-                        | keywordToken("char", TOKEN_KEYWORD_CHAR)
-                        | keywordToken("read", TOKEN_KEYWORD_READ)
-                        | keywordToken("int", TOKEN_KEYWORD_INT)
-                        | keywordToken("new", TOKEN_KEYWORD_NEW)
                         | identifier == TOKEN_IDENTIFIER
+                        | keyword
                         | floatLiteral == TOKEN_LITERAL_FLOAT
                         | integerLiteral == TOKEN_LITERAL_INTEGER
                         | stringLiteral == TOKEN_LITERAL_STRING
