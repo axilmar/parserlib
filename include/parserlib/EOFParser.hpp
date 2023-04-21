@@ -14,7 +14,7 @@ namespace parserlib {
     class EOFParser : public ParserNode<EOFParser> {
     public:
         /**
-         * The parse function.
+         * Checks if the source has ended.
          * @param pc parse context.
          * @return true if there is no more input to parse, false otherwise.
          */
@@ -22,10 +22,14 @@ namespace parserlib {
             return pc.sourceEnded();
         }
 
-        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
-            return false;
-        }
-
+        /**
+         * Checks if the source has ended.
+         * The object is called to parse within a left recursion parsing context,
+         * in order to continue parsing after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             return operator ()(pc);
         }

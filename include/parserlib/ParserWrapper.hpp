@@ -40,10 +40,14 @@ namespace parserlib {
             return m_parser(pc);
         }
 
-        bool parseLeftRecursionBase(ParseContextType& pc) const override {
-            return m_parser.parseLeftRecursionBase(pc);
-        }
-
+        /**
+         * Uses the wrapped parser to parse.
+         * The object is called to parse within a left recursion parsing context,
+         * in order to continue parsing after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const override {
             return m_parser.parseLeftRecursionContinuation(pc, lrc);
         }

@@ -140,13 +140,17 @@ namespace parserlib {
                 });
         }
 
-        bool parseLeftRecursionBase(ParseContextType& pc) const {
-            return parse(pc,
-                [](RuleStateType& ruleState) {
-                    return false;
-                });
-        }
-
+        /**
+         * If there is no left recursion at the specific point,
+         * then it reverts to normal parsing. Otherwise,
+         * it sets the left-recursion context's continuationResolved flag to true,
+         * so as that subsequent parsers parse normally and returns true.
+         * The object is called to parse within a left recursion parsing context,
+         * in order to continue parsing after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             return parse(pc,
                 [&](RuleStateType& ruleState) {

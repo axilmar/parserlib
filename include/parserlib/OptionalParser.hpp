@@ -39,11 +39,14 @@ namespace parserlib {
             return true;
         }
 
-        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
-            m_child.parseLeftRecursionBase(pc);
-            return true;
-        }
-
+        /**
+         * Invokes the child parser, then returns true.
+         * The object is called to parse within a left recursion parsing context,
+         * in order to continue parsing after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             m_child.parseLeftRecursionContinuation(pc, lrc);
             return true;

@@ -43,7 +43,9 @@ namespace parserlib {
         }
 
         /**
-         * If the child parser succeeds, then a match is added to the context.
+         * If the child parser succeeds, then a tree match is added to the context.
+         * the function takes as children matches all the matches created
+         * within the call.
          * @param pc parse context.
          * @return true if the 1st parsing succeeded, false otherwise.
          */
@@ -51,10 +53,17 @@ namespace parserlib {
             return parse(pc, [&]() { return m_child(pc); });
         }
 
-        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
-            return parse(pc, [&]() { return m_child.parseLeftRecursionBase(pc); });
-        }
-
+        /**
+         * If the child parser succeeds, then a tree match is added to the context.
+         * the function takes as children matches all the matches created
+         * from the start of left recursion up to the last created match,
+         * allowing a tree to be formed using left-associativity.
+         * The object is called to parse within a left recursion parsing context,
+         * in order to continue parsing after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             if (m_child.parseLeftRecursionContinuation(pc, lrc)) {
                 const size_t endMatchCount = pc.matches().size();

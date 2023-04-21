@@ -56,10 +56,13 @@ namespace parserlib {
             return false;
         }
 
-        template <class ParseContextType> bool parseLeftRecursionBase(ParseContextType& pc) const {
-            return operator ()(pc);
-        }
-
+        /**
+         * Does nothing; a terminal should not parse when a rule is expected to parse,
+         * in order to continue after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return always false.
+         */
         template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             return false;
         }

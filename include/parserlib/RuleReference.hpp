@@ -46,10 +46,14 @@ namespace parserlib {
             return m_rule(pc);
         }
 
-        bool parseLeftRecursionBase(ParseContextType& pc) const {
-            return m_rule.parseLeftRecursionBase(pc);
-        }
-
+        /**
+         * Invokes the underlying rule.
+         * The object is called to parse within a left recursion parsing context,
+         * in order to continue parsing after the non-left recursive part is parsed.
+         * @param pc parse context.
+         * @param lrc left recursion context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             return m_rule.parseLeftRecursionContinuation(pc, lrc);
         }
