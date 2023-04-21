@@ -1,3 +1,3 @@
-- test indirect left recursion.
 - documentation.
+- write a helper grammar parser that creates a tokenizer and a parser.
 - write a small programming language compiler/interpreter as a demo.
