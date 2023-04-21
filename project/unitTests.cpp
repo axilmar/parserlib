@@ -30,7 +30,7 @@ static void unitTest_AndParser() {
 
 
 static void unitTest_ChoiceParser() {
-    const auto parser = terminal('a') | terminal('b') | terminal('c');
+    const auto parser = terminal('a') | 'b' | 'c';
 
     {
         const std::string input = "a";
@@ -231,7 +231,8 @@ static void unitTest_OptionalParser() {
 
 
 static void unitTest_Rule() {
-    const Rule<> rule = terminal('a') >> (rule | terminal('b'));
+    const Rule<> rule = 'a' >> (rule | 'b')
+                      | 'b' >> ('a' | rule);
 
     {
         const std::string input = "ab";
@@ -281,7 +282,7 @@ static void unitTest_Rule() {
 
 
 static void unitTest_sequenceParser() {
-    const auto parser = terminal('a') >> terminal('b') >> terminal('c');
+    const auto parser = terminal('a') >> 'b' >> 'c';
 
     {
         const std::string input = "abc";

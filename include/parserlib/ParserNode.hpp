@@ -9,10 +9,18 @@ namespace parserlib {
 
 
     /**
+     * Generic, type-unware parser node base class. 
+     */
+    class ParserNodeBase {
+    public:
+    };
+
+
+    /**
      * Base class for parser nodes.
      * @param ParserNodeType type of parser node derived from this.
      */
-    template <class ParserNodeType> class ParserNode {
+    template <class ParserNodeType> class ParserNode : public ParserNodeBase {
     public:
     };
 
