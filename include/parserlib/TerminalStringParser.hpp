@@ -36,6 +36,7 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
+            pc.parseWhitespace();
             auto sourcePos = pc.sourcePosition();
             auto stringPos = m_string;
             while (true) {

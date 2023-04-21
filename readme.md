@@ -21,6 +21,8 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Tree Matches](#tree-matches)
 
+[Parsing Whitespace](#parsing-whitespace)
+
 ## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
@@ -380,3 +382,27 @@ std::cout << output;
 ```
 
 The above prints the input, which is the value `FF.12.DC.A0`.
+
+## Parsing Whitespace
+
+The library offers two ways to parse whitespace:
+
+- by writing a parser that parses whitespace and putting it inside the grammar.
+- by providing a whitespace parser as a parameter in ParseContext.
+
+Here is an example of a whitespace parser within a grammar:
+
+```cpp
+const auto grammar = 'a' >> cwhitespace() >> 'b' >> cwhitespace() >> 'c';
+```
+
+Here is an example of a whitespace parser within a parse context:
+
+```cpp
+using MyParseContext = ParseContext<std::string, std::string, CWhitespaceParser>;
+const auto grammar = terminal('a') >> 'b' >> 'c';
+```
+
+The advantage of putting the whitespace into the parse context is that it simplifies grammar writing.
+
+By default, a parse context uses an empty parser for whitespace, so as that there is no runtime overhead.

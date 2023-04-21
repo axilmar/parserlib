@@ -7,6 +7,7 @@
 #include <map>
 #include "TreeMatchException.hpp"
 #include "RuleState.hpp"
+#include "EmptyParser.hpp"
 
 
 namespace parserlib {
@@ -22,8 +23,10 @@ namespace parserlib {
      *  must outlive the parser context;
      *  must be immutable while being used by a parser context.
      * @param MatchIdType id to apply to a match.
+     * @param WhitespaceParser parser to use for parsing whitespace; defaults to EmptyParser.
      */
-    template <class SourceType = std::string, class MatchIdType = std::string> class ParseContext {
+    template <class SourceType = std::string, class MatchIdType = std::string, class WhitespaceParser = EmptyParser> 
+    class ParseContext {
     public:
         /**
          * Source type.
@@ -38,7 +41,7 @@ namespace parserlib {
         /**
          * this type.
          */
-        using ThisType = ParseContext<SourceType, MatchIdType>;
+        using ThisType = ParseContext<SourceType, MatchIdType, WhitespaceParser>;
 
         /**
          * Associated rule type.
@@ -49,6 +52,11 @@ namespace parserlib {
          * Associated rule state type. 
          */
         using RuleStateType = RuleState<ThisType>;
+
+        /**
+         * Whitespace parser type. 
+         */
+        using WhitespaceParserType = WhitespaceParser;
 
         /**
          * A successful parse. 
@@ -116,7 +124,7 @@ namespace parserlib {
                 : m_id(id), m_begin(begin), m_end(end), m_children(children) {
             }
 
-            friend class ParseContext<SourceType, MatchIdType>;
+            friend class ThisType;
         };
 
         /**
@@ -156,15 +164,16 @@ namespace parserlib {
                 : m_sourceIt(sourceIt), m_matchCount(matchCount) {
             }
 
-            friend class ParseContext<SourceType, MatchIdType>;
+            friend class ThisType;
         };
 
         /**
          * Constructor.
          * @param src source.
+         * @param ws whitespace parser.
          */
-        ParseContext(const SourceType& src)
-            : m_sourceIt(src.begin()), m_sourceEnd(src.end()) {
+        ParseContext(const SourceType& src, const WhitespaceParser& ws = WhitespaceParser{})
+            : m_sourceIt(src.begin()), m_sourceEnd(src.end()), m_whitespaceParser(ws) {
         }
 
         /**
@@ -285,11 +294,19 @@ namespace parserlib {
             return it2->second;
         }
 
+        /**
+         * Invokes the whitespace parser. 
+         */
+        void parseWhitespace() {
+            m_whitespaceParser(*this);
+        }
+
     private:
         typename SourceType::const_iterator m_sourceIt;
         const typename SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
+        WhitespaceParser m_whitespaceParser;
     };
 
 

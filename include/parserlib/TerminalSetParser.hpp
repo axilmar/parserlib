@@ -40,6 +40,7 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
+            pc.parseWhitespace();
             if (pc.sourcePosition() != pc.sourceEndPosition()) {
                 const auto inputToken = *pc.sourcePosition();
                 auto it = std::upper_bound(m_terminalValues.begin(), m_terminalValues.end(), inputToken);

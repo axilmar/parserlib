@@ -825,6 +825,17 @@ static void unitTest_leftRecursion() {
 }
 
 
+static void unitTest_parseContextWhitespace() {
+    using ParseContextT = ParseContext<std::string, std::string, CWhitespaceParser>;
+    const auto grammar = terminal('a') >> 'b' >> 'c';
+    const std::string input = "a b c";
+    ParseContextT pc(input);
+    const bool ok = grammar(pc);
+    assert(ok);
+    assert(pc.sourceEnded());
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -842,4 +853,5 @@ void runUnitTests() {
     unitTest_TreeMatch();
     unitTest_recursion();
     unitTest_leftRecursion();
+    unitTest_parseContextWhitespace();
 }
