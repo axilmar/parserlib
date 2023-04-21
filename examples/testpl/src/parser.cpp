@@ -6,27 +6,27 @@ using namespace parserlib;
 
 
 //parse context type
-using ParserParseContext = ParseContext<std::vector<Token>, AST_TYPE>;
+using ParseContextT = ParseContext<std::vector<Token>, AST_TYPE>;
 
 
 //rule type
-using Rule_ = parserlib::Rule<ParserParseContext>;
+using RuleT = parserlib::Rule<ParseContextT>;
 
 
 //char type
-static const auto charType = terminal(TOKEN_KEYWORD_CHAR) == AST_TYPE_CHAR;
+static const auto charType = terminal(TOKEN_KEYWORD_CHAR) >= AST_TYPE_CHAR;
 
 
 //int type
-static const auto intType = terminal(TOKEN_KEYWORD_INT) == AST_TYPE_DOUBLE;
+static const auto intType = terminal(TOKEN_KEYWORD_INT) >= AST_TYPE_INT;
 
 
 //double type
-static const auto doubleType = terminal(TOKEN_KEYWORD_DOUBLE) == AST_TYPE_DOUBLE;
+static const auto doubleType = terminal(TOKEN_KEYWORD_DOUBLE) >= AST_TYPE_DOUBLE;
 
 
 //named type
-static const auto namedType = terminal(TOKEN_IDENTIFIER) == AST_TYPE_NAME;
+static const auto namedType = terminal(TOKEN_IDENTIFIER) >= AST_TYPE_NAME;
 
 
 //primitive type
@@ -40,7 +40,7 @@ static const auto baseType = primitiveType
                            | namedType;
 
 
-static Rule_ ptrType = (ptrType >> terminal(TOKEN_STAR)) >= AST_TYPE_PTR
+static RuleT ptrType = (ptrType >> terminal(TOKEN_STAR)) >= AST_TYPE_PTR
                      | baseType;
 
 
@@ -49,7 +49,7 @@ static auto& type = ptrType;
 
 
 //variable name
-static const auto variableName = terminal(TOKEN_IDENTIFIER) == AST_DECL_VARIABLE_NAME;
+static const auto variableName = terminal(TOKEN_IDENTIFIER) >= AST_DECL_VARIABLE_NAME;
 
 
 //variable declaration
@@ -66,7 +66,7 @@ static const auto translationUnit = *declaration;
 
 
 //convert array of matches into an AST, pushed into a tree
-static void toAST(const ParserParseContext::Match& match, std::vector<AST>& asts) {
+static void toAST(const ParseContextT::Match& match, std::vector<AST>& asts) {
     AST ast;
     ast.type = match.id();
     ast.tokens = std::vector<Token>(match.begin(), match.end());
@@ -80,7 +80,7 @@ static void toAST(const ParserParseContext::Match& match, std::vector<AST>& asts
 //parse input into an ast
 std::vector<AST> parse(const std::vector<Token>& tokens, std::vector<Error>& errors) {
     //prepare the parse context
-    ParserParseContext pc(tokens);
+    ParseContextT pc(tokens);
 
     //parse
     const bool ok = translationUnit(pc);
