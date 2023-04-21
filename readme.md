@@ -35,14 +35,14 @@ extern Rule<> add;
 const auto val = +terminalRange('0', '9');
 
 const auto num = val
-               | terminal('(') >> add >> terminal(')');
+               | '(' >> add >> ')';
 
-Rule<> mul = mul >> terminal('*') >> num
-           | mul >> terminal('/') >> num
+Rule<> mul = mul >> '*' >> num
+           | mul >> '/' >> num
            | num;
 
-Rule<> add = add >> terminal('+') >> mul
-           | add >> terminal('-') >> mul
+Rule<> add = add >> '+' >> mul
+           | add >> '-' >> mul
            | mul;
 ```
 
