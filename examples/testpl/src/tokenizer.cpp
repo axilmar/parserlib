@@ -6,6 +6,73 @@
 using namespace parserlib;
 
 
+/******************************************************************************
+    UTILITIES
+ ******************************************************************************/
+
+
+//pair
+template <class F, class S> struct Pair {
+    F first;
+    S second;
+};
+
+
+ //keyword table
+static constexpr Pair<const char*, TOKEN_TYPE> keywordTable[] = {
+    {"typedef", TOKEN_KEYWORD_TYPEDEF},
+    {"double", TOKEN_KEYWORD_DOUBLE},
+    {"struct", TOKEN_KEYWORD_STRUCT},
+    {"write", TOKEN_KEYWORD_WRITE},
+    {"enum", TOKEN_KEYWORD_ENUM},
+    {"char", TOKEN_KEYWORD_CHAR},
+    {"read", TOKEN_KEYWORD_READ},
+    {"int", TOKEN_KEYWORD_INT},
+    {"new", TOKEN_KEYWORD_NEW},
+};
+
+
+//create token from character
+static const auto charToken(Char c, TOKEN_TYPE tokenType) {
+    return terminal(c) == tokenType;
+}
+
+
+//keyword token
+static const auto keywordToken(const Char* kw, TOKEN_TYPE tokenType) {
+    return terminal(kw) == tokenType;
+}
+
+
+//reserved word
+template <size_t Index>
+static auto reservedWord() {
+    if constexpr (Index < (sizeof(keywordTable) / sizeof(Pair<const char*, TOKEN_TYPE>)) - 1) {
+        return terminal(keywordTable[Index].first) | reservedWord<Index + 1>();
+    }
+    else {
+        return terminal(keywordTable[Index].first);
+    }
+}
+
+
+//keyword
+template <size_t Index>
+static auto keyword_() {
+    if constexpr (Index < (sizeof(keywordTable) / sizeof(Pair<const char*, TOKEN_TYPE>)) - 1) {
+        return keywordToken(keywordTable[Index].first, keywordTable[Index].second) | keyword_<Index + 1>();
+    }
+    else {
+        return keywordToken(keywordTable[Index].first, keywordTable[Index].second);
+    }
+}
+
+
+/******************************************************************************
+    GRAMMAR
+ ******************************************************************************/
+
+
 //digit
 static const auto digit = terminalRange('0', '9');
 
@@ -69,40 +136,12 @@ static const auto stringLiteral = terminal('"') >> *anyStringCharacterExcept('"'
 static const auto charLiteral = terminal('\'') >> anyStringCharacterExcept('\'') >> terminal('\'');
 
 
-//create token from character
-static const auto charToken(Char c, TOKEN_TYPE tokenType) {
-    return terminal(c) == tokenType;
-}
-
-
-//keyword token
-static const auto keywordToken(const Char* kw, TOKEN_TYPE tokenType) {
-    return terminal(kw) == tokenType;
-}
-
-
 //reserved word
-static const auto reserved_word = terminal("typedef")
-                                | terminal("double")
-                                | terminal("struct")
-                                | terminal("write")
-                                | terminal("enum")
-                                | terminal("char")
-                                | terminal("read")
-                                | terminal("int")
-                                | terminal("new");
+static const auto reserved_word = reservedWord<0>();
 
 
 //keyword
-static const auto keyword = keywordToken("typedef", TOKEN_KEYWORD_TYPEDEF)
-                          | keywordToken("double", TOKEN_KEYWORD_DOUBLE)
-                          | keywordToken("struct", TOKEN_KEYWORD_STRUCT)
-                          | keywordToken("write", TOKEN_KEYWORD_WRITE)
-                          | keywordToken("enum", TOKEN_KEYWORD_ENUM)
-                          | keywordToken("char", TOKEN_KEYWORD_CHAR)
-                          | keywordToken("read", TOKEN_KEYWORD_READ)
-                          | keywordToken("int", TOKEN_KEYWORD_INT)
-                          | keywordToken("new", TOKEN_KEYWORD_NEW);
+static const auto keyword = keyword_<0>();
 
 
 //identifier
@@ -152,7 +191,12 @@ static const auto tokenizer = *token;
 static const auto syntaxChecker = &token;
 
 
-//tokenize source
+/******************************************************************************
+    INTERFACE
+ ******************************************************************************/
+
+
+ //tokenize source
 std::vector<Token> tokenize(const SourceType& input, std::vector<Error>& errors) {
     //the source view over the source type
     SourceView<SourceType> view(input);
