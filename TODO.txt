@@ -1,3 +1,4 @@
 - documentation.
+- add template parameter to parse context for whitespace parsing, and parseWhitespace() function; use that function before terminals.
 - write a helper grammar parser that creates a tokenizer and a parser.
 - write a small programming language compiler/interpreter as a demo.
