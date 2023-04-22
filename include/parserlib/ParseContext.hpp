@@ -23,9 +23,9 @@ namespace parserlib {
      *  must outlive the parser context;
      *  must be immutable while being used by a parser context.
      * @param MatchIdType id to apply to a match.
-     * @param WhitespaceParser parser to use for parsing whitespace; defaults to EmptyParser.
+     * @param WSParserType parser to use for parsing whitespace; defaults to EmptyParser.
      */
-    template <class SourceType = std::string, class MatchIdType = std::string, class WhitespaceParser = EmptyParser> 
+    template <class SourceType = std::string, class MatchIdType = std::string, class WSParserType = EmptyParser> 
     class ParseContext {
     public:
         /**
@@ -41,7 +41,7 @@ namespace parserlib {
         /**
          * this type.
          */
-        using ThisType = ParseContext<SourceType, MatchIdType, WhitespaceParser>;
+        using ThisType = ParseContext<SourceType, MatchIdType, WSParserType>;
 
         /**
          * Associated rule type.
@@ -56,7 +56,7 @@ namespace parserlib {
         /**
          * Whitespace parser type. 
          */
-        using WhitespaceParserType = WhitespaceParser;
+        using WhitespaceParserType = WSParserType;
 
         /**
          * A successful parse. 
@@ -172,7 +172,7 @@ namespace parserlib {
          * @param src source.
          * @param ws whitespace parser.
          */
-        ParseContext(const SourceType& src, const WhitespaceParser& ws = WhitespaceParser{})
+        ParseContext(const SourceType& src, const WSParserType& ws = WSParserType{})
             : m_sourceIt(src.begin()), m_sourceEnd(src.end()), m_whitespaceParser(ws) {
         }
 
@@ -306,7 +306,7 @@ namespace parserlib {
         const typename SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
-        WhitespaceParser m_whitespaceParser;
+        WSParserType m_whitespaceParser;
     };
 
 

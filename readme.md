@@ -226,7 +226,7 @@ The default element that the parser operates on is a `char`; the default contain
 These can be changed via template parameters of the class `ParseContext`. The full declararation of it is as follows:
 
 ```cpp
-template <class SourceType, class MatchIdType> class ParseContext;
+template <class SourceType, class MatchIdType, class WSParserType> class ParseContext;
 ```
 
 For example, in order to iterate over an array of enum values, with match id also being an enum value, the following can be written:
