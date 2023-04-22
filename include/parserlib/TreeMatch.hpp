@@ -79,7 +79,6 @@ namespace parserlib {
         const MatchIdType m_matchId;
 
         template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
-            pc.parseWhitespace();
             const auto begin = pc.sourcePosition();
             const size_t beginMatchCount = pc.matches().size();
             if (pf()) {

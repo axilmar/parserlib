@@ -173,7 +173,9 @@ namespace parserlib {
          * @param ws whitespace parser.
          */
         ParseContext(const SourceType& src, const WSParserType& ws = WSParserType{})
-            : m_sourceIt(src.begin()), m_sourceEnd(src.end()), m_whitespaceParser(ws) {
+            : m_sourceIt(src.begin()), m_sourceEnd(src.end()), m_whitespaceParser(ws)
+        {
+            parseWhitespace();
         }
 
         /**
@@ -250,6 +252,7 @@ namespace parserlib {
          */
         void incrementSourcePosition() {
             ++m_sourceIt;
+            parseWhitespace();
         }
 
         /**
@@ -259,6 +262,7 @@ namespace parserlib {
          */
         void increaseSourcePosition(size_t count) {
             m_sourceIt += count;
+            parseWhitespace();
         }
 
         /**
@@ -294,19 +298,16 @@ namespace parserlib {
             return it2->second;
         }
 
-        /**
-         * Invokes the whitespace parser. 
-         */
-        void parseWhitespace() {
-            m_whitespaceParser(*this);
-        }
-
     private:
         typename SourceType::const_iterator m_sourceIt;
         const typename SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
         WSParserType m_whitespaceParser;
+
+        void parseWhitespace() {
+            m_whitespaceParser(*this);
+        }
     };
 
 
