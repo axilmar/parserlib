@@ -15,8 +15,6 @@
 #include "NotParser.hpp"
 #include "Match.hpp"
 #include "TreeMatch.hpp"
-#include "TerminalParser.hpp"
-#include "TerminalStringParser.hpp"
 #include "util.hpp"
 
 

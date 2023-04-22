@@ -23,6 +23,8 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Parsing Whitespace](#parsing-whitespace)
 
+[Counting Lines And Columns](#counting-lines-and-columns)
+
 ## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
@@ -406,3 +408,99 @@ const auto grammar = terminal('a') >> 'b' >> 'c';
 The advantage of putting the whitespace into the parse context is that it simplifies grammar writing.
 
 By default, a parse context uses an empty parser for whitespace, so as that there is no runtime overhead.
+
+## Counting Lines And Columns
+
+Most of the time, a parser needs to report the exact line and column an object exists at or an error happens at. In order to count lines and columns, the library provides a few classes:
+
+- the class `SourceView<T, NL, It>` allows:
+	- the creation of a view over source container `T`.
+	- the specification of newline traits class `NL`; by default, it is the class `NewlineTraits`.
+	- the specification of the iterator class `It` that counts newlines when iterating; by default, it is the class `SourceViewIterator<typename T::const_iterator, NL>`.
+- the class `SourceViewIterator<It, NL>` counts lines and columns when the `operator ++()` is applied onto it.
+- the class `NewlineTraits` which allows line skipping of the character `\n`.
+
+**The line and column counters start from 1 and not from 0, since that is how most editors count lines and columns.**
+
+Here is an example of how to use the above-mentioned classes to count lines and columns:
+
+```cpp
+//using a SourceView over an std::string
+using SourceT = SourceView<>;
+
+//using a ParseContext defined over the SourceView defined above;
+//also using std::isspace for recognizing whitespace, in order to count newlines based on '\n'.
+using ParseContextT = ParseContext<SourceT, std::string, CWhitespaceParser>;
+
+//define a simple grammar 'abc'.
+const auto a = terminal('a') == "a";
+const auto b = terminal('b') == "b";
+const auto c = terminal('c') == "c";
+const auto grammar = a >> b >> c;
+
+//the source; a newline is inserted between 'b' and 'c'.
+const std::string input = "ab\nc";
+
+//define a source view over the source.
+const SourceT sourceView(input);
+
+//define a parse context in order to parse.
+ParseContextT pc(sourceView);
+
+//parse
+const bool ok = grammar(pc);
+
+assert(ok);
+assert(pc.sourceEnded());
+assert(pc.matches().size() == 3);
+
+//'a' exists on line 1, oolumn 1.
+assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+
+//'b' exists on line 1, column 2.
+assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+
+//'c' exists on line 2, column 1.
+assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+```
+
+### Customizing Newline Traits
+
+If `\n` is not what the newline sequence is, then it can be customized. 
+
+Here is the above example, with a customized newline traits class that recognizes `\r\n` as the newline sequence:
+
+```cpp
+class CustomNewlineTraits {
+public:
+    template <class It> bool operator ()(const It& it, const It& end) const {
+        return it[0] == '\r' && it[1] == '\n';
+    }
+
+    template <class It> void skip(It& it, const It& end) const {
+        it += 2;
+    }
+};
+
+using SourceT = SourceView<std::string, CustomNewlineTraits>;
+using ParseContextT = ParseContext<SourceT, std::string, CWhitespaceParser>;
+
+const auto a = terminal('a') == "a";
+const auto b = terminal('b') == "b";
+const auto c = terminal('c') == "c";
+const auto grammar = a >> b >> c;
+
+const std::string input = "ab\r\nc";
+const SourceT sourceView(input);
+ParseContextT pc(sourceView);
+
+const bool ok = grammar(pc);
+
+assert(ok);
+assert(pc.sourceEnded());
+assert(pc.matches().size() == 3);
+assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+```
+

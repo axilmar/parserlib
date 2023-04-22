@@ -68,6 +68,7 @@ namespace parserlib {
         const MatchIdType m_matchId;
 
         template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
+            pc.parseWhitespace();
             const auto begin = pc.sourcePosition();
             if (pf()) {
                 pc.addMatch(m_matchId, begin, pc.sourcePosition());
@@ -80,7 +81,7 @@ namespace parserlib {
 
 
     /**
-     * Operator that allows a match to be inserted into the grammar.
+     * Operator that allows a parse node match to be inserted into the grammar.
      * @param node node to apply the operator to.
      * @param matchId match id.
      * @return a match parser.
@@ -89,6 +90,19 @@ namespace parserlib {
     Match<ParserNodeType, MatchIdType>
         operator == (const ParserNode<ParserNodeType>& node, const MatchIdType& matchId) {
         return Match<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
+    }
+
+
+    /**
+     * Operator that allows a parse node match with a character string match id to be inserted into the grammar.
+     * @param node node to apply the operator to.
+     * @param matchId match id.
+     * @return a match parser.
+     */
+    template <class ParserNodeType, class CharType>
+    Match<ParserNodeType, std::basic_string<CharType>>
+        operator == (const ParserNode<ParserNodeType>& node, const CharType* matchId) {
+        return Match<ParserNodeType, std::basic_string<CharType>>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 

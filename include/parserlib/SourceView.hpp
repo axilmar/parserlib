@@ -17,17 +17,20 @@ namespace parserlib {
         /**
          * Operator or checking if a character is newline.
          * @param it iterator.
+         * @param end end position.
          * @return true if newline, false otherwise.
          */
-        template <class It> bool operator ()(const It& it) const {
+        template <class It> bool operator ()(const It& it, const It& end) const {
             return *it == '\n';
         }
 
         /**
          * Trait for skipping new lines.
+         * It applies operator ++() over the given iterator.
          * @param it iterator.
+         * @param end end position.
          */
-        template <class It> void skip(It& it) {
+        template <class It> void skip(It& it, const It& end) const {
             ++it;
         }
     };
@@ -36,9 +39,9 @@ namespace parserlib {
     /**
      * Source view iterator.
      * @param It base input iterator type.
-     * @param NewlineTraits newline traits.
+     * @param NL newline traits.
      */
-    template <class It, class NewlineTraits = NewlineTraits> class SourceViewIterator : public It {
+    template <class It, class NL> class SourceViewIterator : public It {
     public:
         /**
          * The default constructor.
@@ -49,14 +52,16 @@ namespace parserlib {
 
         /**
          * Constructor from iterator.
+         * @param it initial position.
+         * @param end end position.
          */
-        SourceViewIterator(const It& it) : It(it) {
+        SourceViewIterator(const It& it, const It& end) : It(it), m_end(end) {
         }
 
         /**
          * Pre-increment.
          */
-        SourceViewIterator<It>& operator ++() {
+        SourceViewIterator<It, NL>& operator ++() {
             increment();
             return *this;
         }
@@ -64,7 +69,7 @@ namespace parserlib {
         /**
          * Post-increment.
          */
-        SourceViewIterator<It> operator ++(int i) {
+        SourceViewIterator<It, NL> operator ++(int i) {
             auto self = *this;
             increment();
             return self;
@@ -87,16 +92,24 @@ namespace parserlib {
     private:
         int m_line = 1;
         int m_column = 1;
+        It m_end;
+
+        //returns this as base iterator
+        It& base() {
+            return static_cast<It&>(*this);
+        }
 
         void increment() {
-            if (!NewlineTraits()(*static_cast<It*>(this))) {
+            const NL nl;
+
+            if (!nl(base(), m_end)) {
                 ++m_column;
                 It::operator++();
             }
             else {
                 ++m_line;
                 m_column = 1;
-                NewlineTraits().skip(*static_cast<It*>(this));
+                nl.skip(base(), m_end);
             }
         }
     };
@@ -106,9 +119,10 @@ namespace parserlib {
      * Defines a view over a container.
      * The view contains an iterator class that defines a position (line and column).
      * @param T any stl-like container that can be used as input.
+     * @param NL newline traits.
      * @param It input view iterator.
      */
-    template <class T = std::string, class It = SourceViewIterator<typename T::const_iterator>> class SourceView {
+    template <class T = std::string, class NL = NewlineTraits, class It = SourceViewIterator<typename T::const_iterator, NL>> class SourceView {
     public:
         /**
          * Value type.
@@ -128,17 +142,19 @@ namespace parserlib {
         }
 
         /**
-         * Begins iteration.
+         * Returns the initial position.
+         * @return the initial position.
          */
         const_iterator begin() const {
-            return const_iterator(m_input.begin());
+            return const_iterator(m_input.begin(), m_input.end());
         }
 
         /**
-         * Ends iteration.
+         * Returns the end position.
+         * @return the end position.
          */
         const_iterator end() const {
-            return const_iterator(m_input.end());
+            return const_iterator(m_input.end(), m_input.end());
         }
 
     private:

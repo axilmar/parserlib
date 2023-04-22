@@ -836,6 +836,67 @@ static void unitTest_parseContextWhitespace() {
 }
 
 
+class CustomNewlineTraits {
+public:
+    template <class It> bool operator ()(const It& it, const It& end) const {
+        return it[0] == '\r' && it[1] == '\n';
+    }
+
+    template <class It> void skip(It& it, const It& end) const {
+        it += 2;
+    }
+};
+
+
+static void unitTest_sourceView() {
+    {
+        using SourceT = SourceView<>;
+        using ParseContextT = ParseContext<SourceT, std::string, CWhitespaceParser>;
+
+        const auto a = terminal('a') == "a";
+        const auto b = terminal('b') == "b";
+        const auto c = terminal('c') == "c";
+        const auto grammar = a >> b >> c;
+
+        const std::string input = "ab\nc";
+        const SourceT sourceView(input);
+        ParseContextT pc(sourceView);
+
+        const bool ok = grammar(pc);
+
+        assert(ok);
+        assert(pc.sourceEnded());
+        assert(pc.matches().size() == 3);
+        assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+        assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+        assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+    }
+
+    {
+        using SourceT = SourceView<std::string, CustomNewlineTraits>;
+        using ParseContextT = ParseContext<SourceT, std::string, CWhitespaceParser>;
+
+        const auto a = terminal('a') == "a";
+        const auto b = terminal('b') == "b";
+        const auto c = terminal('c') == "c";
+        const auto grammar = a >> b >> c;
+
+        const std::string input = "ab\r\nc";
+        const SourceT sourceView(input);
+        ParseContextT pc(sourceView);
+
+        const bool ok = grammar(pc);
+
+        assert(ok);
+        assert(pc.sourceEnded());
+        assert(pc.matches().size() == 3);
+        assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+        assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+        assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -854,4 +915,5 @@ void runUnitTests() {
     unitTest_recursion();
     unitTest_leftRecursion();
     unitTest_parseContextWhitespace();
+    unitTest_sourceView();
 }

@@ -79,6 +79,7 @@ namespace parserlib {
         const MatchIdType m_matchId;
 
         template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
+            pc.parseWhitespace();
             const auto begin = pc.sourcePosition();
             const size_t beginMatchCount = pc.matches().size();
             if (pf()) {
@@ -93,7 +94,7 @@ namespace parserlib {
 
 
     /**
-     * Operator that allows a match to be inserted into the grammar.
+     * Operator that allows a parse node tree match to be inserted into the grammar.
      * @param node node to apply the operator to.
      * @param matchId match id.
      * @return a match parser.
@@ -105,31 +106,16 @@ namespace parserlib {
     }
 
 
-    template <class ParserNodeType>
-    TreeMatch<ParserNodeType, std::string>
-        operator >= (const ParserNode<ParserNodeType>& node, const char* matchId) {
-        return TreeMatch<ParserNodeType, std::string>(static_cast<const ParserNodeType&>(node), matchId);
-    }
-
-
-    template <class ParserNodeType>
-    TreeMatch<ParserNodeType, std::wstring>
-        operator >= (const ParserNode<ParserNodeType>& node, const wchar_t* matchId) {
-        return TreeMatch<ParserNodeType, std::wstring>(static_cast<const ParserNodeType&>(node), matchId);
-    }
-
-
-    template <class ParserNodeType>
-    TreeMatch<ParserNodeType, std::u16string>
-        operator >= (const ParserNode<ParserNodeType>& node, const char16_t* matchId) {
-        return TreeMatch<ParserNodeType, std::u16string>(static_cast<const ParserNodeType&>(node), matchId);
-    }
-
-
-    template <class ParserNodeType>
-    TreeMatch<ParserNodeType, std::u32string>
-        operator >= (const ParserNode<ParserNodeType>& node, const char32_t* matchId) {
-        return TreeMatch<ParserNodeType, std::u32string>(static_cast<const ParserNodeType&>(node), matchId);
+    /**
+     * Operator that allows a parse node tree match with a character string match id to be inserted into the grammar.
+     * @param node node to apply the operator to.
+     * @param matchId match id.
+     * @return a match parser.
+     */
+    template <class ParserNodeType, class CharType>
+    TreeMatch<ParserNodeType, std::basic_string<CharType>>
+        operator >= (const ParserNode<ParserNodeType>& node, const CharType* matchId) {
+        return TreeMatch<ParserNodeType, std::basic_string<CharType>>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 
