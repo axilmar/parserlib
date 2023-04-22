@@ -216,8 +216,6 @@ const auto value = integer
 Rule<> values = value >> whitespace >> values;
 ```
 
-The library stores a reference to a rule inside an expression, and therefore rules shall always be used as lvalues.
-
 ## Left Recursion
 
 The library can parse left recursive grammars.
@@ -290,7 +288,7 @@ enum TYPE {
 
 const auto a = terminal('A') == A;
 const auto b = terminal('B') == B;
-const auto c = terminal('B') == B;
+const auto c = terminal('B') == C;
 const auto grammar = a >> b >> c;
 
 std::string input = "ABC";
