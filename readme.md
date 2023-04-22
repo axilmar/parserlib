@@ -199,11 +199,20 @@ for(const auto& match : pc.matches()) {
 Rules allow the writing of recursive grammars.
 
 ```cpp
+//whitespace
 const auto whitespace = terminal(' ');
+
+//integer
 const auto integer = terminalRange('0', '9');
+
+//forward declaration of recursive rule
 extern Rule<> values;
+
+//value; it is recursive
 const auto value = integer 
                  | terminal('(') >> values >> terminal(')');
+
+//rule
 Rule<> values = value >> whitespace >> values;
 ```
 
@@ -211,22 +220,32 @@ The library stores a reference to a rule inside an expression, and therefore rul
 
 ## Left Recursion
 
-The library can parse direct left recursive grammars.
+The library can parse left recursive grammars.
 
 ```cpp
+//the recursive rule
 extern Rule<> expression;
+
+//and integer is a series of digits
 const auto integer = +terminalRange('0', '9');
-Rule<> value = integer | terminal('(') >> expression >> terminal(')');
-Rule<> mul = mul >> terminal('*') >> value
-           | mul >> terminal('/') >> value
+
+//a value is either an integer or a parenthesized expression
+Rule<> value = integer 
+             | '(' >> expression >> ')';
+
+//multiplication
+Rule<> mul = mul >> '*' >> value
+           | mul >> '/' >> value
            | value;
-Rule<> add = add >> terminal('+') >> mul
-           | add >> terminal('-') >> mul
+           
+//addition
+Rule<> add = add >> '+' >> mul
+           | add >> '-' >> mul
            | mul;
+           
+//the root rule
 Rule<> expression = add;                      
 ```
-
-For recursive grammars, parse expressions must be wrapped into a `Rule<>` instance.
 
 ## Customizing a Parser
 
