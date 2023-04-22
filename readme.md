@@ -173,10 +173,19 @@ A parser can be made optional by using the `operator -`:
 In order to invoke a parser, the appropriate `ParseContext` instance must be created.
 
 ```cpp
+//declare a grammar
 const auto grammar = (-terminalSet('+', '-') >> terminalRange('0', '9')) == std::string("int");
+
+//declare an input
 std::string input = "123";
+
+//declare a parse context over the input
 ParseContext<> pc(input);
+
+//parse
 const bool ok = grammar(pc);
+
+//iterate over recognized matches
 for(const auto& match : pc.matches()) {
     if (match.id() == "int") {
         const auto parsedString = match.content();
