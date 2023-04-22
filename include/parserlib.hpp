@@ -9,7 +9,7 @@
 #include "parserlib/EOFParser.hpp"
 #include "parserlib/CWhitespaceParser.hpp"
 #include "parserlib/Rule.hpp"
-#include "parserlib/SourceView.hpp"
+#include "parserlib/ParseContextLC.hpp"
 #include "parserlib/util.hpp"
 
 

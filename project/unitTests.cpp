@@ -848,7 +848,7 @@ public:
 };
 
 
-static void unitTest_sourceView() {
+static void unitTest_SourceView() {
     {
         using SourceT = SourceView<>;
         using ParseContextT = ParseContext<SourceT, std::string, CWhitespaceParser>;
@@ -897,6 +897,51 @@ static void unitTest_sourceView() {
 }
 
 
+static void unitTest_ParseContextLC() {
+    {
+        using ParseContextT = ParseContextLC<std::string, std::string, CWhitespaceParser>;
+
+        const auto a = terminal('a') == "a";
+        const auto b = terminal('b') == "b";
+        const auto c = terminal('c') == "c";
+        const auto grammar = a >> b >> c;
+
+        const std::string input = "ab\nc";
+        ParseContextT pc(input);
+
+        const bool ok = grammar(pc);
+
+        assert(ok);
+        assert(pc.sourceEnded());
+        assert(pc.matches().size() == 3);
+        assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+        assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+        assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+    }
+
+    {
+        using ParseContextT = ParseContextLC<std::string, std::string, CWhitespaceParser, CustomNewlineTraits>;
+
+        const auto a = terminal('a') == "a";
+        const auto b = terminal('b') == "b";
+        const auto c = terminal('c') == "c";
+        const auto grammar = a >> b >> c;
+
+        const std::string input = "ab\r\nc";
+        ParseContextT pc(input);
+
+        const bool ok = grammar(pc);
+
+        assert(ok);
+        assert(pc.sourceEnded());
+        assert(pc.matches().size() == 3);
+        assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+        assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+        assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -915,5 +960,6 @@ void runUnitTests() {
     unitTest_recursion();
     unitTest_leftRecursion();
     unitTest_parseContextWhitespace();
-    unitTest_sourceView();
+    unitTest_SourceView();
+    unitTest_ParseContextLC();
 }

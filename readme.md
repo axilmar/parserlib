@@ -530,3 +530,36 @@ assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() =
 assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
 ```
 
+### The ParseContextLC Class
+
+Since the above may be a little complex, the clatss `ParseContextLC` combines a `SourceView` instance and a `ParseContext' instance. Its type signature is the following:
+
+```cpp
+    template <class SourceType, class MatchIdType, class WSParserType, class NLTraits> class ParseContextLC;
+```
+
+This class allows specifying a source type, a match id type, a whitespace parser type, and a newline traits type.
+
+Here is an example on how to use it:
+
+```cpp
+using ParseContextT = ParseContextLC<std::string, std::string, CWhitespaceParser>;
+
+const auto a = terminal('a') == "a";
+const auto b = terminal('b') == "b";
+const auto c = terminal('c') == "c";
+const auto grammar = a >> b >> c;
+
+const std::string input = "ab\nc";
+ParseContextT pc(input);
+
+const bool ok = grammar(pc);
+
+assert(ok);
+assert(pc.sourceEnded());
+assert(pc.matches().size() == 3);
+assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+assert(pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+assert(pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+```
+
