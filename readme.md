@@ -454,7 +454,7 @@ assert(ok);
 assert(pc.sourceEnded());
 assert(pc.matches().size() == 3);
 
-//'a' exists on line 1, oolumn 1.
+//'a' exists on line 1, column 1.
 assert(pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
 
 //'b' exists on line 1, column 2.
