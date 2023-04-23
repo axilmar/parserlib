@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_SOURCEPOSITION_HPP
-#define PARSERLIB_SOURCEPOSITION_HPP
+#ifndef PARSERLIB_LINECOUNTINGSOURCEPOSITION_HPP
+#define PARSERLIB_LINECOUNTINGSOURCEPOSITION_HPP
 
 
 #include <cctype>
@@ -9,16 +9,43 @@ namespace parserlib {
 
 
     /**
-     * The default implementation of source position.
+     * Default newline traits.
+     */
+    class DefaultNewlineTraits {
+    public:
+        /**
+         * Checks if the character at the given position is '\n'.
+         * @param it iterator to the source.
+         * @param end iterator to the end of the source.
+         * @return true if the character is '\n', false otherwise.
+         */
+        template <class Iterator> bool isNewline(const Iterator& it, const Iterator& end) const {
+            return *it == '\n';
+        }
+
+        /**
+         * Increments the iterator in order to skip the newline.
+         * @param it iterator to the source.
+         * @param end iterator to the end of the source.
+         */
+        template <class Iterator> void skipNewline(Iterator& it, const Iterator& end) const {
+            ++it;
+        }
+    };
+
+
+    /**
+     * A source position that counts lines and columns.
      * @param SourceType source type.
      * @param CaseSensitive if true, comparison is case sensitive, otherwise case insensitive.
+     * @param NewlineTraits traits for newline.
      */
-    template <class SourceType, bool CaseSensitive = true> class SourcePosition {
+    template <class SourceType, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> class LineCountingSourcePosition {
     public:
         /**
          * The default constructor.
          */
-        SourcePosition() {
+        LineCountingSourcePosition() {
         }
 
         /**
@@ -26,7 +53,7 @@ namespace parserlib {
          * @param begin iterator to the first element of the source.
          * @param end iterator to the end of the source.
          */
-        SourcePosition(const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end)
+        LineCountingSourcePosition(const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end)
             : m_iterator(begin)
             , m_end(end)
         {
@@ -83,6 +110,13 @@ namespace parserlib {
          * Increments the position by one place.
          */
         void increment() {
+            if (NewlineTraits().isNewline(m_iterator, m_end)) {
+                ++m_line;
+                m_column = 1;
+            }
+            else {
+                ++m_column;
+            }
             ++m_iterator;
         }
 
@@ -91,6 +125,7 @@ namespace parserlib {
          * @param count number of places to increase the position by.
          */
         void increase(size_t count) {
+            m_column += count;
             m_iterator += count;
         }
 
@@ -99,7 +134,7 @@ namespace parserlib {
          * @param other the other position to compare this to.
          * @return true if they are equal, false otherwise.
          */
-        bool operator == (const SourcePosition& other) const {
+        bool operator == (const LineCountingSourcePosition& other) const {
             return m_iterator == other.m_iterator;
         }
 
@@ -108,7 +143,7 @@ namespace parserlib {
          * @param other the other position to compare this to.
          * @return true if they are different, false otherwise.
          */
-        bool operator != (const SourcePosition& other) const {
+        bool operator != (const LineCountingSourcePosition& other) const {
             return m_iterator != other.m_iterator;
         }
 
@@ -130,13 +165,31 @@ namespace parserlib {
             return m_iterator != it;
         }
 
+        /**
+         * Returns the line.
+         * @return the line.
+         */
+        size_t line() const {
+            return m_line;
+        }
+
+        /**
+         * Returns the column.
+         * @return the column.
+         */
+        size_t column() const {
+            return m_column;
+        }
+
     private:
         typename SourceType::const_iterator m_iterator;
         typename SourceType::const_iterator m_end;
+        size_t m_line{1};
+        size_t m_column{1};
     };
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB_SOURCEPOSITION_HPP
+#endif //PARSERLIB_LINECOUNTINGSOURCEPOSITION_HPP

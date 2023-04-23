@@ -8,6 +8,7 @@
 #include "TreeMatchException.hpp"
 #include "RuleState.hpp"
 #include "SourcePosition.hpp"
+#include "LineCountingSourcePosition.hpp"
 
 
 namespace parserlib {
@@ -174,7 +175,7 @@ namespace parserlib {
          * @param src source.
          */
         ParseContext(const SourceType& src)
-            : m_sourcePosition(src.begin()), m_sourceEnd(src.end())
+            : m_sourcePosition(src.begin(), src.end())
         {
         }
 
@@ -242,7 +243,7 @@ namespace parserlib {
          * @return the end of the source.
          */
         const typename SourceType::const_iterator& sourceEnd() const {
-            return m_sourceEnd;
+            return m_sourcePosition.end();
         }
 
         /**
@@ -250,7 +251,7 @@ namespace parserlib {
          * @return true if there is no more source to parse, false otherwise.
          */
         bool sourceEnded() const {
-            return m_sourcePosition == m_sourceEnd;
+            return m_sourcePosition == m_sourcePosition.end();
         }
        
         /**
@@ -309,13 +310,12 @@ namespace parserlib {
             if (it1 != m_ruleStates.end()) {
                 return it1->second;
             }
-            const auto [it2, ok] = m_ruleStates.emplace(rule.this_(), RuleStateType(m_sourceEnd));
+            const auto [it2, ok] = m_ruleStates.emplace(rule.this_(), RuleStateType(PositionType(m_sourcePosition.end(), m_sourcePosition.end())));
             return it2->second;
         }
 
     private:
         PositionType m_sourcePosition;
-        typename const SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
     };

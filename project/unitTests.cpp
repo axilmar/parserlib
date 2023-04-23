@@ -825,6 +825,22 @@ static void unitTest_leftRecursion() {
 }
 
 
+static void unitTest_lineCountingSourcePosition() {
+    const auto ws = -terminalSet(' ', '\n');
+    const auto grammar = (terminal('a') == "a") >> ws >> (terminal('b') == "b") >> ws >> (terminal('c') == "c");
+
+    const std::string input = "ab\nc";
+    ParseContext<std::string, std::string, LineCountingSourcePosition<std::string>> pc(input);
+
+    const bool ok = grammar(pc);
+    assert(ok);
+    assert(pc.matches().size() == 3);
+    assert(pc.matches()[0].content() == "a" && pc.matches()[0].begin().line() == 1 && pc.matches()[0].begin().column() == 1);
+    assert(pc.matches()[1].content() == "b" && pc.matches()[1].begin().line() == 1 && pc.matches()[1].begin().column() == 2);
+    assert(pc.matches()[2].content() == "c" && pc.matches()[2].begin().line() == 2 && pc.matches()[2].begin().column() == 1);
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -842,4 +858,5 @@ void runUnitTests() {
     unitTest_TreeMatch();
     unitTest_recursion();
     unitTest_leftRecursion();
+    unitTest_lineCountingSourcePosition();
 }
