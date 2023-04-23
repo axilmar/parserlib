@@ -36,18 +36,35 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            auto sourcePos = pc.sourcePosition();
+            //get the source position
+            typename ParseContextType::PositionType sourcePos = pc.sourcePosition();
+
+            //get the string position
             auto stringPos = m_string;
+
             while (true) {
+                //if the string is exhausted, then the string was matched
                 if (!*stringPos) {
                     break;
                 }
-                if (sourcePos == pc.sourceEndPosition() || *sourcePos != *stringPos) {
+
+                //if the source reached end, then the string could not be matched
+                if (sourcePos == pc.sourceEnd()) {
                     return false;
                 }
-                ++sourcePos;
+
+                //if the source position does not contain current character, 
+                //then the string could not be matched
+                if (!sourcePos.contains(*stringPos)) {
+                    return false;
+                }
+
+                //next input/terminal character
+                sourcePos.increment();
                 ++stringPos;
             }
+
+            //success; increment the source position by the appropriate number of places
             pc.increaseSourcePosition(stringPos - m_string);
             return true;
         }

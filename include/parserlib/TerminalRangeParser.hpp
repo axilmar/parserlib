@@ -47,8 +47,8 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            if (pc.sourcePosition() != pc.sourceEndPosition()) {
-                if (*pc.sourcePosition() >= m_minTerminalValue && *pc.sourcePosition() <= m_maxTerminalValue) {
+            if (!pc.sourceEnded()) {
+                if (pc.sourcePositionContains(m_minTerminalValue, m_maxTerminalValue)) {
                     pc.incrementSourcePosition();
                     return true;
                 }

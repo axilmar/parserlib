@@ -7,6 +7,7 @@
 #include <map>
 #include "TreeMatchException.hpp"
 #include "RuleState.hpp"
+#include "SourcePosition.hpp"
 
 
 namespace parserlib {
@@ -22,24 +23,30 @@ namespace parserlib {
      *  must outlive the parser context;
      *  must be immutable while being used by a parser context.
      * @param MatchIdType id to apply to a match.
+     * @param PositionType type of source position.
      */
-    template <class SourceType = std::string, class MatchIdType = std::string> 
+    template <class SourceType_ = std::string, class MatchIdType_ = std::string, class SourcePositionType_ = SourcePosition<SourceType_>>
     class ParseContext {
     public:
         /**
          * Source type.
          */
-        using Source = SourceType;
+        using SourceType = SourceType_;
 
         /**
-         * Parsing position type.
+         * Match id type.
          */
-        using PositionType = typename SourceType::const_iterator;
+        using MatchIdType = MatchIdType_;
+
+        /**
+         * source position type.
+         */
+        using PositionType = SourcePositionType_;
 
         /**
          * this type.
          */
-        using ThisType = ParseContext<SourceType, MatchIdType>;
+        using ThisType = ParseContext<SourceType, MatchIdType, PositionType>;
 
         /**
          * Associated rule type.
@@ -52,7 +59,7 @@ namespace parserlib {
         using RuleStateType = RuleState<ThisType>;
 
         /**
-         * A successful parse. 
+         * Result of a successful parsing attempt. 
          */
         class Match {
         public:
@@ -70,20 +77,20 @@ namespace parserlib {
             const MatchIdType& id() const {
                 return m_id;
             }
-            
-            /**
-             * Returns the start of the match within the source.
-             * @return the start of the match within the source.
-             */
-            const typename SourceType::const_iterator& begin() const {
-                return m_begin;
-            }
 
             /**
-             * Returns the end of the match within the source.
-             * @return the end of the match within the source.
+             * Returns the position the match begins.
+             * @return the position the match begins.
              */
-            const typename SourceType::const_iterator& end() const {
+            const PositionType& begin() const {
+                return m_begin;
+            }
+            
+            /**
+             * Returns the position the match ends.
+             * @return the position the match ends.
+             */
+            const PositionType& end() const {
                 return m_end;
             }
 
@@ -92,7 +99,7 @@ namespace parserlib {
              * @return the parsed content.
              */
             SourceType content() const {
-                return SourceType(m_begin, m_end);
+                return SourceType(m_begin.iterator(), m_end.iterator());
             }
 
             /**
@@ -105,16 +112,16 @@ namespace parserlib {
 
         private:
             const MatchIdType m_id{};
-            typename SourceType::const_iterator m_begin;
-            typename SourceType::const_iterator m_end;
-            std::vector<Match> m_children;
+            const PositionType m_begin;
+            const PositionType m_end;
+            const std::vector<Match> m_children;
 
             //internal constructor
             Match(const MatchIdType& id, 
-                  const typename SourceType::const_iterator& begin, 
-                  const typename SourceType::const_iterator& end, 
-                  std::vector<Match>&& children = std::vector<Match>()) 
-                : m_id(id), m_begin(begin), m_end(end), m_children(children)
+                  const PositionType& begin, 
+                  const PositionType& end, 
+                std::vector<Match>&& children = std::vector<Match>()) 
+                : m_id(id), m_begin(begin), m_end(end), m_children(std::move(children))
             {
             }
 
@@ -137,8 +144,8 @@ namespace parserlib {
              * Returns the current source position.
              * @return the current source position.
              */
-            const typename SourceType::const_iterator& sourcePosition() const {
-                return m_sourceIt;
+            const PositionType& sourcePosition() const {
+                return m_sourcePosition;
             }
 
             /**
@@ -150,12 +157,12 @@ namespace parserlib {
             }
 
         private:
-            typename SourceType::const_iterator m_sourceIt;
-            typename size_t m_matchCount;
+            const PositionType m_sourcePosition;
+            const size_t m_matchCount;
 
             //constructor
-            State(const typename SourceType::const_iterator& sourceIt, const size_t matchCount) 
-                : m_sourceIt(sourceIt), m_matchCount(matchCount)
+            State(const PositionType& position, const size_t matchCount) 
+                : m_sourcePosition(position), m_matchCount(matchCount)
             {
             }
 
@@ -167,7 +174,7 @@ namespace parserlib {
          * @param src source.
          */
         ParseContext(const SourceType& src)
-            : m_sourceIt(src.begin()), m_sourceEnd(src.end())
+            : m_sourcePosition(src.begin()), m_sourceEnd(src.end())
         {
         }
 
@@ -176,7 +183,7 @@ namespace parserlib {
          * @return the current state.
          */
         State state() const {
-            return State(m_sourceIt, m_matches.size());
+            return State(m_sourcePosition, m_matches.size());
         }
 
         /**
@@ -184,7 +191,7 @@ namespace parserlib {
          * @param state state.
          */
         void setState(const State& state) {
-            m_sourceIt = state.sourcePosition();
+            m_sourcePosition = state.sourcePosition();
             m_matches.resize(state.matchCount());
         }
 
@@ -192,10 +199,60 @@ namespace parserlib {
          * Returns the current source position.
          * @return the current source position.
          */
-        const typename SourceType::const_iterator& sourcePosition() const {
-            return m_sourceIt;
+        const PositionType& sourcePosition() const {
+            return m_sourcePosition;
         }
 
+        /**
+         * Checks if the element at the current source position equals the given value.
+         * @param value value to compare to the current element.
+         * @return true if current element equals given value, false otherwise.
+         */
+        bool sourcePositionContains(const typename SourceType::value_type& value) const {
+            return m_sourcePosition.contains(value);
+        }
+
+        /**
+         * Checks if the element at the current source position is within the given range of values.
+         * @param minValue lowest value to compare to the current element.
+         * @param maxValue highest value to compare to the current element.
+         * @return true if current element is within the given range, false otherwise.
+         */
+        bool sourcePositionContains(const typename SourceType::value_type& minValue, const typename SourceType::value_type& maxValue) const {
+            return m_sourcePosition.contains(minValue, maxValue);
+        }
+
+        /**
+         * Increments the source position. 
+         */
+        void incrementSourcePosition() {
+            m_sourcePosition.increment();
+        }
+
+        /**
+         * Increases the source position by the given count.
+         * @param count number of places to increase the source position.
+         */
+        void increaseSourcePosition(size_t count) {
+            m_sourcePosition.increase(count);
+        }
+
+        /**
+         * Returns the end of the source.
+         * @return the end of the source.
+         */
+        const typename SourceType::const_iterator& sourceEnd() const {
+            return m_sourceEnd;
+        }
+
+        /**
+         * Checks if the source has ended.
+         * @return true if there is no more source to parse, false otherwise.
+         */
+        bool sourceEnded() const {
+            return m_sourcePosition == m_sourceEnd;
+        }
+       
         /**
          * Returns the current matches.
          * @return the current matches.
@@ -210,7 +267,7 @@ namespace parserlib {
          * @param begin begin position into the source.
          * @param end end position into the source.
          */
-        void addMatch(const MatchIdType& id, const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end) {
+        void addMatch(const MatchIdType& id, const PositionType& begin, const PositionType& end) {
             m_matches.push_back(Match(id, begin, end));
         }
 
@@ -222,7 +279,7 @@ namespace parserlib {
          * @param childCount number of matches to add to the parent.
          * @exception TreeMatchException thrown if the given number of children does not exist in the current match table.
          */
-        void addMatch(const MatchIdType& id, const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end, size_t childCount) {
+        void addMatch(const MatchIdType& id, const PositionType& begin, const PositionType& end, size_t childCount) {
             if (childCount > m_matches.size()) {
                 throw TreeMatchException<ParseContext<SourceType, MatchIdType>>(*this);
             }
@@ -231,39 +288,6 @@ namespace parserlib {
             m_matches.push_back(std::move(m));
         }
 
-        /**
-         * Returns the end position of the source.
-         * @return the end position of the source.
-         */
-        const typename SourceType::const_iterator& sourceEndPosition() const {
-            return m_sourceEnd;
-        }
-
-        /**
-         * Increments the source position.
-         * No check for beyond end of source is done.
-         */
-        void incrementSourcePosition() {
-            ++m_sourceIt;
-        }
-
-        /**
-         * Increases the source position by a specific count.
-         * @param count number of positions to increment the source position.
-         * No check for beyond end of source is done.
-         */
-        void increaseSourcePosition(size_t count) {
-            m_sourceIt += count;
-        }
-
-        /**
-         * Checks if the source has ended.
-         * @return true if there is no more source to parse, false otherwise.
-         */
-        bool sourceEnded() const {
-            return m_sourceIt == m_sourceEnd;
-        }
-       
         /**
          * Returns the existing rule state for the given rule.
          * @param rule rule to get the rule state of.
@@ -290,8 +314,8 @@ namespace parserlib {
         }
 
     private:
-        typename SourceType::const_iterator m_sourceIt;
-        const typename SourceType::const_iterator m_sourceEnd;
+        PositionType m_sourcePosition;
+        typename const SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
     };

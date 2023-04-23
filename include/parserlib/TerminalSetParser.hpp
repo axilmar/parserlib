@@ -3,7 +3,6 @@
 
 
 #include <vector>
-#include <algorithm>
 #include "ParserNode.hpp"
 
 
@@ -22,8 +21,8 @@ namespace parserlib {
          * @param terminalValues terminal values.
          */
         TerminalSetParser(const std::vector<TerminalValueType>& terminalValues)
-            : m_terminalValues(terminalValues) {
-            std::sort(m_terminalValues.begin(), m_terminalValues.end());
+            : m_terminalValues(terminalValues)
+        {
         }
 
         /**
@@ -40,12 +39,12 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            if (pc.sourcePosition() != pc.sourceEndPosition()) {
-                const auto inputToken = *pc.sourcePosition();
-                auto it = std::upper_bound(m_terminalValues.begin(), m_terminalValues.end(), inputToken);
-                if (it != m_terminalValues.begin() && *std::prev(it) == inputToken) {
-                    pc.incrementSourcePosition();
-                    return true;
+            if (!pc.sourceEnded()) {
+                for (const auto& termValue : m_terminalValues) {
+                    if (pc.sourcePositionContains(termValue)) {
+                        pc.incrementSourcePosition();
+                        return true;
+                    }
                 }
             }
             return false;
