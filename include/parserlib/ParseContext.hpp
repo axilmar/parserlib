@@ -7,7 +7,6 @@
 #include <map>
 #include "TreeMatchException.hpp"
 #include "RuleState.hpp"
-#include "EmptyParser.hpp"
 
 
 namespace parserlib {
@@ -23,9 +22,8 @@ namespace parserlib {
      *  must outlive the parser context;
      *  must be immutable while being used by a parser context.
      * @param MatchIdType id to apply to a match.
-     * @param WSParserType parser to use for parsing whitespace; defaults to EmptyParser.
      */
-    template <class SourceType = std::string, class MatchIdType = std::string, class WSParserType = EmptyParser> 
+    template <class SourceType = std::string, class MatchIdType = std::string> 
     class ParseContext {
     public:
         /**
@@ -41,7 +39,7 @@ namespace parserlib {
         /**
          * this type.
          */
-        using ThisType = ParseContext<SourceType, MatchIdType, WSParserType>;
+        using ThisType = ParseContext<SourceType, MatchIdType>;
 
         /**
          * Associated rule type.
@@ -52,11 +50,6 @@ namespace parserlib {
          * Associated rule state type. 
          */
         using RuleStateType = RuleState<ThisType>;
-
-        /**
-         * Whitespace parser type. 
-         */
-        using WhitespaceParserType = WSParserType;
 
         /**
          * A successful parse. 
@@ -121,7 +114,8 @@ namespace parserlib {
                   const typename SourceType::const_iterator& begin, 
                   const typename SourceType::const_iterator& end, 
                   std::vector<Match>&& children = std::vector<Match>()) 
-                : m_id(id), m_begin(begin), m_end(end), m_children(children) {
+                : m_id(id), m_begin(begin), m_end(end), m_children(children)
+            {
             }
 
             friend class ThisType;
@@ -161,7 +155,8 @@ namespace parserlib {
 
             //constructor
             State(const typename SourceType::const_iterator& sourceIt, const size_t matchCount) 
-                : m_sourceIt(sourceIt), m_matchCount(matchCount) {
+                : m_sourceIt(sourceIt), m_matchCount(matchCount)
+            {
             }
 
             friend class ThisType;
@@ -170,12 +165,10 @@ namespace parserlib {
         /**
          * Constructor.
          * @param src source.
-         * @param ws whitespace parser.
          */
-        ParseContext(const SourceType& src, const WSParserType& ws = WSParserType{})
-            : m_sourceIt(src.begin()), m_sourceEnd(src.end()), m_whitespaceParser(ws)
+        ParseContext(const SourceType& src)
+            : m_sourceIt(src.begin()), m_sourceEnd(src.end())
         {
-            parseWhitespace();
         }
 
         /**
@@ -252,7 +245,6 @@ namespace parserlib {
          */
         void incrementSourcePosition() {
             ++m_sourceIt;
-            parseWhitespace();
         }
 
         /**
@@ -262,7 +254,6 @@ namespace parserlib {
          */
         void increaseSourcePosition(size_t count) {
             m_sourceIt += count;
-            parseWhitespace();
         }
 
         /**
@@ -303,11 +294,6 @@ namespace parserlib {
         const typename SourceType::const_iterator m_sourceEnd;
         std::vector<Match> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
-        WSParserType m_whitespaceParser;
-
-        void parseWhitespace() {
-            m_whitespaceParser(*this);
-        }
     };
 
 
