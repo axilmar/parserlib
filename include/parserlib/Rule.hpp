@@ -13,8 +13,8 @@
 #include "OptionalParser.hpp"
 #include "AndParser.hpp"
 #include "NotParser.hpp"
-#include "Match.hpp"
-#include "TreeMatch.hpp"
+#include "MatchParser.hpp"
+#include "TreeMatchParser.hpp"
 #include "util.hpp"
 
 
@@ -398,9 +398,9 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParseContextType, class MatchIdType>
-    Match<RuleReference<ParseContextType>, MatchIdType>
+    MatchParser<RuleReference<ParseContextType>, MatchIdType>
         operator == (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
-        return Match<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+        return MatchParser<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 
@@ -415,37 +415,37 @@ namespace parserlib {
      * @return a tree match parser.
      */
     template <class ParseContextType, class MatchIdType>
-    TreeMatch<RuleReference<ParseContextType>, MatchIdType>
+    TreeMatchParser<RuleReference<ParseContextType>, MatchIdType>
         operator >= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
-        return TreeMatch<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+        return TreeMatchParser<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 
     template <class ParseContextType>
-    TreeMatch<RuleReference<ParseContextType>, std::string>
+    TreeMatchParser<RuleReference<ParseContextType>, std::string>
         operator >= (const Rule<ParseContextType>& rule, const char* matchId) {
-        return TreeMatch<RuleReference<ParseContextType>, std::string>(RuleReference<ParseContextType>(rule), matchId);
+        return TreeMatchParser<RuleReference<ParseContextType>, std::string>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 
     template <class ParseContextType>
-    TreeMatch<RuleReference<ParseContextType>, std::wstring>
+    TreeMatchParser<RuleReference<ParseContextType>, std::wstring>
         operator >= (const Rule<ParseContextType>& rule, const wchar_t* matchId) {
-        return TreeMatch<RuleReference<ParseContextType>, std::wstring>(RuleReference<ParseContextType>(rule), matchId);
+        return TreeMatchParser<RuleReference<ParseContextType>, std::wstring>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 
     template <class ParseContextType>
-    TreeMatch<RuleReference<ParseContextType>, std::u16string>
+    TreeMatchParser<RuleReference<ParseContextType>, std::u16string>
         operator >= (const Rule<ParseContextType>& rule, const char16_t* matchId) {
-        return TreeMatch<RuleReference<ParseContextType>, std::u16string>(RuleReference<ParseContextType>(rule), matchId);
+        return TreeMatchParser<RuleReference<ParseContextType>, std::u16string>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 
     template <class ParseContextType>
-    TreeMatch<RuleReference<ParseContextType>, std::u32string>
+    TreeMatchParser<RuleReference<ParseContextType>, std::u32string>
         operator >= (const Rule<ParseContextType>& rule, const char32_t* matchId) {
-        return TreeMatch<RuleReference<ParseContextType>, std::u32string>(RuleReference<ParseContextType>(rule), matchId);
+        return TreeMatchParser<RuleReference<ParseContextType>, std::u32string>(RuleReference<ParseContextType>(rule), matchId);
     }
 
 

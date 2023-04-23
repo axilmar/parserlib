@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_TREEMATCH_HPP
-#define PARSERLIB_TREEMATCH_HPP
+#ifndef PARSERLIB_TREEMATCHPARSER_HPP
+#define PARSERLIB_TREEMATCHPARSER_HPP
 
 
 #include <string>
@@ -14,15 +14,15 @@ namespace parserlib {
      * @param ParserNodeType the parser to invoke.
      * @param MatchIdType type of match id.
      */
-    template <class ParserNodeType, class MatchIdType> class TreeMatch 
-        : public ParserNode<TreeMatch<ParserNodeType, MatchIdType>> {
+    template <class ParserNodeType, class MatchIdType> class TreeMatchParser 
+        : public ParserNode<TreeMatchParser<ParserNodeType, MatchIdType>> {
     public:
         /**
          * The default constructor.
          * @param child child parser to invoke.
          * @param matchId the match id.
          */
-        TreeMatch(const ParserNodeType& child, const MatchIdType& matchId) 
+        TreeMatchParser(const ParserNodeType& child, const MatchIdType& matchId) 
             : m_child(child), m_matchId(matchId) {
         }
 
@@ -99,9 +99,9 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParserNodeType, class MatchIdType>
-    TreeMatch<ParserNodeType, MatchIdType>
+    TreeMatchParser<ParserNodeType, MatchIdType>
         operator >= (const ParserNode<ParserNodeType>& node, const MatchIdType& matchId) {
-        return TreeMatch<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
+        return TreeMatchParser<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 
@@ -112,13 +112,13 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParserNodeType, class CharType>
-    TreeMatch<ParserNodeType, std::basic_string<CharType>>
+    TreeMatchParser<ParserNodeType, std::basic_string<CharType>>
         operator >= (const ParserNode<ParserNodeType>& node, const CharType* matchId) {
-        return TreeMatch<ParserNodeType, std::basic_string<CharType>>(static_cast<const ParserNodeType&>(node), matchId);
+        return TreeMatchParser<ParserNodeType, std::basic_string<CharType>>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB_TREEMATCH_HPP
+#endif //PARSERLIB_TREEMATCHPARSER_HPP

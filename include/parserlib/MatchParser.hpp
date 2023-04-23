@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_MATCH_HPP
-#define PARSERLIB_MATCH_HPP
+#ifndef PARSERLIB_MATCHPARSER_HPP
+#define PARSERLIB_MATCHPARSER_HPP
 
 
 #include <string>
@@ -14,15 +14,15 @@ namespace parserlib {
      * @param ParserNodeType the parser to invoke.
      * @param MatchIdType type of match id.
      */
-    template <class ParserNodeType, class MatchIdType> class Match 
-        : public ParserNode<Match<ParserNodeType, MatchIdType>> {
+    template <class ParserNodeType, class MatchIdType> class MatchParser 
+        : public ParserNode<MatchParser<ParserNodeType, MatchIdType>> {
     public:
         /**
          * The default constructor.
          * @param child child parser to invoke.
          * @param matchId the match id.
          */
-        Match(const ParserNodeType& child, const MatchIdType& matchId) 
+        MatchParser(const ParserNodeType& child, const MatchIdType& matchId) 
             : m_child(child), m_matchId(matchId) {
         }
 
@@ -86,9 +86,9 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParserNodeType, class MatchIdType>
-    Match<ParserNodeType, MatchIdType>
+    MatchParser<ParserNodeType, MatchIdType>
         operator == (const ParserNode<ParserNodeType>& node, const MatchIdType& matchId) {
-        return Match<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
+        return MatchParser<ParserNodeType, MatchIdType>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 
@@ -99,13 +99,13 @@ namespace parserlib {
      * @return a match parser.
      */
     template <class ParserNodeType, class CharType>
-    Match<ParserNodeType, std::basic_string<CharType>>
+    MatchParser<ParserNodeType, std::basic_string<CharType>>
         operator == (const ParserNode<ParserNodeType>& node, const CharType* matchId) {
-        return Match<ParserNodeType, std::basic_string<CharType>>(static_cast<const ParserNodeType&>(node), matchId);
+        return MatchParser<ParserNodeType, std::basic_string<CharType>>(static_cast<const ParserNodeType&>(node), matchId);
     }
 
 
 } //namespace parserlib
 
 
-#endif //PARSERLIB_MATCH_HPP
+#endif //PARSERLIB_MATCHPARSER_HPP
