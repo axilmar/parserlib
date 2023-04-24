@@ -2,7 +2,7 @@
 #define PARSERLIB_LINECOUNTINGSOURCEPOSITION_HPP
 
 
-#include <cctype>
+#include "SourcePosition.hpp"
 
 
 namespace parserlib {
@@ -40,7 +40,9 @@ namespace parserlib {
      * @param CaseSensitive if true, comparison is case sensitive, otherwise case insensitive.
      * @param NewlineTraits traits for newline.
      */
-    template <class SourceType, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> class LineCountingSourcePosition {
+    template <class SourceType, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> 
+    class LineCountingSourcePosition : public SourcePosition<SourceType, CaseSensitive>
+    {
     public:
         /**
          * The default constructor.
@@ -54,115 +56,33 @@ namespace parserlib {
          * @param end iterator to the end of the source.
          */
         LineCountingSourcePosition(const typename SourceType::const_iterator& begin, const typename SourceType::const_iterator& end)
-            : m_iterator(begin)
-            , m_end(end)
+            : SourcePosition<SourceType, CaseSensitive>(begin, end)
         {
         }
 
         /**
-         * Returns the iterator.
-         * @return the iterator.
-         */
-        const typename SourceType::const_iterator& iterator() const {
-            return m_iterator;
-        }
-
-        /**
-         * Returns the end of the source.
-         * @return the end of the source.
-         */
-        const typename SourceType::const_iterator& end() const {
-            return m_end;
-        }
-
-        /**
-         * Compares the current value with the given one.
-         * If CaseSensitive is false, then both values are set to lowercase before compared.
-         * @param value value to compare with the value at the current position.
-         * @return true if equal, false otherwise.
-         */
-        bool contains(const typename SourceType::value_type& value) const {
-            if constexpr (CaseSensitive) {
-                return *m_iterator == value;
-            }
-            else {
-                return std::tolower(*m_iterator) == std::tolower(value);
-            }
-        }
-
-        /**
-         * Compares the current value with the given range of v alues.
-         * If CaseSensitive is false, then values are set to lowercase before compared.
-         * @param minValue lowest value to compare with the value at the current position.
-         * @param maxValue max value to compare with the value at the current position.
-         * @return true if within range, false otherwise.
-         */
-        bool contains(const typename SourceType::value_type& minValue, const typename SourceType::value_type& maxValue) const {
-            if constexpr (CaseSensitive) {
-                return *m_iterator >= minValue && *m_iterator <= maxValue;
-            }
-            else {
-                return std::tolower(*m_iterator) >= std::tolower(minValue) && std::tolower(*m_iterator) <= std::tolower(maxValue);
-            }
-        }
-
-        /**
          * Increments the position by one place.
+         * It also increments column/line, depending on if current sequence represents a newline.
          */
         void increment() {
-            if (NewlineTraits().isNewline(m_iterator, m_end)) {
+            if (NewlineTraits().isNewline(SourcePosition<SourceType, CaseSensitive>::iterator(), SourcePosition<SourceType, CaseSensitive>::end())) {
                 ++m_line;
                 m_column = 1;
             }
             else {
                 ++m_column;
             }
-            ++m_iterator;
+            SourcePosition<SourceType, CaseSensitive>::increment();
         }
 
         /**
          * Increases the position by multiple places.
+         * It also increases the column value by the given amount.
          * @param count number of places to increase the position by.
          */
         void increase(size_t count) {
             m_column += count;
-            m_iterator += count;
-        }
-
-        /**
-         * Checks if the two positions are equal.
-         * @param other the other position to compare this to.
-         * @return true if they are equal, false otherwise.
-         */
-        bool operator == (const LineCountingSourcePosition& other) const {
-            return m_iterator == other.m_iterator;
-        }
-
-        /**
-         * Checks if the two positions are different.
-         * @param other the other position to compare this to.
-         * @return true if they are different, false otherwise.
-         */
-        bool operator != (const LineCountingSourcePosition& other) const {
-            return m_iterator != other.m_iterator;
-        }
-
-        /**
-         * Checks if this position is equal to the given iterator.
-         * @param it iterator to compare to this.
-         * @return true if they are equal, false otherwise.
-         */
-        bool operator == (const typename SourceType::const_iterator& it) const {
-            return m_iterator == it;
-        }
-
-        /**
-         * Checks if this position is different to the given iterator.
-         * @param it iterator to compare to this.
-         * @return true if they are different, false otherwise.
-         */
-        bool operator != (const typename SourceType::const_iterator& it) const {
-            return m_iterator != it;
+            SourcePosition<SourceType, CaseSensitive>::increase(count);
         }
 
         /**
@@ -182,8 +102,6 @@ namespace parserlib {
         }
 
     private:
-        typename SourceType::const_iterator m_iterator;
-        typename SourceType::const_iterator m_end;
         size_t m_line{1};
         size_t m_column{1};
     };
