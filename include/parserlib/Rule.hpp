@@ -10,6 +10,7 @@
 #include "ChoiceParser.hpp"
 #include "Loop0Parser.hpp"
 #include "Loop1Parser.hpp"
+#include "LoopNParser.hpp"
 #include "OptionalParser.hpp"
 #include "AndParser.hpp"
 #include "NotParser.hpp"
@@ -250,6 +251,142 @@ namespace parserlib {
 
 
     template <class ParseContextType, class R>
+    auto operator , (Rule<ParseContextType>&&, R&&) = delete;
+
+
+    template <class L, class ParseContextType>
+    auto operator , (L&&, Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Sequence between two rules.
+     * @param rule1 the 1st rule.
+     * @param rule2 the 2nd rule.
+     * @return a sequence of the two rules.
+     */
+    template <class ParseContextType>
+    auto operator , (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
+        return RuleReference<ParseContextType>(rule1) >> RuleReference<ParseContextType>(rule2);
+    }
+
+
+    /**
+     * Sequence between a rule and a parser node.
+     * @param rule the rule parser.
+     * @param node the node parser.
+     * @return a sequence of the rule and node.
+     */
+    template <class ParseContextType, class ParserNodeType>
+    auto operator , (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+        return RuleReference<ParseContextType>(rule) >> node;
+    }
+
+
+    /**
+     * Sequence between a parser node and a rule.
+     * @param node the node parser.
+     * @param rule the rule parser.
+     * @return a sequence of the two nodes.
+     */
+    template <class ParserNodeType, class ParseContextType>
+    auto operator , (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
+        return node >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Sequence between a rule and a terminal.
+     * @param rule the rule parser.
+     * @param term the terminal.
+     * @return a sequence of the rule and terminal.
+     */
+    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
+    auto operator , (const Rule<ParseContextType>& rule, const TerminalType& term) {
+        return RuleReference<ParseContextType>(rule) >> terminal(term);
+    }
+
+
+    /**
+     * Sequence between a terminal and a rule.
+     * @param term the terminal.
+     * @param rule the rule parser.
+     * @return a sequence of the terminal and rule.
+     */
+    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
+    auto operator , (const TerminalType& term, const Rule<ParseContextType>& rule) {
+        return terminal(term) >> RuleReference<ParseContextType>(rule);
+    }
+
+
+    template <class ParseContextType, class R>
+    auto operator - (Rule<ParseContextType>&&, R&&) = delete;
+
+
+    template <class L, class ParseContextType>
+    auto operator - (L&&, Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Subtracts the 2nd rule from the first.
+     * @param rule1 the 1st rule.
+     * @param rule2 the 2nd rule.
+     * @return a sequence of the two rules.
+     */
+    template <class ParseContextType>
+    auto operator - (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
+        return RuleReference<ParseContextType>(rule1) - RuleReference<ParseContextType>(rule2);
+    }
+
+
+    /**
+     * Subtracts a parser node from a rule.
+     * @param rule the rule parser.
+     * @param node the node parser.
+     * @return a sequence of the rule and node.
+     */
+    template <class ParseContextType, class ParserNodeType>
+    auto operator - (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
+        return RuleReference<ParseContextType>(rule) - node;
+    }
+
+
+    /**
+     * Subtracts a rule from a parser node.
+     * @param node the node parser.
+     * @param rule the rule parser.
+     * @return a sequence of the two nodes.
+     */
+    template <class ParserNodeType, class ParseContextType>
+    auto operator - (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
+        return node - RuleReference<ParseContextType>(rule);
+    }
+
+
+    /**
+     * Subtracts a terminal from a rule.
+     * @param rule the rule parser.
+     * @param term the terminal.
+     * @return a sequence of the rule and terminal.
+     */
+    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
+    auto operator - (const Rule<ParseContextType>& rule, const TerminalType& term) {
+        return RuleReference<ParseContextType>(rule) - terminal(term);
+    }
+
+
+    /**
+     * Subtracts a rule from a terminal.
+     * @param term the terminal.
+     * @param rule the rule parser.
+     * @return a sequence of the terminal and rule.
+     */
+    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
+    auto operator - (const TerminalType& term, const Rule<ParseContextType>& rule) {
+        return terminal(term) - RuleReference<ParseContextType>(rule);
+    }
+
+
+    template <class ParseContextType, class R>
     auto operator | (Rule<ParseContextType>&&, R&&) = delete;
 
 
@@ -446,6 +583,24 @@ namespace parserlib {
     TreeMatchParser<RuleReference<ParseContextType>, std::u32string>
         operator >= (const Rule<ParseContextType>& rule, const char32_t* matchId) {
         return TreeMatchParser<RuleReference<ParseContextType>, std::u32string>(RuleReference<ParseContextType>(rule), matchId);
+    }
+
+
+    template <class ParseContextType>
+    auto operator * (size_t loopCount, Rule<ParseContextType>&& rule) = delete;
+
+
+    /**
+     * Loop-n-count over a rule.
+     * @param loopCount number of loops; cannot be 0.
+     * @param rule rule to repeat.
+     * @return loop-n-parser instance.
+     * @exception std::invalid_argument thrown if loop count is 0.
+     */
+    template <class ParseContextType>
+    LoopNParser<RuleReference<ParseContextType>>
+    operator * (size_t loopCount, const Rule<ParseContextType>& rule) {
+        return { loopCount, RuleReference<ParseContextType>(rule) };
     }
 
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include "parserlib.hpp"
+#include "parserlib/extras/ebnf.hpp"
 
 
 using namespace std;
@@ -61,6 +62,67 @@ static void unitTest_ChoiceParser() {
         ParseContext pc(input);
         bool ok = parser(pc);
         assert(!ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+}
+
+
+static void unitTest_Loop0Parser() {
+    const auto parser = *terminal('a');
+
+    {
+        const std::string input = "a";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "aa";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "aaa";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.end());
+    }
+
+    {
+        const std::string input = "b";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+
+    {
+        const std::string input = "bb";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+
+    {
+        const std::string input = "bbb";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
+        assert(pc.sourcePosition() == input.begin());
+    }
+
+    {
+        const std::string input = "";
+        ParseContext pc(input);
+        bool ok = parser(pc);
+        assert(ok);
         assert(pc.sourcePosition() == input.begin());
     }
 }
@@ -127,63 +189,61 @@ static void unitTest_Loop1Parser() {
 }
 
 
-static void unitTest_LoopParser() {
-    const auto parser = *terminal('a');
-
+static void unitTest_LoopNParser() {
     {
-        const std::string input = "a";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
+        bool exception = false;
+        try {
+            const auto parser = 0 * terminal('a');
+        }
+        catch (const std::invalid_argument&) {
+            exception = true;
+        }
+        assert(exception);
     }
 
     {
-        const std::string input = "aa";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
+        const auto parser = 1 * terminal('a');
+
+        {
+            const std::string input = "a";
+            ParseContext pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == input.end());
+        }
+
+        {
+            const std::string input = "aa";
+            ParseContext pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == std::next(input.begin()));
+        }
     }
 
     {
-        const std::string input = "aaa";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
+        const auto parser = 2 * terminal('a');
+
+        {
+            const std::string input = "a";
+            ParseContext pc(input);
+            bool ok = parser(pc);
+            assert(!ok);
+            assert(pc.sourcePosition() == input.begin());
+        }
+
+        {
+            const std::string input = "aa";
+            ParseContext pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == input.end());
+        }
     }
 
     {
-        const std::string input = "b";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.begin());
-    }
-
-    {
-        const std::string input = "bb";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.begin());
-    }
-
-    {
-        const std::string input = "bbb";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.begin());
-    }
-
-    {
-        const std::string input = "";
-        ParseContext pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.begin());
+        const auto parser = 2 * (3 * terminal('a'));
+        assert(parser.loopCount() == 6);
     }
 }
 
@@ -282,30 +342,80 @@ static void unitTest_Rule() {
 
 
 static void unitTest_sequenceParser() {
-    const auto parser = terminal('a') >> 'b' >> 'c';
-
     {
-        const std::string input = "abc";
-        ParseContext<> pc(input);
-        bool ok = parser(pc);
-        assert(ok);
-        assert(pc.sourcePosition() == input.end());
+        const auto parser = terminal('a') >> 'b' >> 'c';
+
+        {
+            const std::string input = "abc";
+            ParseContext<> pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == input.end());
+        }
+
+        {
+            const std::string input = "dabc";
+            ParseContext<> pc(input);
+            bool ok = parser(pc);
+            assert(!ok);
+            assert(pc.sourcePosition() == input.begin());
+        }
+
+        {
+            const std::string input = "adbc";
+            ParseContext<> pc(input);
+            bool ok = parser(pc);
+            assert(!ok);
+            assert(pc.sourcePosition() == input.begin());
+        }
     }
 
     {
-        const std::string input = "dabc";
-        ParseContext<> pc(input);
-        bool ok = parser(pc);
-        assert(!ok);
-        assert(pc.sourcePosition() == input.begin());
+        const auto parser = (terminal('a') , 'b' , 'c');
+
+        {
+            const std::string input = "abc";
+            ParseContext<> pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == input.end());
+        }
+
+        {
+            const std::string input = "dabc";
+            ParseContext<> pc(input);
+            bool ok = parser(pc);
+            assert(!ok);
+            assert(pc.sourcePosition() == input.begin());
+        }
+
+        {
+            const std::string input = "adbc";
+            ParseContext<> pc(input);
+            bool ok = parser(pc);
+            assert(!ok);
+            assert(pc.sourcePosition() == input.begin());
+        }
     }
 
     {
-        const std::string input = "adbc";
-        ParseContext<> pc(input);
-        bool ok = parser(pc);
-        assert(!ok);
-        assert(pc.sourcePosition() == input.begin());
+        const auto parser = *(terminalRange('a', 'z') - 'q');
+
+        {
+            const std::string input = "abcdefghijklmnoprstuvwxyz";
+            ParseContext pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == input.end());
+        }
+
+        {
+            const std::string input = "abcdefghijklmnopqrstuvwxyz";
+            ParseContext pc(input);
+            bool ok = parser(pc);
+            assert(ok);
+            assert(pc.sourcePosition() == std::next(input.begin(), 16));
+        }
     }
 }
 
@@ -841,11 +951,16 @@ static void unitTest_lineCountingSourcePosition() {
 }
 
 
+static void unitTest_ebnf() {
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
+    unitTest_Loop0Parser();
     unitTest_Loop1Parser();
-    unitTest_LoopParser();
+    unitTest_LoopNParser();
     unitTest_NotParser();
     unitTest_OptionalParser();
     unitTest_Rule();
@@ -859,4 +974,5 @@ void runUnitTests() {
     unitTest_recursion();
     unitTest_leftRecursion();
     unitTest_lineCountingSourcePosition();
+    unitTest_ebnf();
 }
