@@ -243,35 +243,57 @@ Rule<> expression = add;
 
 ## Customizing a Parser
 
-The default element that the parser operates on is a `char`; the default container type that the parser operates on is `std::string`. The default type for match ids is also `std::string`.
-
-These can be changed via template parameters of the class `ParseContext`. The full declararation of it is as follows:
+The class ParseContext is a template and has the following signature:
 
 ```cpp
-template <class SourceType, class MatchIdType, class WSParserType> class ParseContext;
+template <class SourceType, class MatchIdType, class SourcePositionType> class ParseContext;
 ```
 
-For example, in order to iterate over an array of enum values, with match id also being an enum value, the following can be written:
+It allows customizing the source type, the match id type and the source position type.
+
+### Customizing the source type
+
+By default, a ParseContext instance will use an `std::string` as an input source. But this can be changed to accomodate any STL like container.
+
+For example, the source can be a static array of integers:
 
 ```cpp
-enum TOKEN_TYPE {
-    TOKEN_INT,
-    TOKEN_IDENTIFIER,
-    TOKEN_STRING,
-    TOKEN_TYPEDEF
-};
-
-enum MATCH_ID_TYPE {
-    MATCH_VARIABLE,
-    MATCH_FUNCTION,
-    MATCH_TYPEDEF
-};
-
-using ParseContext = parserlib::ParseContext<std::vector<TOKEN_TYPE>, MATCH_ID_TYPE>;
-using Rule = parserlib::Rule<ParseContext>;
+ParseContext<std::array<int, 1000>> pc(input);
 ```
 
-The library does not care about the source type and the match id type, they can be anything. The source type should follow STL container conventions.
+### Customizing the match id type
+
+The default match id type is `std::string`, but usually it shall be an integer or an enumeration. It's also good for performance reasons to replace `std::string` with a numeric value, since match ids are created and destroyed as parsing is performed.
+
+Example:
+
+```cpp
+ParseContext<std::string, int> pc(input);
+```
+
+### Customizing character processing
+
+The parse context's parameter named '`SourcePositionType' allows the customization of character processing:
+- customizing comparison of elements, for example in order to implement case insensitive parsing.
+- providing extra information regarding the source, for example line and oclumn numbers.
+- customizing the newline character sequence.
+
+The library already provides two classes for the above:
+- class `SourcePosition<class SourceType, bool CaseSensitive>` is the most basic class that just contains an iterator for the current position; it allows for statically using either case sensitive or case insensitive parsing.
+- class `LineCountingSourcePosition<class SourceType, bool CaseSensitive, class NewlineTraits>` extends the class `SourcePosition` with line and column information, and it also allows the specification of newline sequence, which, by default, it implemented by class `DefaultNewlineTraits` and recognizes the character `\n` as the newline separator.
+
+Examples:
+
+```cpp
+//case insensitive parsing
+ParseContext<std::string, int, SourcePosition<std::string, false>> pc(input);
+
+//case sensitive parsing with line counting
+ParseContext<std::string, int, LineCountingSourcePosition<std::string>> pc(input);
+
+//case insensitive parsing with line counting and custom newline traits
+ParseContext<std::string, int, LineCountingSourcePosition<std::string, false, CustomNewlineTraits>> pc(input);
+```
 
 ## Simple Matches
 
