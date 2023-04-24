@@ -280,7 +280,7 @@ The parse context's parameter named '`SourcePositionType' allows the customizati
 
 The library already provides two classes for the above:
 - class `SourcePosition<class SourceType, bool CaseSensitive>` is the most basic class that just contains an iterator for the current position; it allows for statically using either case sensitive or case insensitive parsing.
-- class `LineCountingSourcePosition<class SourceType, bool CaseSensitive, class NewlineTraits>` extends the class `SourcePosition` with line and column information, and it also allows the specification of newline sequence, which, by default, it implemented by class `DefaultNewlineTraits` that recognizes the character `\n` as the newline separator.
+- class `LineCountingSourcePosition<class SourceType, bool CaseSensitive, class NewlineTraits>` extends the class `SourcePosition` with line and column information, and it also allows the specification of newline sequence, which, by default, is implemented by class `DefaultNewlineTraits` that recognizes the character `\n` as the newline separator.
 
 Examples:
 
