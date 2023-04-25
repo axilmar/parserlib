@@ -567,7 +567,7 @@ static void unitTest_TreeMatch() {
     const std::string input = "FF.12.DC.A0";
 
     ParseContext<std::string, TYPE> pc(input);
-    using Match = typename ParseContext<std::string, TYPE>::Match;
+    using Match = typename ParseContext<std::string, TYPE>::MatchType;
 
     const bool ok = ip4Address(pc);
 
@@ -639,7 +639,7 @@ TreeMatchT treeMatch(const std::string& s, TreeMatchT&& child) {
 }
 
 
-bool operator == (const ParseContext<>::Match& treeMatch, const TreeMatchT& tm) {
+bool operator == (const ParseContext<>::MatchType& treeMatch, const TreeMatchT& tm) {
     if (treeMatch.id() != tm.id) {
         return false;
     }
@@ -658,7 +658,7 @@ bool operator == (const ParseContext<>::Match& treeMatch, const TreeMatchT& tm) 
 }
 
 
-bool operator == (const std::vector<ParseContext<>::Match>& treeMatches, const TreeMatchT& tm) {
+bool operator == (const std::vector<ParseContext<>::MatchType>& treeMatches, const TreeMatchT& tm) {
     return treeMatches.size() == 1 && treeMatches[0] == tm;
 }
 
@@ -686,7 +686,7 @@ static Rule<> add = (add >> '+' >> mul) >= "add"
                   | mul;
 
 
-static int eval(const ParseContext<>::Match& m) {
+static int eval(const ParseContext<>::MatchType& m) {
     if (m.id() == "add") {
         return eval(m.children()[0]) + eval(m.children()[1]);
     }

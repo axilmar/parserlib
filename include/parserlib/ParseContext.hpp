@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "Match.hpp"
 #include "TreeMatchException.hpp"
 #include "RuleState.hpp"
 #include "SourcePosition.hpp"
@@ -60,74 +61,9 @@ namespace parserlib {
         using RuleStateType = RuleState<ThisType>;
 
         /**
-         * Result of a successful parsing attempt. 
+         * Match type.
          */
-        class Match {
-        public:
-            /**
-             * The default constructor.
-             * No member is initialized.
-             */
-            Match() {
-            }
-
-            /**
-             * Returns the id of the match.
-             * @return the id of the match.
-             */
-            const MatchIdType& id() const {
-                return m_id;
-            }
-
-            /**
-             * Returns the position the match begins.
-             * @return the position the match begins.
-             */
-            const PositionType& begin() const {
-                return m_begin;
-            }
-            
-            /**
-             * Returns the position the match ends.
-             * @return the position the match ends.
-             */
-            const PositionType& end() const {
-                return m_end;
-            }
-
-            /**
-             * Returns the parsed content.
-             * @return the parsed content.
-             */
-            SourceType content() const {
-                return SourceType(m_begin.iterator(), m_end.iterator());
-            }
-
-            /**
-             * Returns the children matches.
-             * @return the children matches.
-             */
-            const std::vector<Match>& children() const {
-                return m_children;
-            }
-
-        private:
-            const MatchIdType m_id{};
-            const PositionType m_begin;
-            const PositionType m_end;
-            const std::vector<Match> m_children;
-
-            //internal constructor
-            Match(const MatchIdType& id, 
-                  const PositionType& begin, 
-                  const PositionType& end, 
-                std::vector<Match>&& children = std::vector<Match>()) 
-                : m_id(id), m_begin(begin), m_end(end), m_children(std::move(children))
-            {
-            }
-
-            friend class ThisType;
-        };
+        using MatchType = Match<SourceType, MatchIdType, PositionType>;
 
         /**
          * Current parser state. 
@@ -258,7 +194,7 @@ namespace parserlib {
          * Returns the current matches.
          * @return the current matches.
          */
-        const std::vector<Match>& matches() const {
+        const std::vector<MatchType>& matches() const {
             return m_matches;
         }
 
@@ -269,7 +205,7 @@ namespace parserlib {
          * @param end end position into the source.
          */
         void addMatch(const MatchIdType& id, const PositionType& begin, const PositionType& end) {
-            m_matches.push_back(Match(id, begin, end));
+            m_matches.push_back(MatchType(id, begin, end));
         }
 
         /**
@@ -282,9 +218,9 @@ namespace parserlib {
          */
         void addMatch(const MatchIdType& id, const PositionType& begin, const PositionType& end, size_t childCount) {
             if (childCount > m_matches.size()) {
-                throw TreeMatchException<ParseContext<SourceType, MatchIdType>>(*this);
+                throw TreeMatchException<ThisType>(*this);
             }
-            Match m(id, begin, end, std::vector<Match>(m_matches.end() - childCount, m_matches.end()));
+            MatchType m(id, begin, end, std::vector<MatchType>(m_matches.end() - childCount, m_matches.end()));
             m_matches.resize(m_matches.size() - childCount);
             m_matches.push_back(std::move(m));
         }
@@ -316,7 +252,7 @@ namespace parserlib {
 
     private:
         PositionType m_sourcePosition;
-        std::vector<Match> m_matches;
+        std::vector<MatchType> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
     };
 
