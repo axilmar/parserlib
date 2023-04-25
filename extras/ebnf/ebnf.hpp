@@ -2,6 +2,10 @@
 #define PARSERLIB_EBNF_HPP
 
 
+#include "parserlib/Match.hpp"
+#include "parserlib/LineCountingSourcePosition.hpp"
+
+
 namespace parserlib::ebnf {
 
 
@@ -69,6 +73,12 @@ namespace parserlib::ebnf {
          */
         IDENTIFIER
     };
+
+
+    /**
+     * Match type for EBNF parser.
+     */
+    using Match = parserlib::Match<std::string, EBNF, LineCountingSourcePosition<std::string>>;
 
 
 } //namespace parserlib::ebnf
