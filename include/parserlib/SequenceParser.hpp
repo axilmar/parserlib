@@ -203,42 +203,6 @@ namespace parserlib {
 
 
     /**
-     * Creates a sequence of parsers out of two parsers.
-     * @param node1 1st node.
-     * @param node2 2nd node.
-     * @return a sequence of parsers.
-     */
-    template <class ParserNodeType1, class ParserNodeType2>
-    auto operator , (const ParserNode<ParserNodeType1>& node1, const ParserNode<ParserNodeType2>& node2) {
-        return node1 >> node2;
-    }
-
-
-    /**
-     * Creates a sequence of parsers out of a parser node and a terminal.
-     * @param node parser node.
-     * @param term terminal.
-     * @return a sequence of parsers.
-     */
-    template <class ParserNodeType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator , (const ParserNode<ParserNodeType>& node, const TerminalType& term) {
-        return node >> terminal(term);
-    }
-
-
-    /**
-     * Creates a sequence of parsers out of a terminal and a parser node.
-     * @param term terminal.
-     * @param node parser node.
-     * @return a sequence of parsers.
-     */
-    template <class ParserNodeType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator , (const TerminalType& term, const ParserNode<ParserNodeType>& node) {
-        return terminal(term) >> node;
-    }
-
-
-    /**
      * Creates a sequence of parsers out of two parsers, where the first parser is negated.
      * @param node1 1st node.
      * @param node2 2nd node.

@@ -370,34 +370,6 @@ static void unitTest_sequenceParser() {
     }
 
     {
-        const auto parser = (terminal('a') , 'b' , 'c');
-
-        {
-            const std::string input = "abc";
-            ParseContext<> pc(input);
-            bool ok = parser(pc);
-            assert(ok);
-            assert(pc.sourcePosition() == input.end());
-        }
-
-        {
-            const std::string input = "dabc";
-            ParseContext<> pc(input);
-            bool ok = parser(pc);
-            assert(!ok);
-            assert(pc.sourcePosition() == input.begin());
-        }
-
-        {
-            const std::string input = "adbc";
-            ParseContext<> pc(input);
-            bool ok = parser(pc);
-            assert(!ok);
-            assert(pc.sourcePosition() == input.begin());
-        }
-    }
-
-    {
         const auto parser = *(terminalRange('a', 'z') - 'q');
 
         {
