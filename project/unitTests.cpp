@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 #include "parserlib.hpp"
-#include "parserlib/extras/ebnf.hpp"
 
 
 using namespace std;
@@ -951,10 +950,6 @@ static void unitTest_lineCountingSourcePosition() {
 }
 
 
-static void unitTest_ebnf() {
-}
-
-
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -974,5 +969,4 @@ void runUnitTests() {
     unitTest_recursion();
     unitTest_leftRecursion();
     unitTest_lineCountingSourcePosition();
-    unitTest_ebnf();
 }
