@@ -1,2 +1,2 @@
-- documentation about line counting / case-insensitive parsing.
+- resumable error handling.
 - write a small programming language compiler/interpreter as a demo.
