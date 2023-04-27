@@ -2,6 +2,7 @@
 #define PARSERLIB_TERMINALSTRINGPARSER_HPP
 
 
+#include <string>
 #include "ParserNode.hpp"
 
 
@@ -37,9 +38,8 @@ namespace parserlib {
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
             if (!pc.sourceEnded()) {
-                size_t len;
-                if (pc.sourcePositionContains(m_string, len)) {
-                    pc.increaseSourcePosition(len);
+                if (pc.sourcePositionContains(m_string.c_str())) {
+                    pc.increaseSourcePosition(m_string.size());
                     return true;
                 }
             }
@@ -58,7 +58,7 @@ namespace parserlib {
         }
 
     private:
-        const TerminalValueType* const m_string;
+        const std::basic_string<TerminalValueType> m_string;
     };
 
 

@@ -106,11 +106,10 @@ namespace parserlib {
          * If CaseSensitive is false, then values are set to lowercase before compared.
          * @param iterator position in source that contains the element to compare to the value.
          * @param str null-terminated string.
-         * @param len result length of string.
          * @return true if string is present at the given position, false otherwise.
          */
         template <class T>
-        static bool contains(const typename SourceType::const_iterator& iterator, const typename SourceType::const_iterator& end, const T* str, size_t& len) {
+        static bool contains(const typename SourceType::const_iterator& iterator, const typename SourceType::const_iterator& end, const T* str) {
             auto it = iterator;
             const T* ts = str;
 
@@ -136,7 +135,6 @@ namespace parserlib {
             }
 
             //success
-            len = ts - str;
             return true;
         }
 
@@ -178,12 +176,11 @@ namespace parserlib {
          * Compares the current value with the given null-terminated string.
          * If CaseSensitive is false, then values are set to lowercase before compared.
          * @param str null-terminated string.
-         * @param len result length of string.
          * @return true if string is present at the given position, false otherwise.
          */
         template <class T>
-        bool contains(const T* str, size_t& len) const {
-            return contains(m_iterator, m_end, str, len);
+        bool contains(const T* str) const {
+            return contains(m_iterator, m_end, str);
         }
 
         /**

@@ -174,12 +174,11 @@ namespace parserlib {
         /**
          * Checks if the given null-terminated string can be recognized at current position.
          * @param str string to check.
-         * @param len result length of string.
          * @return true if string is recognized, false otherwise.
          */
         template <class T>
-        bool sourcePositionContains(const T* str, size_t& len) const {
-            return m_sourcePosition.contains(str, len);
+        bool sourcePositionContains(const T* str) const {
+            return m_sourcePosition.contains(str);
         }
 
         /**
