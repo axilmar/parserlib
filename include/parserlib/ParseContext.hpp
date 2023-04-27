@@ -145,7 +145,8 @@ namespace parserlib {
          * @param value value to compare to the current element.
          * @return true if current element equals given value, false otherwise.
          */
-        bool sourcePositionContains(const typename SourceType::value_type& value) const {
+        template <class T>
+        bool sourcePositionContains(const T& value) const {
             return m_sourcePosition.contains(value);
         }
 
@@ -155,8 +156,30 @@ namespace parserlib {
          * @param maxValue highest value to compare to the current element.
          * @return true if current element is within the given range, false otherwise.
          */
-        bool sourcePositionContains(const typename SourceType::value_type& minValue, const typename SourceType::value_type& maxValue) const {
+        template <class T>
+        bool sourcePositionContains(const T& minValue, const T& maxValue) const {
             return m_sourcePosition.contains(minValue, maxValue);
+        }
+
+        /**
+         * Checks if the element at the current source position is one of the given values.
+         * @param values values to check.
+         * @return true if current element is within the given values, false otherwise.
+         */
+        template <class T, class Alloc>
+        bool sourcePositionContains(const std::vector<T, Alloc>& values) const {
+            return m_sourcePosition.contains(values);
+        }
+
+        /**
+         * Checks if the given null-terminated string can be recognized at current position.
+         * @param str string to check.
+         * @param len result length of string.
+         * @return true if string is recognized, false otherwise.
+         */
+        template <class T>
+        bool sourcePositionContains(const T* str, size_t& len) const {
+            return m_sourcePosition.contains(str, len);
         }
 
         /**

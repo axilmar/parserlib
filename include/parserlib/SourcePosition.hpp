@@ -3,6 +3,7 @@
 
 
 #include <cctype>
+#include <vector>
 
 
 namespace parserlib {
@@ -51,32 +52,138 @@ namespace parserlib {
         /**
          * Compares the current value with the given one.
          * If CaseSensitive is false, then both values are set to lowercase before compared.
+         * @param iterator position in source that contains the element to compare to the value.
          * @param value value to compare with the value at the current position.
          * @return true if equal, false otherwise.
          */
-        bool contains(const typename SourceType::value_type& value) const {
+        template <class T>
+        static bool contains(const typename SourceType::const_iterator& iterator, const T& value) {
             if constexpr (CaseSensitive) {
-                return *m_iterator == value;
+                return *iterator == value;
             }
             else {
-                return std::tolower(*m_iterator) == std::tolower(value);
+                return std::tolower(*iterator) == std::tolower(value);
             }
         }
 
         /**
          * Compares the current value with the given range of v alues.
          * If CaseSensitive is false, then values are set to lowercase before compared.
+         * @param iterator position in source that contains the element to compare to the value.
          * @param minValue lowest value to compare with the value at the current position.
          * @param maxValue max value to compare with the value at the current position.
          * @return true if within range, false otherwise.
          */
-        bool contains(const typename SourceType::value_type& minValue, const typename SourceType::value_type& maxValue) const {
+        template <class T>
+        static bool contains(const typename SourceType::const_iterator& iterator, const T& minValue, const typename T& maxValue) {
             if constexpr (CaseSensitive) {
-                return *m_iterator >= minValue && *m_iterator <= maxValue;
+                return *iterator >= minValue && *iterator <= maxValue;
             }
             else {
-                return std::tolower(*m_iterator) >= std::tolower(minValue) && std::tolower(*m_iterator) <= std::tolower(maxValue);
+                return std::tolower(*iterator) >= std::tolower(minValue) && std::tolower(*iterator) <= std::tolower(maxValue);
             }
+        }
+
+        /**
+         * Compares the current value with the given array of values.
+         * If CaseSensitive is false, then values are set to lowercase before compared.
+         * @param iterator position in source that contains the element to compare to the value.
+         * @param values.
+         * @return true if within container, false otherwise.
+         */
+        template <class T, class Alloc>
+        static bool contains(const typename SourceType::const_iterator& iterator, const std::vector<T, Alloc>& values) {
+            for (const T& value : values) {
+                if (contains(iterator, value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Compares the current value with the given null-terminated string.
+         * If CaseSensitive is false, then values are set to lowercase before compared.
+         * @param iterator position in source that contains the element to compare to the value.
+         * @param str null-terminated string.
+         * @param len result length of string.
+         * @return true if string is present at the given position, false otherwise.
+         */
+        template <class T>
+        static bool contains(const typename SourceType::const_iterator& iterator, const typename SourceType::const_iterator& end, const T* str, size_t& len) {
+            auto it = iterator;
+            const T* ts = str;
+
+            for (;;) {
+                //if string exhausted, then it was recognized successfully
+                if (!*ts) {
+                    break;
+                }
+
+                //if iteration reached the end of source, the string was not recognized
+                if (it == end) {
+                    return false;
+                }
+
+                //if the characters differ, then the string is not recognized
+                if (!contains(it, *ts)) {
+                    return false;
+                }
+
+                //next character
+                ++it;
+                ++ts;
+            }
+
+            //success
+            len = ts - str;
+            return true;
+        }
+
+        /**
+         * Compares the current value with the given one.
+         * If CaseSensitive is false, then both values are set to lowercase before compared.
+         * @param value value to compare with the value at the current position.
+         * @return true if equal, false otherwise.
+         */
+        template <class T>
+        bool contains(const T& value) const {
+            return contains(m_iterator, value);
+        }
+
+        /**
+         * Compares the current value with the given range of values.
+         * If CaseSensitive is false, then values are set to lowercase before compared.
+         * @param minValue lowest value to compare with the value at the current position.
+         * @param maxValue max value to compare with the value at the current position.
+         * @return true if within range, false otherwise.
+         */
+        template <class T>
+        bool contains(const T& minValue, const T& maxValue) const {
+            return contains(m_iterator, minValue, maxValue);
+        }
+
+        /**
+         * Compares the current value with the given array of values.
+         * If CaseSensitive is false, then values are set to lowercase before compared.
+         * @param values.
+         * @return true if within range, false otherwise.
+         */
+        template <class T, class Alloc>
+        bool contains(const std::vector<T, Alloc>& values) const {
+            return contains(m_iterator, values);
+        }
+
+        /**
+         * Compares the current value with the given null-terminated string.
+         * If CaseSensitive is false, then values are set to lowercase before compared.
+         * @param str null-terminated string.
+         * @param len result length of string.
+         * @return true if string is present at the given position, false otherwise.
+         */
+        template <class T>
+        bool contains(const T* str, size_t& len) const {
+            return contains(m_iterator, m_end, str, len);
         }
 
         /**

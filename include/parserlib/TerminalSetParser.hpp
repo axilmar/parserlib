@@ -40,11 +40,9 @@ namespace parserlib {
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
             if (!pc.sourceEnded()) {
-                for (const auto& termValue : m_terminalValues) {
-                    if (pc.sourcePositionContains(termValue)) {
-                        pc.incrementSourcePosition();
-                        return true;
-                    }
+                if (pc.sourcePositionContains(m_terminalValues)) {
+                    pc.incrementSourcePosition();
+                    return true;
                 }
             }
             return false;
