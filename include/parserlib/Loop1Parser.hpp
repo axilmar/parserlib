@@ -70,12 +70,14 @@ namespace parserlib {
                 }
             }
 
+            const auto errorState = pc.errorState();
+
             //parse loop; normal function, since advance was made
             while (true) {
                 const auto startPosition = pc.sourcePosition();
 
                 //if no more parsing possible, stop
-                if (!m_child(pc)) {
+                if (!m_child(pc)) {                    
                     break;
                 }
 
@@ -84,6 +86,8 @@ namespace parserlib {
                     break;
                 }
             }
+
+            pc.setErrorState(errorState);
 
             //success
             return true;

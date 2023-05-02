@@ -35,7 +35,9 @@ namespace parserlib {
          * @return always true.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
+            const auto errorState = pc.errorState();
             m_child(pc);
+            pc.setErrorState(errorState);
             return true;
         }
 
@@ -48,7 +50,9 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+            const auto errorState = pc.errorState();
             m_child.parseLeftRecursionContinuation(pc, lrc);
+            pc.setErrorState(errorState);
             return true;
         }
 

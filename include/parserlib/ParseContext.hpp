@@ -10,6 +10,7 @@
 #include "RuleState.hpp"
 #include "SourcePosition.hpp"
 #include "LineCountingSourcePosition.hpp"
+#include "Error.hpp"
 
 
 namespace parserlib {
@@ -272,10 +273,78 @@ namespace parserlib {
             return it2->second;
         }
 
+        /**
+         * Error state.
+         */
+        class ErrorState {
+        public:
+
+        private:
+            size_t m_errorCount;
+
+            ErrorState(size_t errorCount) : m_errorCount(errorCount) {
+            }
+
+            friend class ThisType;
+        };
+
+        /**
+         * Returns the current error state.
+         * @return the current error state.
+         */
+        ErrorState errorState() const {
+            return { m_errors.size() };
+        }
+
+        /**
+         * Sets the current error state.
+         * @param es the error state to set the current error state from.
+         */
+        void setErrorState(const ErrorState& es) {
+            m_errors.resize(std::max(es.m_errorCount, m_committedErrorCount));
+        }
+
+        /**
+         * Returns the current list of errors.
+         * @return the current list of errors.
+         */
+        const ErrorContainer<PositionType>& errors() const {
+            return m_errors;
+        }
+             
+        /**
+         * Adds an error.
+         * 
+         * An error is added only if:
+         *  - there is no error currently added.
+         *  - there is no uncommitted error.
+         *  - the new error happened in a position that is greater than the last uncommitted error.
+         * 
+         * @param pos position that the error happened at.
+         * @param ecf error creation function; it allows the creation of the error message only if needed.
+         */
+        template <class ErrorCreationFunc> void addError(const PositionType& pos, const ErrorCreationFunc& ecf) {
+            if (m_errors.size() == m_committedErrorCount) {
+                m_errors.push_back(ecf());
+            }
+            else if (pos > m_errors.back().position()) {
+                m_errors.back() = ecf();
+            }
+        }
+
+        /**
+         * Commits the current set of errors.
+         */
+        void commitErrors() {
+            m_committedErrorCount = m_errors.size();
+        }
+
     private:
         PositionType m_sourcePosition;
         std::vector<MatchType> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
+        ErrorContainer<PositionType> m_errors;
+        size_t m_committedErrorCount{ 0 };
     };
 
 

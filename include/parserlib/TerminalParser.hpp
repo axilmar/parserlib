@@ -3,6 +3,8 @@
 
 
 #include "ParserNode.hpp"
+#include "util.hpp"
+#include "Error.hpp"
 
 
 namespace parserlib {
@@ -42,6 +44,12 @@ namespace parserlib {
                 if (pc.sourcePositionContains(m_terminalValue)) {
                     pc.incrementSourcePosition();
                     return true;
+                }
+                else {
+                    pc.addError(pc.sourcePosition(), [&]() {
+                        return makeError(ErrorType::SyntaxError, pc.sourcePosition(),
+                            toString("Syntax error: expected: ", m_terminalValue, ", found: ", *pc.sourcePosition().iterator())); 
+                        });
                 }
             }
             return false;

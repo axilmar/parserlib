@@ -3,6 +3,8 @@
 
 
 #include "ParserNode.hpp"
+#include "util.hpp"
+#include "Error.hpp"
 
 
 namespace parserlib {
@@ -51,6 +53,12 @@ namespace parserlib {
                 if (pc.sourcePositionContains(m_minTerminalValue, m_maxTerminalValue)) {
                     pc.incrementSourcePosition();
                     return true;
+                }
+                else {
+                    pc.addError(pc.sourcePosition(), [&]() {
+                        return makeError(ErrorType::SyntaxError, pc.sourcePosition(),
+                            toString("Syntax error: expected one of: ", tokenToString(m_minTerminalValue), "..", tokenToString(m_maxTerminalValue), ", found: ", *pc.sourcePosition().iterator()));
+                        });
                 }
             }
             return false;

@@ -40,7 +40,7 @@ namespace parserlib {
      * @param CaseSensitive if true, comparison is case sensitive, otherwise case insensitive.
      * @param NewlineTraits traits for newline.
      */
-    template <class SourceType, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> 
+    template <class SourceType = std::string, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> 
     class LineCountingSourcePosition : public SourcePosition<SourceType, CaseSensitive>
     {
     public:

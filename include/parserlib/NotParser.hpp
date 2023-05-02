@@ -57,8 +57,10 @@ namespace parserlib {
 
         template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
             const auto state = pc.state();
+            const auto errorState = pc.errorState();
             const bool result = !pf();
             pc.setState(state);
+            pc.setErrorState(errorState);
             return result;
         }
     };

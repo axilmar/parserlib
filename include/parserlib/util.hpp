@@ -5,6 +5,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <vector>
+#include <algorithm>
 
 
 namespace parserlib {
@@ -49,6 +51,46 @@ namespace parserlib {
             buffer << '\0';
         }
         return buffer.str();
+    }
+
+
+    template <class Elem, class Traits, class T> 
+    std::basic_ostream<Elem, Traits>& tokenToString(std::basic_ostream<Elem, Traits>& stream, const T& val) {
+        stream << '\'' << val << '\'';
+        return stream;
+    }
+
+
+    template <class T> std::string tokenToString(const T& val) {
+        std::stringstream stream; 
+        tokenToString(stream, val);
+        return stream.str();
+    }
+
+
+    template <class Elem, class Traits, class T, class Alloc>
+    std::basic_ostream<Elem, Traits>& operator << (std::basic_ostream<Elem, Traits>& stream, const std::vector<T, Alloc>& vec) {
+        stream << '[';
+        const char* c = "";
+        for (const auto& v : vec) {
+            stream << c;
+            tokenToString(stream, v);
+            c = ",";
+        }
+        stream << ']';
+        return stream;
+    }
+
+
+    template <class... T> std::string toString(T&&... values) {
+        std::stringstream stream;
+        (stream << ... << std::forward<T>(values));
+        return stream.str();
+    }
+
+
+    inline std::string toSubString(const std::string::const_iterator& begin, const std::string::const_iterator& end, size_t len) {
+        return std::string(begin, begin + std::min(static_cast<std::ptrdiff_t>(len), std::distance(begin, end)));
     }
 
 

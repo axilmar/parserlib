@@ -4,6 +4,7 @@
 
 #include <cctype>
 #include <vector>
+#include <string>
 
 
 namespace parserlib {
@@ -14,7 +15,7 @@ namespace parserlib {
      * @param SourceType source type.
      * @param CaseSensitive if true, comparison is case sensitive, otherwise case insensitive.
      */
-    template <class SourceType, bool CaseSensitive = true> class SourcePosition {
+    template <class SourceType = std::string, bool CaseSensitive = true> class SourcePosition {
     public:
         /**
          * The default constructor.
@@ -208,15 +209,6 @@ namespace parserlib {
         }
 
         /**
-         * Checks if the two positions are different.
-         * @param other the other position to compare this to.
-         * @return true if they are different, false otherwise.
-         */
-        bool operator != (const SourcePosition& other) const {
-            return m_iterator != other.m_iterator;
-        }
-
-        /**
          * Checks if this position is equal to the given iterator.
          * @param it iterator to compare to this.
          * @return true if they are equal, false otherwise.
@@ -226,12 +218,93 @@ namespace parserlib {
         }
 
         /**
+         * Checks if the two positions are different.
+         * @param other the other position to compare this to.
+         * @return true if they are different, false otherwise.
+         */
+        bool operator != (const SourcePosition& other) const {
+            return m_iterator != other.m_iterator;
+        }
+
+        /**
          * Checks if this position is different to the given iterator.
          * @param it iterator to compare to this.
          * @return true if they are different, false otherwise.
          */
         bool operator != (const typename SourceType::const_iterator& it) const {
             return m_iterator != it;
+        }
+
+        /**
+         * Checks if the this position comes before the other position.
+         * @param other the other position to compare this to.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator < (const SourcePosition& other) const {
+            return m_iterator < other.m_iterator;
+        }
+
+        /**
+         * Checks if this position's iterator comes before the given iterator.
+         * @param it iterator to compare to this.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator < (const typename SourceType::const_iterator& it) const {
+            return m_iterator < it;
+        }
+
+        /**
+         * Checks if the this position comes after the other position.
+         * @param other the other position to compare this to.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator > (const SourcePosition& other) const {
+            return m_iterator > other.m_iterator;
+        }
+
+        /**
+         * Checks if this position's iterator comes after the given iterator.
+         * @param it iterator to compare to this.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator > (const typename SourceType::const_iterator& it) const {
+            return m_iterator > it;
+        }
+
+        /**
+         * Checks if the this position comes after or is equal to the other position.
+         * @param other the other position to compare this to.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator <= (const SourcePosition& other) const {
+            return m_iterator <= other.m_iterator;
+        }
+
+        /**
+         * Checks if this position's iterator comes before or is equal to the given iterator.
+         * @param it iterator to compare to this.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator <= (const typename SourceType::const_iterator& it) const {
+            return m_iterator <= it;
+        }
+
+        /**
+         * Checks if the this position comes after or is equal to the other position.
+         * @param other the other position to compare this to.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator >= (const SourcePosition& other) const {
+            return m_iterator >= other.m_iterator;
+        }
+
+        /**
+         * Checks if this position's iterator comes after or is equal to the given iterator.
+         * @param it iterator to compare to this.
+         * @return true if the comparison is true, false otherwise.
+         */
+        bool operator >= (const typename SourceType::const_iterator& it) const {
+            return m_iterator >= it;
         }
 
     private:

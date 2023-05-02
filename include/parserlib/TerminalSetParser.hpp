@@ -4,6 +4,8 @@
 
 #include <vector>
 #include "ParserNode.hpp"
+#include "util.hpp"
+#include "Error.hpp"
 
 
 namespace parserlib {
@@ -43,6 +45,12 @@ namespace parserlib {
                 if (pc.sourcePositionContains(m_terminalValues)) {
                     pc.incrementSourcePosition();
                     return true;
+                }
+                else {
+                    pc.addError(pc.sourcePosition(), [&]() {
+                        return makeError(ErrorType::SyntaxError, pc.sourcePosition(),
+                            toString("Syntax error: expected one of: ", m_terminalValues, ", found: ", *pc.sourcePosition().iterator()));
+                        });
                 }
             }
             return false;

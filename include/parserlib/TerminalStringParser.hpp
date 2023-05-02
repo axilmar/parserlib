@@ -4,6 +4,8 @@
 
 #include <string>
 #include "ParserNode.hpp"
+#include "util.hpp"
+#include "Error.hpp"
 
 
 namespace parserlib {
@@ -41,6 +43,12 @@ namespace parserlib {
                 if (pc.sourcePositionContains(m_string.c_str())) {
                     pc.increaseSourcePosition(m_string.size());
                     return true;
+                }
+                else {
+                    pc.addError(pc.sourcePosition(), [&]() {
+                        return makeError(ErrorType::SyntaxError, pc.sourcePosition(),
+                            toString("Syntax error: expected: \"", m_string, "\", found: \"", toSubString(pc.sourcePosition().iterator(), pc.sourcePosition().end(), m_string.length()), "\""));
+                        });
                 }
             }
             return false;

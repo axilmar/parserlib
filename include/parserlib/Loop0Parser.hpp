@@ -54,17 +54,21 @@ namespace parserlib {
         const ParserNodeType m_child;
 
         template <class ParseContextType, class PF> bool parse(ParseContextType& pc, const PF& pf) const {
+            const auto errorState = pc.errorState();
+
             //parse once with the given function
             {
                 const auto startPosition = pc.sourcePosition();
 
                 //if no more parsing possible, stop
                 if (!pf()) {
+                    pc.setErrorState(errorState);
                     return true;
                 }
 
                 //if no advance was made, stop in order to avoid infinite an loop
                 if (pc.sourcePosition() == startPosition) {
+                    pc.setErrorState(errorState);
                     return true;
                 }
             }
@@ -84,6 +88,7 @@ namespace parserlib {
                 }
             }
 
+            pc.setErrorState(errorState);
             return true;
         }
 

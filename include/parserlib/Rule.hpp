@@ -17,6 +17,7 @@
 #include "MatchParser.hpp"
 #include "TreeMatchParser.hpp"
 #include "util.hpp"
+#include "ErrorParser.hpp"
 
 
 namespace parserlib {
@@ -533,6 +534,37 @@ namespace parserlib {
     LoopNParser<RuleReference<ParseContextType>>
     operator * (size_t loopCount, const Rule<ParseContextType>& rule) {
         return { loopCount, RuleReference<ParseContextType>(rule) };
+    }
+
+
+    template <class ParseContextType>
+    auto operator ~(Rule<ParseContextType>&&) = delete;
+
+
+    /**
+     * Operator that creates an error recovery point from a rule.
+     * @param rule rule to create an error recovery point from.
+     * @return an error recovery point.
+     */
+    template <class ParseContextType>
+    ErrorRecoveryPoint<RuleReference<ParseContextType>> operator ~(const Rule<ParseContextType>& rule) {
+        return { RuleReference<ParseContextType>(rule) };
+    }
+
+
+    template <class ParseContextType, class RHS>
+    auto operator >> (Rule<ParseContextType>&& lhs, const ErrorRecoveryPoint<RHS>& rhs) = delete;
+
+
+    /**
+     * A sequence operator between a rule and an error recovery point.
+     * @param lhs the left-hand-side rule.
+     * @param rhs the right-hand-side parser.
+     * @return an error recovery parser.
+     */
+    template <class ParseContextType, class RHS>
+    ErrorParser<RuleReference<ParseContextType>, RHS> operator >> (const Rule<ParseContextType>& lhs, const ErrorRecoveryPoint<RHS>& rhs) {
+        return { RuleReference<ParseContextType>(lhs), rhs.parser() };
     }
 
 

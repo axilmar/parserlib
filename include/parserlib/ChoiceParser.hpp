@@ -40,7 +40,12 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            return parse<0>(pc, [&](const auto& child) { return child(pc); });
+            const auto errorState = pc.errorState();
+            if (parse<0>(pc, [&](const auto& child) { return child(pc); })) {
+                pc.setErrorState(errorState);
+                return true;
+            }
+            return false;
         }
 
         /**
@@ -52,7 +57,12 @@ namespace parserlib {
          * @return true if parsing succeeds, false otherwise.
          */
         template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
-            return parseLRC<0>(pc, lrc);
+            const auto errorState = pc.errorState();
+            if (parseLRC<0>(pc, lrc)) {
+                pc.setErrorState(errorState);
+                return true;
+            }
+            return false;
         }
 
     private:
