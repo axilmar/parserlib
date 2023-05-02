@@ -21,6 +21,8 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Tree Matches](#tree-matches)
 
+[Resuming From Errors](#resuming-from-errors)
+
 ## <a id="Introduction"></a>Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
@@ -428,3 +430,22 @@ std::cout << output;
 ```
 
 The above prints the input, which is the value `FF.12.DC.A0`.
+
+## Resuming From Errors
+
+In order to resume from errors, the special `operator ~()` can be used to create an `error resume point`.
+
+An `error resume point` shall be combined with `operator >>()` to create a sequence of parsers, in which the parsers before the `error resume point` may create an error, and then the `error parser` will try to resume parsing from the `error resume point`.
+
+Here is an example of parsing a terminal enclosed in single quotes:
+
+```cpp
+const auto ws = *terminal(' ');
+const auto letter = terminalRange('a', 'z') | terminalRange('A', 'Z');
+const auto digit = terminalRange('0', '9');
+const auto character = letter | digit;
+const auto terminal_ = ('\'' >> *(character - '\'') >> ~terminal('\'')) == "terminal";
+const auto grammar = ws >> *(terminal_ >> ws);
+```
+
+If an error happens when parsing a terminal, then the parser will look for the single quote symbol `\'` in order to continue parsing.
