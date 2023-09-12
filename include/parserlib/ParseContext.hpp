@@ -104,7 +104,7 @@ namespace parserlib {
             {
             }
 
-            friend class ThisType;
+            friend ThisType;
         };
 
         /**
@@ -285,7 +285,7 @@ namespace parserlib {
             ErrorState(size_t errorCount) : m_errorCount(errorCount) {
             }
 
-            friend class ThisType;
+            friend ThisType;
         };
 
         /**
