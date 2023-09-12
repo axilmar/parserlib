@@ -1,6 +1,7 @@
 #ifndef PARSERLIB_LEFTRECURSIONCONTEXT_HPP
 #define PARSERLIB_LEFTRECURSIONCONTEXT_HPP
 
+#include <cstddef>
 
 namespace parserlib {
 
