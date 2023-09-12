@@ -36,7 +36,7 @@ namespace parserlib {
          * Returns the loop count.
          * @return the loop count.
          */
-        const size_t loopCount() const {
+        size_t loopCount() const {
             return m_loopCount;
         }
 
