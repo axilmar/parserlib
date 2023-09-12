@@ -19,7 +19,7 @@ namespace parserlib {
          * @param end iterator to the end of the source.
          * @return true if the character is '\n', false otherwise.
          */
-        template <class Iterator> bool isNewline(const Iterator& it, const Iterator& end) const {
+        template <class Iterator> bool isNewline(const Iterator& it, const Iterator& /*end*/) const {
             return *it == '\n';
         }
 
@@ -28,7 +28,7 @@ namespace parserlib {
          * @param it iterator to the source.
          * @param end iterator to the end of the source.
          */
-        template <class Iterator> void skipNewline(Iterator& it, const Iterator& end) const {
+        template <class Iterator> void skipNewline(Iterator& it, const Iterator& /*end*/) const {
             ++it;
         }
     };
