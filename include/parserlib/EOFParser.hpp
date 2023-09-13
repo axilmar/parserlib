@@ -30,7 +30,7 @@ namespace parserlib {
          * @param lrc left recursion context.
          * @return true if parsing succeeds, false otherwise.
          */
-        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
+        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& /*lrc*/) const {
             return operator ()(pc);
         }
     };

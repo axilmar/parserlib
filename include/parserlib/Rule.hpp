@@ -106,7 +106,7 @@ namespace parserlib {
          */
         bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
             return parse(pc,
-                [&](RuleStateType& ruleState) {
+                [&](RuleStateType& /*ruleState*/) {
                     lrc.setContinuationResolved(true);
                     return true;
                 });

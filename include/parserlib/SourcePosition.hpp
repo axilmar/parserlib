@@ -76,7 +76,7 @@ namespace parserlib {
          * @return true if within range, false otherwise.
          */
         template <class T>
-        static bool contains(const typename SourceType::const_iterator& iterator, const T& minValue, const typename T& maxValue) {
+        static bool contains(const typename SourceType::const_iterator& iterator, const T& minValue, const T& maxValue) {
             if constexpr (CaseSensitive) {
                 return *iterator >= minValue && *iterator <= maxValue;
             }
