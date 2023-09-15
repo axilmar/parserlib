@@ -48,6 +48,8 @@ Rule<> add = add >> '+' >> mul
            | mul;
 ```
 
+*(NOTE: Rule 'add' needs a forward reference because it is mentioned for the very first time in rule 'num'.)*
+
 The above grammar is a direct translation of the following left-recursive EBNF grammar:
 
 ```
