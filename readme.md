@@ -279,7 +279,7 @@ ParseContext<std::string, int> pc(input);
 
 The parse context's parameter named '`SourcePositionType' allows the customization of character processing:
 - customizing comparison of elements, for example in order to implement case insensitive parsing.
-- providing extra information regarding the source, for example line and oclumn numbers.
+- providing extra information regarding the source, for example line and column numbers.
 - customizing the newline character sequence.
 
 The library already provides two classes for the above:
@@ -310,7 +310,7 @@ enum TYPE {
 
 const auto a = terminal('A') == A;
 const auto b = terminal('B') == B;
-const auto c = terminal('B') == C;
+const auto c = terminal('C') == C;
 const auto grammar = a >> b >> c;
 
 std::string input = "ABC";
