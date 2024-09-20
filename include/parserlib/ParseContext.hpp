@@ -67,6 +67,11 @@ namespace parserlib {
         using MatchType = Match<SourceType, MatchIdType, PositionType>;
 
         /**
+         * Error container type.
+         */
+        using ErrorContainerType = ErrorContainer<PositionType>;
+
+        /**
          * Current parser state. 
          */
         class State {
@@ -308,7 +313,7 @@ namespace parserlib {
          * Returns the current list of errors.
          * @return the current list of errors.
          */
-        const ErrorContainer<PositionType>& errors() const {
+        const ErrorContainerType& errors() const {
             return m_errors;
         }
              
@@ -343,7 +348,7 @@ namespace parserlib {
         PositionType m_sourcePosition;
         std::vector<MatchType> m_matches;
         std::map<const RuleType*, RuleStateType> m_ruleStates;
-        ErrorContainer<PositionType> m_errors;
+        ErrorContainerType m_errors;
         size_t m_committedErrorCount{ 0 };
     };
 
