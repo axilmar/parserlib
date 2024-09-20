@@ -49,6 +49,17 @@ namespace parserlib {
         }
 
         /**
+         * Constructor from parameters.
+         * @param type error type; stored as 'int' internally.
+         * @param pos source position type.
+         * @param msg error message.
+         */
+        template <class ErrorType> Error(ErrorType type, const SourcePositionType& pos, const std::string& msg)
+            : m_type(static_cast<int>(type)), m_position(pos), m_message(msg)
+        {
+        }
+
+        /**
          * Returns the error type.
          * @return the error type.
          */
@@ -95,6 +106,18 @@ namespace parserlib {
      */
     template <class ErrorType, class SourcePositionType> Error<SourcePositionType> makeError(ErrorType type, const SourcePositionType& pos, std::string&& msg) {
         return { type, pos, std::move(msg) };
+    }
+
+
+    /**
+     * Helper function for creating an error instance.
+     * @param type error type; stored as 'int' internally.
+     * @param pos source position type.
+     * @param msg error message.
+     * @return an error instance.
+     */
+    template <class ErrorType, class SourcePositionType> Error<SourcePositionType> makeError(ErrorType type, const SourcePositionType& pos, const std::string& msg) {
+        return { type, pos, msg };
     }
 
 

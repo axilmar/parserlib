@@ -10,6 +10,7 @@
 #include "parserlib/EmptyParser.hpp"
 #include "parserlib/Rule.hpp"
 #include "parserlib/util.hpp"
+#include "parserlib/CFE.hpp"
 
 
 #endif //PARSERLIB_HPP

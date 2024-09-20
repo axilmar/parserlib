@@ -18,6 +18,16 @@ namespace parserlib {
     template <class SourceType = std::string, bool CaseSensitive = true> class SourcePosition {
     public:
         /**
+         * Source type.
+         */
+        typedef SourceType SourceType;
+
+        /**
+         * Case sensitive.
+         */
+        static constexpr bool CaseSensitive = CaseSensitive;
+
+        /**
          * The default constructor.
          */
         SourcePosition() {
@@ -39,6 +49,14 @@ namespace parserlib {
          * @return the iterator.
          */
         const typename SourceType::const_iterator& iterator() const {
+            return m_iterator;
+        }
+
+        /**
+         * Returns the beginning of the source.
+         * @return the beginning of the source.
+         */
+        const typename SourceType::const_iterator& begin() const {
             return m_iterator;
         }
 

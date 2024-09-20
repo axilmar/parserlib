@@ -45,6 +45,11 @@ namespace parserlib {
     {
     public:
         /**
+         * Newline traits.
+         */
+        using NewlineTraitsType = NewlineTraits;
+
+        /**
          * The default constructor.
          */
         LineCountingSourcePosition() {
