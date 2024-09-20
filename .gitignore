@@ -4,3 +4,4 @@ Release/
 *.user
 *.vcxproj
 *.vcxproj.*
+*.sln
