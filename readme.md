@@ -3,11 +3,13 @@
 A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 ## Versions  
-  
-  -1.0.0.1
+ 
+  - 1.0.0.1
+ 
   	Added support for compiler front-end construction.
   	
-  -1.0.0.0 
+- 1.0.0.0
+ 
   	Initial release.
 
 ## Table Of Contents
