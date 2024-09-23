@@ -1081,7 +1081,7 @@ namespace unit_test_cfe {
 
 
     //ast node ptr type
-    using ASTNodePtr = CalculatorCFE::ASTNodePtr;
+    using ASTNodePtr = CalculatorCFE::ASTNodePtrType;
 
 
     /**** tokenizer ****/

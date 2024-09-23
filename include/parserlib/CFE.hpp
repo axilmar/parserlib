@@ -27,12 +27,12 @@ namespace parserlib {
         /**
          * AST nodes are managed via shared pointers, because usually they need to be shared between other objects.
          */
-        using ASTNodePtr = std::shared_ptr<ASTNode>;
+        using ASTNodePtrType = std::shared_ptr<ASTNode>;
 
         /**
          * Container of AST nodes via pointers.
          */
-        using ASTNodeContainerType = std::vector<ASTNodePtr>;
+        using ASTNodeContainerType = std::vector<ASTNodePtrType>;
 
         /**
          * The source position type counts lines and columns.
@@ -82,12 +82,12 @@ namespace parserlib {
         /**
          * A token position is a simple source position.
          */
-        using TokenPosition = SourcePosition<std::vector<Token>>;
+        using TokenPositionType = SourcePosition<std::vector<Token>>;
 
         /**
          * Type of parser match.
          */
-        using ASTMatchType = Match<std::vector<Token>, ASTType, TokenPosition>;
+        using ASTMatchType = Match<std::vector<Token>, ASTType, TokenPositionType>;
 
         /**
          * Base class for AST nodes.
@@ -111,7 +111,7 @@ namespace parserlib {
              * @param end end of AST node in the source.
              * @param children children nodes.
              */
-            ASTNode(const ASTType& id, const SourcePositionType& begin, const SourcePositionType& end, std::vector<ASTNodePtr>&& children) 
+            ASTNode(const ASTType& id, const SourcePositionType& begin, const SourcePositionType& end, std::vector<ASTNodePtrType>&& children) 
                 : m_id(id), m_begin(begin), m_end(end), m_children(std::move(children))
             {
             }
@@ -150,7 +150,7 @@ namespace parserlib {
              * Returns the children nodes.
              * @return the children nodes.
              */
-            const std::vector<ASTNodePtr>& children() const {
+            const std::vector<ASTNodePtrType>& children() const {
                 return m_children;
             }
 
@@ -167,12 +167,12 @@ namespace parserlib {
             ASTType m_id;
             SourcePositionType m_begin;
             SourcePositionType m_end;
-            std::vector<ASTNodePtr> m_children;
+            std::vector<ASTNodePtrType> m_children;
 
             //create children recursively.
             template <class ASTNodeFactory>
-            static std::vector<ASTNodePtr> getChildren(const ASTMatchType& match, const ASTNodeFactory& astNodeFactory) {
-                std::vector<ASTNodePtr> children;
+            static std::vector<ASTNodePtrType> getChildren(const ASTMatchType& match, const ASTNodeFactory& astNodeFactory) {
+                std::vector<ASTNodePtrType> children;
                 for (const ASTMatchType& child : match.children()) {
                     children.push_back(astNodeFactory(child));
                 }
@@ -183,7 +183,7 @@ namespace parserlib {
         /**
          * Parse context used for parsing tokens into an AST.
          */
-        using ASTParseContextType = ParseContext<std::vector<Token>, ASTType, TokenPosition>;
+        using ASTParseContextType = ParseContext<std::vector<Token>, ASTType, TokenPositionType>;
 
         /**
          * Rule type for an AST parsing grammar.
@@ -220,7 +220,7 @@ namespace parserlib {
             const bool parseSuccess = parserGrammar(parseContext) && parseContext.sourceEnded();
 
             //create AST nodes
-            std::vector<ASTNodePtr> astNodes;
+            std::vector<ASTNodePtrType> astNodes;
             for (const ASTMatchType& astMatch : parseContext.matches()) {
                 astNodes.push_back(astNodeFactory(astMatch));
             }
@@ -274,7 +274,7 @@ namespace parserlib {
          * @param match the parser match to create an AST node from.
          * @return a pointer to the created AST node.
          */
-        ASTNodePtr operator ()(const ASTMatchType& match) const {
+        ASTNodePtrType operator ()(const ASTMatchType& match) const {
             return std::make_shared<ASTNode>(match, *this);
         }
     };

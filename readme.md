@@ -529,7 +529,7 @@ auto tokenizerGrammar =
 
 ```
 
-It is very straightforward: the lexer grammar is a loop that parses either whitespace, or a series of tokens: a nunber, arithmetic operators, and parentheses.
+It is very straightforward: the lexer grammar is a loop that parses either whitespace, or a series of tokens: a number, or arithmetic operators, or parentheses.
 
 ### The Parser
 
@@ -569,7 +569,6 @@ For the sake of completess, here are some complementary typedefs, not really req
 ```cpp
 using CalculatorCFE = CFE<TokenType, ASTType>;
 using Rule = CalculatorCFE::RuleType;
-using ASTNodePtr = CalculatorCFE::ASTNodePtr;
 ```
 
 Putting all the above to work, parsing of source becomes an one line task (example taken from unit tests):  
@@ -627,7 +626,7 @@ public:
     /**
      * Returns the children nodes.
      */
-    const std::vector<ASTNodePtr>& children() const;
+    const std::vector<ASTNodePtrType>& children() const;
 
     /**
      * Returns a copy of the portion of the source 
@@ -645,6 +644,17 @@ In other words, the ASTNode class provides the following pieces of information:
 * the end position into the source (non-inclusive).
 * the list of children (a vector of `std::shared_ptr<ASTNode>`).
 * The source that corresponds to this AST node.
+
+### AST Node Source Position Type
+
+The class used for AST Node source position is the following:
+
+```cpp
+template <class SourceType = std::string, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> 
+    class LineCountingSourcePosition;
+```
+
+This class allows the programmer to know the line and column in the source of each AST node, mainly in order to provide meaningful messages to the user.
 
 ### AST Node Memory Management
 
@@ -666,7 +676,7 @@ The interface for an AST node factory class is the following:
  * @param match the parser match to create an AST node from.
  * @return a pointer to the created AST node.
  */
-ASTNodePtr operator ()(const ASTMatchType& match) const;
+ASTNodePtrType operator ()(const ASTMatchType& match) const;
 ```
 
 The class `CFE` provides a default implementation of the above operator which creates a standard AST node:
@@ -677,7 +687,7 @@ The class `CFE` provides a default implementation of the above operator which cr
  * @param match the parser match to create an AST node from.
  * @return a pointer to the created AST node.
  */
-ASTNodePtr operator ()(const ASTMatchType& match) const {
+ASTNodePtrType operator ()(const ASTMatchType& match) const {
     return std::make_shared<ASTNode>(match, *this);
 }
 ```
