@@ -181,6 +181,16 @@ namespace parserlib {
         };
 
         /**
+         * Lexer parse context type.
+         */
+        using LexerParseContextType = ParseContext<SourceType, TokenType, SourcePositionType>;
+
+        /**
+         * Lexer rule type.
+         */
+        using LexerRuleType = Rule<LexerParseContextType>;
+
+        /**
          * Parse context used for parsing tokens into an AST.
          */
         using ASTParseContextType = ParseContext<std::vector<Token>, ASTType, TokenPositionType>;
@@ -188,7 +198,7 @@ namespace parserlib {
         /**
          * Rule type for an AST parsing grammar.
          */
-        using RuleType = parserlib::Rule<ASTParseContextType>;
+        using RuleType = Rule<ASTParseContextType>;
 
         /**
          * Static parse function which takes a lexer grammar, a parser grammar, a source,
@@ -206,7 +216,7 @@ namespace parserlib {
         parse(const SourceType& source, const LexerGrammar& lexerGrammar, const ParserGrammar& parserGrammar, const ASTNodeFactory& astNodeFactory)
         {
             //parse tokens
-            ParseContext<SourceType, TokenType, SourcePositionType> tokenizeParseContext(source);
+            LexerParseContextType tokenizeParseContext(source);
             const bool tokenizeSuccess = lexerGrammar(tokenizeParseContext) && tokenizeParseContext.sourceEnded();
 
             //create token list

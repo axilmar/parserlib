@@ -35,6 +35,26 @@ namespace parserlib {
         using RuleStateType = RuleState<ParseContextType>;
 
         /**
+         * The default constructor.
+         */
+        Rule() {
+        }
+
+        /**
+         * The copy constructor.
+         * @param rule the source rule.
+         */
+        Rule(const Rule& rule) : m_parser(rule.m_parser) {
+        }
+
+        /**
+         * The move constructor.
+         * @param rule the source rule.
+         */
+        Rule(Rule&& rule) : m_parser(std::move(rule.m_parser)) {
+        }
+
+        /**
          * Constructor.
          * Allocates a copy of the given parser on the heap.
          * @param parser parser to copy.
@@ -51,6 +71,48 @@ namespace parserlib {
          */
         template <class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
         Rule(const TerminalType& term) : Rule(terminal(term)) {
+        }
+
+        /**
+         * The copy assignment operator.
+         * @param rule the source rule.
+         * @return reference to this.
+         */
+        Rule& operator = (const Rule& rule) {
+            m_parser = rule.m_parser;
+            return *this;
+        }
+
+        /**
+         * The move assignment operator.
+         * @param rule the source rule.
+         * @return reference to this.
+         */
+        Rule& operator = (Rule&& rule) {
+            m_parser = std::move(rule.m_parser);
+            return *this;
+        }
+
+        /**
+         * Copy assignment from parsing expression.
+         * @param parser the parsing expression.
+         * @return reference to this.
+         */
+        template <class ParserNodeType>
+        Rule& operator = (const ParserNode<ParserNodeType>& parser) {
+            m_parser = std::make_shared<ParserWrapper<ParseContextType, ParserNodeType>>(static_cast<const ParserNodeType&>(parser));
+            return *this;
+        }
+
+        /**
+         * move assignment from parsing expression.
+         * @param parser the parsing expression.
+         * @return reference to this.
+         */
+        template <class ParserNodeType>
+        Rule& operator = (ParserNode<ParserNodeType>&& parser) {
+            m_parser = std::make_shared<ParserWrapper<ParseContextType, ParserNodeType>>(std::move(static_cast<ParserNodeType&&>(parser)));
+            return *this;
         }
 
         /**
@@ -113,7 +175,7 @@ namespace parserlib {
         }
 
     private:
-        const std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
+        std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
 
         //parse
         template <class LRF> bool parse(ParseContextType& pc, const LRF& lrf) const {

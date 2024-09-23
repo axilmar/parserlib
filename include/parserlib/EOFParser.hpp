@@ -37,12 +37,9 @@ namespace parserlib {
 
 
     /**
-     * Shortcut for creating an EOFParser.
-     * @return an EOFParser instance.
+     * The one and only instance of EOF parser required.
      */
-    inline EOFParser eof() {
-        return {};
-    }
+    inline const EOFParser eof;
 
 
 } //namespace parserlib

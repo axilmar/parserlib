@@ -85,6 +85,18 @@ namespace parserlib {
     }
 
 
+    /**
+     * Helper function for creating a terminal set parser from a string.
+     * @param terminalValues the terminal values.
+     * @return a terminal parser.
+     */
+    template <class TerminalValueType>
+    TerminalSetParser<TerminalValueType>
+        terminalSet(const TerminalValueType* terminalValues) {
+        return std::vector<TerminalValueType>{terminalValues, terminalValues + stringLength(terminalValues)};
+    }
+
+
 } //namespace parserlib
 
 

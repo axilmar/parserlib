@@ -8,9 +8,10 @@
 #include "parserlib/TerminalSetParser.hpp"
 #include "parserlib/EOFParser.hpp"
 #include "parserlib/EmptyParser.hpp"
+#include "parserlib/AnyTerminalParser.hpp"
 #include "parserlib/Rule.hpp"
 #include "parserlib/util.hpp"
-#include "parserlib/CFE.hpp"
+#include "parserlib/CFE_EBNF.hpp"
 
 
 #endif //PARSERLIB_HPP

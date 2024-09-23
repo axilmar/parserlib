@@ -94,6 +94,14 @@ namespace parserlib {
     }
 
 
+    template <class T>
+    size_t stringLength(const T* string) {
+        const T* s = string;
+        for (; *s != '\0'; ++s) {}
+        return s - string;
+    }
+
+
 } //namespace parserlib
 
 
