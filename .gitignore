@@ -5,3 +5,4 @@ Release/
 *.vcxproj
 *.vcxproj.*
 *.sln
+*.backup

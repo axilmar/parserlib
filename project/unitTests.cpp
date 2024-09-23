@@ -1031,25 +1031,271 @@ static void unitTest_errorRecovery() {
 }
 
 
+namespace unit_test_cfe {
+
+
+    //token type
+    enum class TokenType {
+        Number,
+        Addition,
+        Subtraction,
+        Multiplication,
+        Division,
+        LeftParen,
+        RightParen
+    };
+
+
+    //token type output
+    template <class T>
+    inline std::basic_ostream<T, std::char_traits<T>>& operator << (std::basic_ostream<T, std::char_traits<T>>& stream, TokenType tokenType) {
+        stream << static_cast<int>(tokenType);
+        return stream;
+    }
+
+
+    //ast type
+    enum class ASTType {
+        Number,
+        Addition,
+        Subtraction,
+        Multiplication,
+        Division
+    };
+
+
+    //ast type output
+    template <class T>
+    inline std::basic_ostream<T, std::char_traits<T>>& operator << (std::basic_ostream<T, std::char_traits<T>>& stream, ASTType astType) {
+        stream << static_cast<int>(astType);
+        return stream;
+    }
+
+
+    //CFE type
+    using CalculatorCFE = CFE<TokenType, ASTType>;
+
+
+    //rule type
+    using Rule = CalculatorCFE::RuleType;
+
+
+    //ast node ptr type
+    using ASTNodePtr = CalculatorCFE::ASTNodePtr;
+
+
+    /**** tokenizer ****/
+
+
+    //whitespace
+    auto whitespace = terminalRange((char)0, ' ');
+
+
+    //digit
+    auto digit = terminalRange('0', '9');
+
+
+    //integer
+    auto integer = +digit;
+
+
+    //number token
+    auto number_tk = (integer >> -('.' >> integer)) == TokenType::Number;
+
+
+    //operators
+    auto op_add = terminal('+') == TokenType::Addition;
+    auto op_sub = terminal('-') == TokenType::Subtraction;
+    auto op_mul = terminal('*') == TokenType::Multiplication;
+    auto op_div = terminal('/') == TokenType::Division;
+
+
+    //parentheses
+    auto left_paren = terminal('(') == TokenType::LeftParen;
+    auto right_paren = terminal(')') == TokenType::RightParen;
+
+
+    //tokenizer grammar
+    auto tokenizerGrammar = *(whitespace
+        | number_tk
+        | op_add
+        | op_sub
+        | op_mul
+        | op_div
+        | left_paren
+        | right_paren);
+
+
+    /**** parser ****/
+
+
+    extern const Rule& parserGrammar;
+
+
+    //number rule
+    auto number = terminal(TokenType::Number) >= ASTType::Number;
+
+
+    //value is left parenthesis-expression-right parenthesis or number
+    auto value = terminal(TokenType::LeftParen) >> parserGrammar >> terminal(TokenType::RightParen)
+               | number;
+
+
+    //multiplication/division
+    Rule mul = (mul >> terminal(TokenType::Multiplication) >> value) >= ASTType::Multiplication
+             | (mul >> terminal(TokenType::Division)       >> value) >= ASTType::Division
+             |  value;
+
+
+    //addition/subtraction
+    Rule add = (add >> terminal(TokenType::Addition)    >> mul) >= ASTType::Addition
+             | (add >> terminal(TokenType::Subtraction) >> mul) >= ASTType::Subtraction
+             |  mul;
+
+
+    //the main parser rule
+    const Rule& parserGrammar = add;
+
+
+    //evaluate result
+    static double eval(const ASTNodePtr& node) {
+        switch (node->id()) {
+            case ASTType::Addition:
+                return eval(node->children()[0]) + eval(node->children()[1]);
+
+            case ASTType::Division:
+                return eval(node->children()[0]) / eval(node->children()[1]);
+
+            case ASTType::Multiplication:
+                return eval(node->children()[0]) * eval(node->children()[1]);
+
+            case ASTType::Number:
+                return stod(node->getSource());
+
+            case ASTType::Subtraction:
+                return eval(node->children()[0]) - eval(node->children()[1]);
+        }
+        throw std::logic_error("Invalid ast node id");
+    }
+
+
+    //the unit test
+    static void unitTest_CFE() {
+        //CFE instance
+        CalculatorCFE calculatorCFE;
+
+        //simple integer example
+        {
+            std::string input = "1";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 1);
+        }
+
+        //simple double example
+        {
+            std::string input = "1.5";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 1.5);
+        }
+
+        //addition
+        {
+            std::string input = "1 + 2";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 1 + 2);
+        }
+
+        //subtraction
+        {
+            std::string input = "2 - 1";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 2 - 1);
+        }
+
+        //multiplication
+        {
+            std::string input = "2 * 3";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 2 * 3);
+        }
+
+        //division
+        {
+            std::string input = "6 / 2";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 6 / 2);
+        }
+
+        //complex example
+        {
+            std::string input = "1 + 2 * 3";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 1 + 2 * 3);
+        }
+
+        //complex example
+        {
+            std::string input = "(1 + 2) * 3";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == (1 + 2) * 3);
+        }
+
+        //complex example
+        {
+            std::string input = "3 + (2 * 1)";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            assert(eval(ast[0]) == 3 + (2 * 1));
+        }
+
+        //complex example
+        {
+            std::string input = "3 + (2 * (5 + 6))";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            const auto result = eval(ast[0]);
+            assert(result == 3 + (2 * (5 + 6)));
+        }
+
+        //complex example
+        {
+            std::string input = "(7 + 3) / 2 * (6 + 7)";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            const auto result = eval(ast[0]);
+            assert(result == (7 + 3) / 2 * (6 + 7));
+        }
+
+        {
+            std::string input = "3 + ((5 + 6) * 1) / 32 * (64 + 7 / 13)";
+            auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+            const auto result1 = eval(ast[0]);
+            const auto result2 = 3.0 + ((5.0 + 6.0) * 1.0) / 32.0 * (64.0 + 7.0 / 13.0);
+            assert(result1 == result2);
+        }
+    }
+
+
+} //namespace unit_test_cfe
+
+
 void runUnitTests() {
-    //unitTest_AndParser();
-    //unitTest_ChoiceParser();
-    //unitTest_Loop0Parser();
-    //unitTest_Loop1Parser();
-    //unitTest_LoopNParser();
-    //unitTest_NotParser();
-    //unitTest_OptionalParser();
-    //unitTest_Rule();
-    //unitTest_sequenceParser();
-    //unitTest_terminalParser();
-    //unitTest_terminalRangeParser();
-    //unitTest_terminalSetParser();
-    //unitTest_terminalStringParser();
-    //unitTest_Match();
-    //unitTest_TreeMatch();
-    //unitTest_recursion();
-    //unitTest_leftRecursion();
-    //unitTest_lineCountingSourcePosition();
-    //unitTest_errorHandling();
+    unitTest_AndParser();
+    unitTest_ChoiceParser();
+    unitTest_Loop0Parser();
+    unitTest_Loop1Parser();
+    unitTest_LoopNParser();
+    unitTest_NotParser();
+    unitTest_OptionalParser();
+    unitTest_Rule();
+    unitTest_sequenceParser();
+    unitTest_terminalParser();
+    unitTest_terminalRangeParser();
+    unitTest_terminalSetParser();
+    unitTest_terminalStringParser();
+    unitTest_Match();
+    unitTest_TreeMatch();
+    unitTest_recursion();
+    unitTest_leftRecursion();
+    unitTest_lineCountingSourcePosition();
+    unitTest_errorHandling();
     unitTest_errorRecovery();
+    unit_test_cfe::unitTest_CFE();
 }

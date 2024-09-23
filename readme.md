@@ -2,6 +2,14 @@
 
 A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
+## Versions  
+  
+  -1.0.0.1
+  	Added compiler front end construction.
+  	
+  -1.0.0.0 
+  	-initial release
+
 ## Table Of Contents
 [Introduction](#introduction)
 
@@ -23,7 +31,9 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Resuming From Errors](#resuming-from-errors)
 
-## <a id="Introduction"></a>Introduction
+[Creating Compiler Front-Ends](#compiler-front-ends)
+
+## Introduction
 
 Parserlib allows writing of recursive-descent parsers in c++ using the language's operators in order to imitate <a src="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Extended Backus-Naur Form (EBNF)</a> syntax.
 
@@ -451,3 +461,223 @@ const auto grammar = ws >> *(terminal_ >> ws);
 ```
 
 If an error happens when parsing a terminal, then the parser will look for the single quote symbol `\'` in order to continue parsing.
+
+## Creating Compiler Front-Ends  
+  
+  A compiler front end can very easily be created, using the class `CFE<TokenType, ASTType>`:  
+    
+* `TokenType` refers to an enumeration that describes tokens.
+* `ASTType` refers to an enumeration that describes AST nodes.  
+
+A compiler front-end is usually composed of two pieces:
+
+1. the lexer.
+2. the parser.
+
+In order to write a compiler front-end with parserlib, the lexer and parser grammar should be provided separately.
+
+The following example is a calculator (taken from the unit tests) which provides both a lexer and a parser.  
+
+### The Lexer
+
+First, the lexer grammar:  
+
+```cpp
+//token type; required to bind the lexer grammar to matches.
+enum class TokenType {
+    Number,
+    Addition,
+    Subtraction,
+    Multiplication,
+    Division,
+    LeftParen,
+    RightParen
+};
+
+//whitespace
+auto whitespace = terminalRange((char)0, ' ');
+
+//digit
+auto digit = terminalRange('0', '9');
+
+//integer
+auto integer = +digit;
+
+//number token
+auto number_tk = (integer >> -('.' >> integer)) == TokenType::Number;
+
+//operators
+auto op_add = terminal('+') == TokenType::Addition;
+auto op_sub = terminal('-') == TokenType::Subtraction;
+auto op_mul = terminal('*') == TokenType::Multiplication;
+auto op_div = terminal('/') == TokenType::Division;
+
+//parentheses
+auto left_paren = terminal('(') == TokenType::LeftParen;
+auto right_paren = terminal(')') == TokenType::RightParen;
+
+//tokenizer grammar
+auto tokenizerGrammar = 
+    *(whitespace
+    | number_tk
+    | op_add
+    | op_sub
+    | op_mul
+    | op_div
+    | left_paren
+    | right_paren);
+
+```
+
+It is very straightforward: the lexer grammar is a loop that parses either whitespace, or a series of tokens: a nunber, arithmetic operators, and parentheses.
+
+### The Parser
+
+Let's now see the parser:
+
+```cpp
+//forward declaration in order to enable recursive expressions
+extern const Rule& parserGrammar;
+
+//number rule
+auto number = terminal(TokenType::Number) >= ASTType::Number;
+
+//value is left parenthesis-expression-right parenthesis or number
+auto value = terminal(TokenType::LeftParen) >> parserGrammar >> terminal(TokenType::RightParen)
+           | number;
+
+//multiplication/division
+Rule mul = (mul >> terminal(TokenType::Multiplication) >> value) >= ASTType::Multiplication
+         | (mul >> terminal(TokenType::Division)       >> value) >= ASTType::Division
+         |  value;
+
+//addition/subtraction
+Rule add = (add >> terminal(TokenType::Addition)    >> mul) >= ASTType::Addition
+         | (add >> terminal(TokenType::Subtraction) >> mul) >= ASTType::Subtraction
+         |  mul;
+
+//the top-level parser rule
+const Rule& parserGrammar = add;
+```
+
+The parser is also very straightforward: taking into advantage the support for left-recursion, the parsing rules are written in almost exact same way as in EBNF notation, but what is parsed are tokens and not characters.  
+
+### How To Parse
+
+For the sake of completess, here are some complementary typedefs, not really required for the example to work, but they make reading the code easier:  
+
+```cpp
+using CalculatorCFE = CFE<TokenType, ASTType>;
+using Rule = CalculatorCFE::RuleType;
+using ASTNodePtr = CalculatorCFE::ASTNodePtr;
+```
+
+Putting all the above to work, parsing of source becomes an one line task (example taken from unit tests):  
+
+```cpp
+std::string input = "3 + ((5 + 6) * 1) / 32 * (64 + 7 / 13)";
+auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+const auto result1 = eval(ast[0]);
+const auto result2 = 3.0 + ((5.0 + 6.0) * 1.0) / 32.0 * (64.0 + 7.0 / 13.0);
+assert(result1 == result2);
+```
+
+The function to call for parsing is the following:
+
+```cpp
+auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
+```
+
+The CFE needs the input, the tokenizer grammar, and the parser grammar.
+
+It first tokenizes the input, then passes the found token list to the parser for actual parsing.
+
+Both parts (lexer and parser) use the same parserlib constructs.
+
+The lexer works on characters, whereas the parser works on tokens.
+
+The result of this call is a tuple with the following members:  
+
+* success flag; it is true if the whole input is consumed and without errors.
+* list of ast nodes created.
+* list of errors, sorted first by line, then by column.
+
+### AST Nodes
+
+The CFE member class `ASTNode` has the following interface:
+
+```cpp
+class ASTNode {
+public:
+    /**
+     * Returns the type id of the node.
+     */
+    ASTType id() const;
+
+    /**
+     * Returns the start position of the node.
+     */
+    const SourcePositionType& begin() const;
+
+    /**
+     * Returns the end position of the node, non-inclusive.
+     */
+    const SourcePositionType& end() const;
+
+    /**
+     * Returns the children nodes.
+     */
+    const std::vector<ASTNodePtr>& children() const;
+
+    /**
+     * Returns a copy of the portion of the source 
+     * that corresponds to this AST node.
+     */
+    SourceType getSource() const;
+};
+
+```
+
+In other words, the ASTNode class provides the following pieces of information:
+
+* the AST type that corresponds to this node.
+* the start position into the source.
+* the end position into the source (non-inclusive).
+* the list of children (a vector of `std::shared_ptr<ASTNode>`).
+* The source that corresponds to this AST node.
+
+### AST Node Memory Management
+
+AST nodes are managed via `std::shared_ptr<>`. 
+
+Although AST nodes are uniquely held by their parents, there are may be cases where they should be shared, so shared memory access is chosen for memory management.
+
+### Creating Custom AST Nodes
+
+In cases where custom AST nodes must be created, the class `CFE` provides a parse interface where an AST node factory is provided.
+
+The default AST node factory creates a standard AST Node instance, but a different AST node factory may create custom subclasses of AST nodes.
+
+The interface for an AST node factory class is the following:  
+
+```cpp
+/**
+ * Operator to create an AST node.
+ * @param match the parser match to create an AST node from.
+ * @return a pointer to the created AST node.
+ */
+ASTNodePtr operator ()(const ASTMatchType& match) const;
+```
+
+The class `CFE` provides a default implementation of the above operator which creates a standard AST node:
+
+```cpp
+/**
+ * Operator to create an AST node.
+ * @param match the parser match to create an AST node from.
+ * @return a pointer to the created AST node.
+ */
+ASTNodePtr operator ()(const ASTMatchType& match) const {
+    return std::make_shared<ASTNode>(match, *this);
+}
+```
