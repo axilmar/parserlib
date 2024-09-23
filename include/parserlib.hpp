@@ -11,7 +11,7 @@
 #include "parserlib/AnyTerminalParser.hpp"
 #include "parserlib/Rule.hpp"
 #include "parserlib/util.hpp"
-#include "parserlib/CFE_EBNF.hpp"
+#include "parserlib/CFE.hpp"
 
 
 #endif //PARSERLIB_HPP

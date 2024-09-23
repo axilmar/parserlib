@@ -163,6 +163,32 @@ namespace parserlib {
                 return SourceType(m_begin.iterator(), m_end.iterator());
             }
 
+            /**
+             * Returns a copy of the portion of the source
+             * that corresponds to this AST node, but newline characters are replaced with string '\n'.
+             * @return the node's source.
+             */
+            SourceType getContent() const {
+                return copyReplaceChars<SourceType>(m_begin.iterator(), m_end.iterator(), '\n', "\\n");
+            }
+
+            /**
+             * Prints the node and its children, as a tree, in the given output stream.
+             * @param ostream stream to print to.
+             * @param depth current tree depth.
+             * @param tabSize number of spaces per tab.
+             */
+            template <class T>
+            void print(std::basic_ostream<T, std::char_traits<T>>&ostream, size_t depth = 0, size_t tabSize = 4) const {
+                for (size_t t = depth * tabSize; t > 0; --t) {
+                    ostream << ' ';
+                }
+                ostream << m_id << ": " << getContent() << '\n';
+                for (const ASTNodePtrType& child : m_children) {
+                    child->print(ostream, depth + 1);
+                }
+            }
+
         private:
             ASTType m_id;
             SourcePositionType m_begin;
@@ -213,8 +239,7 @@ namespace parserlib {
          */
         template <class LexerGrammar, class ParserGrammar, class ASTNodeFactory>
         static std::tuple<bool, ASTNodeContainerType, ErrorContainerType> 
-        parse(const SourceType& source, const LexerGrammar& lexerGrammar, const ParserGrammar& parserGrammar, const ASTNodeFactory& astNodeFactory)
-        {
+        parse(const SourceType& source, const LexerGrammar& lexerGrammar, const ParserGrammar& parserGrammar, const ASTNodeFactory& astNodeFactory) {
             //parse tokens
             LexerParseContextType tokenizeParseContext(source);
             const bool tokenizeSuccess = lexerGrammar(tokenizeParseContext) && tokenizeParseContext.sourceEnded();

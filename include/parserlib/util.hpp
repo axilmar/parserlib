@@ -43,7 +43,7 @@ namespace parserlib {
      * @param appendZero appends the '\0' character, optionally.
      * @return the file as a string.
      */
-    inline std::string loadASCIIFile(const char* filename, const bool appendZero = false) {
+    inline std::string loadASCIIFile(const std::string& filename, const bool appendZero = false) {
         std::ifstream strm(filename);
         std::stringstream buffer;
         buffer << strm.rdbuf();
@@ -99,6 +99,21 @@ namespace parserlib {
         const T* s = string;
         for (; *s != '\0'; ++s) {}
         return s - string;
+    }
+
+
+    template <class T, class It, class C> T copyReplaceChars(const It& begin, const It& end, C c, const C* seq) {
+        using CharT = typename It::value_type;
+        std::basic_stringstream<CharT> sstream;
+        for (auto it = begin; it != end; ++it) {
+            if (*it != c) {
+                sstream << *it;
+            }
+            else {
+                sstream << seq;
+            }
+        }
+        return sstream.str();
     }
 
 
