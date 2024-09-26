@@ -2,7 +2,21 @@
 
 A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
-## Versions  
+## Versions
+
+  - 1.0.0.2
+ 
+ 	Rewrote the library from scratch in order to provide a better interface. Changes:
+ 	
+	- All the getter methods now start with 'get', in order to play better with Intellisense.
+	- The `ParseContext` class is now configured over the Source type, with the default class being the class `SourceString`.
+	- The class `SourceString` provides custom iterator which counts lines and columns, compatible with the `std::string` interface.
+	- The functions `terminal`, `terminalSet`, `terminalRange` are changed to `term`, `oneOf`, `oneIn`.
+	- Matches are now only hierarchical (as in `operator >=` of previous version).
+	- The `'operator >=` has been replaced with `operator ->*`, which is much more distinct than the former; no more typing accidentally '>>' where `>=` was intended.
+	- The default match id type is no longer a string; it is an int.
+	- Simplified the left recursion parsing implementation.
+	- TBD multiple error handling and compiler front ends.
  
   - 1.0.0.1
  
@@ -27,9 +41,7 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 
 [Customizing a Parser](#customizing-a-parser)
 
-[Simple Matches](#simple-matches)
-
-[Tree Matches](#tree-matches)
+[Matches](#matches)
 
 [Resuming From Errors](#resuming-from-errors)
 
@@ -46,7 +58,7 @@ Here is a Calculator grammar example:
 ```cpp
 extern Rule<> add;
 
-const auto val = +terminalRange('0', '9');
+const auto val = +oneIn('0', '9');
 
 const auto num = val
                | '(' >> add >> ')';
@@ -108,8 +120,8 @@ A grammar can be written as a series of parsing expressions, formed by operators
 The most basic parser is the `TerminalParser`, which is used to parse a terminal. In order to write a terminal expression, the following code must be written:
 
 ```cpp
-terminal('x')
-terminal("abc")
+term('x')
+term("abc")
 ```
 
 *The terminals in this library are by default of type `char`, but they can be customized to be anything.*
@@ -117,8 +129,8 @@ terminal("abc")
 Other types of terminal parsers are:
 
 ```cpp
-terminalRange('a', 'z') //parses all values between 'a' and 'z'.
-terminalSet('+', '-') //parses '+' or '-'.
+oneIn('a', 'z') //parses all values between 'a' and 'z'.
+oneOf("+-")     //parses '+' or '-'.
 ```
 
 ### Sequences
@@ -126,8 +138,8 @@ terminalSet('+', '-') //parses '+' or '-'.
 Terminals can be combined in sequences using the `operator >>`:
 
 ```cpp
-const auto ab = terminal('a') >> terminal('b');
-const auto abc = ab >> terminal('c');
+const auto ab = term('a') >> term('b');
+const auto abc = ab >> term('c');
 ```
 
 In order to parse a sequence successfully, all members of that sequence shall parse successfully.
@@ -137,8 +149,8 @@ In order to parse a sequence successfully, all members of that sequence shall pa
 Expressions can have branches:
 
 ```cpp
-const auto this_or_that = terminal("this")
-                        | terminal("that");
+const auto this_or_that = term("this")
+                        | term("that");
 ```
 
 Branches are followed in top-to-bottom fashion.
@@ -150,7 +162,7 @@ If a branch fails to parse, then the next branch is selected, until a branch is 
 - The `operator +' parses an expression 1 or more times.
 
 ```cpp
-+(terminalRange('0', '9')) //parse a digit 1 or more times.
++(oneIn('0', '9')) //parse a digit 1 or more times.
 ```
 
 ### Optionals
@@ -158,26 +170,27 @@ If a branch fails to parse, then the next branch is selected, until a branch is 
 A parser can be made optional by using the `operator -`:
 
 ```cpp
--terminalSet('+', '-') >> terminalRange('0', '9') //parse a number; the sign is optional.
+-oneOf("+-") >> oneIn('0', '9') //parse a number; the sign is optional.
 ```
 
 ### Conditionals
 
-- The `operator &` allows parsing an expression without consuming any tokens; it returns true if the parsing succeeds, false if it fails. It can be used to test a specific series of tokens before parsing.
-- The `operator !` inverts the result of a parsing expression; it returns true if the expression returns false and vice versa.
+- The `operator &` allows parsing an expression without consuming any tokens; it returns true if the parsing succeeds, false if it fails. It can be used to test a specific series of tokens before parsing; it is the logical AND operator.
+- The `operator !` inverts the result of a parsing expression; it returns true if the expression returns false and vice versa; it is the logical NOT operator.
+
+For example:
 
 ```cpp
-!terminalSet('=', '-') >> terminalRange('0', '9') //parse an integer without a sign.
+!oneOf("=-") >> oneIn('0', '9') //parse an integer without a sign.
 ```
 
 ### Matches
 
-- The `operator ==` allows the assignment of a match id to a production; [the created match does not have any children](#simple-matches).
-- The `operator >=` allows the assignment of a match id to a production; [the created match has children matches](#tree-matches).
+- The `operator ->*` allows the assignment of a match id to a production; [the created match has children matches](#matches).
 
 
 ```cpp
-(-terminalSet('+', '-') >> terminalRange('0', '9')) == std::string("int")
+(-oneOf("+-") >> oneIn('0', '9')) ->* 'i'
 ```
 
 ## Invoking a Parser
@@ -186,21 +199,21 @@ In order to invoke a parser, the appropriate `ParseContext` instance must be cre
 
 ```cpp
 //declare a grammar
-const auto grammar = (-terminalSet('+', '-') >> terminalRange('0', '9')) == std::string("int");
+const auto grammar = (-oneOf("+-") >> oneIn('0', '9')) ->* 'i';
 
 //declare an input
-std::string input = "123";
+SourceString input = "123";
 
 //declare a parse context over the input
 ParseContext<> pc(input);
 
 //parse
-const bool ok = grammar(pc);
+const bool ok = grammar.parse(pc);
 
 //iterate over recognized matches
-for(const auto& match : pc.matches()) {
-    if (match.id() == "int") {
-        const auto parsedString = match.content();
+for(const auto& match : pc.getMatches()) {
+    if (match.getMatchId() == 'i') {
+        const auto parsedString = match.getSource();
         //process int
     }
 }
@@ -208,21 +221,21 @@ for(const auto& match : pc.matches()) {
 
 ## Non-left Recursion
 
-Rules allow the writing of recursive grammars.
+Rules allow the writing of recursive grammars via `class Rule<ParseContext>`.
 
 ```cpp
 //whitespace
-const auto whitespace = terminal(' ');
+const auto whitespace = term(' ');
 
 //integer
-const auto integer = terminalRange('0', '9');
+const auto integer = oneIn('0', '9');
 
 //forward declaration of recursive rule
 extern Rule<> values;
 
 //value; it is recursive
 const auto value = integer 
-                 | terminal('(') >> values >> terminal(')');
+                 | term('(') >> values >> term(')');
 
 //rule
 Rule<> values = value >> whitespace >> values;
@@ -237,7 +250,7 @@ The library can parse left recursive grammars.
 extern Rule<> expression;
 
 //and integer is a series of digits
-const auto integer = +terminalRange('0', '9');
+const auto integer = +oneIn('0', '9');
 
 //a value is either an integer or a parenthesized expression
 Rule<> value = integer 
@@ -262,93 +275,61 @@ Rule<> expression = add;
 The class ParseContext is a template and has the following signature:
 
 ```cpp
-template <class SourceType, class MatchIdType, class SourcePositionType> class ParseContext;
+template <class MatchId, class Source> class ParseContext;
 ```
 
-It allows customizing the source type, the match id type and the source position type.
+It allows customizing the source type and the match id type.
 
 ### Customizing the source type
 
-By default, a ParseContext instance will use an `std::string` as an input source. But this can be changed to accomodate any STL like container.
+By default, a ParseContext instance will use a `SourceString` as an input source. But this can be changed to accomodate any STL like container.
 
 For example, the source can be a static array of integers:
 
 ```cpp
-ParseContext<std::array<int, 1000>> pc(input);
+ParseContext<int, std::array<int, 1000>> pc(input);
 ```
 
 ### Customizing the match id type
 
-The default match id type is `std::string`, but usually it shall be an integer or an enumeration. It's also good for performance reasons to replace `std::string` with a numeric value, since match ids are created and destroyed as parsing is performed.
+The default match id type is `int`, but usually it shall be an enumeration. 
 
 Example:
 
 ```cpp
-ParseContext<std::string, int> pc(input);
+enum class AST {
+	Int,
+	Add,
+	Sub,
+	Mul,
+	Div
+};
+
+ParseContext<AST> pc(input);
 ```
 
 ### Customizing character processing
 
-The parse context's parameter named '`SourcePositionType' allows the customization of character processing:
-- customizing comparison of elements, for example in order to implement case insensitive parsing.
-- providing extra information regarding the source, for example line and column numbers.
-- customizing the newline character sequence.
-
-The library already provides two classes for the above:
-- class `SourcePosition<class SourceType, bool CaseSensitive>` is the most basic class that just contains an iterator for the current position; it allows for statically using either case sensitive or case insensitive parsing.
-- class `LineCountingSourcePosition<class SourceType, bool CaseSensitive, class NewlineTraits>` extends the class `SourcePosition` with line and column information, and it also allows the specification of newline sequence, which, by default, is implemented by class `DefaultNewlineTraits` that recognizes the character `\n` as the newline separator.
-
-Examples:
+the class `SourceString` has the following signature:
 
 ```cpp
-//case insensitive parsing
-ParseContext<std::string, int, SourcePosition<std::string, false>> pc(input);
-
-//case sensitive parsing with line counting
-ParseContext<std::string, int, LineCountingSourcePosition<std::string>> pc(input);
-
-//case insensitive parsing with line counting and custom newline traits
-ParseContext<std::string, int, LineCountingSourcePosition<std::string, false, CustomNewlineTraits>> pc(input);
+    template <class Source = std::string, class CaseTraits = CaseSensitiveTraits, class NewlineTraits = DefaultNewlineTraits> 
+    class SourceString;
 ```
 
-## Simple Matches
+It can be customized over:
 
-The `operator ==` allows the creation of a match, when an expression parses successfully. The right hand side should be an expression which evaluates to the match id expected by the parse context. Example:
+- the source type; by default, it is an `std::string`.
+- the case traits; the library provides two classes: `CaseSensitiveTraits` and `CaseInsensitiveTraits`; the default is the class `CaseSensitiveTraits`.
+- the new line traits; the default is the class `DefaultNewlineTraits` which recognizes the character `'\n'` as the newline character.
 
-```cpp
-enum TYPE {
-    A, B, C
-};
+## Matches
 
-const auto a = terminal('A') == A;
-const auto b = terminal('B') == B;
-const auto c = terminal('C') == C;
-const auto grammar = a >> b >> c;
+The `operator ->*` allows the creation of a match.
 
-std::string input = "ABC";
-ParseContext<std::string, Type> pc(input);
+A match can have children; as matches are parsed, the matches parsed under other matches are placed as children of those matches.
 
-const bool ok = grammar(pc);
-for(const auto& match : pc.matches()) {
-    std::cout << match.content() << " = " << match.id() << std::endl;
-}
-```
-
-The above produces the output:
-
-```
-A = 0
-B = 1
-C = 2
-```
-
-## Tree Matches
-
-The `operator >=` allows the creation of a match, like the `operator ==`, with a difference: all matches created within the context of the expression are placed as children matches.
-
-This allows matches to also be trees, instead of a flat list. 
-
-In the following example, an IP4 address is returned as a tree match, with the following structure:
+In the following example, an IP4 address is returned via a tree of matched, with the following structure:
 
 ```
 IP4_ADDRESS
@@ -391,54 +372,53 @@ enum TYPE {
     IP4_ADDRESS
 };
 
-const auto zero  = terminal('0') == ZERO ;
-const auto one   = terminal('1') == ONE  ;
-const auto two   = terminal('2') == TWO  ;
-const auto three = terminal('3') == THREE;
-const auto four  = terminal('4') == FOUR ;
-const auto five  = terminal('5') == FIVE ;
-const auto six   = terminal('6') == SIX  ;
-const auto seven = terminal('7') == SEVEN;
-const auto eight = terminal('8') == EIGHT;
-const auto nine  = terminal('9') == NINE ;
+const auto zero  = terminal('0') ->* ZERO ;
+const auto one   = terminal('1') ->* ONE  ;
+const auto two   = terminal('2') ->* TWO  ;
+const auto three = terminal('3') ->* THREE;
+const auto four  = terminal('4') ->* FOUR ;
+const auto five  = terminal('5') ->* FIVE ;
+const auto six   = terminal('6') ->* SIX  ;
+const auto seven = terminal('7') ->* SEVEN;
+const auto eight = terminal('8') ->* EIGHT;
+const auto nine  = terminal('9') ->* NINE ;
 
-const auto a = terminal('A') == A;
-const auto b = terminal('B') == B;
-const auto c = terminal('C') == C;
-const auto d = terminal('D') == D;
-const auto e = terminal('E') == E;
-const auto f = terminal('F') == F;
+const auto a = terminal('A') ->* A;
+const auto b = terminal('B') ->* B;
+const auto c = terminal('C') ->* C;
+const auto d = terminal('D') ->* D;
+const auto e = terminal('E') ->* E;
+const auto f = terminal('F') ->* F;
 
-const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) >= HEX_DIGIT;
+const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) ->* HEX_DIGIT;
 
-const auto hexByte = (hexDigit >> hexDigit) >= HEX_BYTE;
+const auto hexByte = (hexDigit >> hexDigit) ->* HEX_BYTE;
 
-const auto ip4Address = (hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte) >= IP4_ADDRESS;
+const auto ip4Address = (hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte >> terminal('.') >> hexByte) ->* IP4_ADDRESS;
 
-const std::string input = "FF.12.DC.A0";
+const SourceString input = "FF.12.DC.A0";
 
-ParseContext<std::string, TYPE> pc(input);
-using Match = typename ParseContext<std::string, TYPE>::Match;
+ParseContext<TYPE> pc(input);
 
-const bool ok = ip4Address(pc);
+const bool ok = ip4Address.parse(pc);
 
 assert(ok);
-assert(pc.matches().size() == 1);
+assert(pc.getMatches().size() == 1);
 
-const Match& match = pc.matches()[0];
+const auto& match = pc.getMatches()[0];
 
 std::stringstream stream;
-stream << match.children()[0].children()[0].content();
-stream << match.children()[0].children()[1].content();
+stream << match.getChildren()[0].getChildren()[0].getSource();
+stream << match.getChildren()[0].getChildren()[1].getSource();
 stream << '.';
-stream << match.children()[1].children()[0].content();
-stream << match.children()[1].children()[1].content();
+stream << match.getChildren()[1].getChildren()[0].getSource();
+stream << match.getChildren()[1].getChildren()[1].getSource();
 stream << '.';
-stream << match.children()[2].children()[0].content();
-stream << match.children()[2].children()[1].content();
+stream << match.getChildren()[2].getChildren()[0].getSource();
+stream << match.getChildren()[2].getChildren()[1].getSource();
 stream << '.';
-stream << match.children()[3].children()[0].content();
-stream << match.children()[3].children()[1].content();
+stream << match.getChildren()[3].getChildren()[0].getSource();
+stream << match.getChildren()[3].getChildren()[1].getSource();
 const std::string output = stream.str();
 std::cout << output;
 ```
@@ -447,249 +427,8 @@ The above prints the input, which is the value `FF.12.DC.A0`.
 
 ## Resuming From Errors
 
-In order to resume from errors, the special `operator ~()` can be used to create an `error resume point`.
-
-An `error resume point` shall be combined with `operator >>()` to create a sequence of parsers, in which the parsers before the `error resume point` may create an error, and then the `error parser` will try to resume parsing from the `error resume point`.
-
-Here is an example of parsing a terminal enclosed in single quotes:
-
-```cpp
-const auto ws = *terminal(' ');
-const auto letter = terminalRange('a', 'z') | terminalRange('A', 'Z');
-const auto digit = terminalRange('0', '9');
-const auto character = letter | digit;
-const auto terminal_ = ('\'' >> *(character - '\'') >> ~terminal('\'')) == "terminal";
-const auto grammar = ws >> *(terminal_ >> ws);
-```
-
-If an error happens when parsing a terminal, then the parser will look for the single quote symbol `\'` in order to continue parsing.
-
-## Creating Compiler Front-Ends  
-  
-  A compiler front end can very easily be created, using the class `CFE<TokenType, ASTType>`:  
-    
-* `TokenType` refers to an enumeration that describes tokens.
-* `ASTType` refers to an enumeration that describes AST nodes.  
-
-A compiler front-end is usually composed of two pieces:
-
-1. the lexer.
-2. the parser.
-
-In order to write a compiler front-end with parserlib, the lexer and parser grammar should be provided separately.
-
-The following example is a calculator (taken from the unit tests) which provides both a lexer and a parser.  
-
-### The Lexer
-
-First, the lexer grammar:  
-
-```cpp
-//token type; required to bind the lexer grammar to matches.
-enum class TokenType {
-    Number,
-    Addition,
-    Subtraction,
-    Multiplication,
-    Division,
-    LeftParen,
-    RightParen
-};
-
-//whitespace
-auto whitespace = terminalRange((char)0, ' ');
-
-//digit
-auto digit = terminalRange('0', '9');
-
-//integer
-auto integer = +digit;
-
-//number token
-auto number_tk = (integer >> -('.' >> integer)) == TokenType::Number;
-
-//operators
-auto op_add = terminal('+') == TokenType::Addition;
-auto op_sub = terminal('-') == TokenType::Subtraction;
-auto op_mul = terminal('*') == TokenType::Multiplication;
-auto op_div = terminal('/') == TokenType::Division;
-
-//parentheses
-auto left_paren = terminal('(') == TokenType::LeftParen;
-auto right_paren = terminal(')') == TokenType::RightParen;
-
-//tokenizer grammar
-auto tokenizerGrammar = 
-    *(whitespace
-    | number_tk
-    | op_add
-    | op_sub
-    | op_mul
-    | op_div
-    | left_paren
-    | right_paren);
-
-```
-
-It is very straightforward: the lexer grammar is a loop that parses either whitespace, or a series of tokens: a number, or arithmetic operators, or parentheses.
-
-### The Parser
-
-Let's now see the parser:
-
-```cpp
-//forward declaration in order to enable recursive expressions
-extern const Rule& parserGrammar;
-
-//number rule
-auto number = terminal(TokenType::Number) >= ASTType::Number;
-
-//value is left parenthesis-expression-right parenthesis or number
-auto value = terminal(TokenType::LeftParen) >> parserGrammar >> terminal(TokenType::RightParen)
-           | number;
-
-//multiplication/division
-Rule mul = (mul >> terminal(TokenType::Multiplication) >> value) >= ASTType::Multiplication
-         | (mul >> terminal(TokenType::Division)       >> value) >= ASTType::Division
-         |  value;
-
-//addition/subtraction
-Rule add = (add >> terminal(TokenType::Addition)    >> mul) >= ASTType::Addition
-         | (add >> terminal(TokenType::Subtraction) >> mul) >= ASTType::Subtraction
-         |  mul;
-
-//the top-level parser rule
-const Rule& parserGrammar = add;
-```
-
-The parser is also very straightforward: taking into advantage the support for left-recursion, the parsing rules are written in almost exact same way as in EBNF notation, but what is parsed are tokens and not characters.  
-
-### How To Parse
-
-For the sake of completess, here are some complementary typedefs, not really required for the example to work, but they make reading the code easier:  
-
-```cpp
-using CalculatorCFE = CFE<TokenType, ASTType>;
-using Rule = CalculatorCFE::RuleType;
-```
-
-Putting all the above to work, parsing of source becomes an one line task (example taken from unit tests):  
-
-```cpp
-std::string input = "3 + ((5 + 6) * 1) / 32 * (64 + 7 / 13)";
-auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
-const auto result1 = eval(ast[0]);
-const auto result2 = 3.0 + ((5.0 + 6.0) * 1.0) / 32.0 * (64.0 + 7.0 / 13.0);
-assert(result1 == result2);
-```
-
-The function to call for parsing is the following:
-
-```cpp
-auto [ok, ast, errors] = calculatorCFE.parse(input, tokenizerGrammar, parserGrammar);
-```
-
-The CFE needs the input, the tokenizer grammar, and the parser grammar.
-
-It first tokenizes the input, then passes the found token list to the parser for actual parsing.
-
-Both parts (lexer and parser) use the same parserlib constructs.
-
-The lexer works on characters, whereas the parser works on tokens.
-
-The result of this call is a tuple with the following members:  
-
-* success flag; it is true if the whole input is consumed and without errors.
-* list of ast nodes created.
-* list of errors, sorted first by line, then by column.
-
-### AST Nodes
-
-The CFE member class `ASTNode` has the following interface:
-
-```cpp
-class ASTNode {
-public:
-    /**
-     * Returns the type id of the node.
-     */
-    ASTType id() const;
-
-    /**
-     * Returns the start position of the node.
-     */
-    const SourcePositionType& begin() const;
-
-    /**
-     * Returns the end position of the node, non-inclusive.
-     */
-    const SourcePositionType& end() const;
-
-    /**
-     * Returns the children nodes.
-     */
-    const std::vector<ASTNodePtrType>& children() const;
-
-    /**
-     * Returns a copy of the portion of the source 
-     * that corresponds to this AST node.
-     */
-    SourceType getSource() const;
-};
-
-```
-
-In other words, the ASTNode class provides the following pieces of information:
-
-* the AST type that corresponds to this node.
-* the start position into the source.
-* the end position into the source (non-inclusive).
-* the list of children (a vector of `std::shared_ptr<ASTNode>`).
-* The source that corresponds to this AST node.
-
-### AST Node Source Position Type
-
-The class used for AST Node source position is the following:
-
-```cpp
-template <class SourceType = std::string, bool CaseSensitive = true, class NewlineTraits = DefaultNewlineTraits> 
-    class LineCountingSourcePosition;
-```
-
-This class allows the programmer to know the line and column in the source of each AST node, mainly in order to provide meaningful messages to the user.
-
-### AST Node Memory Management
-
-AST nodes are managed via `std::shared_ptr<>`. 
-
-Although AST nodes are uniquely held by their parents, there are may be cases where they should be shared, so shared memory access is chosen for memory management.
-
-### Creating Custom AST Nodes
-
-In cases where custom AST nodes must be created, the class `CFE` provides a parse interface where an AST node factory is provided.
-
-The default AST node factory creates a standard AST Node instance, but a different AST node factory may create custom subclasses of AST nodes.
-
-The interface for an AST node factory class is the following:  
-
-```cpp
-/**
- * Operator to create an AST node.
- * @param match the parser match to create an AST node from.
- * @return a pointer to the created AST node.
- */
-ASTNodePtrType operator ()(const ASTMatchType& match) const;
-```
-
-The class `CFE` provides a default implementation of the above operator which creates a standard AST node:
-
-```cpp
-/**
- * Operator to create an AST node.
- * @param match the parser match to create an AST node from.
- * @return a pointer to the created AST node.
- */
-ASTNodePtrType operator ()(const ASTMatchType& match) const {
-    return std::make_shared<ASTNode>(match, *this);
-}
-```
+TBD
+
+## Creating Compiler Front-Ends
+ 
+TBD

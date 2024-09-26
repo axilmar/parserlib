@@ -2,118 +2,36 @@
 #define PARSERLIB_UTIL_HPP
 
 
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <algorithm>
+#include <cctype>
 
 
 namespace parserlib {
 
 
-    /**
-     * Execute function at scope exit.
-     * @param T type of function to execute.
-     */
-    template <class T> class ScopeExit {
+    class Less {
     public:
-        /**
-         * Constructor.
-         * @param f function.
-         */
-        ScopeExit(const T& f) : m_function(f) {
+        template <class A, class B>
+        bool operator ()(const A& a, const B& b) const {
+            return a < b;
         }
-
-        /**
-         * Executes the function.
-         */
-        ~ScopeExit() {
-            m_function();
-        }
-
-    private:
-        const T m_function;
     };
 
 
-    /**
-     * Utility function for loading an ASCII file.
-     * @param filename name of the file.
-     * @param appendZero appends the '\0' character, optionally.
-     * @return the file as a string.
-     */
-    inline std::string loadASCIIFile(const std::string& filename, const bool appendZero = false) {
-        std::ifstream strm(filename);
-        std::stringstream buffer;
-        buffer << strm.rdbuf();
-        if (appendZero) {
-            buffer << '\0';
-        }
-        return buffer.str();
-    }
-
-
-    template <class Elem, class Traits, class T> 
-    std::basic_ostream<Elem, Traits>& tokenToString(std::basic_ostream<Elem, Traits>& stream, const T& val) {
-        stream << '\'' << val << '\'';
-        return stream;
-    }
-
-
-    template <class T> std::string tokenToString(const T& val) {
-        std::stringstream stream; 
-        tokenToString(stream, val);
-        return stream.str();
-    }
-
-
-    template <class Elem, class Traits, class T, class Alloc>
-    std::basic_ostream<Elem, Traits>& operator << (std::basic_ostream<Elem, Traits>& stream, const std::vector<T, Alloc>& vec) {
-        stream << '[';
-        const char* c = "";
-        for (const auto& v : vec) {
-            stream << c;
-            tokenToString(stream, v);
-            c = ",";
-        }
-        stream << ']';
-        return stream;
-    }
-
-
-    template <class... T> std::string toString(T&&... values) {
-        std::stringstream stream;
-        (stream << ... << std::forward<T>(values));
-        return stream.str();
-    }
-
-
-    inline std::string toSubString(const std::string::const_iterator& begin, const std::string::const_iterator& end, size_t len) {
-        return std::string(begin, begin + std::min(static_cast<std::ptrdiff_t>(len), std::distance(begin, end)));
-    }
-
-
-    template <class T>
-    size_t stringLength(const T* string) {
-        const T* s = string;
-        for (; *s != '\0'; ++s) {}
-        return s - string;
-    }
-
-
-    template <class T, class It, class C> T copyReplaceChars(const It& begin, const It& end, C c, const C* seq) {
-        using CharT = typename It::value_type;
-        std::basic_stringstream<CharT> sstream;
-        for (auto it = begin; it != end; ++it) {
-            if (*it != c) {
-                sstream << *it;
-            }
-            else {
-                sstream << seq;
+    template <class Char>
+    size_t getStringLength(const Char* str) {
+        size_t result = 0;
+        if (str) {
+            for (; *str; ++str) {
+                ++result;
             }
         }
-        return sstream.str();
+        return result;
+    }
+
+
+    template <class Char>
+    inline Char toLowerCase(Char c) {
+        return (Char)std::tolower((int)c);
     }
 
 

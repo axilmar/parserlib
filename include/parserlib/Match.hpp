@@ -2,84 +2,88 @@
 #define PARSERLIB_MATCH_HPP
 
 
+#include <vector>
+#include <ostream>
+#include "SourceString.hpp"
+
+
 namespace parserlib {
 
 
-    /**
-     * Result of a successful parsing attempt.
-     * @param SourceType container with source data.
-     * @param MatchIdType id to apply to a match.
-     * @param PositionType type of source position.
-     */
-    template <class SourceType, class MatchIdType, class PositionType> class Match {
-    public:
-        /**
-         * The default constructor.
-         * No member is initialized.
-         */
-        Match() {
-        }
+    template <class MatchId = int, class Source = SourceString<>>
+    class Match;
 
-        /**
-         * Constructor from parameters.
-         * @param id id of match.
-         * @param begin begin position of match.
-         * @param end end position of match.
-         * @param children children matches.
-         */
-        Match(const MatchIdType& id,
-            const PositionType& begin,
-            const PositionType& end,
-            std::vector<Match>&& children = std::vector<Match>())
-            : m_id(id), m_begin(begin), m_end(end), m_children(std::move(children))
+
+    template <class MatchId, class Source>
+    using MatchContainer = std::vector<Match<MatchId, Source>>;
+
+
+    template <class MatchId, class Source>
+    class Match {
+    public:
+        typedef Source Source;
+        typedef typename Source::const_iterator Iterator;
+        typedef MatchContainer<MatchId, Source> MatchContainer;
+
+        Match() 
+            : m_matchId()
         {
         }
 
-        /**
-         * Returns the id of the match.
-         * @return the id of the match.
-         */
-        const MatchIdType& id() const {
-            return m_id;
+        Match(const MatchId& matchId, const Iterator& startPosition, const Iterator& endPosition, MatchContainer&& children)
+            : m_matchId(matchId)
+            , m_startPosition(startPosition)
+            , m_endPosition(endPosition)
+            , m_children(std::move(children))
+        {
         }
 
-        /**
-         * Returns the position the match begins.
-         * @return the position the match begins.
-         */
-        const PositionType& begin() const {
-            return m_begin;
+        const MatchId& getMatchId() const {
+            return m_matchId;
         }
 
-        /**
-         * Returns the position the match ends.
-         * @return the position the match ends.
-         */
-        const PositionType& end() const {
-            return m_end;
+        const Iterator& getStartPosition() const {
+            return m_startPosition;
         }
 
-        /**
-         * Returns the parsed content.
-         * @return the parsed content.
-         */
-        SourceType content() const {
-            return SourceType(m_begin.iterator(), m_end.iterator());
+        const Iterator& getEndPosition() const {
+            return m_startPosition;
         }
 
-        /**
-         * Returns the children matches.
-         * @return the children matches.
-         */
-        const std::vector<Match>& children() const {
+        const MatchContainer& getChildren() const {
             return m_children;
         }
 
+        Source getSource() const {
+            return Source(m_startPosition, m_endPosition);
+        }
+
+        template <class Elem, class Traits>
+        void print(std::basic_ostream<Elem, Traits>& stream, size_t depth = 0, size_t tabSize = 4, size_t sourceMaxCharsPerLine = 16) const {
+            for (size_t i = 0; i < depth * tabSize; ++i) {
+                stream << ' ';
+            }
+            stream << m_matchId << ": " << getSource(sourceMaxCharsPerLine) << std::endl;
+            for (const auto& child : m_children) {
+                child.print(stream, depth + 1, tabSize, sourceMaxCharsPerLine);
+            }
+        }
+
     private:
-        const MatchIdType m_id{};
-        const PositionType m_begin;
-        const PositionType m_end;
-        const std::vector<Match> m_children;
+        MatchId m_matchId;
+        Iterator m_startPosition;
+        Iterator m_endPosition;
+        MatchContainer m_children;
+
+        Source getSource(size_t sourceMaxCharsPerLine) const {
+            size_t size = m_endPosition - m_startPosition;
+
+            if (size <= sourceMaxCharsPerLine) {
+                return Source(m_startPosition, m_endPosition);
+            }
+
+            return Source(m_startPosition, m_startPosition + sourceMaxCharsPerLine);
+        }
     };
 
 

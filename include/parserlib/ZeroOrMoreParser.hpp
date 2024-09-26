@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_OPTIONALPARSER_HPP
-#define PARSERLIB_OPTIONALPARSER_HPP
+#ifndef PARSERLIB_ZEROORMOREPARSER_HPP
+#define PARSERLIB_ZEROORMOREPARSER_HPP
 
 
 #include "Parser.hpp"
@@ -9,16 +9,17 @@ namespace parserlib {
 
 
     template <class Child>
-    class OptionalParser : public Parser<OptionalParser<Child>> {
+    class ZeroOrMoreParser : public Parser<ZeroOrMoreParser<Child>> {
     public:
-        OptionalParser(const Child& child)
+        ZeroOrMoreParser(const Child& child)
             : m_child(child)
         {
         }
 
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            m_child.parse(pc);
+            while (m_child.parse(pc)) {
+            }
             return true;
         }
 
@@ -30,4 +31,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif //PARSERLIB_OPTIONALPARSER_HPP
+#endif //PARSERLIB_ZEROORMOREPARSER_HPP

@@ -3,630 +3,428 @@
 
 
 #include <memory>
+#include <stdexcept>
 #include "ParseContext.hpp"
-#include "ParserWrapper.hpp"
 #include "RuleReference.hpp"
+#include "ZeroOrMoreParser.hpp"
+#include "OneOrMoreParser.hpp"
+#include "OptionalParser.hpp"
+#include "NotParser.hpp"
+#include "AndParser.hpp"
 #include "SequenceParser.hpp"
 #include "ChoiceParser.hpp"
-#include "Loop0Parser.hpp"
-#include "Loop1Parser.hpp"
-#include "LoopNParser.hpp"
-#include "OptionalParser.hpp"
-#include "AndParser.hpp"
-#include "NotParser.hpp"
 #include "MatchParser.hpp"
-#include "TreeMatchParser.hpp"
-#include "util.hpp"
-#include "ErrorParser.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * An interface to a parser that can be recursive.
-     * @param ParseContextType type of context to pass to the parse function.
-     */
-    template <class ParseContextType = ParseContext<>> class Rule {
+    template <class ParseContext = ParseContext<>>
+    class Rule {
     public:
-        /**
-         * Rule state type.
-         */
-        using RuleStateType = RuleState<ParseContextType>;
+        typedef ParseContext ParseContext;
 
-        /**
-         * The default constructor.
-         */
+        ZeroOrMoreParser<RuleReference<ParseContext>> operator *() {
+            return ZeroOrMoreParser<RuleReference<ParseContext>>(self());
+        }
+
+        OneOrMoreParser<RuleReference<ParseContext>> operator +() {
+            return OneOrMoreParser<RuleReference<ParseContext>>(self());
+        }
+
+        OptionalParser<RuleReference<ParseContext>> operator -() {
+            return OptionalParser<RuleReference<ParseContext>>(self());
+        }
+
+        NotParser<RuleReference<ParseContext>> operator !() {
+            return NotParser<RuleReference<ParseContext>>(self());
+        }
+
+        AndParser<RuleReference<ParseContext>> operator &() {
+            return AndParser<RuleReference<ParseContext>>(self());
+        }
+
+        const RuleReference<ParseContext> self() {
+            return RuleReference<ParseContext>(*this);
+        }
+
         Rule() {
         }
 
-        /**
-         * The copy constructor.
-         * @param rule the source rule.
-         */
-        Rule(const Rule& rule) : m_parser(rule.m_parser) {
-        }
+        Rule(const Rule&) = delete;
 
-        /**
-         * The move constructor.
-         * @param rule the source rule.
-         */
-        Rule(Rule&& rule) : m_parser(std::move(rule.m_parser)) {
-        }
-
-        /**
-         * Constructor.
-         * Allocates a copy of the given parser on the heap.
-         * @param parser parser to copy.
-         */
-        template <class ParserNodeType> 
-        Rule(const ParserNode<ParserNodeType>& parser)
-            : m_parser(std::make_shared<ParserWrapper<ParseContextType, ParserNodeType>>(static_cast<const ParserNodeType&>(parser)))
+        Rule(Rule&& r)
+            : m_expression(std::move(r.m_expression))
         {
         }
-        
-        /**
-         * Constructor from terminal.
-         * @param term terminal.
-         */
-        template <class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-        Rule(const TerminalType& term) : Rule(terminal(term)) {
+
+        template <class ParseExpression, std::enable_if_t<!std::is_same_v<Rule<ParseContext>, std::decay_t<ParseExpression>>, bool> = true>
+        Rule(ParseExpression&& expression)
+            : m_expression(std::make_unique<ParseExpressionImpl<ParseExpression>>(std::move(expression)))
+        {
         }
 
-        /**
-         * The copy assignment operator.
-         * @param rule the source rule.
-         * @return reference to this.
-         */
-        Rule& operator = (const Rule& rule) {
-            m_parser = rule.m_parser;
+        Rule& operator = (const Rule&) = delete;
+
+        Rule& operator = (Rule&& r) {
+            m_expression = std::move(r.m_expression);
             return *this;
         }
 
-        /**
-         * The move assignment operator.
-         * @param rule the source rule.
-         * @return reference to this.
-         */
-        Rule& operator = (Rule&& rule) {
-            m_parser = std::move(rule.m_parser);
+        template <class ParseExpression, std::enable_if_t<!std::is_same_v<Rule<ParseContext>, std::decay_t<ParseExpression>>, bool> = true>
+        Rule& operator = (ParseExpression&& expression) {
+            m_expression = std::make_unique<ParseExpressionImpl<ParseExpression>>(std::move(expression));
             return *this;
         }
 
-        /**
-         * Copy assignment from parsing expression.
-         * @param parser the parsing expression.
-         * @return reference to this.
-         */
-        template <class ParserNodeType>
-        Rule& operator = (const ParserNode<ParserNodeType>& parser) {
-            m_parser = std::make_shared<ParserWrapper<ParseContextType, ParserNodeType>>(static_cast<const ParserNodeType&>(parser));
-            return *this;
-        }
+        bool parse(ParseContext& pc) {
+            bool result;
 
-        /**
-         * move assignment from parsing expression.
-         * @param parser the parsing expression.
-         * @return reference to this.
-         */
-        template <class ParserNodeType>
-        Rule& operator = (ParserNode<ParserNodeType>&& parser) {
-            m_parser = std::make_shared<ParserWrapper<ParseContextType, ParserNodeType>>(std::move(static_cast<ParserNodeType&&>(parser)));
-            return *this;
-        }
+            if (!pc.isLeftRecursiveRule(this)) {
+                switch (pc.getLeftRecursionRuleState(this)) {
+                    case LeftRecursion::State::Init:
+                        return parseInitState(pc);
 
-        /**
-         * Returns the parser.
-         * @return the parser.
-         */
-        const std::shared_ptr<ParserInterface<ParseContextType>>& parser() const {
-            return m_parser;
-        }
+                    case LeftRecursion::State::Reject:
+                        pc.setLeftRecursionRuleState(this, LeftRecursion::State::Init);
+                        result = parseInitState(pc);
+                        pc.setLeftRecursionRuleState(this, LeftRecursion::State::Reject);
+                        return result;
 
-        /**
-         * Returns this ptr.
-         * Operator & is reserved for a specific operation of the library.
-         * @return this ptr.
-         */
-        const Rule<ParseContextType>* this_() const {
-            return this;
-        }
+                    case LeftRecursion::State::Accept:
+                        pc.setLeftRecursionRuleState(this, LeftRecursion::State::Init);
+                        result = parseInitState(pc);
+                        pc.setLeftRecursionRuleState(this, LeftRecursion::State::Accept);
+                        return result;
+                }
+            }
 
-        /**
-         * Returns this ptr.
-         * Operator & is reserved for a specific operation of the library.
-         * @return this ptr.
-         */
-        Rule<ParseContextType>* this_() {
-            return this;
-        }
+            else {
+                switch (pc.getLeftRecursionRuleState(this)) {
+                    case LeftRecursion::State::Init:
+                        throw LeftRecursion::Init();
 
-        /**
-         * Invokes the underlying parser.
-         * @param pc parse context.
-         * @return whatever the underlying parser returns.
-         * @exception LeftRecursionException thrown when left recursion is found upon the referenced rule.
-         */
-        bool operator ()(ParseContextType& pc) const {
-            return parse(pc, 
-                [](RuleStateType& ruleState) {
-                    ruleState.setLeftRecursion(true);
-                    return false;
-                });
-        }
+                    case LeftRecursion::State::Reject:
+                        throw LeftRecursion::Reject();
 
-        /**
-         * If there is no left recursion at the specific point,
-         * then it reverts to normal parsing. Otherwise,
-         * it sets the left-recursion context's continuationResolved flag to true,
-         * so as that subsequent parsers parse normally and returns true.
-         * The object is called to parse within a left recursion parsing context,
-         * in order to continue parsing after the non-left recursive part is parsed.
-         * @param pc parse context.
-         * @param lrc left recursion context.
-         * @return true if parsing succeeds, false otherwise.
-         */
-        bool parseLeftRecursionContinuation(ParseContextType& pc, LeftRecursionContext<ParseContextType>& lrc) const {
-            return parse(pc,
-                [&](RuleStateType& /*ruleState*/) {
-                    lrc.setContinuationResolved(true);
-                    return true;
-                });
+                    case LeftRecursion::State::Accept:
+                        throw LeftRecursion::Accept();
+                }
+            }
+
+            throw std::logic_error("Invalid left recursion state");
         }
 
     private:
-        std::shared_ptr<ParserInterface<ParseContextType>> m_parser;
-
-        //parse
-        template <class LRF> bool parse(ParseContextType& pc, const LRF& lrf) const {
-            //get the state for the rule
-            RuleStateType& ruleState = pc.ruleState(*this);
-
-            //check if there is left recursion
-            if (ruleState.position() == pc.sourcePosition()) {
-                return lrf(ruleState);
+        class ParseExpressionInterface {
+        public:
+            virtual ~ParseExpressionInterface() {
             }
 
-            //no left recursion; proceed with normal parsing
+            virtual bool parse(ParseContext& pc) = 0;
+        };
 
-            //keep the current state to later restore it
-            const RuleStateType prevState = ruleState;
-
-            //at scope exit, restore the rule state
-            const ScopeExit scopeExitHandler([&]() { ruleState = prevState; });
-
-            //initialize the rule state for non-left recursive parsing
-            ruleState.setPosition(pc.sourcePosition());
-            ruleState.setLeftRecursion(false);
-
-            //create a left recursion context, if needed later
-            LeftRecursionContext<ParseContextType> lrc(pc.sourcePosition(), pc.matches().size());
-
-            //parse
-            const bool result = m_parser->operator()(pc);
-
-            //failure
-            if (!result) {
-                return false;
+        template <class ParseExpression> 
+        class ParseExpressionImpl : public ParseExpressionInterface {
+        public:
+            ParseExpressionImpl(ParseExpression&& expression)
+                : m_expression(std::move(expression))
+            {
             }
 
-            //success
-
-            //if left recursion was detected, parse continuation
-            if (ruleState.leftRecursion()) {
-                return parseLeftRecursionContinuation(pc, ruleState, lrc);
+            bool parse(ParseContext& pc) override {
+                return m_expression.parse(pc);
             }
 
-            return true;
+        private:
+            ParseExpression m_expression;
+        };
+
+        std::unique_ptr<ParseExpressionInterface> m_expression;
+
+        template <class ParseContext>
+        bool _parse(ParseContext& pc) {
+            bool result;
+            pc.pushRulePosition(this);
+            try {
+                result = m_expression->parse(pc);
+            }
+            catch (...) {
+                pc.popRulePosition(this);
+                throw;
+            }
+            pc.popRulePosition(this);
+            return result;
         }
 
-        //parse left recursion continuation
-        bool parseLeftRecursionContinuation(ParseContextType& pc, RuleStateType& ruleState, LeftRecursionContext<ParseContextType>& lrc) const {
-            while (!pc.sourceEnded()) {
-                const auto startPosition = pc.sourcePosition();
-
-                //set the current position so as that more left recursion is found
-                ruleState.setPosition(pc.sourcePosition());
-
-                //invoke the parser
-                if (!m_parser->parseLeftRecursionContinuation(pc, lrc)) {
-                    break;
-                }
-
-                //if there is no advance, then no more left recursion continuation parsing can be done
-                if (pc.sourcePosition() == startPosition) {
-                    break;
-                }
+        template <class ParseContext>
+        bool parseInitState(ParseContext& pc) {
+            try {
+                return _parse(pc);
             }
+            catch (LeftRecursion::Init) {
+                bool result;
 
-            //success
-            return true;
+                const auto leftRecursionStartPosition = pc.getCurrentPosition();
+                const size_t leftRecursionStartMatchIndex = pc.getMatches().size();
+
+                pc.setLeftRecursionRuleState(this, LeftRecursion::State::Reject);
+                try {
+                    result = _parse(pc);
+                }
+                catch (LeftRecursion::Reject) {
+                    pc.setLeftRecursionRuleState(this, LeftRecursion::State::Init);
+                    return false;
+                }
+                if (!result) {
+                    pc.setLeftRecursionRuleState(this, LeftRecursion::State::Init);
+                    return false;
+                }
+
+                pc.pushLeftRecursionMatchState(leftRecursionStartPosition, leftRecursionStartMatchIndex, pc.getCurrentPosition());
+
+                pc.setLeftRecursionRuleState(this, LeftRecursion::State::Accept);
+                while (!pc.isEndPosition()) {
+                    try {
+                        result = _parse(pc);
+                    }
+                    catch (LeftRecursion::Accept) {
+                        pc.setLeftRecursionRuleState(this, LeftRecursion::State::Init);
+                        pc.popLeftRecursionMatchState();
+                        return false;
+                    }
+                    if (!result) {
+                        break;
+                    }
+                };
+
+                pc.setLeftRecursionRuleState(this, LeftRecursion::State::Init);
+                pc.popLeftRecursionMatchState();
+                return true;
+            }
         }
     };
 
 
-    template <class ParseContextType, class R>
-    auto operator >> (Rule<ParseContextType>&&, R&&) = delete;
-
-
-    template <class L, class ParseContextType>
-    auto operator >> (L&&, Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Sequence between two rules.
-     * @param rule1 the 1st rule.
-     * @param rule2 the 2nd rule.
-     * @return a sequence of the two rules.
-     */
-    template <class ParseContextType>
-    auto operator >> (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
-        return RuleReference<ParseContextType>(rule1) >> RuleReference<ParseContextType>(rule2);
+    template <class ParseContext>
+    SequenceParser<RuleReference<ParseContext>, RuleReference<ParseContext>> 
+        operator >> (Rule<ParseContext>& left, Rule<ParseContext>& right)
+    {
+        return SequenceParser<RuleReference<ParseContext>, RuleReference<ParseContext>>(
+            RuleReference<ParseContext>(left), RuleReference<ParseContext>(right));
     }
 
 
-    /**
-     * Sequence between a rule and a parser node.
-     * @param rule the rule parser.
-     * @param node the node parser.
-     * @return a sequence of the rule and node.
-     */
-    template <class ParseContextType, class ParserNodeType>
-    auto operator >> (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
-        return RuleReference<ParseContextType>(rule) >> node;
+    template <class ParseContext, class Right>
+    SequenceParser<RuleReference<ParseContext>, Right>
+        operator >> (Rule<ParseContext>& left, const Parser<Right>& right)
+    {
+        return SequenceParser<RuleReference<ParseContext>, Right>(
+            RuleReference<ParseContext>(left), right.self());
     }
 
 
-    /**
-     * Sequence between a parser node and a rule.
-     * @param node the node parser.
-     * @param rule the rule parser.
-     * @return a sequence of the two nodes.
-     */
-    template <class ParserNodeType, class ParseContextType>
-    auto operator >> (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
-        return node >> RuleReference<ParseContextType>(rule);
+    template <class ParseContext, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Right>, Right>, bool> = true>
+    SequenceParser<RuleReference<ParseContext>, TerminalParser<Right>>
+        operator >> (Rule<ParseContext>& left, const Right& right)
+    {
+        return SequenceParser<RuleReference<ParseContext>, TerminalParser<Right>>(
+            RuleReference<ParseContext>(left), TerminalParser<Right>(right));
     }
 
 
-    /**
-     * Sequence between a rule and a terminal.
-     * @param rule the rule parser.
-     * @param term the terminal.
-     * @return a sequence of the rule and terminal.
-     */
-    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator >> (const Rule<ParseContextType>& rule, const TerminalType& term) {
-        return RuleReference<ParseContextType>(rule) >> terminal(term);
+    template <class ParseContext, class Right>
+    SequenceParser<RuleReference<ParseContext>, TerminalStringParser<Right>>
+        operator >> (Rule<ParseContext>& left, const Right* right)
+    {
+        return SequenceParser<RuleReference<ParseContext>, TerminalStringParser<Right>>(
+            RuleReference<ParseContext>(left), TerminalStringParser<Right>(right));
     }
 
 
-    /**
-     * Sequence between a terminal and a rule.
-     * @param term the terminal.
-     * @param rule the rule parser.
-     * @return a sequence of the terminal and rule.
-     */
-    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator >> (const TerminalType& term, const Rule<ParseContextType>& rule) {
-        return terminal(term) >> RuleReference<ParseContextType>(rule);
+    template <class ParseContext, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    SequenceParser<RuleReference<ParseContext>, TerminalStringParser<CharT>>
+        operator >> (Rule<ParseContext>& left, const std::basic_string<CharT, Traits, Allocator>& right)
+    {
+        return SequenceParser<RuleReference<ParseContext>, TerminalStringParser<CharT>>(
+            RuleReference<ParseContext>(left), TerminalStringParser<CharT>(right));
     }
 
 
-    template <class ParseContextType, class R>
-    auto operator - (Rule<ParseContextType>&&, R&&) = delete;
-
-
-    template <class L, class ParseContextType>
-    auto operator - (L&&, Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Subtracts the 2nd rule from the first.
-     * @param rule1 the 1st rule.
-     * @param rule2 the 2nd rule.
-     * @return a sequence of the two rules.
-     */
-    template <class ParseContextType>
-    auto operator - (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
-        return RuleReference<ParseContextType>(rule1) - RuleReference<ParseContextType>(rule2);
+    template <class Left, class ParseContext>
+    SequenceParser<Left, RuleReference<ParseContext>>
+        operator >> (const Parser<Left>& left, Rule<ParseContext>& right)
+    {
+        return SequenceParser<Left, RuleReference<ParseContext>>(
+            left.self(), RuleReference<ParseContext>(right));
     }
 
 
-    /**
-     * Subtracts a parser node from a rule.
-     * @param rule the rule parser.
-     * @param node the node parser.
-     * @return a sequence of the rule and node.
-     */
-    template <class ParseContextType, class ParserNodeType>
-    auto operator - (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
-        return RuleReference<ParseContextType>(rule) - node;
+    template <class Left, class ParseContext, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
+    SequenceParser<TerminalParser<Left>, RuleReference<ParseContext>>
+        operator >> (const Left& left, Rule<ParseContext>& right)
+    {
+        return SequenceParser<TerminalParser<Left>, RuleReference<ParseContext>>(
+            TerminalParser<Left>(left), RuleReference<ParseContext>(right));
     }
 
 
-    /**
-     * Subtracts a rule from a parser node.
-     * @param node the node parser.
-     * @param rule the rule parser.
-     * @return a sequence of the two nodes.
-     */
-    template <class ParserNodeType, class ParseContextType>
-    auto operator - (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
-        return node - RuleReference<ParseContextType>(rule);
+    template <class Left, class ParseContext>
+    SequenceParser<TerminalStringParser<Left>, RuleReference<ParseContext>>
+        operator >> (const Left* left, Rule<ParseContext>& right)
+    {
+        return SequenceParser<TerminalStringParser<Left>, RuleReference<ParseContext>>(
+            TerminalStringParser<Left>(left), RuleReference<ParseContext>(right));
     }
 
 
-    /**
-     * Subtracts a terminal from a rule.
-     * @param rule the rule parser.
-     * @param term the terminal.
-     * @return a sequence of the rule and terminal.
-     */
-    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator - (const Rule<ParseContextType>& rule, const TerminalType& term) {
-        return RuleReference<ParseContextType>(rule) - terminal(term);
+    template <class ParseContext, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    SequenceParser<TerminalStringParser<CharT>, RuleReference<ParseContext>>
+        operator >> (const std::basic_string<CharT, Traits, Allocator>& left, Rule<ParseContext>& right)
+    {
+        return SequenceParser<TerminalStringParser<CharT>, RuleReference<ParseContext>>(
+            TerminalStringParser<CharT>(left), RuleReference<ParseContext>(right));
     }
 
 
-    /**
-     * Subtracts a rule from a terminal.
-     * @param term the terminal.
-     * @param rule the rule parser.
-     * @return a sequence of the terminal and rule.
-     */
-    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator - (const TerminalType& term, const Rule<ParseContextType>& rule) {
-        return terminal(term) - RuleReference<ParseContextType>(rule);
+    template <class ParseContext>
+    ChoiceParser<RuleReference<ParseContext>, RuleReference<ParseContext>>
+        operator | (Rule<ParseContext>& left, Rule<ParseContext>& right)
+    {
+        return ChoiceParser<RuleReference<ParseContext>, RuleReference<ParseContext>>(
+            RuleReference<ParseContext>(left), RuleReference<ParseContext>(right));
     }
 
 
-    template <class ParseContextType, class R>
-    auto operator | (Rule<ParseContextType>&&, R&&) = delete;
-
-
-    template <class L, class ParseContextType>
-    auto operator | (L&&, Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Choice between two rules.
-     * @param rule1 the 1st rule.
-     * @param rule2 the 2nd rule.
-     * @return a choice of the two rules.
-     */
-    template <class ParseContextType>
-    auto operator | (const Rule<ParseContextType>& rule1, const Rule<ParseContextType>& rule2) {
-        return RuleReference<ParseContextType>(rule1) | RuleReference<ParseContextType>(rule2);
+    template <class ParseContext, class Right>
+    ChoiceParser<RuleReference<ParseContext>, Right>
+        operator | (Rule<ParseContext>& left, const Parser<Right>& right)
+    {
+        return ChoiceParser<RuleReference<ParseContext>, Right>(
+            RuleReference<ParseContext>(left), right.self());
     }
 
 
-    /**
-     * Choice between a rule and a parser node.
-     * @param rule the rule parser.
-     * @param node the node parser.
-     * @return a choice of the rule and node.
-     */
-    template <class ParseContextType, class ParserNodeType>
-    auto operator | (const Rule<ParseContextType>& rule, const ParserNode<ParserNodeType>& node) {
-        return RuleReference<ParseContextType>(rule) | node;
+    template <class ParseContext, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Right>, Right>, bool> = true>
+    ChoiceParser<RuleReference<ParseContext>, TerminalParser<Right>>
+        operator | (Rule<ParseContext>& left, const Right& right)
+    {
+        return ChoiceParser<RuleReference<ParseContext>, TerminalParser<Right>>(
+            RuleReference<ParseContext>(left), TerminalParser<Right>(right));
     }
 
 
-    /**
-     * Choice between a parser node and a rule.
-     * @param node the node parser.
-     * @param rule the rule parser.
-     * @return a choice of the two nodes.
-     */
-    template <class ParserNodeType, class ParseContextType>
-    auto operator | (const ParserNode<ParserNodeType>& node, const Rule<ParseContextType>& rule) {
-        return node | RuleReference<ParseContextType>(rule);
+    template <class ParseContext, class Right>
+    ChoiceParser<RuleReference<ParseContext>, TerminalStringParser<Right>>
+        operator | (Rule<ParseContext>& left, const Right* right)
+    {
+        return ChoiceParser<RuleReference<ParseContext>, TerminalStringParser<Right>>(
+            RuleReference<ParseContext>(left), TerminalStringParser<Right>(right));
     }
 
 
-    /**
-     * Choice between a rule and a terminal.
-     * @param rule the rule parser.
-     * @param term the terminal.
-     * @return a sequence of the rule and terminal.
-     */
-    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator | (const Rule<ParseContextType>& rule, const TerminalType& term) {
-        return RuleReference<ParseContextType>(rule) | terminal(term);
+    template <class ParseContext, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    ChoiceParser<RuleReference<ParseContext>, TerminalStringParser<CharT>>
+        operator | (Rule<ParseContext>& left, const std::basic_string<CharT, Traits, Allocator>& right)
+    {
+        return ChoiceParser<RuleReference<ParseContext>, TerminalStringParser<CharT>>(
+            RuleReference<ParseContext>(left), TerminalStringParser<CharT>(right));
     }
 
 
-    /**
-     * Choice between a terminal and a rule.
-     * @param term the terminal.
-     * @param rule the rule parser.
-     * @return a sequence of the terminal and rule.
-     */
-    template <class ParseContextType, class TerminalType, std::enable_if_t<!std::is_base_of_v<ParserNodeBase, TerminalType>, int> = 0>
-    auto operator | (const TerminalType& term, const Rule<ParseContextType>& rule) {
-        return terminal(term) | RuleReference<ParseContextType>(rule);
+    template <class Left, class ParseContext>
+    ChoiceParser<Left, RuleReference<ParseContext>>
+        operator | (const Parser<Left>& left, Rule<ParseContext>& right)
+    {
+        return ChoiceParser<Left, RuleReference<ParseContext>>(
+            left.self(), RuleReference<ParseContext>(right));
     }
 
 
-    template <class ParseContextType>
-    auto operator *(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Creates a loop parser out of a rule.
-     * @param rule rule.
-     * @return the loop parser for the given rule.
-     */
-    template <class ParseContextType> auto operator *(const Rule<ParseContextType>& rule) {
-        return *RuleReference<ParseContextType>(rule);
+    template <class Left, class ParseContext, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
+    ChoiceParser<TerminalParser<Left>, RuleReference<ParseContext>>
+        operator | (const Left& left, Rule<ParseContext>& right)
+    {
+        return ChoiceParser<TerminalParser<Left>, RuleReference<ParseContext>>(
+            TerminalParser<Left>(left), RuleReference<ParseContext>(right));
     }
 
 
-    template <class ParseContextType>
-    auto operator +(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Creates a loop-1 parser out of a rule.
-     * @param rule rule.
-     * @return the loop-1 parser for the given rule.
-     */
-    template <class ParseContextType> auto operator +(const Rule<ParseContextType>& rule) {
-        return +RuleReference<ParseContextType>(rule);
+    template <class Left, class ParseContext>
+    ChoiceParser<TerminalStringParser<Left>, RuleReference<ParseContext>>
+        operator | (const Left* left, Rule<ParseContext>& right)
+    {
+        return ChoiceParser<TerminalStringParser<Left>, RuleReference<ParseContext>>(
+            TerminalStringParser<Left>(left), RuleReference<ParseContext>(right));
     }
 
 
-    template <class ParseContextType>
-    auto operator -(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Creates an optional parser out of a rule.
-     * @param rule rule.
-     * @return the optional parser for the given rule.
-     */
-    template <class ParseContextType> auto operator -(const Rule<ParseContextType>& rule) {
-        return -RuleReference<ParseContextType>(rule);
+    template <class ParseContext, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    ChoiceParser<TerminalStringParser<CharT>, RuleReference<ParseContext>>
+        operator | (const std::basic_string<CharT, Traits, Allocator>& left, Rule<ParseContext>& right)
+    {
+        return ChoiceParser<TerminalStringParser<CharT>, RuleReference<ParseContext>>(
+            TerminalStringParser<CharT>(left), RuleReference<ParseContext>(right));
     }
 
 
-    template <class ParseContextType>
-    auto operator &(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Creates an and parser out of a rule.
-     * @param rule rule.
-     * @return the and parser for the given rule.
-     */
-    template <class ParseContextType> auto operator &(const Rule<ParseContextType>& rule) {
-        return &RuleReference<ParseContextType>(rule);
+    template <class ParseContext, class MatchId>
+    MatchParser<RuleReference<ParseContext>, MatchId> operator ->* (Rule<ParseContext>& rule, const MatchId& matchId) {
+        return MatchParser<RuleReference<ParseContext>, MatchId>(RuleReference<ParseContext>(rule), matchId);
     }
 
 
-    template <class ParseContextType>
-    auto operator !(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Creates a not parser out of a rule.
-     * @param rule rule.
-     * @return the not parser for the given rule.
-     */
-    template <class ParseContextType> auto operator !(const Rule<ParseContextType>& rule) {
-        return !RuleReference<ParseContextType>(rule);
+    template <class ParseContext>
+    auto operator - (Rule<ParseContext>& left, Rule<ParseContext>& right) {
+            return !RuleReference<ParseContext>(right) >> RuleReference<ParseContext>(left);
     }
 
 
-    template <class ParseContextType, class MatchIdType>
-    auto operator == (Rule<ParseContextType>&&, const MatchIdType&) = delete;
-
-
-    /**
-     * Operator that allows a match to be inserted into the parser for a rule.
-     * @param rule rule to apply the operator to.
-     * @param matchId match id.
-     * @return a match parser.
-     */
-    template <class ParseContextType, class MatchIdType>
-    MatchParser<RuleReference<ParseContextType>, MatchIdType>
-        operator == (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
-        return MatchParser<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+    template <class ParseContext, class Right>
+    auto operator - (Rule<ParseContext>& left, const Parser<Right>& right) {
+        return !right.self() >> RuleReference<ParseContext>(left);
     }
 
 
-    template <class ParseContextType, class MatchIdType>
-    auto operator >= (Rule<ParseContextType>&&, const MatchIdType&) = delete;
-
-
-    /**
-     * Operator that allows a tree match to be inserted into the parser for a rule.
-     * @param rule rule to apply the operator to.
-     * @param matchId match id.
-     * @return a tree match parser.
-     */
-    template <class ParseContextType, class MatchIdType>
-    TreeMatchParser<RuleReference<ParseContextType>, MatchIdType>
-        operator >= (const Rule<ParseContextType>& rule, const MatchIdType& matchId) {
-        return TreeMatchParser<RuleReference<ParseContextType>, MatchIdType>(RuleReference<ParseContextType>(rule), matchId);
+    template <class ParseContext, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Right>, Right>, bool> = true>
+    auto operator - (Rule<ParseContext>& left, const Right& right) {
+        return !TerminalParser<Right>(right) >> RuleReference<ParseContext>(left);
     }
 
 
-    template <class ParseContextType>
-    TreeMatchParser<RuleReference<ParseContextType>, std::string>
-        operator >= (const Rule<ParseContextType>& rule, const char* matchId) {
-        return TreeMatchParser<RuleReference<ParseContextType>, std::string>(RuleReference<ParseContextType>(rule), matchId);
+    template <class ParseContext, class Right>
+    auto operator - (Rule<ParseContext>& left, const Right* right) {
+        return !TerminalStringParser<Right>(right) >> RuleReference<ParseContext>(left);
     }
 
 
-    template <class ParseContextType>
-    TreeMatchParser<RuleReference<ParseContextType>, std::wstring>
-        operator >= (const Rule<ParseContextType>& rule, const wchar_t* matchId) {
-        return TreeMatchParser<RuleReference<ParseContextType>, std::wstring>(RuleReference<ParseContextType>(rule), matchId);
+    template <class ParseContext, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    auto operator - (Rule<ParseContext>& left, const std::basic_string<CharT, Traits, Allocator>& right) {
+        return !TerminalStringParser<CharT>(right) >> RuleReference<ParseContext>(left);
     }
 
 
-    template <class ParseContextType>
-    TreeMatchParser<RuleReference<ParseContextType>, std::u16string>
-        operator >= (const Rule<ParseContextType>& rule, const char16_t* matchId) {
-        return TreeMatchParser<RuleReference<ParseContextType>, std::u16string>(RuleReference<ParseContextType>(rule), matchId);
+    template <class Left, class ParseContext>
+    auto operator - (const Parser<Left>& left, Rule<ParseContext>& right) {
+        return !RuleReference<ParseContext>(right) >> left.self();
     }
 
 
-    template <class ParseContextType>
-    TreeMatchParser<RuleReference<ParseContextType>, std::u32string>
-        operator >= (const Rule<ParseContextType>& rule, const char32_t* matchId) {
-        return TreeMatchParser<RuleReference<ParseContextType>, std::u32string>(RuleReference<ParseContextType>(rule), matchId);
+    template <class Left, class ParseContext, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
+    auto operator - (const Left& left, Rule<ParseContext>& right) {
+        return !RuleReference<ParseContext>(right) >> TerminalParser<Left>(left);
     }
 
 
-    template <class ParseContextType>
-    auto operator * (size_t loopCount, Rule<ParseContextType>&& rule) = delete;
-
-
-    /**
-     * Loop-n-count over a rule.
-     * @param loopCount number of loops; cannot be 0.
-     * @param rule rule to repeat.
-     * @return loop-n-parser instance.
-     * @exception std::invalid_argument thrown if loop count is 0.
-     */
-    template <class ParseContextType>
-    LoopNParser<RuleReference<ParseContextType>>
-    operator * (size_t loopCount, const Rule<ParseContextType>& rule) {
-        return { loopCount, RuleReference<ParseContextType>(rule) };
+    template <class Left, class ParseContext>
+    auto operator - (const Left* left, Rule<ParseContext>& right) {
+        return !RuleReference<ParseContext>(right) >> TerminalStringParser<Left>(left);
     }
 
 
-    template <class ParseContextType>
-    auto operator ~(Rule<ParseContextType>&&) = delete;
-
-
-    /**
-     * Operator that creates an error recovery point from a rule.
-     * @param rule rule to create an error recovery point from.
-     * @return an error recovery point.
-     */
-    template <class ParseContextType>
-    ErrorRecoveryPoint<RuleReference<ParseContextType>> operator ~(const Rule<ParseContextType>& rule) {
-        return { RuleReference<ParseContextType>(rule) };
-    }
-
-
-    template <class ParseContextType, class RHS>
-    auto operator >> (Rule<ParseContextType>&& lhs, const ErrorRecoveryPoint<RHS>& rhs) = delete;
-
-
-    /**
-     * A sequence operator between a rule and an error recovery point.
-     * @param lhs the left-hand-side rule.
-     * @param rhs the right-hand-side parser.
-     * @return an error recovery parser.
-     */
-    template <class ParseContextType, class RHS>
-    ErrorParser<RuleReference<ParseContextType>, RHS> operator >> (const Rule<ParseContextType>& lhs, const ErrorRecoveryPoint<RHS>& rhs) {
-        return { RuleReference<ParseContextType>(lhs), rhs.parser() };
+    template <class ParseContext, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    auto operator - (const std::basic_string<CharT, Traits, Allocator>& left, Rule<ParseContext>& right) {
+        return !RuleReference<ParseContext>(right) >> TerminalStringParser<CharT>(left);
     }
 
 

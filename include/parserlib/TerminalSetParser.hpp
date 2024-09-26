@@ -3,97 +3,62 @@
 
 
 #include <vector>
-#include "ParserNode.hpp"
+#include <algorithm>
 #include "util.hpp"
-#include "Error.hpp"
+#include "Parser.hpp"
+#include "ParseErrorType.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * A parser that parses a terminal out of a set of possible terminal values.
-     * @param TerminalValueType value type of the terminal.
-     */
-    template <class TerminalValueType> class TerminalSetParser 
-        : public ParserNode<TerminalSetParser<TerminalValueType>> {
+    template <class Char>
+    class TerminalSetParser : public Parser<TerminalSetParser<Char>> {
     public:
-        /**
-         * Constructor.
-         * @param terminalValues terminal values.
-         */
-        TerminalSetParser(const std::vector<TerminalValueType>& terminalValues)
-            : m_terminalValues(terminalValues)
+        template <class String>
+        TerminalSetParser(const String& str)
+            : m_set(str.begin(), str.end())
         {
+            init();
         }
 
-        /**
-         * Returns the terminal values.
-         * @return the terminal values.
-         */
-        const std::vector<TerminalValueType>& terminalValues() const {
-            return m_terminalValues;
+        TerminalSetParser(const Char* str)
+            : m_set(str, str + getStringLength(str))
+        {
+            init();
         }
 
-        /**
-         * Checks if the current token is within the set of values.
-         * @param pc parse context.
-         * @return true if parsing succeeds, false otherwise.
-         */
-        template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            if (!pc.sourceEnded()) {
-                if (pc.sourcePositionContains(m_terminalValues)) {
-                    pc.incrementSourcePosition();
-                    return true;
-                }
-                else {
-                    pc.addError(pc.sourcePosition(), [&]() {
-                        return makeError(ErrorType::SyntaxError, pc.sourcePosition(),
-                            toString("Syntax error: expected one of: ", m_terminalValues, ", found: ", *pc.sourcePosition().iterator()));
-                        });
-                }
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            if (pc.isEndPosition()) {
+                return false;
             }
-            return false;
-        }
 
-        /**
-         * Does nothing; a terminal should not parse when a rule is expected to parse,
-         * in order to continue after the non-left recursive part is parsed.
-         * @param pc parse context.
-         * @param lrc left recursion context.
-         * @return always false.
-         */
-        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& /*pc*/, LeftRecursionContext<ParseContextType>& /*lrc*/) const {
+            const auto c = *pc.getCurrentPosition();
+
+            auto it = std::upper_bound(m_set.begin(), m_set.end(), c, Less());
+
+            if (it != m_set.begin() && *std::prev(it) == c) {
+                pc.incrementPosition();
+                return true;
+            }
+
+            pc.setError(ParseErrorType::SyntaxError);
             return false;
         }
 
     private:
-        std::vector<TerminalValueType> m_terminalValues;
+        std::vector<Char> m_set;
+
+        void init() {
+            std::sort(m_set.begin(), m_set.end());
+        }
     };
 
 
-    /**
-     * Helper function for creating a terminal set parser.
-     * @param terminalValue1 the 1st terminal value.
-     * @param terminalValues the rest of terminal values.
-     * @return a terminal parser.
-     */
-    template <class TerminalValueType, class ...T> 
-    TerminalSetParser<TerminalValueType> 
-    terminalSet(const TerminalValueType& terminalValue1, const T&... terminalValues) {
-        return std::vector<TerminalValueType>{terminalValue1, terminalValues...};
-    }
-
-
-    /**
-     * Helper function for creating a terminal set parser from a string.
-     * @param terminalValues the terminal values.
-     * @return a terminal parser.
-     */
-    template <class TerminalValueType>
-    TerminalSetParser<TerminalValueType>
-        terminalSet(const TerminalValueType* terminalValues) {
-        return std::vector<TerminalValueType>{terminalValues, terminalValues + stringLength(terminalValues)};
+    template <class Char>
+    TerminalSetParser<Char> oneOf(const Char* chars) {
+        return TerminalSetParser<Char>(chars);
     }
 
 

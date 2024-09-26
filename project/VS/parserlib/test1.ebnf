@@ -1,7 +1,0 @@
-letter = 'a' .. 'z';
-
-digit = '0' .. '9';
-
-(*
-identifier = letter (letter | digit | '_')*;
-*)

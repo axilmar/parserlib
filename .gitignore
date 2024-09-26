@@ -1,8 +1,1 @@
-Debug/
-Release/
-.vs/
-*.user
-*.vcxproj
-*.vcxproj.*
-*.sln
-*.backup
+VS/

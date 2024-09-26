@@ -2,82 +2,70 @@
 #define PARSERLIB_TERMINALSTRINGPARSER_HPP
 
 
-#include <string>
-#include "ParserNode.hpp"
+#include <vector>
 #include "util.hpp"
-#include "Error.hpp"
+#include "Parser.hpp"
+#include "ParseErrorType.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * A parser which parses a null-terminated string of terminal values.
-     * @param TerminalValueType type of terminal value stored in the string.
-     */
-    template <class TerminalValueType> class TerminalStringParser
-        : public ParserNode<TerminalStringParser<TerminalValueType>> {
+    template <class Char> 
+    class TerminalStringParser : public Parser<TerminalStringParser<Char>> {
     public:
-        /**
-         * Constructor.
-         * @param string string.
-         */
-        TerminalStringParser(const TerminalValueType* string) : m_string(string) {
+        template <class String>
+        TerminalStringParser(const String& str)
+            : m_string(str.begin(), str.end())
+        {
         }
 
-        /**
-         * Returns the string.
-         * @return the string.
-         */
-        const TerminalValueType* string() const {
-            return m_string;
+        TerminalStringParser(const Char* str)
+            : m_string(str, str + getStringLength(str))
+        {
         }
-        
-        /**
-         * Parses the source against the string.
-         * @param pc parse context.
-         * @return true if parsing succeeds, false otherwise.
-         */
-        template <class ParseContextType> bool operator ()(ParseContextType& pc) const {
-            if (!pc.sourceEnded()) {
-                if (pc.sourcePositionContains(m_string.c_str())) {
-                    pc.increaseSourcePosition(m_string.size());
+
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            auto itStr = m_string.begin();
+            auto itParse = pc.getCurrentPosition();
+
+            for (;;) {
+                if (itStr == m_string.end()) {
+                    pc.incrementPosition(m_string.size());
                     return true;
                 }
-                else {
-                    pc.addError(pc.sourcePosition(), [&]() {
-                        return makeError(ErrorType::SyntaxError, pc.sourcePosition(),
-                            toString("Syntax error: expected: \"", m_string, "\", found: \"", toSubString(pc.sourcePosition().iterator(), pc.sourcePosition().end(), m_string.length()), "\""));
-                        });
-                }
-            }
-            return false;
-        }
 
-        /**
-         * Does nothing; a terminal should not parse when a rule is expected to parse,
-         * in order to continue after the non-left recursive part is parsed.
-         * @param pc parse context.
-         * @param lrc left recursion context.
-         * @return always false.
-         */
-        template <class ParseContextType> bool parseLeftRecursionContinuation(ParseContextType& /*pc*/, LeftRecursionContext<ParseContextType>& /*lrc*/) const {
+                if (itParse == pc.getEndPosition()) {
+                    break;
+                }
+
+                if (*itParse != *itStr) {
+                    break;
+                }
+
+                ++itStr;
+                ++itParse;
+            }
+
+            pc.setError(ParseErrorType::SyntaxError);
             return false;
         }
 
     private:
-        const std::basic_string<TerminalValueType> m_string;
+        std::vector<Char> m_string;
     };
 
 
-    /**
-     * Creates a terminal string parser out of a string.
-     * @param string null-terminated string.
-     * @return a terminal string parser.
-     */
-    template <class TerminalValueType>
-    TerminalStringParser<TerminalValueType> terminal(const TerminalValueType* string) {
-        return { string };
+    template <class String>
+    TerminalStringParser<typename String::value_type> term(const String& str) {
+        return TerminalStringParser<typename String::value_type>(str);
+    }
+
+
+    template <class Char>
+    TerminalStringParser<Char> term(const Char* str) {
+        return TerminalStringParser<Char>(str);
     }
 
 
