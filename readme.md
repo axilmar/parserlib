@@ -16,7 +16,7 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
 	- The `'operator >=` has been replaced with `operator ->*`, which is much more distinct than the former; no more typing accidentally '>>' where `>=` was intended.
 	- The default match id type is no longer a string; it is an int.
 	- Simplified the left recursion parsing implementation.
-	- TBD multiple error handling and compiler front ends.
+	- TBD compiler front ends.
  
   - 1.0.0.1
  
@@ -427,7 +427,15 @@ The above prints the input, which is the value `FF.12.DC.A0`.
 
 ## Resuming From Errors
 
-TBD
+The `operator ~', together with the `operator >>` can be used to create a resume point on a sequence.
+
+For example, parsing a statement that ends with ';', the grammar can be:
+
+```cpp
+auto statementDeclaration = statement >> ~term(';');
+```
+
+In the above grammar, if 'statement' fails to parse, then the parser will try to find the next ';' and continue parsing statements after that, noting down the error.
 
 ## Creating Compiler Front-Ends
  

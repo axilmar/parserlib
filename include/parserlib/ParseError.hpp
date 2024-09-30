@@ -2,6 +2,7 @@
 #define PARSERLIB_PARSEERROR_HPP
 
 
+#include <cassert>
 #include "ParseErrorType.hpp"
 
 
@@ -38,12 +39,16 @@ namespace parserlib {
         /**
          * The constructor.
          * @param id the error id.
-         * @param position the error position.
+         * @param startPosition the start position.
+         * @param endPosition the end position.
          */
-        ParseError(int id, const Iterator& position) 
-            : m_id(id)
-            , m_position(position)
+        template <class ErrorType>
+        ParseError(ErrorType id, const Iterator& startPosition, const Iterator& endPosition) 
+            : m_id(static_cast<int>(id))
+            , m_startPosition(startPosition)
+            , m_endPosition(endPosition)
         {
+            assert(startPosition <= endPosition);
         }
 
         /**
@@ -55,16 +60,33 @@ namespace parserlib {
         }
 
         /**
-         * Returns the position of the error.
-         * @return the position of the error.
+         * Sets the id of the error.
+         * @param id id of the error.
          */
-        const Iterator& getPosition() const {
-            return m_position;
+        void setId(int id) {
+            m_id = id;
+        }
+
+        /**
+         * Returns the start position of the error.
+         * @return the start position of the error.
+         */
+        const Iterator& getStartPosition() const {
+            return m_startPosition;
+        }
+
+        /**
+         * Returns the end position of the error.
+         * @return the end position of the error.
+         */
+        const Iterator& getEndPosition() const {
+            return m_endPosition;
         }
 
     private:
         int m_id;
-        Iterator m_position;
+        Iterator m_startPosition;
+        Iterator m_endPosition;
     };
 
 

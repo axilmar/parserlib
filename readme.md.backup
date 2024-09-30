@@ -181,12 +181,12 @@ A parser can be made optional by using the `operator -`:
 For example:
 
 ```cpp
-!oneOf("=-") >> oneIn('0', '9') //parse an integer without a sign.
+!oneOf("+-") >> oneIn('0', '9') //parse an integer without a sign.
 ```
 
 ### Matches
 
-- The `operator ->*` allows the assignment of a match id to a production; [the created match has children matches](#matches).
+- The `operator ->*` allows the assignment of a match id to a production. For example:
 
 
 ```cpp
@@ -212,7 +212,7 @@ const bool ok = grammar.parse(pc);
 
 //iterate over recognized matches
 for(const auto& match : pc.getMatches()) {
-    if (match.getMatchId() == 'i') {
+    if (match.getId() == 'i') {
         const auto parsedString = match.getSource();
         //process int
     }
@@ -427,7 +427,15 @@ The above prints the input, which is the value `FF.12.DC.A0`.
 
 ## Resuming From Errors
 
-TBD
+The `operator ~', together with the `operator >>` can be used to create a resume point on a sequence.
+
+For example, parsing a statement that ends with ';', the grammar can be:
+
+```cpp
+auto statementDeclaration = statement >> ~term(';');
+```
+
+In the above grammar, if 'statement' fails to parse, then the parser will try to find the next ';' and continue parsing statements after that, noting down the error.
 
 ## Creating Compiler Front-Ends
  

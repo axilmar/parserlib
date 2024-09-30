@@ -14,6 +14,7 @@
 #include "SequenceParser.hpp"
 #include "ChoiceParser.hpp"
 #include "MatchParser.hpp"
+#include "ErrorResumeParser.hpp"
 
 
 namespace parserlib {
@@ -76,6 +77,14 @@ namespace parserlib {
          */
         AndParser<RuleReference<ParseContext>> operator &() {
             return AndParser<RuleReference<ParseContext>>(self());
+        }
+
+        /**
+         * Makes this parser an error resume point.
+         * @return an error resume point.
+         */
+        ErrorResumePoint<RuleReference<ParseContext>> operator ~() {
+            return ErrorResumePoint<RuleReference<ParseContext>>(self());
         }
 
         /**

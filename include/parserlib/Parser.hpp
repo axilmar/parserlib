@@ -53,6 +53,14 @@ namespace parserlib {
     class MatchParser;
 
 
+    template <class Parser>
+    class ErrorResumePoint;
+
+
+    template <class Left, class Right>
+    class ErrorResumeParser;
+
+
     /**
      * Base class for parsers.
      * 
@@ -99,6 +107,14 @@ namespace parserlib {
          */
         AndParser<Derived> operator &() const {
             return AndParser<Derived>(self());
+        }
+
+        /**
+         * Makes this parser an error resume point.
+         * @return an error resume point.
+         */
+        ErrorResumePoint<Derived> operator ~() const {
+            return ErrorResumePoint<Derived>(self());
         }
 
         /**
@@ -217,6 +233,66 @@ namespace parserlib {
     {
         return SequenceParser<TerminalStringParser<CharT>, Right>(
             TerminalStringParser<CharT>(left), right.self());
+    }
+
+
+    /**
+     * Creates an error resume parser.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return an error resume parser.
+     */
+    template <class Left, class Right>
+    ErrorResumeParser<Left, Right>
+        operator >> (const Parser<Left>& left, const ErrorResumePoint<Right>& right)
+    {
+        return ErrorResumeParser<Left, Right>(
+            left.self(), right.getParser());
+    }
+
+
+    /**
+     * Creates an error resume parser.
+     * @param left the left parser/element.
+     * @param right the error resume point.
+     * @return an error resume parser.
+     */
+    template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
+    ErrorResumeParser<TerminalParser<Left>, Right>
+        operator >> (const Left& left, const ErrorResumePoint<Right>& right)
+    {
+        return ErrorResumeParser<Left, Right>(
+            TerminalParser<Left>(left), right.getParser());
+    }
+
+
+    /**
+     * Creates an error resume parser.
+     * @param left the left parser/element.
+     * @param right the error resume point.
+     * @return an error resume parser.
+     */
+    template <class Left, class Right>
+    ErrorResumeParser<TerminalStringParser<Left>, Right>
+        operator >> (const Left* left, const ErrorResumePoint<Right>& right)
+    {
+        return ErrorResumeParser<Left, Right>(
+            TerminalStringParser<Left>(left), right.getParser());
+    }
+
+
+    /**
+     * Creates an error resume parser.
+     * @param left the left parser/element.
+     * @param right the error resume point.
+     * @return an error resume parser.
+     */
+    template <class Right, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    ErrorResumeParser<TerminalStringParser<CharT>, Right>
+        operator >> (const std::basic_string<CharT, Traits, Allocator>& left, const ErrorResumePoint<Right>& right)
+    {
+        return ErrorResumeParser<TerminalStringParser<CharT>, Right>(
+            TerminalStringParser<CharT>(left), right.getParser());
     }
 
 

@@ -3,7 +3,6 @@
 
 
 #include "Parser.hpp"
-#include "ParseErrorType.hpp"
 
 
 namespace parserlib {
@@ -47,7 +46,6 @@ namespace parserlib {
                 return true;
             }
 
-            pc.setError(ParseErrorType::SyntaxError);
             return false;
         }
 

@@ -86,7 +86,6 @@ namespace parserlib {
         ParseContext(Source& src)
             : m_currentPosition(src.begin())
             , m_endPosition(src.end())
-            , m_committedErrorsSize(0)
         {
         }
 
@@ -153,45 +152,22 @@ namespace parserlib {
         }
 
         /**
-         * Returns the current container of errors.
-         * @return the current container of errors.
+         * Returns the current set of errors.
+         * @return the current set of errors.
          */
         const ParseErrorContainer& getErrors() const {
             return m_errors;
         }
 
         /**
-         * Sets the current error.
-         * The error is set only if its position is furthest into the source than the last error,
-         * or if this error is the first one.
-         * @param error the error to set.
-         */
-        void setError(const ParseError& error) {
-            if (m_errors.size() == m_committedErrorsSize) {
-                m_errors.push_back(error);
-            }
-            else if (error.getPosition() > m_errors.back().getPosition()) {
-                m_errors.back() = error;
-            }
-        }
-
-        /**
-         * Sets the current error.
-         * Same as `setError(ParseError)`, but it casts the given error id into an integer.
+         * Adds the error at the given position.
          * @param errorId error id.
+         * @param startPosition start position.
+         * @param endPosition end position.
          */
-        template <class Error>
-        void setError(Error errorId) {
-            setError(ParseError(static_cast<int>(errorId), m_currentPosition));
-        }
-
-        /**
-         * Commits the current error list.
-         * New errors will be added after the existing errors.
-         * It is used in cases of allowing multiple errors to exist from one parse attempt.
-         */
-        void commitErrors() {
-            m_committedErrorsSize = m_errors.size();
+        template <class ErrorType>
+        void addError(ErrorType errorId, const Iterator& startPosition, const Iterator& endPosition) {
+            m_errors.push_back(ParseError(errorId, startPosition, endPosition));
         }
 
         /**
@@ -199,7 +175,7 @@ namespace parserlib {
          * @return the current parse error state of the context.
          */
         ParseErrorState getParseErrorState() {
-            return ParseErrorState(m_errors.size(), m_committedErrorsSize);
+            return ParseErrorState(m_errors.size());
         }
 
         /**
@@ -208,7 +184,6 @@ namespace parserlib {
          */
         void setParseErrorState(const ParseErrorState& state) {
             m_errors.resize(state.getErrorsSize());
-            m_committedErrorsSize = state.getCommittedErrorsSize();
         }
 
         /**
@@ -348,7 +323,6 @@ namespace parserlib {
 
         Iterator m_currentPosition;
         Iterator m_endPosition;
-        size_t m_committedErrorsSize;
         ParseErrorContainer m_errors;
         std::map<Rule*, std::vector<Iterator>> m_rulePositions;
         std::map<Rule*, LeftRecursion::State> m_ruleStates;

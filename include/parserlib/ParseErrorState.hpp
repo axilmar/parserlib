@@ -13,11 +13,9 @@ namespace parserlib {
         /**
          * The constructor.
          * @param errorsSize size of the error container.
-         * @param committedErrorsSize number of errors committed.
          */
-        ParseErrorState(size_t errorsSize, size_t committedErrorsSize)
+        ParseErrorState(size_t errorsSize)
             : m_errorsSize(errorsSize)
-            , m_committedErrorsSize(committedErrorsSize)
         {
         }
 
@@ -29,17 +27,8 @@ namespace parserlib {
             return m_errorsSize;
         }
 
-        /**
-         * Returns the committed errors count.
-         * @return the committed errors count.
-         */
-        size_t getCommittedErrorsSize() const {
-            return m_committedErrorsSize;
-        }
-
     private:
         size_t m_errorsSize;
-        size_t m_committedErrorsSize;
     };
 
 

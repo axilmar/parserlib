@@ -697,6 +697,27 @@ static void unitTest_leftRecursion() {
 }
 
 
+static void unitTest_errorResumePoint() {
+    auto ws = term(' ');
+    auto letter = oneIn('a', 'z') | oneIn('A', 'Z');
+    auto digit = oneIn('0', '9');
+    auto identifier = letter >> *(letter | digit | '_');
+    auto statement = identifier >> ~term(';');
+    auto grammar = *(ws | statement);
+
+    {
+        SourceString input = "a; b; @; c; d; !; e;";
+        ParseContext<> pc(input);
+        bool ok = grammar.parse(pc);
+        auto errors = pc.getErrors();
+        assert(ok == true);
+        assert(errors.size() == 2);
+        assert(*errors[0].getStartPosition() == '@');
+        assert(*errors[1].getStartPosition() == '!');
+    }
+}
+
+
 void runUnitTests() {
     unitTest_AndParser();
     unitTest_ChoiceParser();
@@ -714,4 +735,5 @@ void runUnitTests() {
     unitTest_TreeMatch();
     unitTest_recursion();
     unitTest_leftRecursion();
+    unitTest_errorResumePoint();
 }

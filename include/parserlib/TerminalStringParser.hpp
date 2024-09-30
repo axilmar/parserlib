@@ -5,7 +5,6 @@
 #include <vector>
 #include "util.hpp"
 #include "Parser.hpp"
-#include "ParseErrorType.hpp"
 
 
 namespace parserlib {
@@ -68,7 +67,6 @@ namespace parserlib {
                 ++itParse;
             }
 
-            pc.setError(ParseErrorType::SyntaxError);
             return false;
         }
 

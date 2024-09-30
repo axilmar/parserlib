@@ -514,6 +514,19 @@ namespace parserlib {
                 return left.getIterator() - right.getIterator();
             }
 
+            /**
+             * Returns an iterator at the given distance from this.
+             * @param distance distance.
+             * @return iterator at the given distance.
+             */
+            const_iterator operator + (size_t distance) const {
+                const_iterator r = *this;
+                for (; distance > 0 && r.getIterator() != m_end; --distance) {
+                    ++r;
+                }
+                return r;
+            }
+
         private:
             Iterator m_iterator;
             Iterator m_end;
