@@ -181,12 +181,12 @@ A parser can be made optional by using the `operator -`:
 For example:
 
 ```cpp
-!oneOf("=-") >> oneIn('0', '9') //parse an integer without a sign.
+!oneOf("+-") >> oneIn('0', '9') //parse an integer without a sign.
 ```
 
 ### Matches
 
-- The `operator ->*` allows the assignment of a match id to a production; [the created match has children matches](#matches).
+- The `operator ->*` allows the assignment of a match id to a production. For example:
 
 
 ```cpp
