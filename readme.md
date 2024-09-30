@@ -427,7 +427,7 @@ The above prints the input, which is the value `FF.12.DC.A0`.
 
 ## Resuming From Errors
 
-The `operator ~', together with the `operator >>` can be used to create a resume point on a sequence.
+The `operator ~`, together with the `operator >>` can be used to create a resume point on a sequence.
 
 For example, parsing a statement that ends with ';', the grammar can be:
 
@@ -435,7 +435,7 @@ For example, parsing a statement that ends with ';', the grammar can be:
 auto statementDeclaration = statement >> ~term(';');
 ```
 
-In the above grammar, if 'statement' fails to parse, then the parser will try to find the next ';' and continue parsing statements after that, noting down the error.
+In the above grammar, if 'statement' fails to parse, then the parser will try to find the next ';' and continue parsing statements after that, adding the error to the parse context.
 
 ## Creating Compiler Front-Ends
  
