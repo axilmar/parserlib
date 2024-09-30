@@ -408,17 +408,17 @@ assert(pc.getMatches().size() == 1);
 const auto& match = pc.getMatches()[0];
 
 std::stringstream stream;
-stream << match.children()[0].getChildren()[0].getSource();
-stream << match.children()[0].getChildren()[1].getSource();
+stream << match.getChildren()[0].getChildren()[0].getSource();
+stream << match.getChildren()[0].getChildren()[1].getSource();
 stream << '.';
-stream << match.children()[1].getChildren()[0].getSource();
-stream << match.children()[1].getChildren()[1].getSource();
+stream << match.getChildren()[1].getChildren()[0].getSource();
+stream << match.getChildren()[1].getChildren()[1].getSource();
 stream << '.';
-stream << match.children()[2].getChildren()[0].getSource();
-stream << match.children()[2].getChildren()[1].getSource();
+stream << match.getChildren()[2].getChildren()[0].getSource();
+stream << match.getChildren()[2].getChildren()[1].getSource();
 stream << '.';
-stream << match.children()[3].getChildren()[0].getSource();
-stream << match.children()[3].getChildren()[1].getSource();
+stream << match.getChildren()[3].getChildren()[0].getSource();
+stream << match.getChildren()[3].getChildren()[1].getSource();
 const std::string output = stream.str();
 std::cout << output;
 ```

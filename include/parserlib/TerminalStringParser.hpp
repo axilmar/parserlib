@@ -11,20 +11,40 @@
 namespace parserlib {
 
 
+    /**
+     * Parses a string.
+     * 
+     * @param Char type of terminal value to parse.
+     */
     template <class Char> 
     class TerminalStringParser : public Parser<TerminalStringParser<Char>> {
     public:
+        /**
+         * Constructor from string object.
+         * @param str string to parse.
+         */
         template <class String>
         TerminalStringParser(const String& str)
             : m_string(str.begin(), str.end())
         {
         }
 
+        /**
+         * Constructor from null-terminated string.
+         * @param str string to parse.
+         */
         TerminalStringParser(const Char* str)
             : m_string(str, str + getStringLength(str))
         {
         }
 
+        /**
+         * Parses a string.
+         * In order for the current position of the parse context to advance,
+         * the whole string must be successfully parsed.
+         * @param pc parse context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             auto itStr = m_string.begin();

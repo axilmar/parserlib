@@ -326,7 +326,7 @@ static void unitTest_sequenceParser() {
             ParseContext pc(input);
             bool ok = parser.parse(pc);
             assert(ok);
-            assert(pc.getCurrentPosition() == input.begin() + 16);
+            assert(pc.getCurrentPosition().getIterator() == input.begin().getIterator() + 16);
         }
     }
 }
@@ -443,7 +443,7 @@ static void unitTest_Match() {
         assert(ok);
         assert(pc.getCurrentPosition() == input.end());
         assert(matches.size() == 1);
-        assert(matches[0].getMatchId() == 'm');
+        assert(matches[0].getId() == 'm');
     }
 
     {
@@ -615,19 +615,19 @@ static Rule<CalculatorParseContext> add = (add >> '+' >> mul) ->* AST::Add
 
 
 static int eval(const Match<AST>& m) {
-    if (m.getMatchId() == AST::Add) {
+    if (m.getId() == AST::Add) {
         return eval(m.getChildren()[0]) + eval(m.getChildren()[1]);
     }
-    if (m.getMatchId() == AST::Sub) {
+    if (m.getId() == AST::Sub) {
         return eval(m.getChildren()[0]) - eval(m.getChildren()[1]);
     }
-    if (m.getMatchId() == AST::Mul) {
+    if (m.getId() == AST::Mul) {
         return eval(m.getChildren()[0]) * eval(m.getChildren()[1]);
     }
-    if (m.getMatchId() == AST::Div) {
+    if (m.getId() == AST::Div) {
         return eval(m.getChildren()[0]) / eval(m.getChildren()[1]);
     }
-    if (m.getMatchId() == AST::Int) {
+    if (m.getId() == AST::Int) {
         std::stringstream stream;
         stream << m.getSource();
         int v;

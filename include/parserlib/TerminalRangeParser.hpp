@@ -10,9 +10,19 @@
 namespace parserlib {
 
 
+    /**
+     * A parser that parses a terminal within a range of values.
+     *
+     * @param Char type of terminal value to parse.
+     */
     template <class Char>
     class TerminalRangeParser : public Parser<TerminalRangeParser<Char>> {
     public:
+        /**
+         * The constructor.
+         * @param min min value.
+         * @param max max value.
+         */
         TerminalRangeParser(const Char& min, const Char& max)
             : m_min(min)
             , m_max(max)
@@ -20,6 +30,11 @@ namespace parserlib {
             assert(min <= max);
         }
 
+        /**
+         * Parses a value within a range.
+         * @param pc parse context.
+         * @return true if parsing succeeds, false otherwise.
+         */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             if (pc.isEndPosition()) {
@@ -43,6 +58,12 @@ namespace parserlib {
     };
 
 
+    /**
+     * Creates a terminal parser.
+     * @param min min value.
+     * @param max max value.
+     * @return a terminal range parser.
+     */
     template <class Char>
     TerminalRangeParser<char> oneIn(const Char& min, const Char& max) {
         return TerminalRangeParser<char>(min, max);

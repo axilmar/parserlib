@@ -53,35 +53,70 @@ namespace parserlib {
     class MatchParser;
 
 
+    /**
+     * Base class for parsers.
+     * 
+     * @param Derived type of class derived from this.
+     */
     template <class Derived>
     class Parser {
     public:
+        /**
+         * Makes this parser a zero-or-more parser.
+         * @return a zero-or-more parser that calls this parser as a child.
+         */
         ZeroOrMoreParser<Derived> operator *() const {
             return ZeroOrMoreParser<Derived>(self());
         }
 
+        /**
+         * Makes this parser an one-or-more parser.
+         * @return an one-or-more parser that calls this parser as a child.
+         */
         OneOrMoreParser<Derived> operator +() const {
             return OneOrMoreParser<Derived>(self());
         }
 
+        /**
+         * Makes this parser optional.
+         * @return an optional parser that calls this parser as a child.
+         */
         OptionalParser<Derived> operator -() const {
             return OptionalParser<Derived>(self());
         }
 
+        /**
+         * Makes this parser be used as a logical NOT predicate.
+         * @return a logical NOT parser that calls this parser as a child.
+         */
         NotParser<Derived> operator !() const {
             return NotParser<Derived>(self());
         }
 
+        /**
+         * Makes this parser be used as a logical AND predicate.
+         * @return a logical AND parser that calls this parser as a child.
+         */
         AndParser<Derived> operator &() const {
             return AndParser<Derived>(self());
         }
 
+        /**
+         * Casts this into Derived.
+         * @return reference to derived.
+         */
         const Derived& self() const {
             return *(const Derived*)this;
         }
     };
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     SequenceParser<Left, Right> 
         operator >> (const Parser<Left>& left, const Parser<Right>& right)
@@ -91,6 +126,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * The right element is treated as a terminal.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Right>, Right>, bool> = true>
     SequenceParser<Left, TerminalParser<Right>> 
         operator >> (const Parser<Left>& left, const Right& right)
@@ -100,6 +142,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * The right element is treated as a null-terminated terminal string.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     SequenceParser<Left, TerminalStringParser<Right>> 
         operator >> (const Parser<Left>& left, const Right* right)
@@ -109,6 +158,12 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
     SequenceParser<Left, TerminalStringParser<CharT>> 
         operator >> (const Parser<Left>& left, const std::basic_string<CharT, Traits, Allocator>& right)
@@ -118,6 +173,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * The left element is treated as a terminal.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
     SequenceParser<TerminalParser<Left>, Right> 
         operator >> (const Left& left, const Parser<Right>& right)
@@ -127,6 +189,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * The left element is treated as a null-terminated terminal string.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     SequenceParser<TerminalStringParser<Left>, Right> 
         operator >> (const Left* left, const Parser<Right>& right)
@@ -136,6 +205,12 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a sequence of the given parsers.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Right, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
     SequenceParser<TerminalStringParser<CharT>, Right> 
         operator >> (const std::basic_string<CharT, Traits, Allocator>& left, const Parser<Right>& right)
@@ -145,6 +220,12 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     ChoiceParser<Left, Right> 
         operator | (const Parser<Left>& left, const Parser<Right>& right)
@@ -154,6 +235,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * The right element is treated as a terminal.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Right>, Right>, bool> = true>
     ChoiceParser<Left, TerminalParser<Right>> 
         operator | (const Parser<Left>& left, const Right& right)
@@ -163,6 +251,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * The right element is treated as a null-terminated terminal string.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     ChoiceParser<Left, TerminalStringParser<Right>> 
         operator | (const Parser<Left>& left, const Right* right)
@@ -172,6 +267,12 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Left, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
     ChoiceParser<Left, TerminalStringParser<CharT>> 
         operator | (const Parser<Left>& left, const std::basic_string<CharT, Traits, Allocator>& right)
@@ -181,6 +282,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * The left element is treated as a terminal.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
     ChoiceParser<TerminalParser<Left>, Right> 
         operator | (const Left& left, const Parser<Right>& right)
@@ -190,6 +298,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * The left element is treated as a null-terminated terminal string.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     ChoiceParser<TerminalStringParser<Left>, Right> 
         operator | (const Left* left, const Parser<Right>& right)
@@ -199,6 +314,12 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a choice of the given parsers.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a choice parser for the given left and right parsers/elements.
+     */
     template <class Right, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
     ChoiceParser<TerminalStringParser<CharT>, Right> 
         operator | (const std::basic_string<CharT, Traits, Allocator>& left, const Parser<Right>& right)
@@ -208,47 +329,113 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a match parser for the given parser.
+     * @param parser parser to create a match parser for.
+     * @param matchId id of the match.
+     * @return a match parser for the given parser.
+     */
     template <class Child, class MatchId> 
     MatchParser<Child, MatchId> operator ->* (const Parser<Child>& parser, const MatchId& matchId) {
         return MatchParser<Child, MatchId>(parser.self(), matchId);
     }
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     auto operator - (const Parser<Left>& left, const Parser<Right>& right) {
         return !right.self() >> left.self();
     }
 
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * The right parser is treated as a terminal.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Right>, Right>, bool> = true>
     auto operator - (const Parser<Left>& left, const Right& right) {
         return !TerminalParser<Right>(right) >> left.self();
     }
 
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * The right parser is treated as a null-terminated terminal string.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     auto operator - (const Parser<Left>& left, const Right* right) {
         return !TerminalStringParser<Right>(right) >> left.self();
     }
 
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
     auto operator - (const Parser<Left>& left, const std::basic_string<CharT, Traits, Allocator>& right) {
         return !TerminalStringParser<CharT>(right) >> left.self();
     }
 
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * The left parse is treated as a terminal.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
     auto operator - (const Left& left, const Parser<Right>& right) {
         return !right.self() >> TerminalParser<Left>(left);
     }
 
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * The left parser is treated as a null-terminated terminal string.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Left, class Right>
     auto operator - (const Left* left, const Parser<Right>& right) {
         return !right.self() >> TerminalStringParser<Left>(left);
     }
 
 
+    /**
+     * Creates a sequence of the given parsers,
+     * where the right parser is placed into a logical NOT parser,
+     * and followed by the left parser.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return a sequence parser for the given left and right parsers/elements.
+     */
     template <class Right, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
     auto operator - (const std::basic_string<CharT, Traits, Allocator>& left, const Parser<Right>& right) {
         return !right.self() >> TerminalStringParser<CharT>(left);

@@ -212,7 +212,7 @@ const bool ok = grammar.parse(pc);
 
 //iterate over recognized matches
 for(const auto& match : pc.getMatches()) {
-    if (match.getMatchId() == 'i') {
+    if (match.getId() == 'i') {
         const auto parsedString = match.getSource();
         //process int
     }

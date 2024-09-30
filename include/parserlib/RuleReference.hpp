@@ -12,14 +12,26 @@ namespace parserlib {
     class Rule;
 
 
+    /**
+     * A reference to a rule.
+     * @param ParseContext the parse context to use for a rule.
+     */
     template <class ParseContext>
     class RuleReference : public Parser<RuleReference<ParseContext>> {
     public:
+        /**
+         * The default constructor.
+         * @param rule the reference to rule.
+         */
         RuleReference(Rule<ParseContext>& rule)
             : m_rule(rule)
         {
         }
 
+        /**
+         * Invokes the rule to parse.
+         * @return whatever the rule returns.
+         */
         bool parse(ParseContext& pc) const {
             return m_rule.parse(pc);
         }
