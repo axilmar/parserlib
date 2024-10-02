@@ -97,7 +97,7 @@ namespace parserlib {
          * @return the end position of the match into the source.
          */
         const Iterator& getEndPosition() const {
-            return m_startPosition;
+            return m_endPosition;
         }
 
         /**

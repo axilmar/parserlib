@@ -7,6 +7,7 @@
 #include "parserlib/TerminalSetParser.hpp"
 #include "parserlib/TerminalRangeParser.hpp"
 #include "parserlib/Rule.hpp"
+#include "parserlib/CFE.hpp"
 
 
 #endif //PARSERLIB_HPP

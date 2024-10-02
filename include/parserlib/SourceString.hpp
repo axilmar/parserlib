@@ -99,6 +99,11 @@ namespace parserlib {
         typedef typename Source::value_type CharValue;
 
         /**
+         * Required for STL container compatibility.
+         */
+        typedef typename Source::value_type value_type;
+
+        /**
          * Wrapper around a character.
          * It provides the functions of comparison to the source.
          */
@@ -233,8 +238,16 @@ namespace parserlib {
                 return CaseTraits::toLowerCase(v) >= CaseTraits::toLowerCase(c.m_value);
             }
 
+            /**
+             * Returns the address of the internal character reference.
+             * @return the address of the internal character reference.
+             */
+            const CharValue* operator &() const {
+                return &m_value;
+            }
+
         private:
-            const CharValue m_value;
+            const CharValue& m_value;
         };
 
         /**

@@ -41,7 +41,7 @@ namespace parserlib {
                 return false;
             }
 
-            if (m_char == *pc.getCurrentPosition()) {
+            if (*pc.getCurrentPosition() == m_char) {
                 pc.incrementPosition();
                 return true;
             }

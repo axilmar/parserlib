@@ -117,6 +117,16 @@ namespace parserlib {
         }
 
         /**
+         * Constructor from other rule.
+         * This rule then refers to the given rule by a rule reference.
+         * @param r source rule.
+         */
+        Rule(Rule& r)
+            : m_expression(std::make_unique<ParseExpressionImpl<RuleReference<ParseContext>>>(r))
+        {
+        }
+
+        /**
          * Wraps the given parsing expression into a rule.
          * @param expression expression to wrap.
          */
@@ -138,6 +148,17 @@ namespace parserlib {
          */
         Rule& operator = (Rule&& r) {
             m_expression = std::move(r.m_expression);
+            return *this;
+        }
+
+        /**
+         * Assignment from rule reference.
+         * This rule then refers to the given rule by a rule reference.
+         * @param r source rule.
+         * @return reference to this.
+         */
+        Rule& operator = (Rule& r) {
+            m_expression = std::make_unique<ParseExpressionImpl<RuleReference<ParseContext>>>(r);
             return *this;
         }
 

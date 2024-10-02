@@ -95,6 +95,21 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a terminal set parser.
+     * @param char1 first char.
+     * @param chars rest of chars
+     * @return a terminal set parser.
+     */
+    template <class Char, class... Chars>
+    TerminalSetParser<Char> oneOf(const Char& char1, const Chars&... chars) {
+        std::vector<Char> charSet;
+        charSet.push_back(char1);
+        (charSet.push_back(chars), ...);
+        return TerminalSetParser<Char>(charSet);
+    }
+
+
 } //namespace parserlib
 
 
