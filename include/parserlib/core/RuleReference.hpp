@@ -1,11 +1,11 @@
-#ifndef PARSERLIB_RULEREFERENCE_HPP
-#define PARSERLIB_RULEREFERENCE_HPP
+#ifndef PARSERLIB_CORE_RULEREFERENCE_HPP
+#define PARSERLIB_CORE_RULEREFERENCE_HPP
 
 
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     template <class ParseContext>
@@ -41,7 +41,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_RULEREFERENCE_HPP
+#endif //PARSERLIB_CORE_RULEREFERENCE_HPP

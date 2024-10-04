@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_PARSECONTEXT_HPP
-#define PARSERLIB_PARSECONTEXT_HPP
+#ifndef PARSERLIB_CORE_PARSECONTEXT_HPP
+#define PARSERLIB_CORE_PARSECONTEXT_HPP
 
 
 #include <vector>
@@ -16,7 +16,7 @@
 #include "Match.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     template <class ParseContext> class Rule;
@@ -331,7 +331,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_PARSECONTEXT_HPP
+#endif //PARSERLIB_CORE_PARSECONTEXT_HPP

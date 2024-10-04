@@ -1,12 +1,12 @@
-#ifndef PARSERLIB_PARSER_HPP
-#define PARSERLIB_PARSER_HPP
+#ifndef PARSERLIB_CORE_PARSER_HPP
+#define PARSERLIB_CORE_PARSER_HPP
 
 
 #include <string>
 #include <type_traits>
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     template <class Child>
@@ -555,7 +555,7 @@ namespace parserlib {
     }
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_PARSER_HPP
+#endif //PARSERLIB_CORE_PARSER_HPP

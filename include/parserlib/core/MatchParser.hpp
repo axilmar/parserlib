@@ -1,11 +1,11 @@
-#ifndef PARSERLIB_MATCHPARSER_HPP
-#define PARSERLIB_MATCHPARSER_HPP
+#ifndef PARSERLIB_CORE_MATCHPARSER_HPP
+#define PARSERLIB_CORE_MATCHPARSER_HPP
 
 
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -57,7 +57,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_MATCHPARSER_HPP
+#endif //PARSERLIB_CORE_MATCHPARSER_HPP

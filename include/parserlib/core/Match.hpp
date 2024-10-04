@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_MATCH_HPP
-#define PARSERLIB_MATCH_HPP
+#ifndef PARSERLIB_CORE_MATCH_HPP
+#define PARSERLIB_CORE_MATCH_HPP
 
 
 #include <vector>
@@ -7,7 +7,7 @@
 #include "SourceString.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     template <class MatchId = int, class Source = SourceString<>>
@@ -152,7 +152,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_MATCH_HPP
+#endif //PARSERLIB_CORE_MATCH_HPP

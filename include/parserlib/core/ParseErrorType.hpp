@@ -1,8 +1,8 @@
-#ifndef PARSERLIB_PARSEERRORTYPE_HPP
-#define PARSERLIB_PARSEERRORTYPE_HPP
+#ifndef PARSERLIB_CORE_PARSEERRORTYPE_HPP
+#define PARSERLIB_CORE_PARSEERRORTYPE_HPP
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -21,7 +21,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_PARSEERRORTYPE_HPP
+#endif //PARSERLIB_CORE_PARSEERRORTYPE_HPP

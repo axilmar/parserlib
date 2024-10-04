@@ -1,11 +1,11 @@
-#ifndef PARSERLIB_OPTIONALPARSER_HPP
-#define PARSERLIB_OPTIONALPARSER_HPP
+#ifndef PARSERLIB_CORE_OPTIONALPARSER_HPP
+#define PARSERLIB_CORE_OPTIONALPARSER_HPP
 
 
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -44,7 +44,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_OPTIONALPARSER_HPP
+#endif //PARSERLIB_CORE_OPTIONALPARSER_HPP

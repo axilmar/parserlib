@@ -1,12 +1,12 @@
-#ifndef PARSERLIB_ERRORRESUMEPARSER_HPP
-#define PARSERLIB_ERRORRESUMEPARSER_HPP
+#ifndef PARSERLIB_CORE_ERRORRESUMEPARSER_HPP
+#define PARSERLIB_CORE_ERRORRESUMEPARSER_HPP
 
 
 #include "Parser.hpp"
 #include "ParseError.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -105,7 +105,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_ERRORRESUMEPARSER_HPP
+#endif //PARSERLIB_CORE_ERRORRESUMEPARSER_HPP

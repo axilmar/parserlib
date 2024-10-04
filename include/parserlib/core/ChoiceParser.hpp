@@ -1,12 +1,12 @@
-#ifndef PARSERLIB_CHOICEPARSER_HPP
-#define PARSERLIB_CHOICEPARSER_HPP
+#ifndef PARSERLIB_CORE_CHOICEPARSER_HPP
+#define PARSERLIB_CORE_CHOICEPARSER_HPP
 
 
 #include "Parser.hpp"
 #include "LeftRecursion.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -71,7 +71,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_CHOICEPARSER_HPP
+#endif //PARSERLIB_CORE_CHOICEPARSER_HPP

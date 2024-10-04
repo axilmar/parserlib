@@ -1,8 +1,8 @@
-#ifndef PARSERLIB_LEFTRECURSION_HPP
-#define PARSERLIB_LEFTRECURSION_HPP
+#ifndef PARSERLIB_CORE_LEFTRECURSION_HPP
+#define PARSERLIB_CORE_LEFTRECURSION_HPP
 
 
-namespace parserlib::LeftRecursion {
+namespace parserlib::core::LeftRecursion {
 
 
     /**
@@ -50,7 +50,7 @@ namespace parserlib::LeftRecursion {
     };
 
 
-} //namespace parserlib::LeftRecursion
+} //namespace parserlib::core::LeftRecursion
 
 
-#endif //PARSERLIB_LEFTRECURSION_HPP
+#endif //PARSERLIB_CORE_LEFTRECURSION_HPP

@@ -1,28 +1,28 @@
-#ifndef PARSERLIB_ONEORMOREPARSER_HPP
-#define PARSERLIB_ONEORMOREPARSER_HPP
+#ifndef PARSERLIB_CORE_ZEROORMOREPARSER_HPP
+#define PARSERLIB_CORE_ZEROORMOREPARSER_HPP
 
 
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
-     * Loop 1 or more times.
+     * Loop 0 or more times.
      *
-     * The unary operator + is used to create an one-or-more parser out of another parser.
+     * The unary operator * is used to create a zero-or-more parser out of another parser.
      *
      * @param Child child parser.
      */
     template <class Child>
-    class OneOrMoreParser : public Parser<OneOrMoreParser<Child>> {
+    class ZeroOrMoreParser : public Parser<ZeroOrMoreParser<Child>> {
     public:
         /**
          * The constructor.
          * @param child the child parser.
          */
-        OneOrMoreParser(const Child& child)
+        ZeroOrMoreParser(const Child& child)
             : m_child(child)
         {
         }
@@ -31,13 +31,10 @@ namespace parserlib {
          * Parses the input.
          * It invokes the child parser repeatedly until the child parser returns false.
          * @param pc parse context.
-         * @return false if the first parse fails, true otherwise.
+         * @return always true.
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            if (!m_child.parse(pc)) {
-                return false;
-            }
             while (m_child.parse(pc)) {
             }
             return true;
@@ -48,7 +45,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_ONEORMOREPARSER_HPP
+#endif //PARSERLIB_CORE_ZEROORMOREPARSER_HPP

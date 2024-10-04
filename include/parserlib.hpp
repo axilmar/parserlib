@@ -2,12 +2,8 @@
 #define PARSERLIB_HPP
 
 
-#include "parserlib/TerminalParser.hpp"
-#include "parserlib/TerminalStringParser.hpp"
-#include "parserlib/TerminalSetParser.hpp"
-#include "parserlib/TerminalRangeParser.hpp"
-#include "parserlib/Rule.hpp"
-#include "parserlib/CFE.hpp"
+#include "parserlib/core.hpp"
+#include "parserlib/util.hpp"
 
 
 #endif //PARSERLIB_HPP

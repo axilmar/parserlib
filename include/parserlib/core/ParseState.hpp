@@ -1,8 +1,8 @@
-#ifndef PARSERLIB_PARSESTATE_HPP
-#define PARSERLIB_PARSESTATE_HPP
+#ifndef PARSERLIB_CORE_PARSESTATE_HPP
+#define PARSERLIB_CORE_PARSESTATE_HPP
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -66,7 +66,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_PARSESTATE_HPP
+#endif //PARSERLIB_CORE_PARSESTATE_HPP

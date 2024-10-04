@@ -72,6 +72,19 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a string from arguments.
+     * @param args arguments to convert to string.
+     * @return a string with values.
+     */
+    template <class... T> 
+    std::string toString(T&&... args) {
+        std::stringstream stream;
+        (stream << ... << args);
+        return stream.str();
+    }
+
+
 } //namespace parserlib
 
 

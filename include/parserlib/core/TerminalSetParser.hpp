@@ -1,14 +1,14 @@
-#ifndef PARSERLIB_TERMINALSETPARSER_HPP
-#define PARSERLIB_TERMINALSETPARSER_HPP
+#ifndef PARSERLIB_CORE_TERMINALSETPARSER_HPP
+#define PARSERLIB_CORE_TERMINALSETPARSER_HPP
 
 
 #include <vector>
 #include <algorithm>
-#include "util.hpp"
+#include "parserlib/util.hpp"
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -110,7 +110,7 @@ namespace parserlib {
     }
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_TERMINALSETPARSER_HPP
+#endif //PARSERLIB_CORE_TERMINALSETPARSER_HPP

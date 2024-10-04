@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_RULE_HPP
-#define PARSERLIB_RULE_HPP
+#ifndef PARSERLIB_CORE_RULE_HPP
+#define PARSERLIB_CORE_RULE_HPP
 
 
 #include <memory>
@@ -17,7 +17,7 @@
 #include "ErrorResumeParser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -447,6 +447,21 @@ namespace parserlib {
 
 
     /**
+     * Creates an error resume parser.
+     * @param left the left parser/element.
+     * @param right the right parser/element.
+     * @return an error resume parser.
+     */
+    template <class ParseContext, class Right>
+    ErrorResumeParser<RuleReference<ParseContext>, Right>
+        operator >> (Rule<ParseContext>& left, const ErrorResumePoint<Right>& right)
+    {
+        return ErrorResumeParser<RuleReference<ParseContext>, Right>(
+            RuleReference<ParseContext>(left), right.getParser());
+    }
+
+
+    /**
      * Creates a choice of the given parsers.
      * @param left the left parser/element.
      * @param right the right parser/element.
@@ -719,7 +734,7 @@ namespace parserlib {
     }
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_RULE_HPP
+#endif //PARSERLIB_CORE_RULE_HPP

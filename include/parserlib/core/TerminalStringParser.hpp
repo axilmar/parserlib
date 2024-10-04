@@ -1,13 +1,13 @@
-#ifndef PARSERLIB_TERMINALSTRINGPARSER_HPP
-#define PARSERLIB_TERMINALSTRINGPARSER_HPP
+#ifndef PARSERLIB_CORE_TERMINALSTRINGPARSER_HPP
+#define PARSERLIB_CORE_TERMINALSTRINGPARSER_HPP
 
 
 #include <vector>
-#include "util.hpp"
+#include "parserlib/util.hpp"
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -87,7 +87,7 @@ namespace parserlib {
     }
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_TERMINALSTRINGPARSER_HPP
+#endif //PARSERLIB_CORE_TERMINALSTRINGPARSER_HPP

@@ -1,12 +1,12 @@
-#ifndef PARSERLIB_SEQUENCEPARSER_HPP
-#define PARSERLIB_SEQUENCEPARSER_HPP
+#ifndef PARSERLIB_CORE_SEQUENCEPARSER_HPP
+#define PARSERLIB_CORE_SEQUENCEPARSER_HPP
 
 
 #include "Parser.hpp"
 #include "LeftRecursion.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -72,7 +72,7 @@ namespace parserlib {
     };
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_SEQUENCEPARSER_HPP
+#endif //PARSERLIB_CORE_SEQUENCEPARSER_HPP

@@ -1,12 +1,12 @@
-#ifndef PARSERLIB_TERMINALRANGEPARSER_HPP
-#define PARSERLIB_TERMINALRANGEPARSER_HPP
+#ifndef PARSERLIB_CORE_TERMINALRANGEPARSER_HPP
+#define PARSERLIB_CORE_TERMINALRANGEPARSER_HPP
 
 
 #include <cassert>
 #include "Parser.hpp"
 
 
-namespace parserlib {
+namespace parserlib::core {
 
 
     /**
@@ -68,7 +68,7 @@ namespace parserlib {
     }
 
 
-} //namespace parserlib
+} //namespace parserlib::core
 
 
-#endif //PARSERLIB_TERMINALRANGEPARSER_HPP
+#endif //PARSERLIB_CORE_TERMINALRANGEPARSER_HPP
