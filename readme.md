@@ -8,6 +8,9 @@ A c++17 recursive-descent parser library that can parse left-recursive grammars.
   - 1.0.0.3
  
  	- Reorganized the library in order to support compiler front ends into a separate namespace. The main library is now in `namespace parserlib::core`.
+ 	- Added `namespace parserlib::cfe` which now contains the compiler-front-end functionality.
+ 	- separated tokenization and parsing phases for compiler-front-ends (example here(### Parsing)).
+ 	- Added relevant documentation and unit tests.
  
 
   - 1.0.0.2
