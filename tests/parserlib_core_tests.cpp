@@ -443,7 +443,7 @@ static void unitTest_Match() {
         assert(ok);
         assert(pc.getCurrentPosition() == input.end());
         assert(matches.size() == 1);
-        assert(matches[0].getId() == 'm');
+        assert(matches[0].getID() == 'm');
     }
 
     {
@@ -615,19 +615,19 @@ static Rule<CalculatorParseContext> add = (add >> '+' >> mul) ->* AST::Add
 
 
 static int eval(const Match<AST>& m) {
-    if (m.getId() == AST::Add) {
+    if (m.getID() == AST::Add) {
         return eval(m.getChildren()[0]) + eval(m.getChildren()[1]);
     }
-    if (m.getId() == AST::Sub) {
+    if (m.getID() == AST::Sub) {
         return eval(m.getChildren()[0]) - eval(m.getChildren()[1]);
     }
-    if (m.getId() == AST::Mul) {
+    if (m.getID() == AST::Mul) {
         return eval(m.getChildren()[0]) * eval(m.getChildren()[1]);
     }
-    if (m.getId() == AST::Div) {
+    if (m.getID() == AST::Div) {
         return eval(m.getChildren()[0]) / eval(m.getChildren()[1]);
     }
-    if (m.getId() == AST::Int) {
+    if (m.getID() == AST::Int) {
         std::stringstream stream;
         stream << m.getSource();
         int v;

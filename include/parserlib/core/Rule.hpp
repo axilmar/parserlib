@@ -602,9 +602,9 @@ namespace parserlib::core {
      * @param matchId id of the match.
      * @return a match parser for the given parser.
      */
-    template <class ParseContext, class MatchId>
-    MatchParser<RuleReference<ParseContext>, MatchId> operator ->* (Rule<ParseContext>& rule, const MatchId& matchId) {
-        return MatchParser<RuleReference<ParseContext>, MatchId>(RuleReference<ParseContext>(rule), matchId);
+    template <class ParseContext, class MatchID>
+    MatchParser<RuleReference<ParseContext>, MatchID> operator ->* (Rule<ParseContext>& rule, const MatchID& matchId) {
+        return MatchParser<RuleReference<ParseContext>, MatchID>(RuleReference<ParseContext>(rule), matchId);
     }
 
 

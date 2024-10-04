@@ -45,11 +45,11 @@ namespace parserlib::core {
     class TerminalStringParser;
 
 
-    template <class MatchId, class Source>
+    template <class MatchID, class Source>
     class Match;
 
 
-    template <class Child, class MatchId>
+    template <class Child, class MatchID>
     class MatchParser;
 
 
@@ -411,9 +411,9 @@ namespace parserlib::core {
      * @param matchId id of the match.
      * @return a match parser for the given parser.
      */
-    template <class Child, class MatchId> 
-    MatchParser<Child, MatchId> operator ->* (const Parser<Child>& parser, const MatchId& matchId) {
-        return MatchParser<Child, MatchId>(parser.self(), matchId);
+    template <class Child, class MatchID> 
+    MatchParser<Child, MatchID> operator ->* (const Parser<Child>& parser, const MatchID& matchId) {
+        return MatchParser<Child, MatchID>(parser.self(), matchId);
     }
 
 
@@ -423,9 +423,9 @@ namespace parserlib::core {
      * @param matchId id of the match.
      * @return a match parser for the given parser.
      */
-    template <class Left, class MatchId, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
-    MatchParser<TerminalParser<Left>, MatchId> operator ->* (const Left& left, const MatchId& matchId) {
-        return MatchParser<TerminalParser<Left>, MatchId>(TerminalParser<Left>(left), matchId);
+    template <class Left, class MatchID, std::enable_if_t<!std::is_base_of_v<Parser<Left>, Left>, bool> = true>
+    MatchParser<TerminalParser<Left>, MatchID> operator ->* (const Left& left, const MatchID& matchId) {
+        return MatchParser<TerminalParser<Left>, MatchID>(TerminalParser<Left>(left), matchId);
     }
 
 
@@ -435,9 +435,9 @@ namespace parserlib::core {
      * @param matchId id of the match.
      * @return a match parser for the given parser.
      */
-    template <class Left, class MatchId>
-    MatchParser<TerminalStringParser<Left>, MatchId> operator ->* (const Left* left, const MatchId& matchId) {
-        return MatchParser<TerminalStringParser<Left>, MatchId>(TerminalStringParser<Left>(left), matchId);
+    template <class Left, class MatchID>
+    MatchParser<TerminalStringParser<Left>, MatchID> operator ->* (const Left* left, const MatchID& matchId) {
+        return MatchParser<TerminalStringParser<Left>, MatchID>(TerminalStringParser<Left>(left), matchId);
     }
 
 
@@ -447,9 +447,9 @@ namespace parserlib::core {
      * @param matchId id of the match.
      * @return a match parser for the given parser.
      */
-    template <class MatchId, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
-    MatchParser<TerminalStringParser<CharT>, MatchId> operator ->* (const std::basic_string<CharT, Traits, Allocator>& left, const MatchId& matchId) {
-        return MatchParser<TerminalStringParser<CharT>, MatchId>(TerminalStringParser<CharT>(left), matchId);
+    template <class MatchID, class CharT, class Traits = std::char_traits<CharT>, class Allocator>
+    MatchParser<TerminalStringParser<CharT>, MatchID> operator ->* (const std::basic_string<CharT, Traits, Allocator>& left, const MatchID& matchId) {
+        return MatchParser<TerminalStringParser<CharT>, MatchID>(TerminalStringParser<CharT>(left), matchId);
     }
 
 

@@ -3,6 +3,7 @@
 
 
 #include <cassert>
+#include <vector>
 #include "ParseErrorType.hpp"
 
 
@@ -55,7 +56,7 @@ namespace parserlib::core {
          * Returns the id of the error.
          * @return the id of the error.
          */
-        int getId() const {
+        int getID() const {
             return m_id;
         }
 
@@ -63,7 +64,7 @@ namespace parserlib::core {
          * Sets the id of the error.
          * @param id id of the error.
          */
-        void setId(int id) {
+        void setID(int id) {
             m_id = id;
         }
 
@@ -188,6 +189,10 @@ namespace parserlib::core {
         Iterator m_startPosition;
         Iterator m_endPosition;
     };
+
+
+    template <class Source>
+    using ParseErrorContainer = std::vector<ParseError<Source>>;
 
 
 } //namespace parserlib::core

@@ -91,15 +91,10 @@ namespace parserlib::core {
         /**
          * The iterator into the source.
          */
-        typedef typename Source::const_iterator Iterator;
+        typedef typename Source::const_iterator SourceIterator;
 
         /**
          * The value type, i.e. the character type.
-         */
-        typedef typename Source::value_type CharValue;
-
-        /**
-         * Required for STL container compatibility.
          */
         typedef typename Source::value_type value_type;
 
@@ -113,7 +108,7 @@ namespace parserlib::core {
              * The constructor.
              * @param v the character value.
              */
-            Char(const CharValue& v)
+            Char(const value_type& v)
                 : m_value(v)
             {
             }
@@ -124,7 +119,7 @@ namespace parserlib::core {
              * @param v the value to compare this with.
              * @return true if the characters are equal, false otherwise.
              */
-            bool operator == (const CharValue& v) const {
+            bool operator == (const value_type& v) const {
                 return CaseTraits::toLowerCase(m_value) == CaseTraits::toLowerCase(v);
             }
 
@@ -134,7 +129,7 @@ namespace parserlib::core {
              * @param v the value to compare this with.
              * @return true if the characters are different, false otherwise.
              */
-            bool operator != (const CharValue& v) const {
+            bool operator != (const value_type& v) const {
                 return CaseTraits::toLowerCase(m_value) != CaseTraits::toLowerCase(v);
             }
 
@@ -144,7 +139,7 @@ namespace parserlib::core {
              * @param v the value to compare this with.
              * @return true if this character is less than the given one, false otherwise.
              */
-            bool operator < (const CharValue& v) const {
+            bool operator < (const value_type& v) const {
                 return CaseTraits::toLowerCase(m_value) < CaseTraits::toLowerCase(v);
             }
 
@@ -154,7 +149,7 @@ namespace parserlib::core {
              * @param v the value to compare this with.
              * @return true if this character is less than or equal to the given one, false otherwise.
              */
-            bool operator <= (const CharValue& v) const {
+            bool operator <= (const value_type& v) const {
                 return CaseTraits::toLowerCase(m_value) <= CaseTraits::toLowerCase(v);
             }
 
@@ -164,7 +159,7 @@ namespace parserlib::core {
              * @param v the value to compare this with.
              * @return true if this character is greater than the given one, false otherwise.
              */
-            bool operator > (const CharValue& v) const {
+            bool operator > (const value_type& v) const {
                 return CaseTraits::toLowerCase(m_value) > CaseTraits::toLowerCase(v);
             }
 
@@ -174,7 +169,7 @@ namespace parserlib::core {
              * @param v the value to compare this with.
              * @return true if this character is greater than or equal to the given one, false otherwise.
              */
-            bool operator >= (const CharValue& v) const {
+            bool operator >= (const value_type& v) const {
                 return CaseTraits::toLowerCase(m_value) >= CaseTraits::toLowerCase(v);
             }
 
@@ -184,7 +179,7 @@ namespace parserlib::core {
              * @param c the character to check.
              * @return true if the value equals the character, false otherwise.
              */
-            friend bool operator == (const CharValue& v, const Char& c) {
+            friend bool operator == (const value_type& v, const Char& c) {
                 return CaseTraits::toLowerCase(v) == CaseTraits::toLowerCase(c.m_value);
             }
 
@@ -194,7 +189,7 @@ namespace parserlib::core {
              * @param c the character to check.
              * @return true if the value is different than the character, false otherwise.
              */
-            friend bool operator != (const CharValue& v, const Char& c) {
+            friend bool operator != (const value_type& v, const Char& c) {
                 return CaseTraits::toLowerCase(v) != CaseTraits::toLowerCase(c.m_value);
             }
 
@@ -204,7 +199,7 @@ namespace parserlib::core {
              * @param c the character to check.
              * @return true if the value is less than the character, false otherwise.
              */
-            friend bool operator < (const CharValue& v, const Char& c) {
+            friend bool operator < (const value_type& v, const Char& c) {
                 return CaseTraits::toLowerCase(v) < CaseTraits::toLowerCase(c.m_value);
             }
 
@@ -214,7 +209,7 @@ namespace parserlib::core {
              * @param c the character to check.
              * @return true if the value is less than or equal to the character, false otherwise.
              */
-            friend bool operator <= (const CharValue& v, const Char& c) {
+            friend bool operator <= (const value_type& v, const Char& c) {
                 return CaseTraits::toLowerCase(v) <= CaseTraits::toLowerCase(c.m_value);
             }
 
@@ -224,7 +219,7 @@ namespace parserlib::core {
              * @param c the character to check.
              * @return true if the value is greater than the character, false otherwise.
              */
-            friend bool operator > (const CharValue& v, const Char& c) {
+            friend bool operator > (const value_type& v, const Char& c) {
                 return CaseTraits::toLowerCase(v) > CaseTraits::toLowerCase(c.m_value);
             }
 
@@ -234,7 +229,7 @@ namespace parserlib::core {
              * @param c the character to check.
              * @return true if the value is greater than or equal to the character, false otherwise.
              */
-            friend bool operator >= (const CharValue& v, const Char& c) {
+            friend bool operator >= (const value_type& v, const Char& c) {
                 return CaseTraits::toLowerCase(v) >= CaseTraits::toLowerCase(c.m_value);
             }
 
@@ -242,12 +237,12 @@ namespace parserlib::core {
              * Returns the address of the internal character reference.
              * @return the address of the internal character reference.
              */
-            const CharValue* operator &() const {
+            const value_type* operator &() const {
                 return &m_value;
             }
 
         private:
-            const CharValue& m_value;
+            const value_type& m_value;
         };
 
         /**
@@ -271,7 +266,7 @@ namespace parserlib::core {
              * @param end the end position of the source; required for newline sequences that are 
              *  bigger than a single character.
              */
-            const_iterator(const Iterator& it, size_t line, size_t column, const Iterator& end)
+            const_iterator(const SourceIterator& it, size_t line, size_t column, const SourceIterator& end)
                 : m_iterator(it)
                 , m_line(line)
                 , m_column(column)
@@ -283,7 +278,7 @@ namespace parserlib::core {
              * Returns the iterator to source.
              * @return the iterator to source.
              */
-            const Iterator& getIterator() const {
+            const SourceIterator& getIterator() const {
                 return m_iterator;
             }
 
@@ -291,7 +286,7 @@ namespace parserlib::core {
              * Automatic conversion to iterator to source.
              * @return the iterator to source.
              */
-            operator const Iterator& () const {
+            operator const SourceIterator& () const {
                 return getIterator();
             }
 
@@ -408,7 +403,7 @@ namespace parserlib::core {
              * @param right the other iterator to check.
              * @return true if this and the given iterator are equal, false otherwise.
              */
-            bool operator == (const Iterator& right) const {
+            bool operator == (const SourceIterator& right) const {
                 return m_iterator == right;
             }
 
@@ -417,7 +412,7 @@ namespace parserlib::core {
              * @param right the other iterator to check.
              * @return true if this and the given iterator are different, false otherwise.
              */
-            bool operator != (const Iterator& right) const {
+            bool operator != (const SourceIterator& right) const {
                 return m_iterator != right;
             }
 
@@ -426,7 +421,7 @@ namespace parserlib::core {
              * @param right the other iterator to check.
              * @return true if this is less than the given iterator, false otherwise.
              */
-            bool operator < (const Iterator& right) const {
+            bool operator < (const SourceIterator& right) const {
                 return m_iterator < right;
             }
 
@@ -435,7 +430,7 @@ namespace parserlib::core {
              * @param right the other iterator to check.
              * @return true if this is less than or equal to the given iterator, false otherwise.
              */
-            bool operator <= (const Iterator& right) const {
+            bool operator <= (const SourceIterator& right) const {
                 return m_iterator <= right;
             }
 
@@ -444,7 +439,7 @@ namespace parserlib::core {
              * @param right the other iterator to check.
              * @return true if this is greater than the given iterator, false otherwise.
              */
-            bool operator > (const Iterator& right) const {
+            bool operator > (const SourceIterator& right) const {
                 return m_iterator > right;
             }
 
@@ -453,7 +448,7 @@ namespace parserlib::core {
              * @param right the other iterator to check.
              * @return true if this is greater than or equal to the given iterator, false otherwise.
              */
-            bool operator >= (const Iterator& right) const {
+            bool operator >= (const SourceIterator& right) const {
                 return m_iterator >= right;
             }
 
@@ -463,7 +458,7 @@ namespace parserlib::core {
              * @param right the right iterator to check.
              * @return true if the left and the right iterator are equal, false otherwise.
              */
-            friend bool operator == (const Iterator& left, const const_iterator& right) {
+            friend bool operator == (const SourceIterator& left, const const_iterator& right) {
                 return left == right.getIterator();
             }
 
@@ -473,7 +468,7 @@ namespace parserlib::core {
              * @param right the right iterator to check.
              * @return true if the left and the right iterator are different, false otherwise.
              */
-            friend bool operator != (const Iterator& left, const const_iterator& right) {
+            friend bool operator != (const SourceIterator& left, const const_iterator& right) {
                 return left != right.getIterator();
             }
 
@@ -483,7 +478,7 @@ namespace parserlib::core {
              * @param right the right iterator to check.
              * @return true if the left is less than the right iterator, false otherwise.
              */
-            friend bool operator < (const Iterator& left, const const_iterator& right) {
+            friend bool operator < (const SourceIterator& left, const const_iterator& right) {
                 return left < right.getIterator();
             }
 
@@ -493,7 +488,7 @@ namespace parserlib::core {
              * @param right the right iterator to check.
              * @return true if the left is less than or equal to the right iterator, false otherwise.
              */
-            friend bool operator <= (const Iterator& left, const const_iterator& right) {
+            friend bool operator <= (const SourceIterator& left, const const_iterator& right) {
                 return left <= right.getIterator();
             }
 
@@ -503,7 +498,7 @@ namespace parserlib::core {
              * @param right the right iterator to check.
              * @return true if the left is greater than the right iterator, false otherwise.
              */
-            friend bool operator > (const Iterator& left, const const_iterator& right) {
+            friend bool operator > (const SourceIterator& left, const const_iterator& right) {
                 return left > right.getIterator();
             }
 
@@ -513,7 +508,7 @@ namespace parserlib::core {
              * @param right the right iterator to check.
              * @return true if the left is greater than or equal to the right iterator, false otherwise.
              */
-            friend bool operator >= (const Iterator& left, const const_iterator& right) {
+            friend bool operator >= (const SourceIterator& left, const const_iterator& right) {
                 return left >= right.getIterator();
             }
 
@@ -541,8 +536,8 @@ namespace parserlib::core {
             }
 
         private:
-            Iterator m_iterator;
-            Iterator m_end;
+            SourceIterator m_iterator;
+            SourceIterator m_end;
             size_t m_line;
             size_t m_column;
         };
@@ -560,7 +555,7 @@ namespace parserlib::core {
          * Constructor from null-terminated source string.
          * @param source the null-terminated string value; copied internally to an instance of Source.
          */
-        SourceString(const CharValue* source)
+        SourceString(const value_type* source)
             : m_source(source)
         {
         }

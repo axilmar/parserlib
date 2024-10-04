@@ -25,19 +25,19 @@ namespace parserlib::core {
     /**
      * Data used while parsing an input.
      * 
-     * @param MatchId the match id type; by default, it is of type int, so C-like enums can be used for matches.
+     * @param MatchID the match id type; by default, it is of type int, so C-like enums can be used for matches.
      *  But it can also be a class enum or any other type.
      * 
      * @param Source the type of source to parse; by default, it is a SourceString, allowing the counting of
      *  lines and columns, but it can also be any other STL-like container.
      */
-    template <class MatchId = int, class Source = SourceString<>>
+    template <class MatchID = int, class Source = SourceString<>>
     class ParseContext {
     public:
         /**
          * The Match id type.
          */
-        typedef MatchId MatchId;
+        typedef MatchID MatchID;
 
         /**
          * The source type.
@@ -67,17 +67,17 @@ namespace parserlib::core {
         /**
          * The rule type for this parse context.
          */
-        typedef Rule<ParseContext<MatchId, Source>> Rule;
+        typedef Rule<ParseContext<MatchID, Source>> Rule;
 
         /**
          * The match type.
          */
-        typedef Match<MatchId, Source> Match;
+        typedef Match<MatchID, Source> Match;
 
         /**
          * The match container type.
          */
-        typedef MatchContainer<MatchId, Source> MatchContainer;
+        typedef MatchContainer<MatchID, Source> MatchContainer;
 
         /**
          * The constructor.
@@ -266,7 +266,7 @@ namespace parserlib::core {
          * @param childCount number of children to pop from the current match stack and set as children for the new match.
          * @exception std::invalid_argument thrown if the child count is greater than the number of the existing matches.
          */
-        void addMatch(const MatchId& id, const Iterator& startPosition, const Iterator& endPosition, size_t childCount) {
+        void addMatch(const MatchID& id, const Iterator& startPosition, const Iterator& endPosition, size_t childCount) {
             if (childCount > m_matches.size()) {
                 throw std::invalid_argument("ParseContext::addMatch: child match count greater than existing match count.");
             }

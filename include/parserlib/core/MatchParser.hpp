@@ -12,17 +12,17 @@ namespace parserlib::core {
      * Parser used to add a match when the child parser parses successfully.
      * 
      * @param Child the child parser.
-     * @param MatchId the match id type.
+     * @param MatchID the match id type.
      */
-    template <class Child, class MatchId>
-    class MatchParser : public Parser<MatchParser<Child, MatchId>> {
+    template <class Child, class MatchID>
+    class MatchParser : public Parser<MatchParser<Child, MatchID>> {
     public:
         /**
          * The constructor.
          * @param child the child parser.
          * @param id the match id.
          */
-        MatchParser(const Child& child, const MatchId& id)
+        MatchParser(const Child& child, const MatchID& id)
             : m_child(child)
             , m_id(id)
         {
@@ -53,7 +53,7 @@ namespace parserlib::core {
 
     private:
         Child m_child;
-        MatchId m_id;
+        MatchID m_id;
     };
 
 

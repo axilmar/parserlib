@@ -10,31 +10,31 @@
 namespace parserlib::core {
 
 
-    template <class MatchId = int, class Source = SourceString<>>
+    template <class MatchID = int, class Source = SourceString<>>
     class Match;
 
 
     /**
      * Type of match container.
-     * @param MatchId match id type.
+     * @param MatchID match id type.
      * @param Source source type.
      */
-    template <class MatchId, class Source>
-    using MatchContainer = std::vector<Match<MatchId, Source>>;
+    template <class MatchID, class Source>
+    using MatchContainer = std::vector<Match<MatchID, Source>>;
 
 
     /**
      * Type of match.
-     * @param MatchId match id type.
+     * @param MatchID match id type.
      * @param Source source type.
      */
-    template <class MatchId, class Source>
+    template <class MatchID, class Source>
     class Match {
     public:
         /**
          * The match id type.
          */
-        typedef MatchId MatchId;
+        typedef MatchID MatchID;
 
         /**
          * The source type.
@@ -49,7 +49,7 @@ namespace parserlib::core {
         /**
          * The match container type.
          */
-        typedef MatchContainer<MatchId, Source> MatchContainer;
+        typedef MatchContainer<MatchID, Source> MatchContainer;
 
         /**
          * The default constructor.
@@ -67,7 +67,7 @@ namespace parserlib::core {
          * @param endPosition end position into the source (non-inclusive, one position past the last element).
          * @param children children matches.
          */
-        Match(const MatchId& matchId, const Iterator& startPosition, const Iterator& endPosition, MatchContainer&& children)
+        Match(const MatchID& matchId, const Iterator& startPosition, const Iterator& endPosition, MatchContainer&& children)
             : m_matchId(matchId)
             , m_startPosition(startPosition)
             , m_endPosition(endPosition)
@@ -79,7 +79,7 @@ namespace parserlib::core {
          * Returns the match id.
          * @return the match id.
          */
-        const MatchId& getId() const {
+        const MatchID& getID() const {
             return m_matchId;
         }
 
@@ -135,7 +135,7 @@ namespace parserlib::core {
         }
 
     private:
-        MatchId m_matchId;
+        MatchID m_matchId;
         Iterator m_startPosition;
         Iterator m_endPosition;
         MatchContainer m_children;
