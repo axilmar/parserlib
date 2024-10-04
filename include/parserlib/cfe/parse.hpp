@@ -41,6 +41,15 @@ namespace parserlib::cfe {
     } //namespace detail
 
 
+    /**
+     * Parses a token container in order to create an AST.
+     * @param input the tokens to parse.
+     * @param grammar the grammar to use for parsing.
+     * @param ast the container of AST nodes.
+     * @param errors container to receive the errors.
+     * @param createAST function to use for AST creation.
+     * @return true on success, false on error.
+     */
     template <class TokenContainer, class Grammar, class ASTContainer, class ErrorContainer, class CreateASTFunc>
     bool parse(TokenContainer& input, Grammar&& grammar, ASTContainer& ast, ErrorContainer& errors, CreateASTFunc&& createAST) {
         typedef typename ASTContainer::value_type ASTPtr;
@@ -69,6 +78,15 @@ namespace parserlib::cfe {
     }
 
 
+    /**
+     * Parses a token container in order to create an AST.
+     * It uses a default function for AST creation.
+     * @param input the tokens to parse.
+     * @param grammar the grammar to use for parsing.
+     * @param ast the container of AST nodes.
+     * @param errors container to receive the errors.
+     * @return true on success, false on error.
+     */
     template <class TokenContainer, class Grammar, class ASTContainer, class ErrorContainer>
     bool parse(TokenContainer& input, Grammar&& grammar, ASTContainer& ast, ErrorContainer& errors) {
         return parse(input, std::forward<Grammar>(grammar), ast, errors, &detail::DefaultASTCreation<ASTContainer>::createAST);

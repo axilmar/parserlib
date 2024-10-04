@@ -9,6 +9,14 @@
 namespace parserlib::cfe {
 
 
+    /**
+     * Tokenizes an input.
+     * @param input the input to tokenize.
+     * @param grammar the grammar to use for the tokenizer.
+     * @param tokens the output tokens.
+     * @param errors the output errors.
+     * @return true on success, false on failure.
+     */
     template <class Source, class Grammar, class TokenContainer, class ErrorContainer>
     bool tokenize(Source& input, Grammar&& grammar, TokenContainer& tokens, ErrorContainer& errors) {
         typedef typename TokenContainer::value_type Token;
