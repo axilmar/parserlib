@@ -649,9 +649,9 @@ The type `TokenContainer` shall contain the tokens (which must follow the conven
 
 The type `ASTContainer` shall be a container of ast node pointers.
 
-The type 'ErrorContainer' shall be a container of errors. The error class should follow the conventions laid out by the `class parserlib::core::ParseError`.
+The type `ErrorContainer` shall be a container of errors. The error class should follow the conventions laid out by the `class parserlib::core::ParseError`.
 
-For example, the following code uses totally custom Token and AST node types (example taken from unit tests):
+For example, the following code uses totally custom Token, AST node and error types (example taken from unit tests):
 
 ```cpp
     enum class TokenKind {
