@@ -633,7 +633,7 @@ The Token type should follow the conventions of `class parserlib::cfe::Token`.
 
 ### Parsing
 
-The library provides separate token functions with the following signatures:
+The library provides separate parse functions with the following signatures:
 
 ```cpp
 template <class TokenContainer, class Grammar, class ASTContainer, class ErrorContainer, class CreateASTFunc>
