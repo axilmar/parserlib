@@ -215,5 +215,85 @@ static void unitTest_CFE() {
 }
 
 
+static void unitTest_customParsing() {
+    enum class TokenKind {
+        A,
+        B,
+        C
+    };
+
+    struct Token {
+        TokenKind kind;
+        std::string lexeme;
+        int row;
+        int column;
+
+        bool operator == (TokenKind tk) const {
+            return kind == tk;
+        }
+    };
+
+    std::vector<Token> tokens;
+
+    enum class ASTID {
+        A,
+        B,
+        C
+    };
+
+    const auto grammar
+        = *(TokenKind::A->*ASTID::A
+        |   TokenKind::B->*ASTID::B
+        |   TokenKind::C->*ASTID::C)
+        ;
+
+    class MyAST {
+    public:
+        typedef ASTID ASTID;
+
+        typedef std::vector<Token> Source;
+
+        ASTID ID;
+
+        MyAST(ASTID id, std::vector<Token>::const_iterator start, std::vector<Token>::const_iterator end, std::vector<std::shared_ptr<MyAST>>&& children)
+            : ID(id)
+        {
+        }
+    };
+
+    std::vector<std::shared_ptr<MyAST>> ast;
+
+    class Error {
+    public:
+        std::vector<Token>::const_iterator START;
+
+        Error(int id, std::vector<Token>::const_iterator start, std::vector<Token>::const_iterator end)
+            : START(start)
+        {
+        }
+
+        bool operator < (const Error& err) const {
+            return START < err.START;
+        }
+    };
+
+    std::vector<Error> errors;
+
+    std::vector<Token> input;
+    input.push_back(Token{ TokenKind::C, "", 0, 0 });
+    input.push_back(Token{ TokenKind::B, "", 0, 0 });
+    input.push_back(Token{ TokenKind::A, "", 0, 0 });
+
+    cfe::parse(input, grammar, ast, errors);
+
+    assert(ast.size() == 3);
+    assert(ast[0]->ID == ASTID::C);
+    assert(ast[1]->ID == ASTID::B);
+    assert(ast[2]->ID == ASTID::A);
+}
+
+
 void parserlib_cfe_unitTests() {
+    unitTest_CFE();
+    unitTest_customParsing();
 }
