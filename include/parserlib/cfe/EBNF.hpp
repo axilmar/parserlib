@@ -34,11 +34,17 @@ namespace parserlib::cfe {
      *      %<token name> = <choice expression> ';'
      *      <Token name> is an identifier.
      *      e.g.
-     *      %identifier = letter (letter | digit)*;
+     *      %integer = digit+;
      * 
      *      Explicitly defined tokens are automatically added to the tokenizer.
+     * 
      *      Implicitly defined tokens (i.e. strings within the grammar) are extracted from the grammar
      *      and are added to the tokenizer.
+     * 
+     *      A rule can be defined either for the tokenizer and/or the parser, depending on use.
+     *      If a rule is used within the context of a token, then it will be added to the tokenizer;
+     *      if a rule is used within the context of a grammar rule, then it will be added to the parser;
+     *      if a rule is used by both, it will be added to both.
      * 
      * - rules:
      *      <rule name> = <choice expression> ';'
