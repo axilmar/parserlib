@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include "parserlib/core/ParseContext.hpp"
+#include "parserlib/core/ParseErrorType.hpp"
 
 
 namespace parserlib::cfe {
@@ -21,19 +22,22 @@ namespace parserlib::cfe {
     bool tokenize(Source& input, Grammar&& grammar, TokenContainer& tokens, ErrorContainer& errors) {
         typedef typename TokenContainer::value_type Token;
         typedef typename Token::TokenID TokenID;
-
         typedef core::ParseContext<TokenID, Source> ParseContext;
+        typedef typename ErrorContainer::value_type Error;
 
         //parse
         ParseContext pc(input);
         bool success = grammar.parse(pc) && pc.isEndPosition();
 
+        //add error if end of source has not been reached
+        if (!pc.isEndPosition()) {
+            errors.push_back(Error((int)core::ParseErrorType::SyntaxError, pc.getCurrentPosition(), pc.getEndPosition()));
+        }
+
         //get tokens
         for (const auto& match : pc.getMatches()) {
             tokens.push_back(Token(match.getID(), match.getStartPosition(), match.getEndPosition()));
         }
-
-        typedef typename ErrorContainer::value_type Error;
 
         //get errors
         for (const auto& error : pc.getErrors()) {

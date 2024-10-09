@@ -4,6 +4,7 @@
 
 #include <utility>
 #include "parserlib/core/ParseContext.hpp"
+#include "parserlib/core/ParseErrorType.hpp"
 #include "AST.hpp"
 
 
@@ -56,17 +57,21 @@ namespace parserlib::cfe {
         typedef typename ASTPtr::element_type AST;
         typedef typename AST::ASTID ASTID;
         typedef core::ParseContext<ASTID, TokenContainer> ParseContext;
+        typedef typename ErrorContainer::value_type Error;
 
         //parse
         ParseContext pc(input);
         bool success = grammar.parse(pc) && pc.isEndPosition();
 
+        //add error if end of source has not been reached
+        if (!pc.isEndPosition()) {
+            errors.push_back(Error((int)core::ParseErrorType::SyntaxError, pc.getCurrentPosition(), pc.getEndPosition()));
+        }
+
         //create the ast
         for (const auto& match : pc.getMatches()) {
             detail::createASTHelper(ast, match, std::forward<CreateASTFunc>(createAST));
         }
-
-        typedef typename ErrorContainer::value_type Error;
 
         //create the errors
         for (const auto& error : pc.getErrors()) {

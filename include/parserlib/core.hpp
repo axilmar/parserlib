@@ -6,6 +6,7 @@
 #include "parserlib/core/TerminalStringParser.hpp"
 #include "parserlib/core/TerminalSetParser.hpp"
 #include "parserlib/core/TerminalRangeParser.hpp"
+#include "parserlib/core/DebugParser.hpp"
 #include "parserlib/core/Rule.hpp"
 
 

@@ -2,10 +2,12 @@
 #define PARSERLIB_CFE_AST_HPP
 
 
+#include <string>
 #include <vector>
 #include <memory>
 #include <utility>
 #include <ostream>
+#include <sstream>
 #include "Token.hpp"
 
 
@@ -138,13 +140,8 @@ namespace parserlib::cfe {
                 stream << ' ';
             }
 
-            //print the ast id
-            stream << m_id;
-
-            //print source
-            if (maxSourceCharsPerLine > 0) {
-                stream << ": " << getSource(maxSourceCharsPerLine);
-            }
+            //print the header
+            stream << toString(maxSourceCharsPerLine);
 
             stream << '\n';
 
@@ -152,6 +149,20 @@ namespace parserlib::cfe {
             for (const ASTPtr& child : m_children) {
                 child->print(stream, depth + 1, tabSize, maxSourceCharsPerLine);
             }
+        }
+
+        /**
+         * Convert node to string (without children).
+         * @param maxSourceCharsPerLine maximum number of characters from source code to print per line.
+         * @return string.
+         */
+        std::basic_string<typename TokenSource::value_type> toString(size_t maxSourceCharsPerLine = 32) const {
+            std::basic_stringstream<typename TokenSource::value_type> stream;
+            stream << m_id;
+            if (maxSourceCharsPerLine > 0 && m_children.empty()) {
+                stream << ": " << getSource(maxSourceCharsPerLine);
+            }
+            return stream.str();
         }
 
     private:

@@ -1,4 +1,6 @@
+#include <iostream>
 #include "parserlib.hpp"
+#include "util.hpp"
 
 
 using namespace parserlib;
@@ -293,7 +295,152 @@ static void unitTest_customParsing() {
 }
 
 
+static void unitTest_EBNF() {
+    core::SourceString<> input =
+        "(*comment"
+        "*)"
+        "choice          = a | b | c;"
+        "sequence        = a b c;"
+        "exclude         = a - b;"
+        "zeroOrMore      = a*;"
+        "oneOrMore       = a+;"
+        "optional        = a?;"
+        "logicalNot      = a!;"
+        "logicalAnd      = a&;"
+        "group           = (a | b | c);"
+        "optionalGroup   = [a | b | c];"
+        "repetitionGroup = {a | b | c};"
+        "%terminalString = \"aaa\";"
+        "%terminalRange  = 'a' .. 'z';"
+        "%terminalChar   = 'a';"
+        "%whitespace     = '\\0' .. ' ';";
+
+    EBNF ebnf;
+    auto [success, tokens, astp, errors] = ebnf.parse(input);
+
+    const auto& ast = *astp;
+
+    if (0) {
+        size_t index = 0;
+        for (const auto& ap : ast) {
+            std::cout << index << ") ";
+            ap->print(std::cout);
+            std::cout << std::endl;
+            ++index;
+        }
+        printf("");
+    }
+
+    assert(ast[0] ==
+        tree("Rule",
+            tree("NonTerminal: choice"),
+            tree("Choice",
+                tree("NonTerminal: a"),
+                tree("NonTerminal: b"),
+                tree("NonTerminal: c"))));
+
+    assert(ast[1] ==
+        tree("Rule",
+            tree("NonTerminal: sequence"),
+            tree("Sequence",
+                tree("NonTerminal: a"),
+                tree("NonTerminal: b"),
+                tree("NonTerminal: c"))));
+
+    assert(ast[2] ==
+        tree("Rule",
+            tree("NonTerminal: exclude"),
+            tree("Exclude",
+                tree("NonTerminal: a"),
+                tree("NonTerminal: b"))));
+
+    assert(ast[3] ==
+        tree("Rule",
+            tree("NonTerminal: zeroOrMore"),
+            tree("ZeroOrMore",
+                tree("NonTerminal: a"))));
+
+    assert(ast[4] ==
+        tree("Rule",
+            tree("NonTerminal: oneOrMore"),
+            tree("OneOrMore",
+                tree("NonTerminal: a"))));
+
+    assert(ast[5] ==
+        tree("Rule",
+            tree("NonTerminal: optional"),
+            tree("Optional",
+                tree("NonTerminal: a"))));
+
+    assert(ast[6] ==
+        tree("Rule",
+            tree("NonTerminal: logicalNot"),
+            tree("LogicalNot",
+                tree("NonTerminal: a"))));
+
+    assert(ast[7] ==
+        tree("Rule",
+            tree("NonTerminal: logicalAnd"),
+            tree("LogicalAnd",
+                tree("NonTerminal: a"))));
+
+    assert(ast[8] ==
+        tree("Rule",
+            tree("NonTerminal: group"),
+            tree("Group",
+                tree("Choice",
+                    tree("NonTerminal: a"),
+                    tree("NonTerminal: b"),
+                    tree("NonTerminal: c")))));
+
+    assert(ast[9] ==
+        tree("Rule",
+            tree("NonTerminal: optionalGroup"),
+            tree("OptionalGroup",
+                tree("Choice",
+                    tree("NonTerminal: a"),
+                    tree("NonTerminal: b"),
+                    tree("NonTerminal: c")))));
+
+    assert(ast[10] ==
+        tree("Rule",
+            tree("NonTerminal: repetitionGroup"),
+            tree("RepetitionGroup",
+                tree("Choice",
+                    tree("NonTerminal: a"),
+                    tree("NonTerminal: b"),
+                    tree("NonTerminal: c")))));
+
+    assert(ast[11] ==
+        tree("Token",
+            tree("NonTerminal: terminalString"),
+            tree("TerminalString: aaa")));
+
+    assert(ast[12] ==
+        tree("Token",
+            tree("NonTerminal: terminalRange"),
+            tree("TerminalRange",
+                tree("TerminalChar: a"),
+                tree("TerminalChar: z"))));
+
+    assert(ast[13] ==
+        tree("Token",
+            tree("NonTerminal: terminalChar"),
+            tree("TerminalChar: a")));
+
+    assert(ast[14] ==
+        tree("Token",
+            tree("NonTerminal: whitespace"),
+            tree("TerminalRange",
+                tree("TerminalChar: \\0"),
+                tree("TerminalChar:  "))));
+
+    assert(success);
+}
+
+
 void parserlib_cfe_unitTests() {
     unitTest_CFE();
     unitTest_customParsing();
+    unitTest_EBNF();
 }

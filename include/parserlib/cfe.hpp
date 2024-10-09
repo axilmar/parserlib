@@ -2,7 +2,7 @@
 #define PARSERLIB_CFE_HPP
 
 
-#include "cfe/CFE.hpp"
+#include "cfe/EBNF.hpp"
 
 
 #endif //PARSERLIB_CFE_HPP
