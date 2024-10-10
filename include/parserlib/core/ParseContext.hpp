@@ -85,6 +85,7 @@ namespace parserlib::core {
          */
         ParseContext(Source& src)
             : m_currentPosition(src.begin())
+            , m_furthestUnparsedPosition(src.begin())
             , m_endPosition(src.end())
         {
         }
@@ -121,6 +122,9 @@ namespace parserlib::core {
          */
         void incrementPosition() {
             ++m_currentPosition;
+            if (m_currentPosition > m_furthestUnparsedPosition) {
+                m_furthestUnparsedPosition = m_currentPosition;
+            }
         }
 
         /**
@@ -131,6 +135,17 @@ namespace parserlib::core {
          */
         void incrementPosition(size_t size) {
             m_currentPosition += size;
+            if (m_currentPosition > m_furthestUnparsedPosition) {
+                m_furthestUnparsedPosition = m_currentPosition;
+            }
+        }
+
+        /**
+         * Returns the furthest position that parsing stopped at.
+         * @return the furthest position that parsing stopped at.
+         */
+        const Iterator& getFurthestUnparsedPosition() const {
+            return m_furthestUnparsedPosition;
         }
 
         /**
@@ -323,6 +338,7 @@ namespace parserlib::core {
 
         Iterator m_currentPosition;
         Iterator m_endPosition;
+        Iterator m_furthestUnparsedPosition;
         ParseErrorContainer m_errors;
         std::map<Rule*, std::vector<Iterator>> m_rulePositions;
         std::map<Rule*, LeftRecursion::State> m_ruleStates;

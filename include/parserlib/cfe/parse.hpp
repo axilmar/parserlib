@@ -75,7 +75,7 @@ namespace parserlib::cfe {
 
         //add error if end of source has not been reached
         if (!pc.isEndPosition()) {
-            errors.push_back(Error((int)core::ParseErrorType::SyntaxError, pc.getCurrentPosition(), pc.getEndPosition()));
+            errors.push_back(Error((int)core::ParseErrorType::SyntaxError, pc.getFurthestUnparsedPosition(), pc.getEndPosition()));
         }
 
         //create the ast
