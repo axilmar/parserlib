@@ -21,7 +21,8 @@ namespace parserlib::cfe {
      * 
      * @param Source source of AST node.
      */
-    template <class ASTID = int, class Source = TokenContainer<>> class AST {
+    template <class ASTID = int, class Source = TokenContainer<>> 
+    class AST : public std::enable_shared_from_this<AST<ASTID, Source>> {
     public:
         /**
          * The AST id type.
@@ -73,13 +74,11 @@ namespace parserlib::cfe {
          * @param id the id of this AST node.
          * @param startPosition start position of this AST node into the token container.
          * @param endPosition end position of this AST node into the token container.
-         * @param children the children AST nodes.
          */
-        AST(const ASTID& id, const SourceIterator& startPosition, const SourceIterator& endPosition, ASTContainer&& children)
+        AST(const ASTID& id, const SourceIterator& startPosition, const SourceIterator& endPosition)
             : m_id(id)
             , m_startPosition(startPosition)
             , m_endPosition(endPosition)
-            , m_children(std::move(children))
         {
         }
 
@@ -113,6 +112,53 @@ namespace parserlib::cfe {
          */
         const ASTContainer& getChildren() const {
             return m_children;
+        }
+
+        /**
+         * Returns a pointer to the parent node.
+         * @return pointer to parent node.
+         */
+        ASTPtr getParent() const {
+            return m_parent.lock();
+        }
+
+        /**
+         * Adds a child AST node.
+         * @param child child node to add.
+         */
+        void addChild(const ASTPtr& child) {
+            m_children.push_back(child);
+            child->m_parent = this->shared_from_this();
+        }
+
+        /**
+         * Removes a child node.
+         * @param child child to remove.
+         */
+        void removeChild(const ASTPtr& child) {
+            auto it = std::find(m_children.begin(), m_children.end(), child);
+            m_children.erase(it);
+            child->m_parent.reset();
+        }
+
+        /**
+         * Removes this node from its parent, if there is one.
+         */
+        void detach() {
+            ASTPtr parent = getParent();
+            if (parent) {
+                parent->removeChild(this->shared_from_this());
+            }
+        }
+
+        /**
+         * Removes all children. 
+         */
+        void removeChildren() {
+            for (const ASTPtr& child : m_children) {
+                child->m_parent.reset();
+            }
+            m_children.clear();
         }
 
         /**
@@ -170,6 +216,7 @@ namespace parserlib::cfe {
         SourceIterator m_startPosition;
         SourceIterator m_endPosition;
         ASTContainer m_children;
+        std::weak_ptr<ASTClass> m_parent;
     };
 
 

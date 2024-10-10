@@ -252,14 +252,18 @@ static void unitTest_customParsing() {
     class MyAST {
     public:
         typedef ASTID ASTID;
-
         typedef std::vector<Token> Source;
 
         ASTID ID;
+        std::vector<std::shared_ptr<MyAST>> children;
 
-        MyAST(ASTID id, std::vector<Token>::const_iterator start, std::vector<Token>::const_iterator end, std::vector<std::shared_ptr<MyAST>>&& children)
+        MyAST(ASTID id, std::vector<Token>::const_iterator start, std::vector<Token>::const_iterator end)
             : ID(id)
         {
+        }
+
+        void addChild(const std::shared_ptr<MyAST>& child) {
+            children.push_back(child);
         }
     };
 

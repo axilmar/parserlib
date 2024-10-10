@@ -14,17 +14,27 @@ namespace parserlib::cfe {
     namespace detail {
 
 
-        template <class ASTContainer, class Match, class CreateASTFunc> 
-        void createASTHelper(ASTContainer& ast, const Match& match, CreateASTFunc&& createAST) {
-            ASTContainer children;
+        template <class ASTPtr, class Match, class CreateASTFunc> 
+        void createChildASTHelper(const ASTPtr& parent, const Match& match, CreateASTFunc&& createAST) {
+            auto astNode = createAST(match.getID(), match.getStartPosition(), match.getEndPosition());
+            parent->addChild(astNode);
             for (const auto& childMatch : match.getChildren()) {
-                createASTHelper(children, childMatch, std::forward<CreateASTFunc>(createAST));
+                createChildASTHelper(astNode, childMatch, std::forward<CreateASTFunc>(createAST));
             }
-            ast.push_back(createAST(match.getID(), match.getStartPosition(), match.getEndPosition(), std::move(children)));
         }
 
 
-        template <class ASTContainer> 
+        template <class ASTContainer, class Match, class CreateASTFunc>
+        void createASTHelper(ASTContainer& astContainer, const Match& match, CreateASTFunc&& createAST) {
+            auto astNode = createAST(match.getID(), match.getStartPosition(), match.getEndPosition());
+            astContainer.push_back(astNode);
+            for (const auto& childMatch : match.getChildren()) {
+                createChildASTHelper(astNode, childMatch, std::forward<CreateASTFunc>(createAST));
+            }
+        }
+
+
+        template <class ASTContainer>
         struct DefaultASTCreation {
             typedef typename ASTContainer::value_type ASTPtr;
             typedef typename ASTPtr::element_type AST;
@@ -33,8 +43,8 @@ namespace parserlib::cfe {
             typedef typename AST::Source TokenContainer;
             typedef typename TokenContainer::const_iterator TokenIterator;
 
-            static ASTPtr createAST(const ASTID& id, const TokenIterator& startPosition, const TokenIterator& endPosition, ASTContainer&& children) {
-                return std::make_shared<AST>(id, startPosition, endPosition, std::forward<ASTContainer>(children));
+            static ASTPtr createAST(const ASTID& id, const TokenIterator& startPosition, const TokenIterator& endPosition) {
+                return std::make_shared<AST>(id, startPosition, endPosition);
             }
         };
 
