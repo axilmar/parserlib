@@ -58,7 +58,7 @@ namespace parserlib::cfe {
      * @param grammar the grammar to use for parsing.
      * @param ast the container of AST nodes.
      * @param errors container to receive the errors.
-     * @param createAST function to use for AST creation.
+     * @param createAST function to use for AST creation; same signature as AST constructor.
      * @return true on success, false on error.
      */
     template <class TokenContainer, class Grammar, class ASTContainer, class ErrorContainer, class CreateASTFunc>
