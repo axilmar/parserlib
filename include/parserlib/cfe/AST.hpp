@@ -65,6 +65,11 @@ namespace parserlib::cfe {
         typedef typename Token::Source TokenSource;
 
         /**
+         * String.
+         */
+        typedef std::basic_string<typename TokenSource::value_type> String;
+
+        /**
          * Source string view.
          */
         typedef std::basic_string_view<typename TokenSource::value_type> StringView;
@@ -80,6 +85,12 @@ namespace parserlib::cfe {
             , m_startPosition(startPosition)
             , m_endPosition(endPosition)
         {
+        }
+
+        /**
+         * Virtual destructor because the class may be inherited.
+         */
+        virtual ~AST() {
         }
 
         /**
@@ -132,6 +143,34 @@ namespace parserlib::cfe {
         }
 
         /**
+         * Replaces the old child with the new child.
+         * @param oldChild child to replace.
+         * @param newChild new child.
+         * @exception std::invalid_argument if oldChild does not belong in this parent,
+         *  or if newChild belongs to another parent.
+         */
+        void replaceChild(const ASTPtr& oldChild, const ASTPtr& newChild) {
+            if (oldChild == newChild) {
+                return;
+            }
+
+            if (newChild->m_parent.lock()) {
+                throw std::invalid_argument("AST: replaceChild: invalid new child.");
+            }
+
+            auto it = std::find(m_children.begin(), m_children.end(), oldChild);
+
+            if (it == m_children.end()) {
+                throw std::invalid_argument("AST: replaceChild: invalid old child.");
+            }
+
+            oldChild->m_parent.reset();
+
+            newChild->m_parent = this->shared_from_this();
+            *it = newChild;
+        }
+
+        /**
          * Removes a child node.
          * @param child child to remove.
          */
@@ -166,7 +205,7 @@ namespace parserlib::cfe {
          * @param maxChars max chars to return.
          * @return the source code for this AST node.
          */
-        StringView getSource(size_t maxChars = -1) const {
+        virtual StringView getSource(size_t maxChars = -1) const {
             const auto* src = &*m_startPosition->getStartPosition();
             const size_t size = std::min(maxChars, (size_t)(std::prev(m_endPosition)->getEndPosition() - m_startPosition->getStartPosition()));
             return StringView(src, size);

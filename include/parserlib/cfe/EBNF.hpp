@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <limits>
 #include <string>
+#include <ostream>
+#include <set>
 #include "parserlib/core/TerminalSetParser.hpp"
 #include "parserlib/util.hpp"
 #include "CFE.hpp"
@@ -520,6 +522,21 @@ namespace parserlib::cfe {
         typedef typename CFE::TokenContainerPtr TokenContainerPtr;
 
         /**
+         * Token container type.
+         */
+        typedef typename TokenContainerPtr::element_type TokenContainer;
+
+        /**
+         * Token iterator type.
+         */
+        typedef typename TokenContainer::const_iterator TokenIterator;
+
+        /**
+         * Token type.
+         */
+        typedef typename TokenContainer::value_type Token;
+
+        /**
          * Type of rule for tokenization.
          */
         typedef typename CFE::TokenizerRule TokenizerRule;
@@ -535,9 +552,34 @@ namespace parserlib::cfe {
         typedef typename CFE::ASTPtr ASTPtr;
 
         /**
+         * AST type.
+         */
+        typedef typename ASTPtr::element_type AST;
+
+        /**
+         * Source view.
+         */
+        typedef typename AST::String String;
+
+        /**
+         * Char type.
+         */
+        typedef typename String::value_type Char;
+
+        /**
+         * Source view type.
+         */
+        typedef typename AST::StringView StringView;
+
+        /**
          * Type of ptr to AST container.
          */
         typedef typename CFE::ASTContainerPtr ASTContainerPtr;
+
+        /**
+         * AST container.
+         */
+        typedef typename ASTContainerPtr::element_type ASTContainer;
 
         /**
          * Type of ptr to error container.
@@ -561,15 +603,110 @@ namespace parserlib::cfe {
         }
 
         /**
-         * Given a parsed EBNF, it creates a c++ file that contains the CFE for that EBNF.
+         * Given a parsed EBNF, it creates a CFE file for that EBNF.
+         * @param stream output stream.
+         * @param includeGuard include guard string.
+         * @param classNamespace namespace of the CFE class; it can be empty.
+         * @param className name of the CFE class.
          * @param ast abstract-syntax-tree to convert to CFE.
-         * @param filename path + filename of the output file.
-         * @param CFEName name of the CFE class.
+         * @param separatorLineCount number of lines between parts of the file.
+         * @param tabSize number of spaces per tab.
+         * @exception std::invalid_argument thrown if:
+         *  - no root rule exists.
+         *  - multiple root rules exist.
          */
-        static bool createCFE(const ASTContainerPtr& ast, const std::string& filename, const std::string& CFEName) {
+        template <class Char, class CharTraits, class StringAlloc>
+        static void createCFE(
+            std::basic_ostream<Char, CharTraits>& stream, 
+            const std::basic_string<Char, CharTraits, StringAlloc>& includeGuard, 
+            const std::basic_string<Char, CharTraits, StringAlloc>& classNamespace, 
+            const std::basic_string<Char, CharTraits, StringAlloc>& className, 
+            const ASTContainer& ast, 
+            const std::vector<std::basic_string<Char, CharTraits, StringAlloc>>& additionalIncludes = {}, 
+            size_t separatorLineCount = 2, 
+            size_t tabSize = 4)
+        {
+            ASTContainer tokens, tokenizerRules, parserRules;
+            ASTPtr rootParserRule = processAST(ast, tokens, tokenizerRules, parserRules);
+
+            //add include guard
+            stream << "#ifndef " << includeGuard << '\n';
+            stream << "#define " << includeGuard << '\n';
+
+            //add lines between guard and includes
+            addEmptyLines(stream, separatorLineCount);
+
+            //add includes
+            for (const auto& include : additionalIncludes) {
+                stream << toString("#include \"", include, '"');
+            }
+            stream << "#include \"parserlib/cfe/CFE.hpp\"\n";
+
+            //add lines between includes and namespace
+            addEmptyLines(stream, separatorLineCount);
+
+            //open namespace
+            const bool namespaceIsEmpty = classNamespace.empty();
+            if (!namespaceIsEmpty) {
+                stream << "namespace " << classNamespace << " {\n";
+                addEmptyLines(stream, separatorLineCount);
+            }
+
+            //begin class
+            addSpaces(stream, tabSize);
+            stream << "template <class Source = core::SourceString<>>\n";
+            addSpaces(stream, tabSize);
+            stream << "class " << className << " {\n";
+
+            //end class
+            addSpaces(stream, tabSize);
+            stream << "};\n";
+
+            //add lines between class end and namespace
+            addEmptyLines(stream, separatorLineCount);
+
+            //close namespace
+            if (!namespaceIsEmpty) {
+                stream << "}\n";
+                addEmptyLines(stream, separatorLineCount);
+            }
+
+            //close the include guard
+            stream << "#endif //" << includeGuard << '\n';
+        }
+
+        template <class Char, class CharTraits>
+        static void createCFE(
+            std::basic_ostream<Char, CharTraits>& stream,
+            const Char* includeGuard,
+            const Char* classNamespace,
+            const Char* className,
+            const ASTContainer& ast,
+            const std::vector<std::string>& additionalIncludes = {},
+            size_t separatorLineCount = 2,
+            size_t tabSize = 4)
+        {
+            createCFE(stream, std::basic_string<Char>(includeGuard), std::basic_string<Char>(classNamespace), std::basic_string<Char>(className), ast, additionalIncludes, separatorLineCount, tabSize);
         }
 
     private:
+        //internal node that holds a specific value as source.
+        class ASTValue : public AST {
+        public:
+            ASTValue(ASTID id, const TokenIterator& startPosition, const TokenIterator& endPosition, const String& value)
+                : AST(id, startPosition, endPosition)
+                , m_value(value)
+            {
+            }
+
+            StringView getSource(size_t maxChars = -1) const override {
+                return StringView(m_value.data(), m_value.size());
+            }
+
+        private:
+            String m_value;
+        };
+
         TokenizerRule m_tokenizerGrammar;
         ParserRule m_choice;
         ParserRule m_parserGrammar;
@@ -592,7 +729,8 @@ namespace parserlib::cfe {
             const auto letter = oneIn('a', 'z') | oneIn('A', 'Z');
             const auto digit = oneIn('0', '9');
 
-            const auto identifierLiteral = (letter | '_') >> *(letter | digit | '-' | '_');
+            const auto identifierChar = letter | digit | '-' | '_';
+            const auto identifierLiteral = (letter | ('_' >> identifierChar)) >> *identifierChar;
 
             //token
             const auto tokenIdentifier = '%' >> (identifierLiteral ->* TokenID::TokenIdentifier);
@@ -753,6 +891,190 @@ namespace parserlib::cfe {
             const auto decl = (token | rule) >> ~term(TokenID::Terminator);
 
             m_parserGrammar = *decl;
+        }
+
+
+        static ASTPtr findRule(const ASTContainer& rules, const StringView& ruleName) {
+            for (const ASTPtr& rule : rules) {
+                if (rule->getChildren()[0]->getSource() == ruleName) {
+                    return rule;
+                }
+            }
+            return nullptr;
+        }
+
+        static bool referencesNode(
+            const ASTPtr& node, 
+            const ASTContainer& rules, 
+            ASTID astID, 
+            const StringView& source, 
+            std::set<ASTPtr>& recursiveNodes)
+        {
+            //found node
+            if (node->getID() == astID && node->getSource() == source) {
+                return true;
+            }
+
+            //handle recursive rules
+            auto [it, ok] = recursiveNodes.insert(node);
+            if (!ok) {
+                return false;
+            }
+            OnScopeExit restoreRecursiveNodes([&]() { recursiveNodes.erase(it); });
+
+            //if found non-terminal, follow it via the rules
+            if (node->getID() == ASTID::NonTerminal) {
+                const ASTPtr rule = findRule(rules, node->getSource());
+                if (!rule) {
+                    return false;
+                }
+                return referencesNode(rule->getChildren()[1], rules, astID, source, recursiveNodes);
+            }
+
+            //check children
+            for (const ASTPtr& child : node->getChildren()) {
+                if (referencesNode(child, rules, astID, source, recursiveNodes)) {
+                    return true;
+                }
+            }
+
+            //not found
+            return false;
+        }
+
+        static bool isTokenizerRule(const ASTContainer& tokens, const ASTContainer& rules, const StringView& ruleName) {
+            for (const ASTPtr& token : tokens) {
+                const ASTPtr& tokenExpr = token->getChildren()[1];
+                std::set<ASTPtr> recursiveNodes;
+                if (referencesNode(tokenExpr, rules, ASTID::NonTerminal, ruleName, recursiveNodes)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static bool isParserRule(const ASTContainer& rules, const StringView& ruleName) {
+            for (const ASTPtr& rule : rules) {
+                const ASTPtr& ruleExpr = rule->getChildren()[1];
+                std::set<ASTPtr> recursiveNodes;
+                if (referencesNode(ruleExpr, rules, ASTID::NonTerminal, ruleName, recursiveNodes)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static String getTokenName(const Char* chars, size_t size) {
+            std::basic_stringstream<Char> stream;
+
+            for (const Char* end = chars + size; chars < end; ++chars) {
+                auto ch = *chars;
+                if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-') {
+                    stream << ch;
+                }
+                else {
+                    stream << replaceChar(ch);
+                }
+            }
+
+            return stream.str();
+        }
+
+        static void extractInlineTokens(const ASTPtr& node, ASTContainer& tokens, std::set<ASTPtr>& recursiveNodes) {
+            switch (node->getID()) {
+                case ASTID::TerminalChar:
+                    return;
+
+                case ASTID::TerminalRange:
+                    return;
+
+                case ASTID::TerminalString: {
+                    const ASTPtr originalNode = node;
+                    const ASTPtr parent = node->getParent();
+                    StringView source = originalNode->getSource();
+                    String tokenName = getTokenName(source.data(), source.size());
+
+                    //replace the terminal string expression with a non-terminal that references the token
+                    parent->replaceChild(originalNode, std::make_shared<ASTValue>(ASTID::NonTerminal, originalNode->getStartPosition(), originalNode->getEndPosition(), tokenName));
+
+                    //create a token
+                    ASTPtr token = std::make_shared<AST>(ASTID::Token, originalNode->getStartPosition(), originalNode->getEndPosition());
+
+                    //tokens require the first child to be a non terminal
+                    token->addChild(std::make_shared<ASTValue>(ASTID::NonTerminal, originalNode->getStartPosition(), originalNode->getEndPosition(), tokenName));
+
+                    //the second child of the token is the terminal itself, which is now removed from its previous parent
+                    token->addChild(originalNode);
+
+                    //save the new token
+                    tokens.push_back(token);
+                    return;
+                }
+            }
+
+            auto [it, ok] = recursiveNodes.insert(node);
+            if (!ok) {
+                return;
+            }
+            OnScopeExit restoreRecursiveNodes([&]() { recursiveNodes.erase(it); });
+
+            for (const ASTPtr& child : node->getChildren()) {
+                extractInlineTokens(child, tokens, recursiveNodes);
+            }
+        }
+
+        static ASTPtr processAST(const ASTContainer& ast, ASTContainer& tokens, ASTContainer& tokenizerRules, ASTContainer& parserRules) {
+            ASTContainer rules;
+
+            //get explicit tokens and rules
+            for (const ASTPtr& astNode : ast) {
+                if (astNode->getID() == ASTID::Token) {
+                    tokens.push_back(astNode);
+                }
+                else if (astNode->getID() == ASTID::Rule) {
+                    rules.push_back(astNode);
+                }
+                else {
+                    throw std::logic_error("Invalid EBNF AST node type.");
+                }
+            }
+
+            //get the rules for the tokenizer and for the parser.
+            //Also get the root rule.
+            std::set<ASTPtr> rootRules;
+            for (const ASTPtr& astNode : rules) {
+                bool tokenizerRule = false, parserRule = false;
+                if (isTokenizerRule(tokens, rules, astNode->getChildren()[0]->getSource())) {
+                    tokenizerRule = true;
+                    tokenizerRules.push_back(astNode);
+                }
+                if (isParserRule(rules, astNode->getChildren()[0]->getSource())) {
+                    parserRule = true;
+                    parserRules.push_back(astNode);
+                }
+                if (!tokenizerRule && !parserRule) {
+                    rootRules.insert(astNode);
+                }
+            }
+
+            //get the inline tokens
+            std::set<ASTPtr> recursiveNodes;
+            for (ASTPtr& parserRule : parserRules) {
+                extractInlineTokens(parserRule->getChildren()[1], tokens, recursiveNodes);
+            }
+
+            //must have at least one root rule
+            if (rootRules.size() == 0) {
+                throw std::invalid_argument("EBNF: no root rule found.");
+            }
+
+            //must not have multiple root rules
+            if (rootRules.size() > 1) {
+                throw std::invalid_argument("EBNF: multiple root rules found.");
+            }
+
+            //returns the root rule
+            return *rootRules.begin();
         }
     };
 

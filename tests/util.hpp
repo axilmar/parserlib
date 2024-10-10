@@ -72,4 +72,16 @@ bool operator == (const std::shared_ptr<parserlib::cfe::AST<ASTID, Source>>& ast
 }
 
 
+template <class Stream, class ASTContainer>
+void printAST(Stream& stream, const ASTContainer& ast) {
+    size_t index = 0;
+    for (const auto& ap : ast) {
+        stream << '['  << index << "] ";
+        ap->print(std::cout);
+        std::cout << std::endl;
+        ++index;
+    }
+}
+
+
 #endif //PARSERLIB_TESTS_UTIL_HPP
