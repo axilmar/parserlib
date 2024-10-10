@@ -122,9 +122,7 @@ namespace parserlib::core {
          */
         void incrementPosition() {
             ++m_currentPosition;
-            if (m_currentPosition > m_furthestUnparsedPosition) {
-                m_furthestUnparsedPosition = m_currentPosition;
-            }
+            setMaxFurthestUnparsedPosition(m_currentPosition);
         }
 
         /**
@@ -135,9 +133,7 @@ namespace parserlib::core {
          */
         void incrementPosition(size_t size) {
             m_currentPosition += size;
-            if (m_currentPosition > m_furthestUnparsedPosition) {
-                m_furthestUnparsedPosition = m_currentPosition;
-            }
+            setMaxFurthestUnparsedPosition(m_currentPosition);
         }
 
         /**
@@ -146,6 +142,24 @@ namespace parserlib::core {
          */
         const Iterator& getFurthestUnparsedPosition() const {
             return m_furthestUnparsedPosition;
+        }
+
+        /**
+         * Sets the furthest unparsed position.
+         * param it the new furthest unparsed position.
+         */
+        void setFurthestUnparsedPosition(const Iterator& it) {
+            m_furthestUnparsedPosition = it;
+        }
+
+        /**
+         * Sets the furthest unparsed position if it is greater than the current one.
+         * param it the new furthest unparsed position.
+         */
+        void setMaxFurthestUnparsedPosition(const Iterator& it) {
+            if (it > m_furthestUnparsedPosition) {
+                m_furthestUnparsedPosition = it;
+            }
         }
 
         /**

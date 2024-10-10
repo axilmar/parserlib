@@ -81,17 +81,33 @@ namespace parserlib::core {
         bool parse(ParseContext& pc) const {
             auto beginParseState = pc.getParseState();
 
-            if (m_left.parse(pc)) {
-                if (m_right.parse(pc)) {
-                    return true;
+            auto beginFurthestUnparsedPosition = pc.getFurthestUnparsedPosition();
+            pc.setFurthestUnparsedPosition(pc.getCurrentPosition());
+
+            try {
+                if (m_left.parse(pc)) {
+                    if (m_right.parse(pc)) {
+                        pc.setMaxFurthestUnparsedPosition(beginFurthestUnparsedPosition);
+                        return true;
+                    }
                 }
             }
+            catch (...) {
+                pc.setMaxFurthestUnparsedPosition(beginFurthestUnparsedPosition);
+                throw;
+            }
 
-            while (!pc.isEndPosition()) {
-                pc.incrementPosition();
-                if (m_right.parse(pc)) {
-                    pc.addError(ParseErrorType::SyntaxError, beginParseState.getPosition(), pc.getCurrentPosition());
-                    return true;
+            auto errorStartPosition = pc.getFurthestUnparsedPosition();
+            pc.setMaxFurthestUnparsedPosition(beginFurthestUnparsedPosition);
+
+            if (errorStartPosition >= beginFurthestUnparsedPosition) {
+                while (!pc.isEndPosition()) {
+                    pc.incrementPosition();
+                    auto errorEndPosition = pc.getCurrentPosition();
+                    if (m_right.parse(pc)) {
+                        pc.addError(ParseErrorType::SyntaxError, errorStartPosition, errorEndPosition);
+                        return true;
+                    }
                 }
             }
 

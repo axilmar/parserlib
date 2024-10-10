@@ -702,11 +702,13 @@ static void unitTest_errorResumePoint() {
     auto letter = oneIn('a', 'z') | oneIn('A', 'Z');
     auto digit = oneIn('0', '9');
     auto identifier = letter >> *(letter | digit | '_');
-    auto statement = identifier >> ~term(';');
-    auto grammar = *(ws | statement);
+    auto integer = +digit;
+    auto intStatement = integer >> ';';
+    auto idStatement = identifier >> ~term(';');
+    auto grammar = *(ws | intStatement | idStatement);
 
     {
-        SourceString input = "a; b; @; c; d; !; e;";
+        SourceString input = "a; b; @; c; d; !; e; 123; f; 567g; h;";
         ParseContext<> pc(input);
         bool ok = grammar.parse(pc);
         auto errors = pc.getErrors();
@@ -714,6 +716,7 @@ static void unitTest_errorResumePoint() {
         assert(errors.size() == 2);
         assert(*errors[0].getStartPosition() == '@');
         assert(*errors[1].getStartPosition() == '!');
+        assert(*pc.getFurthestUnparsedPosition() == 'g');
     }
 }
 

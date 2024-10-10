@@ -30,7 +30,7 @@ namespace parserlib::cfe {
         bool success = grammar.parse(pc) && pc.isEndPosition();
 
         //add error if end of source has not been reached
-        if (!pc.isEndPosition()) {
+        if (pc.getFurthestUnparsedPosition() < pc.getEndPosition()) {
             errors.push_back(Error((int)core::ParseErrorType::SyntaxError, pc.getFurthestUnparsedPosition(), pc.getEndPosition()));
         }
 
