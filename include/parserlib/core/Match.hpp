@@ -25,21 +25,21 @@ namespace parserlib::core {
 
     /**
      * Type of match.
-     * @param MatchID match id type.
-     * @param Source source type.
+     * @param MatchID_ match id type.
+     * @param Source_ source type.
      */
-    template <class MatchID, class Source>
+    template <class MatchID_, class Source_>
     class Match {
     public:
         /**
          * The match id type.
          */
-        typedef MatchID MatchID;
+        typedef MatchID_ MatchID;
 
         /**
          * The source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * The source iterator type.

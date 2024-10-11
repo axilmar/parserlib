@@ -25,24 +25,24 @@ namespace parserlib::core {
     /**
      * Data used while parsing an input.
      * 
-     * @param MatchID the match id type; by default, it is of type int, so C-like enums can be used for matches.
+     * @param MatchID_ the match id type; by default, it is of type int, so C-like enums can be used for matches.
      *  But it can also be a class enum or any other type.
      * 
-     * @param Source the type of source to parse; by default, it is a SourceString, allowing the counting of
+     * @param Source_ the type of source to parse; by default, it is a SourceString, allowing the counting of
      *  lines and columns, but it can also be any other STL-like container.
      */
-    template <class MatchID = int, class Source = SourceString<>>
+    template <class MatchID_ = int, class Source_ = SourceString<>>
     class ParseContext {
     public:
         /**
          * The Match id type.
          */
-        typedef MatchID MatchID;
+        typedef MatchID_ MatchID;
 
         /**
          * The source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * The iterator to use for traversing the source.

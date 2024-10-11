@@ -200,9 +200,9 @@ namespace parserlib::cfe {
      *      | number
      *      ;
      *
-     * @param Source the type of the source code; an STL-like container.
+     * @param Source_ the type of the source code; an STL-like container.
      */
-    template <class Source = core::SourceString<>> class EBNF {
+    template <class Source_ = core::SourceString<>> class EBNF {
     public:
         /**
          * Token id.
@@ -504,7 +504,7 @@ namespace parserlib::cfe {
         /**
          * Type of source.
          */
-        typedef typename Source Source;
+        typedef typename Source_ Source;
 
         /**
          * Type of character.

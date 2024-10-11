@@ -41,6 +41,17 @@ namespace parserlib::core {
     };
 
 
+    /**
+     * Creates a reference to a rule.
+     * @param r rule to refer to.
+     * @return a reference to a rule.
+     */
+    template <class ParseContext>
+    RuleReference<ParseContext> ref(Rule<ParseContext>& r) {
+        return RuleReference<ParseContext>(r);
+    }
+
+
 } //namespace parserlib::core
 
 

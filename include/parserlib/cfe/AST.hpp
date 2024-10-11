@@ -17,22 +17,22 @@ namespace parserlib::cfe {
     /**
      * An Abtract syntax tree node.
      * 
-     * @param ASTID id of AST node.
+     * @param ASTID_ id of AST node.
      * 
-     * @param Source source of AST node.
+     * @param Source_ source of AST node.
      */
-    template <class ASTID = int, class Source = TokenContainer<>> 
-    class AST : public std::enable_shared_from_this<AST<ASTID, Source>> {
+    template <class ASTID_ = int, class Source_ = TokenContainer<>> 
+    class AST : public std::enable_shared_from_this<AST<ASTID_, Source_>> {
     public:
         /**
          * The AST id type.
          */
-        typedef ASTID ASTID;
+        typedef ASTID_ ASTID;
 
         /**
          * The AST source.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * The source iterator.

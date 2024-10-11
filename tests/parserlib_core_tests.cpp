@@ -234,6 +234,8 @@ static void unitTest_Rule() {
     Rule<> rule = 'a' >> (rule | 'b')
                 | 'b' >> ('a'  | rule);
 
+    Rule<> rule1 = ref(rule);
+
     {
         SourceString input = "ab";
         ParseContext<> pc(input);
@@ -609,9 +611,9 @@ static Rule<CalculatorParseContext> mul = (mul >> '*' >> num) ->* AST::Mul
                                         | num;
 
 
-static Rule<CalculatorParseContext> add = (add >> '+' >> mul) ->* AST::Add
-                                        | (add >> '-' >> mul) ->* AST::Sub
-                                        | mul;
+Rule<CalculatorParseContext> add = (add >> '+' >> mul) ->* AST::Add
+                                 | (add >> '-' >> mul) ->* AST::Sub
+                                 | mul;
 
 
 static int eval(const Match<AST>& m) {

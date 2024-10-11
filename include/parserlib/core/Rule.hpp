@@ -26,18 +26,18 @@ namespace parserlib::core {
      * Rules must live either as global variables or members of objects.
      * Rules are always managed via rule references.
      * 
-     * @param ParseContext type of parse context to use for rules.
+     * @param ParseContext_ type of parse context to use for rules.
      * 
      *  Required because in order to allow a rule to be used recursively,
      *  the parsing expression is put inside an interface.
      */
-    template <class ParseContext = ParseContext<>>
+    template <class ParseContext_ = ParseContext<>>
     class Rule {
     public:
         /**
          * Type of parse context.
          */
-        typedef ParseContext ParseContext;
+        typedef ParseContext_ ParseContext;
 
         /**
          * Makes this parser a zero-or-more parser.
@@ -103,7 +103,7 @@ namespace parserlib::core {
         }
 
         /**
-         * Copying is forbidden due to internal unique onwership (via std::unique_ptr of the internal parsing expression.
+         * Copying is forbidden due to internal unique onwership (via std::unique_ptr of the internal parsing expression).
          */
         Rule(const Rule&) = delete;
 
@@ -113,16 +113,6 @@ namespace parserlib::core {
          */
         Rule(Rule&& r)
             : m_expression(std::move(r.m_expression))
-        {
-        }
-
-        /**
-         * Constructor from other rule.
-         * This rule then refers to the given rule by a rule reference.
-         * @param r source rule.
-         */
-        Rule(Rule& r)
-            : m_expression(std::make_unique<ParseExpressionImpl<RuleReference<ParseContext>>>(r))
         {
         }
 

@@ -7,15 +7,15 @@ namespace parserlib::core {
 
     /**
      * The parse state of a parse context.
-     * @param Source source type.
+     * @param Source_ source type.
      */
-    template <class Source>
+    template <class Source_>
     class ParseState {
     public:
         /**
          * The source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * The source iterator type.

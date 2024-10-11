@@ -17,11 +17,6 @@ namespace parserlib::core {
     class TerminalParser : public Parser<TerminalParser<Char>> {
     public:
         /**
-         * Type of terminal value to parse.
-         */
-        typedef Char Char;
-
-        /**
          * Constructor from value.
          * @param value terminal value to parse.
          */

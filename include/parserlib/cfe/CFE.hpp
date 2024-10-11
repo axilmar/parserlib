@@ -16,29 +16,29 @@ namespace parserlib::cfe {
     /**
      * A compiler front end that uses the given token id, ast id and source type.
      * 
-     * @param TokenID id of tokens.
+     * @param TokenID_ id of tokens.
      * 
-     * @param ASTID id of AST nodes.
+     * @param ASTID_ id of AST nodes.
      * 
-     * @param Source source to parse.
+     * @param Source_ source to parse.
      */
-    template <class TokenID = int, class ASTID = int, class Source = core::SourceString<>> 
+    template <class TokenID_ = int, class ASTID_ = int, class Source_ = core::SourceString<>> 
     class CFE {
     public:
         /**
          * Token ID.
          */
-        typedef TokenID TokenID;
+        typedef TokenID_ TokenID;
 
         /**
          * AST ID.
          */
-        typedef ASTID ASTID;
+        typedef ASTID_ ASTID;
 
         /**
          * Source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * Token type.

@@ -16,21 +16,21 @@ namespace parserlib::cfe {
      * 
      * It is created from tokenizing an input, and it is fed to a parser to parse a language grammar.
      * 
-     * @param TokenID id of token.
+     * @param TokenID_ id of token.
      * 
-     * @param Source source for the token.
+     * @param Source_ source for the token.
      */
-    template <class TokenID = int, class Source = core::SourceString<>> class Token {
+    template <class TokenID_ = int, class Source_ = core::SourceString<>> class Token {
     public:
         /**
          * Token id type.
          */
-        typedef TokenID TokenID;
+        typedef TokenID_ TokenID;
 
         /**
          * Source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * Source iterator type.

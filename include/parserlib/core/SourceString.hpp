@@ -67,26 +67,26 @@ namespace parserlib::core {
      * 
      * It provides a special iterator that counts lines and columns.
      * 
-     * @param Source source string type; any STL-like container.
-     * @param CaseTraits character case traits.
-     * @param NewlineTraits newline traits.
+     * @param Source_ source string type; any STL-like container.
+     * @param CaseTraits_ character case traits.
+     * @param NewlineTraits_ newline traits.
      */
-    template <class Source = std::string, class CaseTraits = CaseSensitiveTraits, class NewlineTraits = DefaultNewlineTraits> class SourceString {
+    template <class Source_ = std::string, class CaseTraits_ = CaseSensitiveTraits, class NewlineTraits_ = DefaultNewlineTraits> class SourceString {
     public:
         /**
          * The source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * The case traits type.
          */
-        typedef CaseTraits CaseTraits;
+        typedef CaseTraits_ CaseTraits;
 
         /**
          * The newline traits type.
          */
-        typedef NewlineTraits NewlineTraits;
+        typedef NewlineTraits_ NewlineTraits;
 
         /**
          * The iterator into the source.

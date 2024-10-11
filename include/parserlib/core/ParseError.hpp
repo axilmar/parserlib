@@ -13,15 +13,15 @@ namespace parserlib::core {
     /**
      * A parse error.
      * 
-     * @param Source the source type.
+     * @param Source_ the source type.
      */
-    template <class Source>
+    template <class Source_>
     class ParseError {
     public:
         /**
          * The source type.
          */
-        typedef Source Source;
+        typedef Source_ Source;
 
         /**
          * The source iterator type.
