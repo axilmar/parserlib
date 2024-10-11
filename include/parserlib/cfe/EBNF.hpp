@@ -20,44 +20,44 @@ namespace parserlib::cfe {
 
     /**
      * A CFE for EBNF (Extended Backus-Naur Form).
-     * 
+     *
      * This class allows:
      *
      *  - the writing of tokenizer and parser grammars as EBNF in the same file.
      *  - the extraction of an AST (Abstract Syntax Tree) from an EBNF grammar.
      *  - the conversion of the extracted AST to a CFE class that allows parsing of said grammar programmatically.
-     * 
+     *
      * The EBNF syntax used is mostly compatible with ISO EBNF, but it also has some important differences,
      * required for implementing this class.
      *
      * EBNF syntax supported:
-     * 
+     *
      * - tokens:
      *      %<token name> = <choice expression> ';'
      *      <Token name> is an identifier.
      *      e.g.
      *      %integer = digit+;
-     * 
+     *
      *      Explicitly defined tokens are automatically added to the tokenizer.
-     * 
+     *
      *      Implicitly defined tokens (i.e. strings within the grammar) are extracted from the grammar
      *      and are added to the tokenizer.
-     * 
+     *
      *      A rule can be defined either for the tokenizer and/or the parser, depending on use.
      *      If a rule is used within the context of a token, then it will be added to the tokenizer;
      *      if a rule is used within the context of a grammar rule, then it will be added to the parser;
      *      if a rule is used by both, it will be added to both.
-     * 
+     *
      * - rules:
      *      <rule name> = <choice expression> ';'
      *      Rules are used both for the tokenizer and the parser.
      *      <Rule name> is an identifier.
      *      e.g.
      *      structDecl = 'struct' identifier '{' structMemberDecl* '}';
-     * 
+     *
      * - operations:
      *      - assignment operator:
-     *          Tokens and rules can optionally be defined by using operator '::=' or operator ':'. 
+     *          Tokens and rules can optionally be defined by using operator '::=' or operator ':'.
      *          e.g.
      *          rule1 ::= rule2 rule3;
      *          rule1 : rule2 rule3;
@@ -107,7 +107,7 @@ namespace parserlib::cfe {
      *          The comma is optional.
      *          e.g.
      *          a b c
-     * 
+     *
      * - grouping:
      *      - group:
      *          '(' <choice expression> ')'
@@ -123,12 +123,12 @@ namespace parserlib::cfe {
      *          '{' <choice expression> '}'
      *          e.g.
      *          {a | b | c}
-     * 
+     *
      *  An unary expression can be:
      *      - a group.
      *      - an identifier.
      *      - a terminal.
-     * 
+     *
      *  identifiers:
      *      -an identifier can start with a letter ('a' to 'z' or 'A to 'Z') or the character '_'.
      *      -an identifier can continue with a sequence of letters, digit, dash ('-') or underscore ('_').
@@ -139,53 +139,53 @@ namespace parserlib::cfe {
      *      - string terminal:
      *          '"' <character sequence> '"' or
      *          "'" <character sequence> "'"
-     * 
+     *
      *          A string can be enclosed either by double quotes
      *          or by single quotes.
-     * 
+     *
      *          A string within double quotes cannot contain a double quote symbol;
      *          the double quote symbol must be escaped by '\'.
-     * 
+     *
      *          A string within single quotes cannot contain a single quote symbol;
      *          the single quote symbol must be escaped by '\'.
-     * 
+     *
      *          e.g.
      *          "the quick brown fox jumps over the \"lazy\" dog".
      *          'the quick brown fox jumps over the \'lazy\' dog'.
      *
      *      - char terminal:
      *          "'" <character> "'"
-     * 
+     *
      *          The single quote symbol must be escaped.
      *          e.g.
      *          'a'
      *          '\''
-     *          
+     *
      *      - characters:
      *          - any character enclosed in single or double quotes.
      *          - the special escaped characters \0, \n, \r, \t, \v, \", \'.
-     *          - unicode characters in the form of \u<hex>; 
+     *          - unicode characters in the form of \u<hex>;
      *            e.g. \u0A, \uFF, \u01234ABCD.
      *          - any character: the underscore symbol '_';
-     *            e.g. 
+     *            e.g.
      *            (* all characters except 'a')
      *            _ - 'a'.
-     * 
+     *
      * - comments:
      *      - comment start: (*
      *      - comment end: *)
      *      - comments are multiline.
-     * 
+     *
      * Example of a calculator grammar.
-     * 
+     *
      *  %comment = '(*' (_ - '*)')* '*)';
-     * 
+     *
      *  %whitespace = '\0' .. ' ';
-     * 
+     *
      *  digit = '0' .. '9';
-     * 
+     *
      *  %number = digit+ ['.' digit+];
-     * 
+     *
      *  add = add '+' mul
      *      | add '-' mul
      *      | mul
@@ -195,7 +195,7 @@ namespace parserlib::cfe {
      *      | mul '/' val
      *      | mul
      *      ;
-     * 
+     *
      *  val = '(' add ')'
      *      | number
      *      ;
@@ -504,7 +504,7 @@ namespace parserlib::cfe {
         /**
          * Type of source.
          */
-        typedef typename Source_ Source;
+        typedef Source_ Source;
 
         /**
          * Type of character.
@@ -562,11 +562,6 @@ namespace parserlib::cfe {
         typedef typename AST::String String;
 
         /**
-         * Char type.
-         */
-        typedef typename String::value_type Char;
-
-        /**
          * Source view type.
          */
         typedef typename AST::StringView StringView;
@@ -617,13 +612,13 @@ namespace parserlib::cfe {
          */
         template <class Char, class CharTraits, class StringAlloc>
         static void createCFE(
-            std::basic_ostream<Char, CharTraits>& stream, 
-            const std::basic_string<Char, CharTraits, StringAlloc>& includeGuard, 
-            const std::basic_string<Char, CharTraits, StringAlloc>& classNamespace, 
-            const std::basic_string<Char, CharTraits, StringAlloc>& className, 
-            const ASTContainer& ast, 
-            const std::vector<std::basic_string<Char, CharTraits, StringAlloc>>& additionalIncludes = {}, 
-            size_t separatorLineCount = 2, 
+            std::basic_ostream<Char, CharTraits>& stream,
+            const std::basic_string<Char, CharTraits, StringAlloc>& includeGuard,
+            const std::basic_string<Char, CharTraits, StringAlloc>& classNamespace,
+            const std::basic_string<Char, CharTraits, StringAlloc>& className,
+            const ASTContainer& ast,
+            const std::vector<std::basic_string<Char, CharTraits, StringAlloc>>& additionalIncludes = {},
+            size_t separatorLineCount = 2,
             size_t tabSize = 4)
         {
             ASTContainer tokens, tokenizerRules, parserRules;
@@ -763,7 +758,7 @@ namespace parserlib::cfe {
             const auto stringStart = term('\"');
             const auto stringEnd = term('\"');
             const auto stringCharLiteral = escapedChar | unicodeChar | (anyChar - '"');
-            const auto string 
+            const auto string
                 = stringStart >> (*stringCharLiteral->*TokenID::String) >> stringEnd
                 | charStart >> ((charCharLiteral >> +charCharLiteral) ->* TokenID::String) >> charEnd;
 
@@ -792,13 +787,13 @@ namespace parserlib::cfe {
             const auto sequenceSeparator    = term(',') ->* TokenID::SequenceSeparator;
 
             //token
-            const auto token 
+            const auto token
                 = ws
-                | comment 
+                | comment
                 | tokenIdentifier
                 | identifier
-                | string 
-                | char_ 
+                | string
+                | char_
                 | charRange
                 | assignment
                 | choice
@@ -831,7 +826,7 @@ namespace parserlib::cfe {
 
             const auto anyChar = TokenID::AnyChar ->* ASTID::AnyChar;
 
-            const auto terminal 
+            const auto terminal
                 = terminalString
                 | terminalRange
                 | terminalChar
@@ -872,15 +867,15 @@ namespace parserlib::cfe {
                 | logicalNot
                 | atom;
 
-            const auto exclude 
+            const auto exclude
                 = (unaryExpr >> TokenID::Exclude >> unaryExpr) ->* ASTID::Exclude
                 | unaryExpr;
 
-            const auto sequence 
+            const auto sequence
                 = (exclude >> +exclude) ->* ASTID::Sequence
                 | exclude;
 
-            m_choice 
+            m_choice
                 = (sequence >> (-term(TokenID::SequenceSeparator) >> +(TokenID::Choice >> sequence))) ->* ASTID::Choice
                 | sequence;
 
@@ -904,10 +899,10 @@ namespace parserlib::cfe {
         }
 
         static bool referencesNode(
-            const ASTPtr& node, 
-            const ASTContainer& rules, 
-            ASTID astID, 
-            const StringView& source, 
+            const ASTPtr& node,
+            const ASTContainer& rules,
+            ASTID astID,
+            const StringView& source,
             std::set<ASTPtr>& recursiveNodes)
         {
             //found node
@@ -1010,6 +1005,9 @@ namespace parserlib::cfe {
                     tokens.push_back(token);
                     return;
                 }
+
+                default:
+                    ;
             }
 
             auto [it, ok] = recursiveNodes.insert(node);

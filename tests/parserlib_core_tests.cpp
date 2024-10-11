@@ -501,7 +501,7 @@ static void unitTest_TreeMatch() {
     const auto e = term('E') ->* E;
     const auto f = term('F') ->* F;
 
-    const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | f) ->* HEX_DIGIT;
+    const auto hexDigit = (zero | one | two | three | four | five | six | seven | eight | nine | a | b | c | d | e | f) ->* HEX_DIGIT;
 
     const auto hexByte = (hexDigit >> hexDigit) ->* HEX_BYTE;
 
@@ -644,7 +644,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "1";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 1);
     }
@@ -652,7 +652,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "1+2";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 3);
     }
@@ -660,7 +660,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "1+2*3";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 7);
     }
@@ -668,7 +668,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "1*2+3";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 5);
     }
@@ -676,7 +676,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "(1+2)*3";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 9);
     }
@@ -684,7 +684,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "1*(2+3)";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 5);
     }
@@ -692,7 +692,7 @@ static void unitTest_leftRecursion() {
     {
         SourceString input = "(1*(2+3))*4";
         CalculatorParseContext pc(input);
-        const bool ok = add.parse(pc);
+        add.parse(pc);
         const int r = eval(pc.getMatches()[0]);
         assert(r == 20);
     }

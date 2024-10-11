@@ -64,9 +64,9 @@ namespace parserlib::core {
 
     /**
      * A source string.
-     * 
+     *
      * It provides a special iterator that counts lines and columns.
-     * 
+     *
      * @param Source_ source string type; any STL-like container.
      * @param CaseTraits_ character case traits.
      * @param NewlineTraits_ newline traits.
@@ -263,14 +263,14 @@ namespace parserlib::core {
              * @param it iterator into the source.
              * @param line current line.
              * @param column current column.
-             * @param end the end position of the source; required for newline sequences that are 
+             * @param end the end position of the source; required for newline sequences that are
              *  bigger than a single character.
              */
             const_iterator(const SourceIterator& it, size_t line, size_t column, const SourceIterator& end)
                 : m_iterator(it)
+                , m_end(end)
                 , m_line(line)
                 , m_column(column)
-                , m_end(end)
             {
             }
 

@@ -24,10 +24,10 @@ namespace parserlib::core {
 
     /**
      * Data used while parsing an input.
-     * 
+     *
      * @param MatchID_ the match id type; by default, it is of type int, so C-like enums can be used for matches.
      *  But it can also be a class enum or any other type.
-     * 
+     *
      * @param Source_ the type of source to parse; by default, it is a SourceString, allowing the counting of
      *  lines and columns, but it can also be any other STL-like container.
      */
@@ -107,7 +107,7 @@ namespace parserlib::core {
         }
 
         /**
-         * Checks if the end position is reached, 
+         * Checks if the end position is reached,
          * i.e. if current position equals the end position.
          * @return true if the end position has been reached, false otherwise.
          */
@@ -306,7 +306,7 @@ namespace parserlib::core {
         }
 
         /**
-         * Returns the appropriate start position and match count for a match, 
+         * Returns the appropriate start position and match count for a match,
          * depending on the left recursion state of the context.
          * @return a tuple that holds the start position and match size for the current match.
          */
@@ -351,8 +351,8 @@ namespace parserlib::core {
         };
 
         Iterator m_currentPosition;
-        Iterator m_endPosition;
         Iterator m_furthestUnparsedPosition;
+        Iterator m_endPosition;
         ParseErrorContainer m_errors;
         std::map<Rule*, std::vector<Iterator>> m_rulePositions;
         std::map<Rule*, LeftRecursion::State> m_ruleStates;
