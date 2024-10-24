@@ -1,19 +1,14 @@
-#include <iostream>
-#include "parserlib.hpp"
 
 
-extern void parserlib_core_unitTests();
-extern void parserlib_cfe_unitTests();
+extern void test_parser_engine();
 
 
-static void unitTests() {
-    parserlib_core_unitTests();
-    parserlib_cfe_unitTests();
+static void test() {
+    test_parser_engine();
 }
 
 
 int main() {
-    unitTests();
-    system("pause");
+    test();
     return 0;
 }

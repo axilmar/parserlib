@@ -2,9 +2,7 @@
 #define PARSERLIB_HPP
 
 
-#include "parserlib/core.hpp"
-#include "parserlib/cfe.hpp"
-#include "parserlib/util.hpp"
+#include "parserlib/parser_engine.hpp"
 
 
 #endif //PARSERLIB_HPP
