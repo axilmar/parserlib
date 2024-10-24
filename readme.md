@@ -115,7 +115,7 @@ The above prints `16` at the console.
  
  	- Reorganized the library in order to support compiler front ends into a separate namespace. The main library is now in `namespace parserlib::core`.
  	- Added `namespace parserlib::cfe` which now contains the compiler-front-end functionality.
- 	- separated tokenization and parsing phases for compiler-front-ends ([example](#Parsing)).
+ 	- separated tokenization and parsing phases for compiler-front-ends.
  	- Added relevant documentation and unit tests.
  
 
