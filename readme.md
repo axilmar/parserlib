@@ -18,7 +18,7 @@ Parserlib is a `c++17` library that allows the creation of recursive-descent par
 
 The library allows the declaration of left-recursive grammars.
 
-Example:
+Here is a calculator parser example:
 
 ```cpp
 #include "parserlib.hpp"
@@ -92,7 +92,7 @@ private:
 };
 
 int main() {
-	calculator_grammar<> calculator;
+    calculator_grammar<> calculator;
     std::cout << calculator.evaluate("1+(5*6)/2") ;
 }
 ```
