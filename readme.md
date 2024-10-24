@@ -106,7 +106,7 @@ The above prints `16` at the console.
     - Rewrote the library:
         - all parser grammar classes are now inside a single template class `class parser_engine<SourceT, MatchIdT>`, for the following reasons:
             - compiler performance (MSVC 32-bit regularly crashed with out of memory error from the many template instantiations of previous versions).
-            - library code organization; writing a grammar usually requires including all the grammar rules, so it is reduntant to have separate files for each grammar-related class.
+            - library code organization; writing a grammar usually requires including all the grammar constructs, so it is reduntant to have separate files for each grammar-related class.
             - user code organization; whole grammars need to be specialized on source type.
         - coding style is closer to the standard: all identifiers are lower case, words are separated by underscores, idiomatic c++ is used whenever possible.
  
