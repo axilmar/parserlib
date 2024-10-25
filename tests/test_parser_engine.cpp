@@ -711,8 +711,10 @@ static void test_left_recursion_matches() {
 }
 
 
-static void test_ast() {
-    enum MatchId {
+namespace test_ast {
+
+
+    enum class MatchId {
         Number,
         Add,
         Sub,
@@ -720,27 +722,59 @@ static void test_ast() {
         Div
     };
 
-    auto digit = range('0', '9');
 
-    auto number = +digit ->* Number;
+    template <typename Elem, typename Traits>
+    std::basic_ostream<Elem, Traits>& operator << (std::basic_ostream<Elem, Traits>& stream, MatchId id) {
+        switch (id) {
+        case MatchId::Number:
+            stream << "Number";
+            break;
 
-    auto val = number;
+        case MatchId::Add:
+            stream << "Add";
+            break;
 
-    rule mul = (mul >> '*' >> val) ->* Mul
-             | (mul >> '/' >> val) ->* Div
-             | val;
+        case MatchId::Sub:
+            stream << "Sub";
+            break;
 
-    rule add = (add >> '+' >> mul) ->* Add
-             | (add >> '-' >> mul) ->* Sub
-             | mul;
+        case MatchId::Mul:
+            stream << "Mul";
+            break;
 
-    auto grammar = add;
+        case MatchId::Div:
+            stream << "Div";
+            break;
 
-    std::function<double(const ast_node_ptr_type&)> evaluate;
+        }
+        return stream;
+    }
 
-    evaluate = [&](const ast_node_ptr_type& node) {
-        switch (node->get_id()) {
-            case Number: {
+
+    static void test_ast() {
+        using pe = parser_engine<std::string, MatchId>;
+
+        auto digit = pe::range('0', '9');
+
+        auto number = +digit->*MatchId::Number;
+
+        auto val = number;
+
+        pe::rule mul = (mul >> '*' >> val)->*MatchId::Mul
+            | (mul >> '/' >> val)->*MatchId::Div
+            | val;
+
+        pe::rule add = (add >> '+' >> mul)->*MatchId::Add
+            | (add >> '-' >> mul)->*MatchId::Sub
+            | mul;
+
+        auto grammar = add;
+
+        std::function<double(const pe::ast_node_ptr_type&)> evaluate;
+
+        evaluate = [&](const pe::ast_node_ptr_type& node) {
+            switch (node->get_id()) {
+            case MatchId::Number: {
                 stringstream stream;
                 stream << node->get_source();
                 double r;
@@ -748,155 +782,166 @@ static void test_ast() {
                 return r;
             }
 
-            case Add:
+            case MatchId::Add:
                 return evaluate(node->get_children()[0]) + evaluate(node->get_children()[1]);
 
-            case Sub:
+            case MatchId::Sub:
                 return evaluate(node->get_children()[0]) - evaluate(node->get_children()[1]);
 
-            case Mul:
+            case MatchId::Mul:
                 return evaluate(node->get_children()[0]) * evaluate(node->get_children()[1]);
 
-            case Div:
+            case MatchId::Div:
                 return evaluate(node->get_children()[0]) / evaluate(node->get_children()[1]);
+            }
+
+            throw std::logic_error("Invalid node id type");
+            };
+
+        {
+            string input = "1";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1.);
         }
 
-        throw std::logic_error("Invalid node id type");
-    };
+        {
+            string input = "1+2";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. + 2.);
+        }
 
-    {
-        string input = "1";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1.);
+        {
+            string input = "1-2";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. - 2.);
+        }
+
+        {
+            string input = "1*2";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. * 2.);
+        }
+
+        {
+            string input = "1/2";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. / 2.);
+        }
+
+        {
+            string input = "1+2-3";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. + 2. - 3.);
+        }
+
+        {
+            string input = "1+2-3*4";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. + 2. - 3. * 4.);
+        }
+
+        {
+            string input = "1+2-3*4/5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. + 2. - 3. * 4. / 5.);
+        }
+
+        {
+            string input = "1-2+3/4*5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. - 2. + 3. / 4. * 5.);
+        }
+
+        {
+            string input = "1*2/3+4-5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. * 2. / 3. + 4. - 5.);
+        }
+
+        {
+            string input = "1/2*3-4+5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. / 2. * 3. - 4. + 5.);
+        }
+
+        {
+            string input = "1+2+3+4+5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. + 2. + 3. + 4. + 5.);
+        }
+
+        {
+            string input = "1+2-3+4-5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. + 2. - 3. + 4. - 5.);
+        }
+
+        {
+            string input = "1-2-3-4-5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. - 2. - 3. - 4. - 5.);
+        }
+
+        {
+            string input = "1-2+3-4+5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. - 2. + 3. - 4. + 5.);
+        }
+
+        {
+            string input = "1*2*3*4*5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. * 2. * 3. * 4. * 5.);
+        }
+
+        {
+            string input = "1/2/3/4/5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. / 2. / 3. / 4. / 5.);
+        }
+
+        {
+            string input = "1*2/3*4/5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. * 2. / 3. * 4. / 5.);
+        }
+
+        {
+            string input = "1/2*3/4*5";
+            auto [success, ast, it] = pe::parse(input, grammar);
+            assert(ast.size() == 1);
+            assert(evaluate(ast[0]) == 1. / 2. * 3. / 4. * 5.);
+        }
+
+        //{
+        //    string input = "1+2-3*4/5";
+        //    auto [success, ast, it] = pe::parse(input, grammar);
+        //    for (const auto& astn : ast) {
+        //        std::cout << astn;
+        //    }
+        //}
     }
 
-    {
-        string input = "1+2";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. + 2.);
-    }
 
-    {
-        string input = "1-2";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. - 2.);
-    }
-
-    {
-        string input = "1*2";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. * 2.);
-    }
-
-    {
-        string input = "1/2";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. / 2.);
-    }
-
-    {
-        string input = "1+2-3";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. + 2. - 3.);
-    }
-
-    {
-        string input = "1+2-3*4";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. + 2. - 3. * 4.);
-    }
-
-    {
-        string input = "1+2-3*4/5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. + 2. - 3. * 4. / 5.);
-    }
-
-    {
-        string input = "1-2+3/4*5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. - 2. + 3. / 4. * 5.);
-    }
-
-    {
-        string input = "1*2/3+4-5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. * 2. / 3. + 4. - 5.);
-    }
-
-    {
-        string input = "1/2*3-4+5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. / 2. * 3. - 4. + 5.);
-    }
-
-    {
-        string input = "1+2+3+4+5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. + 2. + 3. + 4. + 5.);
-    }
-
-    {
-        string input = "1+2-3+4-5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. + 2. - 3. + 4. - 5.);
-    }
-
-    {
-        string input = "1-2-3-4-5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. - 2. - 3. - 4. - 5.);
-    }
-
-    {
-        string input = "1-2+3-4+5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. - 2. + 3. - 4. + 5.);
-    }
-
-    {
-        string input = "1*2*3*4*5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. * 2. * 3. * 4. * 5.);
-    }
-
-    {
-        string input = "1/2/3/4/5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. / 2. / 3. / 4. / 5.);
-    }
-
-    {
-        string input = "1*2/3*4/5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. * 2. / 3. * 4. / 5.);
-    }
-
-    {
-        string input = "1/2*3/4*5";
-        auto [success, ast, it] = pe::parse(input, grammar);
-        assert(ast.size() == 1);
-        assert(evaluate(ast[0]) == 1. / 2. * 3. / 4. * 5.);
-    }
-}
+} //namespace test_ast
 
 
 template <typename SourceT = std::string> class calculator_grammar {
@@ -1025,7 +1070,7 @@ void test_parser_engine() {
     test_left_recursion();
     test_matches();
     test_left_recursion_matches();
-    test_ast();
+    test_ast::test_ast();
     test_calculator();
     //test_performance();
 }

@@ -1,6 +1,6 @@
 # Parserlib
 
-## Writing parsers
+## Writing and using parsers
 
 ### Introduction
 
@@ -317,3 +317,134 @@ pe::rule add = add >> '+' >> mul
              | add >> '-' >> mul
              | mul;
 ```
+
+### Using a parser
+
+The `class parser_engine<SourceT, MatchIdT>` contains the function `std::tuple<bool, ast_node_container_type, iterator_type> parse(SourceT& input, ParserT&& grammar [, const parse_options& options])` which can be used to parse an input.
+
+Example:
+
+```cpp
+//for convenience
+using pe = parser_engine<>;
+
+//the grammar
+auto grammar = terminal('a') >> 'b' >> 'c';
+
+//the input
+std::string input = "abc";
+
+//parse some input
+auto [success, ast, it] = pe::parse(input, grammar);
+```
+
+#### Parsing arguments
+
+The `parse` function accepts the following arguments:
+
+- `input`: reference to STL container that contains the source to be parsed; it must be in scope while the results of the `parse' function are in scope, because the function returns views (`std::basic_string_view`) on the source.
+- `grammar`: the root expression of the grammar; it can be any grammar expression, or a rule.
+- `parse_options`: optional structure of parse options; see below for usage.
+
+#### Parsing result
+
+The function `parse` returns a tuple of:
+
+- a flag that says if parsing suceeded and the whole input is consumed, or there was an error.
+- a vector of shared pointers to AST nodes; this contains what is matched by the match parsers of the grammar.
+- an iterator of the source where parsing stopped; if parsing succeeds, it is equal to input.end().
+
+### Abstract Syntax Tree (AST) nodes
+
+One of the results of the `parse` function is an `std::vector<ast_node_ptr_type>`. It contains a list of ast nodes, as they are created from the matches of the parse context.
+
+Each ast node has a match id, from the type given to the `class parser_engine`, parameter `MatchIdT`.
+
+An AST node has the following interface:
+
+- `MatchIDT get_id() const`: returns the id of the ast node.
+- `const iterator_type& get_start_position() const`: returns the start position of the node inside the source.
+- `const iterator_type& get_end_position() const`: returns the end position of the node inside the source.
+- `std::basic_string_view<terminal_value_type> get_source() const`: returns a view on the source that corresponds to the parsed contents of the ast node.
+- `const std::vector<sst_node_ptr_type>& get_children() const`: returns the children ast nodes.
+- `ast_node_ptr_type get_parent() const`: returns the parent ast node.
+- `void print(std::basic_ostream<Elem, Traits>& stream, size_t depth = 0, size_t tabSize = 4)`: prints the ast node and its children into the given output stream.
+
+### Using parse options to create custom AST nodes
+
+The `class parser_engine::ast_node` has a virtual destructor, and therefore it can be inherited.
+
+In order to create custom ast nodes, the `class parser_engine::parse_options` contains a member `create_ast_node` which can be set to the function that creates an ast node. For example:
+
+```cpp
+class ast_node_a : public pe::ast_node {
+public:
+	ast_node_a(ast_id id, const iterator_type& start_position, const iterator_type& end_position) 
+    : pe::ast_node(id, start_position, end_position)
+    { 
+    }
+};
+
+class ast_node_b : public pe::ast_node {
+public:
+	ast_node_b(ast_id id, const iterator_type& start_position, const iterator_type& end_position) 
+    : pe::ast_node(id, start_position, end_position)
+    { 
+    }
+};
+
+class ast_node_c : public pe::ast_node {
+public:
+	ast_node_c(ast_id id, const iterator_type& start_position, const iterator_type& end_position) 
+    : pe::ast_node(id, start_position, end_position)
+    { 
+    }
+};
+
+pe::ast_node_ptr_type my_create_ast_node(ast_id id, const iterator_type& start_position, const iterator_type& end_position) {
+	switch (id) {
+    	case ast_id::a:
+        	return std::make_shared<ast_node_a>(id, start_position, end_position);
+    	case ast_id::b:
+        	return std::make_shared<ast_node_b>(id, start_position, end_position);
+    	case ast_id::c:
+        	return std::make_shared<ast_node_c>(id, start_position, end_position);
+    }
+    
+    throw std::logic_error("invalid ast id");
+}
+
+parse_options options;
+options.create_ast_node = my_create_ast_node;
+pe.parse(input, grammar, options);
+```
+
+### Using parse options to customize rule parsing
+
+Sometimes the need arises to provide custom side effects from parsing some input; for example, handling multiple errors, or solving grammar ambiguities by looking up some other tables.
+
+In order to provide custom parsing, and not litter the grammar with specific functionality, the parserlib library allows the definition of custom rule handler functions, as a member of the `class parse_options`.
+
+Example:
+
+```cpp
+pe::parse_result my_custom_rule_handler(parse_context& pc, rule& r, parse_result result, void* custom_data) {
+	return result;
+}
+
+pe::rule rule1 = terminal('a');
+pe::rule rule2 = terminal('b');
+auto grammar = rule1 | rule2;
+
+pe::parse_options options;
+options.rule_handlers[&rule1] = my_custom_rule_handler;
+options.rule_handlers[&rule2] = my_custom_rule_handler;
+options.custom_data = &my_custom_data;
+
+std::string input = "a";
+auto [success, ast, it] = pe::parse(input, grammar, options);
+```
+
+In the above grammar, when `rule1` or `rule2` are parsed, the function `my_custom_rule_handler` will be invoked, with the custom data specified in the options.
+
+This allows to a) keep the grammar clean from side effects, b) allow side effects to happen when parsing a rule.

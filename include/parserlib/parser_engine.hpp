@@ -185,7 +185,7 @@ namespace parserlib {
          * @param r the rule that was parsed.
          * @param result the result of the rule parsing.
          */
-        using rule_handler_function_type = std::function<parse_result(parse_context& pc, rule& r, parse_result result)>;
+        using rule_handler_function_type = std::function<parse_result(parse_context& pc, rule& r, parse_result result, void* custom_data)>;
 
         /**
          * Type of map of rules to rule handlers.
@@ -320,6 +320,22 @@ namespace parserlib {
                 return m_matches;
             }
 
+            /**
+             * Returns the custom data attached to this parse context.
+             * @return the custom data attached to this parse context.
+             */
+            void* get_custom_data() const {
+                return m_custom_data;
+            }
+
+            /**
+             * Sets the custom data attached to this parse context.
+             * @param data custom data.
+             */
+            void set_custom_data(void* data) {
+                m_custom_data = data;
+            }
+
         private:
             struct left_recursion_match_position {
                 iterator_type start_position;
@@ -333,6 +349,7 @@ namespace parserlib {
             std::map<rule*, std::vector<iterator_type>> m_rule_parse_positions;
             std::vector<left_recursion_match_position> m_left_recursion_match_positions;
             rule_handler_function_map_type m_rule_handler_functions;
+            void* m_custom_data;
 
             void add_match(match_id_type id, const iterator_type& start_position, const iterator_type& end_position, size_t child_count) {
                 if (child_count > m_matches.size()) {
@@ -384,7 +401,7 @@ namespace parserlib {
                 parse_result result = r.parse(*this);
                 auto it = m_rule_handler_functions.find(r.get_this_ptr());
                 if (it != m_rule_handler_functions.end()) {
-                    result = it->second(*this, r, result);
+                    result = it->second(*this, r, result, m_custom_data);
                 }
                 return result;
             }
@@ -2130,6 +2147,27 @@ namespace parserlib {
                 return { start, size };
             }
 
+            /**
+             * Prints this ast onto the given stream.
+             * @param stream output stream.
+             * @param depth current tree depth.
+             * @param tabSize number of characters per tab.
+             */
+            template <typename OutStreamT>
+            void print(OutStreamT& stream, size_t depth = 0, size_t tabSize = 4) const {
+                for (size_t i = 0; i < depth * tabSize; ++i) {
+                    stream << ' ';
+                }
+                stream << m_id;
+                if (m_children.empty()) {
+                    stream << ": " << get_source();
+                }
+                stream << '\n';
+                for (const ast_node_ptr_type& child : m_children) {
+                    child->print(stream, depth + 1, tabSize);
+                }
+            }
+
         private:
             match_id_type m_id;
             iterator_type m_start_position;
@@ -2137,6 +2175,17 @@ namespace parserlib {
             std::weak_ptr<ast_node> m_parent;
             ast_node_container_type m_children;
         };
+
+        /**
+         * Helper function for printing an AST tree onto an std stream.
+         * @param stream output stream.
+         * @param ast ast node to print.
+         */
+        template <typename Elem, typename Traits>
+        friend std::basic_ostream<Elem, Traits>& operator << (std::basic_ostream<Elem, Traits>& stream, const ast_node_ptr_type& ast) {
+            ast->print(stream);
+            return stream;
+        }
 
         /**
          * Function type for creating an ast node.
@@ -2161,6 +2210,11 @@ namespace parserlib {
              * Function that allows to create custom ast nodes.
              */
             create_ast_node_func_type create_ast_node;
+
+            /**
+             * Pointer to custom data.
+             */
+            void* custom_data{ nullptr };
 
             /**
              * The default constructor.
@@ -2226,6 +2280,7 @@ namespace parserlib {
         template <typename GrammarT>
         static std::tuple<bool, ast_node_container_type, iterator_type> parse(SourceT& input, GrammarT&& grammar, const parse_options& options) {
             parse_context pc(input, options.rule_handlers);
+            pc.set_custom_data(options.custom_data);
             const bool ok = grammar.parse(pc) == parse_result::success && pc.is_end_position();
             ast_node_container_type ast_nodes;
             create_ast(pc.get_matches(), ast_nodes, options.create_ast_node);
