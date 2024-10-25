@@ -109,6 +109,7 @@ The above prints `16` at the console.
             - library code organization; writing a grammar usually requires including all the grammar constructs, so it is reduntant to have separate files for each grammar-related class.
             - user code organization; whole grammars need to be specialized on source type.
         - coding style is closer to the standard: all identifiers are lower case, words are separated by underscores, idiomatic c++ is used whenever possible.
+    - Rewrote the documentation, due to more functionality to be added in the future.
  
  
   - 1.0.0.3

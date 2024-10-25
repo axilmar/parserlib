@@ -541,6 +541,15 @@ namespace parserlib {
             }
 
             /**
+             * Constructor from list of values.
+             * @param values list of values.
+             */
+            terminal_string_parser(std::initializer_list<terminal_value_type> values)
+                : m_string(values)
+            {
+            }
+
+            /**
              * Parses the given input against a string of values.
              *
              * It checks if the string at the current position equals the string stored internally.
@@ -1788,6 +1797,15 @@ namespace parserlib {
         }
 
         /**
+         * Helper function for creating a terminal string parser.
+         * param value null-terminated string to create a terminal string parser from.
+         * @return a terminal string parser object.
+         */
+        static terminal_string_parser terminal(std::initializer_list<terminal_value_type> values) {
+            return { terminal_string_type(values) };
+        }
+
+        /**
          * Helper function for creating a terminal set parser.
          * @param values values to create a terminal set parser of.
          * @return a terminal set parser.
@@ -1802,6 +1820,24 @@ namespace parserlib {
          * @return a terminal set parser.
          */
         static terminal_set_parser one_of(const terminal_value_type* values) {
+            return values;
+        }
+
+        /**
+         * Helper function for creating a terminal set parser.
+         * @param values values to create a terminal set parser of.
+         * @return a terminal set parser.
+         */
+        static terminal_set_parser set(std::initializer_list<terminal_value_type> values) {
+            return values;
+        }
+
+        /**
+         * Helper function for creating a terminal set parser.
+         * @param values null-terminated values to create a terminal set parser of.
+         * @return a terminal set parser.
+         */
+        static terminal_set_parser set(const terminal_value_type* values) {
             return values;
         }
 
