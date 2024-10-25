@@ -437,8 +437,8 @@ pe::rule rule2 = terminal('b');
 auto grammar = rule1 | rule2;
 
 pe::parse_options options;
-options.rule_handlers[&rule1] = my_custom_rule_handler;
-options.rule_handlers[&rule2] = my_custom_rule_handler;
+options.rule_handlers[&rule1] = &my_custom_rule_handler;
+options.rule_handlers[&rule2] = &my_custom_rule_handler;
 options.custom_data = &my_custom_data;
 
 std::string input = "a";
