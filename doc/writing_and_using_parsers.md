@@ -76,7 +76,7 @@ For example, parsing a vector of odd/even integers can be done like this:
 
 ```cpp
 enum class match_type {
-	odd,
+    odd,
     even
 };
 
@@ -280,7 +280,7 @@ For example:
 
 ```cpp
 enum class match_type {
-	a, b, c
+    a, b, c
 };
 
 auto grammar = terminal('a') ->* match_type::a 
@@ -301,7 +301,7 @@ A rule is a grammar element that can be recursive.
 
 In order to support recursion, a variable of type `parser_engine<SourceT, MatchIdT>::rule` shall be declared, either as global/local variable or as a member of a class.
 
-The rule variable must be constructed/assigned a grammar expression.
+The rule variable must be constructed with/assigned from a grammar expression.
 
 The `rule` class is also used to support left-recursive grammars.
 
@@ -342,7 +342,7 @@ auto [success, ast, it] = pe::parse(input, grammar);
 
 The `parse` function accepts the following arguments:
 
-- `input`: reference to STL container that contains the source to be parsed; it must be in scope while the results of the `parse' function are in scope, because the function returns views (`std::basic_string_view`) on the source.
+- `input`: reference to STL container that contains the source to be parsed; it must be in scope while the results of the `parse` function are in scope, because the function returns views (`std::basic_string_view`) on the source.
 - `grammar`: the root expression of the grammar; it can be any grammar expression, or a rule.
 - `parse_options`: optional structure of parse options; see below for usage.
 
@@ -415,7 +415,7 @@ pe::ast_node_ptr_type my_create_ast_node(ast_id id, const iterator_type& start_p
 }
 
 parse_options options;
-options.create_ast_node = my_create_ast_node;
+options.create_ast_node = &my_create_ast_node;
 pe.parse(input, grammar, options);
 ```
 
