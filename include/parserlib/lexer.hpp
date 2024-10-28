@@ -8,6 +8,14 @@
 namespace parserlib {
 
 
+    /**
+     * A lexer.
+     * 
+     * A class that can be used to convert an input to a series of tokens.
+     * 
+     * @param SourceT type of source; must be an STL-compatible container.
+     * @param MatchIdT type of id for matches; it defaults to 'int', if a special enumeration is not provided.
+     */
     template <typename SourceT = std::string, typename MatchIdT = int> class lexer {
     public:
         /**
@@ -30,15 +38,33 @@ namespace parserlib {
          */
         using match_id_type = MatchIdT;
 
+        /**
+         * Type of character.
+         */
         using character_type = typename SourceT::value_type;
 
+        /**
+         * Type of parser engine to use for parsing.
+         */
         using parse_engine_type = parser_engine<SourceT, MatchIdT>;
 
+        /**
+         * Source position.
+         */
         class source_position {
         public:
+            /**
+             * The default initializing constructor.
+             */
             source_position() {
             }
 
+            /**
+             * Constructor.
+             * @param iterator iterator into the source.
+             * @param line line in the source.
+             * @param column column in the source.
+             */
             source_position(const iterator_type& iterator, size_t line, size_t column)
                 : m_iterator(iterator)
                 , m_line(line)
@@ -46,14 +72,28 @@ namespace parserlib {
             {
             }
 
+            /**
+             * Returns the iterator for this source position.
+             * @return the iterator for this source position.
+             */
             const iterator_type& get_iterator() const {
                 return m_iterator;
             }
 
+            /**
+             * Returns the line of this position into the source.
+             * Lines start counting from 1.
+             * @return the line of this position into the source.
+             */
             size_t get_line() const {
                 return m_line;
             }
 
+            /**
+             * Returns the column of this position into the source.
+             * Columns start counting from 1.
+             * @return the column of this position into the source.
+             */
             size_t get_column() const {
                 return m_column;
             }
@@ -66,8 +106,25 @@ namespace parserlib {
             friend class_type;
         };
 
+        /**
+         * A token.
+         * 
+         * It is the result of tokenizing the input.
+         */
         class token {
         public:
+            /**
+             * The default initializing constructor.
+             */
+            token() {
+            }
+
+            /**
+             * The constructor.
+             * @param id id of token.
+             * @param start_position start position of token.
+             * @param end_position end position of token.
+             */
             token(MatchIdT id, const source_position& start_position, const source_position& end_position)
                 : m_id(id)
                 , m_start_position(start_position)
@@ -109,14 +166,62 @@ namespace parserlib {
                 return { start, size };
             }
 
+            /**
+             * Compares the token id to the given id.
+             * @param id id to compare to the id of this token.
+             * @return true if the ids are equal, false otherwise.
+             */
+            bool operator == (MatchIdT id) const {
+                return m_id == id;
+            }
+
+            /**
+             * Compares the token id to the given id.
+             * @param id id to compare to the id of this token.
+             * @return true if the ids are different, false otherwise.
+             */
+            bool operator != (MatchIdT id) const {
+                return m_id != id;
+            }
+
+            /**
+             * Compares a token's id to the given id.
+             * @param id id to compare to the id of this token.
+             * @param tk the token to compare the id of.
+             * @return true if the ids are equal, false otherwise.
+             */
+            friend bool operator == (MatchIdT id, const token& tk) {
+                return id == tk.m_id;
+            }
+
+            /**
+             * Compares a token's id to the given id.
+             * @param id id to compare to the id of this token.
+             * @param tk the token to compare the id of.
+             * @return true if the ids are different, false otherwise.
+             */
+            friend bool operator != (MatchIdT id, const token& tk) {
+                return id != tk.m_id;
+            }
+
         private:
             MatchIdT m_id;
             source_position m_start_position;
             source_position m_end_position;
         };
 
+        /**
+         * Type of token container.
+         */
         using token_container_type = std::vector<token>;
 
+        /**
+         * Utility function that helps parsing an input to a series of tokens.
+         * @param input the source.
+         * @param grammar the root of the grammar to use for parsing.
+         * @param newLineParser parser to be used for counting lines and columns.
+         * @return a tuple of the following: success flag, tokens created, iterator where parsing stopped.
+         */
         template <typename GrammarParserT, typename NewLineParserT>
         static std::tuple<bool, token_container_type, iterator_type> parse(SourceT& input, GrammarParserT&& grammar, NewLineParserT&& newLineParser) {
             //parse
@@ -137,6 +242,13 @@ namespace parserlib {
             return std::make_tuple(success, std::move(tokens), it);
         }
 
+        /**
+         * Utility function that helps parsing an input to a series of tokens.
+         * The newline parser is the terminal '\n'.
+         * @param input the source.
+         * @param grammar the root of the grammar to use for parsing.
+         * @return a tuple of the following: success flag, tokens created, iterator where parsing stopped.
+         */
         template <typename GrammarParserT>
         static std::tuple<bool, token_container_type, iterator_type> parse(SourceT& input, GrammarParserT&& grammar) {
             return parse(input, std::forward<GrammarParserT>(grammar), parser_engine<SourceT>::terminal('\n'));
