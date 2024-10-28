@@ -32,7 +32,6 @@ namespace parserlib {
      * - functionality for converting the matches to an Abstract Syntax Tree.
      *
      * @param SourceT type of source; must be an STL-compatible container.
-     *
      * @param MatchIdT type of id for matches; it defaults to 'int', if a special enumeration is not provided.
      */
     template <typename SourceT = std::string, typename MatchIdT = int> class parser_engine {
