@@ -226,22 +226,23 @@ namespace parserlib {
              * @param rule_handlers map of rules to rule handlers, to be invoked after a rule is parsed; the given container
              *  is empty upon return.
              */
-            parse_context(source_type& input, rule_handler_function_map_type&& rule_handlers = rule_handler_function_map_type())
+            parse_context(source_type& input, const rule_handler_function_map_type& rule_handlers = rule_handler_function_map_type())
                 : m_current_position(input.begin())
                 , m_end_position(input.end())
-                , m_rule_handler_functions(std::move(rule_handlers))
+                , m_rule_handler_functions(rule_handlers)
             {
             }
 
             /**
              * Constructor.
-             * @param input the source; must be in scope while this parse context is in scope, since the matches produced
-             *  create views on the source.
-             * @param rule_handlers map of rules to rule handlers, to be invoked after a rule is parsed.
+             * @param begin beginning of source.
+             * @param end end of source.
+             * @param rule_handlers map of rules to rule handlers, to be invoked after a rule is parsed; the given container
+             *  is empty upon return.
              */
-            parse_context(source_type& input, const rule_handler_function_map_type& rule_handlers)
-                : m_current_position(input.begin())
-                , m_end_position(input.end())
+            parse_context(const iterator_type& begin, const iterator_type& end, const rule_handler_function_map_type& rule_handlers = rule_handler_function_map_type())
+                : m_current_position(begin)
+                , m_end_position(end)
                 , m_rule_handler_functions(rule_handlers)
             {
             }
