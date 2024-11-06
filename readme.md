@@ -2,7 +2,7 @@
 
 A `c++17` recursive-descent parser library that can parse left-recursive grammars.
 
-Version 1.0.0.4.
+Version 1.0.0.5.
 
 ## Table Of Contents
 
@@ -100,6 +100,10 @@ int main() {
 The above prints `16` at the console.
 
 ## Versions
+
+  - 1.0.0.5
+  	- Added custom match functions in order to allow the resolution of ambiguities while parsing.
+  	- allowed terminal values to be of different type that the value of the source container, in order to allow the result of a parse (the ast nodes created by a parse) to be fed to another parse function.
 
   - 1.0.0.4
   

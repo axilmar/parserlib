@@ -2,6 +2,24 @@
 
 ## Writing and using parsers
 
+[Introduction](#introduction)
+[Include files](#include-files)
+[Namespace](#namespace)
+[Declaring a `parser_engine` type](#declaring-a-`parser_engine`-type)
+[Terminals](#terminals)
+[Loops](#loops)
+[Optionals](#optionals)
+[Logical tests](#logical-tests)
+[Sequences](#sequences)
+[Branches](#branches)
+[Matches](#matches)
+[Rules](#rules)
+[Using a parser](#using-a-parser)
+[Abstract Syntax Tree nodes](#abstract-syntax-tree-nodes)
+[Custom AST nodes](#custom-ast-nodes)
+[Contextual tokenization](#contextual-tokenization)
+[Contextual parsing](#contextual-parsing)
+
 ### Introduction
 
 Writing a parser means to use the `class parser_engine<SourceT, MatchIdT>` to write grammars and parse some input based on those grammars.
@@ -354,7 +372,7 @@ The function `parse` returns a tuple of:
 - a vector of shared pointers to AST nodes; this contains what is matched by the match parsers of the grammar.
 - an iterator of the source where parsing stopped; if parsing succeeds, it is equal to input.end().
 
-### Abstract Syntax Tree (AST) nodes
+### Abstract Syntax Tree nodes
 
 One of the results of the `parse` function is an `std::vector<ast_node_ptr_type>`. It contains a list of ast nodes, as they are created from the matches of the parse context.
 
@@ -370,7 +388,7 @@ An AST node has the following interface:
 - `ast_node_ptr_type get_parent() const`: returns the parent ast node.
 - `void print(std::basic_ostream<Elem, Traits>& stream, size_t depth = 0, size_t tabSize = 4)`: prints the ast node and its children into the given output stream.
 
-### Using parse options to create custom AST nodes
+### Custom AST nodes
 
 The `class parser_engine::ast_node` has a virtual destructor, and therefore it can be inherited.
 
@@ -379,36 +397,36 @@ In order to create custom ast nodes, the `class parser_engine::parse_options` co
 ```cpp
 class ast_node_a : public pe::ast_node {
 public:
-	ast_node_a(ast_id id, const iterator_type& start_position, const iterator_type& end_position) 
-    : pe::ast_node(id, start_position, end_position)
+	ast_node_a(ast_id id, const iterator_type& start_position, const iterator_type& end_position, ast_node_container_type&& children) 
+    : pe::ast_node(id, start_position, end_position, std::move(children)
     { 
     }
 };
 
 class ast_node_b : public pe::ast_node {
 public:
-	ast_node_b(ast_id id, const iterator_type& start_position, const iterator_type& end_position) 
-    : pe::ast_node(id, start_position, end_position)
+	ast_node_b(ast_id id, const iterator_type& start_position, const iterator_type& end_position, ast_node_container_type&& children) 
+    : pe::ast_node(id, start_position, end_position, std::move(children))
     { 
     }
 };
 
 class ast_node_c : public pe::ast_node {
 public:
-	ast_node_c(ast_id id, const iterator_type& start_position, const iterator_type& end_position) 
-    : pe::ast_node(id, start_position, end_position)
+	ast_node_c(ast_id id, const iterator_type& start_position, const iterator_type& end_position, ast_node_container_type&& children) 
+    : pe::ast_node(id, start_position, end_position, std::move(children))
     { 
     }
 };
 
-pe::ast_node_ptr_type my_create_ast_node(ast_id id, const iterator_type& start_position, const iterator_type& end_position) {
+pe::ast_node_ptr_type my_create_ast_node(ast_id id, const iterator_type& start_position, const iterator_type& end_position, ast_node_container_type&& children) {
 	switch (id) {
     	case ast_id::a:
-        	return std::make_shared<ast_node_a>(id, start_position, end_position);
+        	return std::make_shared<ast_node_a>(id, start_position, end_position, std::move(children);
     	case ast_id::b:
-        	return std::make_shared<ast_node_b>(id, start_position, end_position);
+        	return std::make_shared<ast_node_b>(id, start_position, end_position, std::move(children));
     	case ast_id::c:
-        	return std::make_shared<ast_node_c>(id, start_position, end_position);
+        	return std::make_shared<ast_node_c>(id, start_position, end_position, std::move(children));
     }
     
     throw std::logic_error("invalid ast id");
@@ -448,3 +466,276 @@ auto [success, ast, it] = pe::parse(input, grammar, options);
 In the above grammar, when `rule1` or `rule2` are parsed, the function `my_custom_rule_handler` will be invoked, with the custom data specified in the options.
 
 This allows to a) keep the grammar clean from side effects, b) allow side effects to happen when parsing a rule.
+
+### Contextual tokenization
+
+In some programming languages, the symbol `>>` will be parsed over `>`, due to the 'longest parsing rule'. However, in special sections of the grammar, for example in `c++`'s templates or `Java`'s generics, the symbol `>` will take precedence over the symbol `>>`.
+
+This can be expressed very naturally with `parserlib`, by exploiting the fact that parsers are called in the order they are declared, and therefore it is possible to declare a whole sequence of tokens that takes precedence over the rest of the tokens.
+
+Here is an example (taken from the unit tests):
+
+```cpp
+    enum token_type {
+        IDENTIFIER,
+        LEFT_SHIFT,
+        RIGHT_SHIFT,
+        LESS_THAN,
+        GREATER_THAN,
+    };
+
+    auto whitespace = terminal(' ');
+
+    auto letter = pe::range('a', 'z') | pe::range('A', 'Z');
+    auto digit = pe::range('0', '9');
+    auto identifier = (letter >> *(letter | digit)) ->* IDENTIFIER;
+
+    auto left_shift = pe::terminal("<<") ->* LEFT_SHIFT;
+    auto right_shift = pe::terminal(">>") ->* RIGHT_SHIFT;
+
+    auto less_than = pe::terminal('<') ->* LESS_THAN;
+    auto greater_than = pe::terminal('>') ->* GREATER_THAN;
+
+    pe::rule generics_specification
+        = identifier >> less_than >> -generics_specification >> greater_than
+        | identifier;
+
+    const auto token
+        = whitespace
+        | generics_specification
+        | identifier
+        | left_shift
+        | right_shift
+        | less_than
+        | greater_than;
+
+    auto grammar = *token;
+```
+
+When using the above grammar, we can do the following parsing:
+
+```cpp
+	string input = ">>><<<foo<bar<cee>>><<>><";
+```
+
+The series of produced tokens is the following:
+
+```cpp
+    RIGHT_SHIFT
+    GREATER_THAN
+    LEFT_SHIFT
+    LESS_THAN
+    IDENTIFIER
+    LESS_THAN
+    IDENTIFIER
+    LESS_THAN
+    IDENTIFIER
+    GREATER_THAN
+    GREATER_THAN
+    GREATER_THAN
+    LEFT_SHIFT
+    RIGHT_SHIFT
+    LESS_THAN
+```
+
+Which means the symbol `>` was parsed with increased precedence over the symbol `>>` within the context of a `generics specification` rule.
+
+### Contextual parsing
+
+Sometimes, some part of a grammar can be parsed in more than one ways. For example, in `c++`, the following code is ambiguous, as it can be either a pointer declaration or a multiplication:
+
+```ppp
+//ambiguous in c++; it might be one of the following:
+//1) declaration of variable y of type x*.
+//2) multiplication of variable x to variable y.
+x*y;
+```
+
+#### Solving ambiguities by using custom match functions
+
+In order to resolve the ambiguity, `parserlib` allows the user to provide a custom match function, which allows lookup in previous matches. For example:
+
+```cpp
+	auto resolve_ambiguous_grammar = [](parse_context& pc, match_container_type& matches) {
+    	...
+    };
+
+	auto ambiguous_grammar = (x >> y) ->* resolve_ambiguous_grammar;
+```
+
+When a custom match function is used, it is given two parameters:
+
+- the current parse context, which contains the matches found so far. They can be used to discover previously parsed symbols.
+- an array of children matches, which can be used to derive the appropriate match id from the children; this can be modified, so as that the produced match has a different set of children from the one parsed.
+
+Here is a complete example of a custom match function, taken from the unit tests.
+
+It is rather long, because it defines a tokenizer and parser, but it deserves to be studied as it provides a full example of the library's capabilities:
+
+```cpp
+static void test_contextual_parsing() {
+    /* tokenizer */
+
+    enum TOKEN {
+        IDENTIFIER,
+        INTEGER,
+        STAR,
+        ASSIGN,
+        SEMICOLON,
+        TYPEDEF,
+        INT
+    };
+
+    auto whitespace = range('\0', ' ');
+
+    auto digit = range('0', '9');
+    auto letter = range('a', 'z') | range('A', 'Z');
+
+    auto typedef_ = terminal("typedef") ->* TYPEDEF;
+
+    auto int_ = terminal("int") ->* INT;
+
+    auto identifier = (letter >> *(letter | digit | '_')) ->* IDENTIFIER;
+
+    auto integer   = +digit              ->* INTEGER  ;
+    auto star      = terminal('*')       ->* STAR     ;
+    auto assign    = terminal('=')       ->* ASSIGN   ;
+    auto semicolon = terminal(';')       ->* SEMICOLON;
+
+    auto token
+        = whitespace
+        | typedef_
+        | int_
+        | identifier
+        | integer
+        | star
+        | assign
+        | semicolon;
+
+    auto tokenizer_grammar = *token;
+
+    /* parser */
+
+    using parser_pe = parser_engine<ast_node_container_type>;
+
+    enum AST {
+        TYPE_INT,
+        TYPE_NAME,
+        TYPE_POINTER,
+        DECLARATION_TYPEDEF,
+        DECLARATION_VARIABLE,
+        EXPRESSION_MULTIPLICATION,
+        EXPRESSION_NAME,
+        EXPRESSION_INTEGER,
+        VAR_NAME
+    };
+
+    auto base_type
+        = parser_pe::terminal(INT) ->* TYPE_INT
+        | parser_pe::terminal(IDENTIFIER) ->* TYPE_NAME;
+
+    auto pointer_type
+        = (base_type >> STAR) ->* TYPE_POINTER
+        | base_type;
+
+    auto type_expression = pointer_type;
+
+    auto typedef_declaration = (parser_pe::terminal(TYPEDEF) >> type_expression >> IDENTIFIER >> SEMICOLON) ->* DECLARATION_TYPEDEF;
+
+    auto value
+        = parser_pe::terminal(INTEGER) ->* EXPRESSION_INTEGER
+        | parser_pe::terminal(IDENTIFIER) ->* EXPRESSION_NAME;
+
+    auto multiplication
+        = (value >> STAR >> value) ->* EXPRESSION_MULTIPLICATION
+        | value;
+
+    auto expression = multiplication;
+
+    auto match_variable_or_multiplication = [](parser_pe::parse_context& pc, parser_pe::match_container_type& matches) {
+        //in order for the variable declaration to look like a multiplication,
+        //it shall have two members
+        if (matches.size() != 2) {
+            return DECLARATION_VARIABLE;
+        }
+
+        const auto pointerTypeMatch = matches[0];
+
+        //if the first member is not a pointer type, 
+        //then the declaration is a variable
+        if (pointerTypeMatch.get_id() != TYPE_POINTER) {
+            return DECLARATION_VARIABLE;
+        }
+
+        const auto typenameMatch = pointerTypeMatch[0];
+           
+        //if the base type of the pointer type is not a type name,
+        //then the declaration is a variable
+        if (typenameMatch.get_id() != TYPE_NAME) {
+            return DECLARATION_VARIABLE;
+        }
+
+        //the type name that might be a variable identifier 
+        const auto id = (*typenameMatch.get_start_position())->get_source();
+
+        //for a multiplication to be valid, there must be a previous variable declaration that has an identifier
+        //equal to the id found above
+        for (const auto& m : pc.get_matches()) {
+            if (m.get_id() == DECLARATION_VARIABLE) {
+                auto varName = (*m.find_child_by_id(VAR_NAME)->get_start_position())->get_source();
+                if (varName == id) {
+                    //replace the pointer match with an expression name match
+                    matches[0] = parser_pe::match(EXPRESSION_NAME, typenameMatch.get_start_position(), typenameMatch.get_end_position());
+                    return EXPRESSION_MULTIPLICATION;
+                }
+            }
+        }
+
+        //did not find a variable with the given name; make the match a variable
+        return DECLARATION_VARIABLE;
+        };
+
+    auto variable_declaration = (type_expression >> (parser_pe::terminal(IDENTIFIER) ->* VAR_NAME) >> -(ASSIGN >> expression) >> SEMICOLON) ->* match_variable_or_multiplication;
+
+    auto declaration
+        = typedef_declaration
+        | variable_declaration;
+
+    auto parser_grammar = *declaration;
+
+    {
+        string input = 
+            "typedef int x;"
+            "int y = 0;"
+            "x* a;"
+            "y* b;"
+            ;
+
+        auto [tokenizer_success, tokens, token_it] = pe::parse(input, tokenizer_grammar);
+
+        auto [parser_success, ast, parser_it] = parser_pe::parse(tokens, parser_grammar);
+
+        assert(ast.size() == 4);
+        assert(ast[0]->get_id() == DECLARATION_TYPEDEF);
+        assert(ast[1]->get_id() == DECLARATION_VARIABLE);
+        assert(ast[2]->get_id() == DECLARATION_VARIABLE);
+        assert(ast[3]->get_id() == EXPRESSION_MULTIPLICATION);
+    }
+}
+```
+
+In the above example, the code `x* a` is parsed as a variable declaration, because there is no `x` variable previously declared, whereas the code `y* a` is parsed as a multiplication, because there is a `y` variable already declared.
+
+#### Solving ambiguities by using custom AST creation functions
+
+When invoking the `parse` function of a `parser_engine` type instance, one of the options paased is a custom ast node creation function.
+
+An ast node creation function has the following type signature:
+
+```cpp
+ast_node_ptr_type(match_id_type id, const iterator_type& start_position, const iterator_type& end_position, ast_node_container_type&& children);
+```
+
+A custom ast node creation function could examine the children in order to create an AST node with a different match id from the one passed to the function, and with a different set of children.
+
+For how to use custom ast node creation functions, see the section [Custom AST nodes](#custom-ast-nodes).
