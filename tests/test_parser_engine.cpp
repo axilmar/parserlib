@@ -13,10 +13,13 @@ using pe = parser_engine<>;
 using parse_result = pe::parse_result;
 using parse_context = pe::parse_context;
 using ast_node_ptr_type = pe::ast_node_ptr_type;
+using match = pe::match;
+using rule = pe::rule;
+using match_container_type = pe::match_container_type;
+using ast_node_container_type = pe::ast_node_container_type;
 template <class T> auto terminal(T&& t) { return pe::terminal(std::forward<T>(t)); }
 template <class T> auto one_of(T&& t) { return pe::one_of(std::forward<T>(t)); }
-static auto& range = pe::range;
-using rule = pe::rule;
+template <class T> auto range(T&& min, T&& max) { return pe::range(std::forward<T>(min), std::forward<T>(max)); }
 
 
 static void test_terminal_value_parser() {
@@ -1053,6 +1056,217 @@ static void test_calculator() {
 //}
 
 
+static void test_contextual_tokenization() {
+    enum token_type {
+        IDENTIFIER,
+        LEFT_SHIFT,
+        RIGHT_SHIFT,
+        LESS_THAN,
+        GREATER_THAN,
+    };
+
+    auto whitespace = terminal(' ');
+
+    auto letter = pe::range('a', 'z') | pe::range('A', 'Z');
+    auto digit = pe::range('0', '9');
+    auto identifier = (letter >> *(letter | digit))->*IDENTIFIER;
+
+    auto left_shift = pe::terminal("<<")->*LEFT_SHIFT;
+    auto right_shift = pe::terminal(">>")->*RIGHT_SHIFT;
+
+    auto less_than = pe::terminal('<')->*LESS_THAN;
+    auto greater_than = pe::terminal('>')->*GREATER_THAN;
+
+    pe::rule generics_specification
+        = identifier >> less_than >> -generics_specification >> greater_than
+        | identifier;
+
+    const auto token
+        = whitespace
+        | generics_specification
+        | identifier
+        | left_shift
+        | right_shift
+        | less_than
+        | greater_than;
+
+    auto grammar = *token;
+
+    string input = ">>><<<foo<bar<cee>>><<>><";
+
+    auto [success, ast, it] = pe::parse(input, grammar);
+
+    assert(ast.size() == 15);
+
+    assert(ast[0]->get_id() == RIGHT_SHIFT);
+    assert(ast[1]->get_id() == GREATER_THAN);
+    assert(ast[2]->get_id() == LEFT_SHIFT);
+    assert(ast[3]->get_id() == LESS_THAN);
+    assert(ast[4]->get_id() == IDENTIFIER);
+    assert(ast[5]->get_id() == LESS_THAN);
+    assert(ast[6]->get_id() == IDENTIFIER);
+    assert(ast[7]->get_id() == LESS_THAN);
+    assert(ast[8]->get_id() == IDENTIFIER);
+    assert(ast[9]->get_id() == GREATER_THAN);
+    assert(ast[10]->get_id() == GREATER_THAN);
+    assert(ast[11]->get_id() == GREATER_THAN);
+    assert(ast[12]->get_id() == LEFT_SHIFT);
+    assert(ast[13]->get_id() == RIGHT_SHIFT);
+    assert(ast[14]->get_id() == LESS_THAN);
+}
+
+
+static void test_contextual_parsing() {
+    /* tokenizer */
+
+    enum TOKEN {
+        IDENTIFIER,
+        INTEGER,
+        STAR,
+        ASSIGN,
+        SEMICOLON,
+        TYPEDEF,
+        INT
+    };
+
+    auto whitespace = range('\0', ' ');
+
+    auto digit = range('0', '9');
+    auto letter = range('a', 'z') | range('A', 'Z');
+
+    auto typedef_ = terminal("typedef") ->* TYPEDEF;
+
+    auto int_ = terminal("int") ->* INT;
+
+    auto identifier = (letter >> *(letter | digit | '_')) ->* IDENTIFIER;
+
+    auto integer   = +digit              ->* INTEGER  ;
+    auto star      = terminal('*')       ->* STAR     ;
+    auto assign    = terminal('=')       ->* ASSIGN   ;
+    auto semicolon = terminal(';')       ->* SEMICOLON;
+
+    auto token
+        = whitespace
+        | typedef_
+        | int_
+        | identifier
+        | integer
+        | star
+        | assign
+        | semicolon;
+
+    auto tokenizer_grammar = *token;
+
+    /* parser */
+
+    using parser_pe = parser_engine<ast_node_container_type>;
+
+    enum AST {
+        TYPE_INT,
+        TYPE_NAME,
+        TYPE_POINTER,
+        DECLARATION_TYPEDEF,
+        DECLARATION_VARIABLE,
+        EXPRESSION_MULTIPLICATION,
+        EXPRESSION_NAME,
+        EXPRESSION_INTEGER,
+        VAR_NAME
+    };
+
+    auto base_type
+        = parser_pe::terminal(INT) ->* TYPE_INT
+        | parser_pe::terminal(IDENTIFIER) ->* TYPE_NAME;
+
+    auto pointer_type
+        = (base_type >> STAR) ->* TYPE_POINTER
+        | base_type;
+
+    auto type_expression = pointer_type;
+
+    auto typedef_declaration = (parser_pe::terminal(TYPEDEF) >> type_expression >> IDENTIFIER >> SEMICOLON) ->* DECLARATION_TYPEDEF;
+
+    auto value
+        = parser_pe::terminal(INTEGER) ->* EXPRESSION_INTEGER
+        | parser_pe::terminal(IDENTIFIER) ->* EXPRESSION_NAME;
+
+    auto multiplication
+        = (value >> STAR >> value) ->* EXPRESSION_MULTIPLICATION
+        | value;
+
+    auto expression = multiplication;
+
+    auto match_variable_or_multiplication = [](parser_pe::parse_context& pc, parser_pe::match_container_type& matches) {
+        //in order for the variable declaration to look like a multiplication,
+        //it shall have two members
+        if (matches.size() != 2) {
+            return DECLARATION_VARIABLE;
+        }
+
+        const auto pointerTypeMatch = matches[0];
+
+        //if the first member is not a pointer type, 
+        //then the declaration is a variable
+        if (pointerTypeMatch.get_id() != TYPE_POINTER) {
+            return DECLARATION_VARIABLE;
+        }
+
+        const auto typenameMatch = pointerTypeMatch[0];
+           
+        //if the base type of the pointer type is not a type name,
+        //then the declaration is a variable
+        if (typenameMatch.get_id() != TYPE_NAME) {
+            return DECLARATION_VARIABLE;
+        }
+
+        //the type name that might be a variable identifier 
+        const auto id = (*typenameMatch.get_start_position())->get_source();
+
+        //for a multiplication to be valid, there must be a previous variable declaration that has an identifier
+        //equal to the id found above
+        for (const auto& m : pc.get_matches()) {
+            if (m.get_id() == DECLARATION_VARIABLE) {
+                auto varName = (*m.find_child_by_id(VAR_NAME)->get_start_position())->get_source();
+                if (varName == id) {
+                    //replace the pointer match with an expression name match
+                    matches[0] = parser_pe::match(EXPRESSION_NAME, typenameMatch.get_start_position(), typenameMatch.get_end_position());
+                    return EXPRESSION_MULTIPLICATION;
+                }
+            }
+        }
+
+        //did not find a variable with the given name; make the match a variable
+        return DECLARATION_VARIABLE;
+        };
+
+    auto variable_declaration = (type_expression >> (parser_pe::terminal(IDENTIFIER) ->* VAR_NAME) >> -(ASSIGN >> expression) >> SEMICOLON) ->* match_variable_or_multiplication;
+
+    auto declaration
+        = typedef_declaration
+        | variable_declaration;
+
+    auto parser_grammar = *declaration;
+
+    {
+        string input = 
+            "typedef int x;"
+            "int y = 0;"
+            "x* a;"
+            "y* b;"
+            ;
+
+        auto [tokenizer_success, tokens, token_it] = pe::parse(input, tokenizer_grammar);
+
+        auto [parser_success, ast, parser_it] = parser_pe::parse(tokens, parser_grammar);
+
+        assert(ast.size() == 4);
+        assert(ast[0]->get_id() == DECLARATION_TYPEDEF);
+        assert(ast[1]->get_id() == DECLARATION_VARIABLE);
+        assert(ast[2]->get_id() == DECLARATION_VARIABLE);
+        assert(ast[3]->get_id() == EXPRESSION_MULTIPLICATION);
+    }
+}
+
+
 void test_parser_engine() {
     test_terminal_value_parser();
     test_terminal_string_parser();
@@ -1073,5 +1287,7 @@ void test_parser_engine() {
     test_ast::test_ast();
     test_calculator();
     //test_performance();
+    test_contextual_tokenization();
+    test_contextual_parsing();
 }
 
