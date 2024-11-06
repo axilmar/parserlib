@@ -3,21 +3,37 @@
 ## Writing and using parsers
 
 [Introduction](#introduction)
+
 [Include files](#include-files)
+
 [Namespace](#namespace)
+
 [Declaring a `parser_engine` type](#declaring-a-`parser_engine`-type)
+
 [Terminals](#terminals)
+
 [Loops](#loops)
+
 [Optionals](#optionals)
+
 [Logical tests](#logical-tests)
+
 [Sequences](#sequences)
+
 [Branches](#branches)
+
 [Matches](#matches)
+
 [Rules](#rules)
+
 [Using a parser](#using-a-parser)
+
 [Abstract Syntax Tree nodes](#abstract-syntax-tree-nodes)
+
 [Custom AST nodes](#custom-ast-nodes)
+
 [Contextual tokenization](#contextual-tokenization)
+
 [Contextual parsing](#contextual-parsing)
 
 ### Introduction
