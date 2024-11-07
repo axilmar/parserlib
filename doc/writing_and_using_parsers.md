@@ -26,7 +26,9 @@
 
 [Rules](#rules)
 
-[Using a parser](#using-a-parser)
+[Custom parsing functions](#custom-parsing-functions)
+
+[Using a parser engine](#using-a-parser-engine)
 
 [Abstract Syntax Tree nodes](#abstract-syntax-tree-nodes)
 
@@ -360,7 +362,41 @@ pe::rule add = add >> '+' >> mul
              | mul;
 ```
 
-### Using a parser
+### Custom parsing functions
+
+The class `parser_engine` provides a class `function_parser` which can be used to turn a pointer to a function or a lambda function to a parser.
+
+Standalone function example:
+
+```cpp
+parse_result parse_abc(parse_context& pc) {
+    auto it = pc.get_current_position();
+    if (*it == 'a' && *std::next(it, 1) == 'b' && *std::next(it, 2) == 'c') {
+        pc.increment_position(3);
+        return parse_result::success;
+    }
+    return parse_result::failure;
+}
+
+auto grammar = terminal('1') >> parse_abc >> '2';
+```
+
+Lambda function example:
+
+```cpp
+auto parse_abc = [](parse_context& pc) {
+    auto it = pc.get_current_position();
+    if (*it == 'a' && *std::next(it, 1) == 'b' && *std::next(it, 2) == 'c') {
+        pc.increment_position(3);
+        return parse_result::success;
+    }
+    return parse_result::failure;
+}
+
+auto grammar = terminal('1') >> parse_abc >> '2';
+```
+
+### Using a parser engine
 
 The `class parser_engine<SourceT, MatchIdT>` contains the function `std::tuple<bool, ast_node_container_type, iterator_type> parse(SourceT& input, ParserT&& grammar [, const parse_options& options])` which can be used to parse an input.
 

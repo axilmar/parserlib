@@ -851,6 +851,55 @@ namespace parserlib {
         };
 
         /**
+         * A parser object that allows any function to become a parser.
+         * @param FuncT function type; it must have the signature parse_result (parse_context&).
+         */
+        template <typename FuncT>
+        class function_parser : public parser<function_parser<FuncT>> {
+        public:
+            /**
+             * Constructor.
+             * @param func function.
+             */
+            function_parser(const FuncT& func)
+                : m_func(func)
+            {
+            }
+
+            /**
+             * Constructor.
+             * @param func function; moved object.
+             */
+            function_parser(FuncT&& func)
+                : m_func(std::move(func))
+            {
+            }
+
+            /**
+             * Invokes the internal function to parse, if the parsing position is valid.
+             * @param pc parse context.
+             * @return what the internal function returns, or failure if the input end position has been reached.
+             */
+            parse_result parse(parse_context& pc) const {
+                if (pc.is_valid_position()) {
+                    return m_func(pc);
+                }
+                return parse_result::failure;
+            }
+
+            parse_result parse_left_recursion_base(parse_context& pc) const {
+                return parse(pc);
+            }
+
+            parse_result parse_left_recursion_continuation(parse_context& pc) const {
+                return parse_result::failure;
+            }
+
+        private:
+            FuncT m_func;
+        };
+
+        /**
          * A parser that creates a loop out of another parser.
          * The loop is optional, i.e. it can parse zero or more times.
          * @param ParserT type of parser to create a loop of.
@@ -2063,17 +2112,17 @@ namespace parserlib {
         }
 
     private:
-        template <typename T> struct is_parser {
+        template <typename T> struct is_parser_class {
             using base_type = std::decay_t<T>;
             static constexpr bool value = std::is_base_of_v<parser<base_type>, base_type> || std::is_same_v<base_type, rule>;
         };
 
-        template <typename L, typename R> struct either_is_parser {
-            static constexpr bool value = is_parser<L>::value || is_parser<R>::value;
+        template <typename L, typename R> struct either_is_parser_class {
+            static constexpr bool value = is_parser_class<L>::value || is_parser_class<R>::value;
         };
 
         template <typename L, typename R>
-        static constexpr bool either_is_parser_v = either_is_parser<L, R>::value;
+        static constexpr bool either_is_parser_class_v = either_is_parser_class<L, R>::value;
 
     public:
         /**
@@ -2082,7 +2131,7 @@ namespace parserlib {
          * @param right right element.
          * @return a sequence of parsers for the given elements.
          */
-        template <typename Left, typename Right, std::enable_if_t<either_is_parser_v<Left, Right>, bool> = true>
+        template <typename Left, typename Right, std::enable_if_t<either_is_parser_class_v<Left, Right>, bool> = true>
         friend auto operator >> (Left&& left, Right&& right) {
             return sequence_parser(std::make_tuple(make_parser_wrapper(std::forward<Left>(left)), make_parser_wrapper(std::forward<Right>(right))));
         }
@@ -2126,7 +2175,7 @@ namespace parserlib {
          * @param right right element.
          * @return a choice of parsers for the given elements.
          */
-        template <typename Left, typename Right, std::enable_if_t<either_is_parser_v<Left, Right>, bool> = true>
+        template <typename Left, typename Right, std::enable_if_t<either_is_parser_class_v<Left, Right>, bool> = true>
         friend auto operator | (Left&& left, Right&& right) {
             return choice_parser(std::make_tuple(make_parser_wrapper(std::forward<Left>(left)), make_parser_wrapper(std::forward<Right>(right))));
         }
@@ -2509,29 +2558,59 @@ namespace parserlib {
         }
 
     private:
+        template <typename T> struct is_parser {
+            static constexpr bool value = std::is_base_of_v<parser<T>, T>;
+        };
+
+        template <typename T> static constexpr bool is_parser_v = is_parser<T>::value;
+
+        template <typename T> struct is_terminal_function {
+            static constexpr bool value = std::is_invocable_v<T, terminal_value_type>;
+        };
+
+        template <typename T> static constexpr bool is_terminal_function_v = is_terminal_function<T>::value;
+
+        template <typename T> struct is_parser_function {
+            static constexpr bool value = std::is_invocable_r_v<parse_result, T, parse_context&>;
+        };
+
+        template <typename T> static constexpr bool is_parser_function_v = is_parser_function<T>::value;
+
+        template <typename T> struct is_terminal_value {
+            static constexpr bool value = !is_parser_v<T> && !is_terminal_function_v<T> && !is_parser_function_v<T>;
+        };
+
+        template <typename T> static constexpr bool is_terminal_value_v = is_terminal_value<T>::value;
+
+
         template <typename DerivedT>
         static const DerivedT& make_parser_wrapper(const parser<DerivedT>& t) {
             return static_cast<const DerivedT&>(t);
         }
 
-        template <typename ValueT, std::enable_if_t<!std::is_base_of_v<parser<ValueT>, ValueT> && !std::is_invocable_v<ValueT, terminal_value_type>, bool> = true>
+        template <typename ValueT, std::enable_if_t<is_terminal_value_v<ValueT>, bool> = true>
         static terminal_value_parser<ValueT> make_parser_wrapper(ValueT val) {
             return val;
         }
 
-        template <typename FuncT, std::enable_if_t<!std::is_base_of_v<parser<FuncT>, FuncT> && std::is_invocable_v<FuncT, terminal_value_type>, bool> = true>
-        static terminal_function_parser<FuncT> make_parser_wrapper(FuncT val) {
-            return val;
+        template <typename FuncT, std::enable_if_t<is_terminal_function_v<FuncT>, bool> = true>
+        static terminal_function_parser<FuncT> make_parser_wrapper(FuncT&& func) {
+            return std::forward<FuncT>(func);
         }
 
-        template <typename ValueT, std::enable_if_t<!std::is_invocable_v<ValueT, terminal_value_type>, bool> = true>
+        template <typename ValueT, std::enable_if_t<is_terminal_value_v<ValueT>, bool> = true>
         static terminal_string_parser<ValueT> make_parser_wrapper(ValueT* str) {
             return str;
         }
 
-        template <typename ValueT, std::enable_if_t<!std::is_invocable_v<ValueT, terminal_value_type>, bool> = true>
+        template <typename ValueT, std::enable_if_t<is_terminal_value_v<ValueT>, bool> = true>
         static terminal_string_parser<ValueT> make_parser_wrapper(const ValueT* str) {
             return str;
+        }
+
+        template <typename FuncT, std::enable_if_t<is_parser_function_v<FuncT>, bool> = true>
+        static function_parser<FuncT> make_parser_wrapper(FuncT&& func) {
+            return std::forward<FuncT>(func);
         }
 
         template <typename ValueT, typename CharTraits, typename Alloc>

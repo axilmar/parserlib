@@ -95,7 +95,7 @@ static void test_terminal_function_parser() {
 
         //test success
         {
-            std::string input = "&a";
+            std::string input = "$a";
             parse_context pc(input);
             parse_result result = grammar.parse(pc);
             assert(result == parse_result::success);
@@ -104,7 +104,7 @@ static void test_terminal_function_parser() {
 
         //test failure
         {
-            std::string input = "&1";
+            std::string input = "$1";
             parse_context pc(input);
             parse_result result = grammar.parse(pc);
             assert(result == parse_result::failure);
@@ -215,6 +215,31 @@ static void test_terminal_range_parser() {
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
         assert(pc.get_current_position() == input.begin());
+    }
+}
+
+
+static void test_function_parser() {
+    auto test_function_parser = [](parse_context& pc) {
+        if (*pc.get_current_position() == 'a') {
+            pc.increment_position();
+            return pe::parse_result::success;
+        }
+        return pe::parse_result::failure;
+        };
+
+    auto grammar = pe::function_parser(test_function_parser);
+
+    {
+        std::string input = "a";
+        auto [success, ast, it] = pe::parse(input, grammar);
+        assert(success);
+    }
+
+    {
+        std::string input = "b";
+        auto [success, ast, it] = pe::parse(input, grammar);
+        assert(!success);
     }
 }
 
@@ -1342,6 +1367,7 @@ void test_parser_engine() {
     test_terminal_string_parser();
     test_terminal_set_parser();
     test_terminal_range_parser();
+    test_function_parser();
     test_zero_or_more_parser();
     test_one_or_more_parser();
     test_optional_parser();
