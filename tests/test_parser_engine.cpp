@@ -2,10 +2,10 @@
 #include <sstream>
 #include <chrono>
 #include <iostream>
+#include <cctype>
 #include "parserlib/parser_engine.hpp"
 
 
-using namespace std;
 using namespace parserlib;
 
 
@@ -27,7 +27,7 @@ static void test_terminal_value_parser() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -36,11 +36,58 @@ static void test_terminal_value_parser() {
 
     //test failure
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
         assert(pc.get_current_position() == input.begin());
+    }
+}
+
+
+static void test_terminal_function_parser() {
+    {
+        auto grammar = pe::terminal(&isalpha);
+
+        //test success
+        {
+            std::string input = "a";
+            parse_context pc(input);
+            parse_result result = grammar.parse(pc);
+            assert(result == parse_result::success);
+            assert(pc.is_end_position());
+        }
+
+        //test failure
+        {
+            std::string input = "1";
+            parse_context pc(input);
+            parse_result result = grammar.parse(pc);
+            assert(result == parse_result::failure);
+            assert(pc.get_current_position() == input.begin());
+        }
+    }
+
+    {
+        auto grammar = pe::terminal([](int c) { return std::isalpha(c); });
+
+        //test success
+        {
+            std::string input = "a";
+            parse_context pc(input);
+            parse_result result = grammar.parse(pc);
+            assert(result == parse_result::success);
+            assert(pc.is_end_position());
+        }
+
+        //test failure
+        {
+            std::string input = "1";
+            parse_context pc(input);
+            parse_result result = grammar.parse(pc);
+            assert(result == parse_result::failure);
+            assert(pc.get_current_position() == input.begin());
+        }
     }
 }
 
@@ -50,7 +97,7 @@ static void test_terminal_string_parser() {
 
     //test success
     {
-        string input = "abc";
+        std::string input = "abc";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -59,7 +106,7 @@ static void test_terminal_string_parser() {
 
     //test failure
     {
-        string input = "aba";
+        std::string input = "aba";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -73,7 +120,7 @@ static void test_terminal_set_parser() {
 
     //test success
     {
-        string input = "0";
+        std::string input = "0";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -82,7 +129,7 @@ static void test_terminal_set_parser() {
 
     //test success
     {
-        string input = "5";
+        std::string input = "5";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -91,7 +138,7 @@ static void test_terminal_set_parser() {
 
     //test success
     {
-        string input = "9";
+        std::string input = "9";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -100,7 +147,7 @@ static void test_terminal_set_parser() {
 
     //test failure
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -114,7 +161,7 @@ static void test_terminal_range_parser() {
 
     //test success
     {
-        string input = "0";
+        std::string input = "0";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -123,7 +170,7 @@ static void test_terminal_range_parser() {
 
     //test success
     {
-        string input = "5";
+        std::string input = "5";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -132,7 +179,7 @@ static void test_terminal_range_parser() {
 
     //test success
     {
-        string input = "9";
+        std::string input = "9";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -141,7 +188,7 @@ static void test_terminal_range_parser() {
 
     //test failure
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -155,7 +202,7 @@ static void test_zero_or_more_parser() {
 
     //test success
     {
-        string input = "";
+        std::string input = "";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -164,7 +211,7 @@ static void test_zero_or_more_parser() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -173,7 +220,7 @@ static void test_zero_or_more_parser() {
 
     //test success
     {
-        string input = "aaa";
+        std::string input = "aaa";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -182,7 +229,7 @@ static void test_zero_or_more_parser() {
 
     //test failure
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -196,7 +243,7 @@ static void test_one_or_more_parser() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -205,7 +252,7 @@ static void test_one_or_more_parser() {
 
     //test success
     {
-        string input = "aaa";
+        std::string input = "aaa";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -214,7 +261,7 @@ static void test_one_or_more_parser() {
 
     //test failure
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -223,7 +270,7 @@ static void test_one_or_more_parser() {
 
     //test failure
     {
-        string input = "";
+        std::string input = "";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -237,7 +284,7 @@ static void test_optional_parser() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -246,7 +293,7 @@ static void test_optional_parser() {
 
     //test success on wrong input
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -255,7 +302,7 @@ static void test_optional_parser() {
 
     //test success on wrong input
     {
-        string input = "";
+        std::string input = "";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -269,7 +316,7 @@ static void test_logical_and_parser() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -278,7 +325,7 @@ static void test_logical_and_parser() {
 
     //test failure
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -292,7 +339,7 @@ static void test_logical_not_parser() {
 
     //test success
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -301,7 +348,7 @@ static void test_logical_not_parser() {
 
     //test failure
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -315,7 +362,7 @@ static void test_sequence_parser() {
 
     //test success
     {
-        string input = "abc";
+        std::string input = "abc";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -324,7 +371,7 @@ static void test_sequence_parser() {
 
     //test failure
     {
-        string input = "bca";
+        std::string input = "bca";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -333,7 +380,7 @@ static void test_sequence_parser() {
 
     //test failure
     {
-        string input = "";
+        std::string input = "";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -347,7 +394,7 @@ static void test_choice_parser() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -356,7 +403,7 @@ static void test_choice_parser() {
 
     //test success
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -365,7 +412,7 @@ static void test_choice_parser() {
 
     //test success
     {
-        string input = "c";
+        std::string input = "c";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -374,7 +421,7 @@ static void test_choice_parser() {
 
     //test failure
     {
-        string input = "d";
+        std::string input = "d";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -383,7 +430,7 @@ static void test_choice_parser() {
 
     //test failure
     {
-        string input = "";
+        std::string input = "";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -397,7 +444,7 @@ static void test_rule() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::success);
@@ -406,7 +453,7 @@ static void test_rule() {
 
     //test failure
     {
-        string input = "b";
+        std::string input = "b";
         parse_context pc(input);
         parse_result result = grammar.parse(pc);
         assert(result == parse_result::failure);
@@ -434,7 +481,7 @@ static void test_recursion() {
 
     //test success
     {
-        string input = "ac";
+        std::string input = "ac";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -443,7 +490,7 @@ static void test_recursion() {
 
     //test success
     {
-        string input = "abc";
+        std::string input = "abc";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -452,7 +499,7 @@ static void test_recursion() {
 
     //test success
     {
-        string input = "abbc";
+        std::string input = "abbc";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -461,7 +508,7 @@ static void test_recursion() {
 
     //test success
     {
-        string input = "abbbc";
+        std::string input = "abbbc";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -470,7 +517,7 @@ static void test_recursion() {
 
     //test failure
     {
-        string input = "1bc";
+        std::string input = "1bc";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::failure);
@@ -479,7 +526,7 @@ static void test_recursion() {
 
     //test failure
     {
-        string input = "a1c";
+        std::string input = "a1c";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::failure);
@@ -488,7 +535,7 @@ static void test_recursion() {
 
     //test failure
     {
-        string input = "ab1";
+        std::string input = "ab1";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::failure);
@@ -503,7 +550,7 @@ static void test_left_recursion() {
 
     //test success
     {
-        string input = "a";
+        std::string input = "a";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -512,7 +559,7 @@ static void test_left_recursion() {
 
     //test success
     {
-        string input = "ab";
+        std::string input = "ab";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -521,7 +568,7 @@ static void test_left_recursion() {
 
     //test failure
     {
-        string input = "1b";
+        std::string input = "1b";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::failure);
@@ -530,7 +577,7 @@ static void test_left_recursion() {
 
     //test partial success
     {
-        string input = "a1";
+        std::string input = "a1";
         parse_context pc(input);
         parse_result result = r.parse(pc);
         assert(result == parse_result::success);
@@ -551,7 +598,7 @@ static void test_matches() {
     auto c = +terminal('c') ->* C;
     auto grammar = *(a | b | c | ' ');
 
-    string input = "aaa bbb ccc aaa ccc bbb";
+    std::string input = "aaa bbb ccc aaa ccc bbb";
     parse_context pc(input);
     grammar.parse(pc);
     const auto& matches = pc.get_matches();
@@ -594,7 +641,7 @@ static void test_left_recursion_matches() {
 
     //min to max operator precedence
     {
-        string input = "1+2-3*4/5";
+        std::string input = "1+2-3*4/5";
         parse_context pc(input);
         grammar.parse(pc);
         const auto& matches = pc.get_matches();
@@ -624,7 +671,7 @@ static void test_left_recursion_matches() {
 
     //max to min operator precedence
     {
-        string input = "1/2*3-4+5";
+        std::string input = "1/2*3-4+5";
         parse_context pc(input);
         grammar.parse(pc);
         const auto& matches = pc.get_matches();
@@ -654,7 +701,7 @@ static void test_left_recursion_matches() {
 
     //min to max operator precedence inside rule, max to min operator precedence outside rule
     {
-        string input = "1*2/3+4-5";
+        std::string input = "1*2/3+4-5";
         parse_context pc(input);
         grammar.parse(pc);
         const auto& matches = pc.get_matches();
@@ -684,7 +731,7 @@ static void test_left_recursion_matches() {
 
     //max to min operator precedence inside rule, min to max operator precedence outside rule
     {
-        string input = "1-2+3/4*5";
+        std::string input = "1-2+3/4*5";
         parse_context pc(input);
         grammar.parse(pc);
         const auto& matches = pc.get_matches();
@@ -778,7 +825,7 @@ namespace test_ast {
         evaluate = [&](const pe::ast_node_ptr_type& node) {
             switch (node->get_id()) {
             case MatchId::Number: {
-                stringstream stream;
+                std::stringstream stream;
                 stream << node->get_source();
                 double r;
                 stream >> r;
@@ -802,140 +849,140 @@ namespace test_ast {
             };
 
         {
-            string input = "1";
+            std::string input = "1";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1.);
         }
 
         {
-            string input = "1+2";
+            std::string input = "1+2";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2.);
         }
 
         {
-            string input = "1-2";
+            std::string input = "1-2";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2.);
         }
 
         {
-            string input = "1*2";
+            std::string input = "1*2";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2.);
         }
 
         {
-            string input = "1/2";
+            std::string input = "1/2";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2.);
         }
 
         {
-            string input = "1+2-3";
+            std::string input = "1+2-3";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3.);
         }
 
         {
-            string input = "1+2-3*4";
+            std::string input = "1+2-3*4";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3. * 4.);
         }
 
         {
-            string input = "1+2-3*4/5";
+            std::string input = "1+2-3*4/5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3. * 4. / 5.);
         }
 
         {
-            string input = "1-2+3/4*5";
+            std::string input = "1-2+3/4*5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2. + 3. / 4. * 5.);
         }
 
         {
-            string input = "1*2/3+4-5";
+            std::string input = "1*2/3+4-5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2. / 3. + 4. - 5.);
         }
 
         {
-            string input = "1/2*3-4+5";
+            std::string input = "1/2*3-4+5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2. * 3. - 4. + 5.);
         }
 
         {
-            string input = "1+2+3+4+5";
+            std::string input = "1+2+3+4+5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. + 3. + 4. + 5.);
         }
 
         {
-            string input = "1+2-3+4-5";
+            std::string input = "1+2-3+4-5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3. + 4. - 5.);
         }
 
         {
-            string input = "1-2-3-4-5";
+            std::string input = "1-2-3-4-5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2. - 3. - 4. - 5.);
         }
 
         {
-            string input = "1-2+3-4+5";
+            std::string input = "1-2+3-4+5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2. + 3. - 4. + 5.);
         }
 
         {
-            string input = "1*2*3*4*5";
+            std::string input = "1*2*3*4*5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2. * 3. * 4. * 5.);
         }
 
         {
-            string input = "1/2/3/4/5";
+            std::string input = "1/2/3/4/5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2. / 3. / 4. / 5.);
         }
 
         {
-            string input = "1*2/3*4/5";
+            std::string input = "1*2/3*4/5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2. / 3. * 4. / 5.);
         }
 
         {
-            string input = "1/2*3/4*5";
+            std::string input = "1/2*3/4*5";
             auto [success, ast, it] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2. * 3. / 4. * 5.);
         }
 
         //{
-        //    string input = "1+2-3*4/5";
+        //    std::string input = "1+2-3*4/5";
         //    auto [success, ast, it] = pe::parse(input, grammar);
         //    for (const auto& astn : ast) {
         //        std::cout << astn;
@@ -1042,7 +1089,7 @@ static void test_calculator() {
 //        stream << "abcdefghijklmnopqrstuvwxyz" << (((i % 3) + 1));
 //    }
 //
-//    string input = stream.str();
+//    std::string input = stream.str();
 //
 //    parse_context pc(input);
 //    auto start_time = std::chrono::high_resolution_clock::now();
@@ -1092,7 +1139,7 @@ static void test_contextual_tokenization() {
 
     auto grammar = *token;
 
-    string input = ">>><<<foo<bar<cee>>><<>><";
+    std::string input = ">>><<<foo<bar<cee>>><<>><";
 
     auto [success, ast, it] = pe::parse(input, grammar);
 
@@ -1204,21 +1251,21 @@ static void test_contextual_parsing() {
 
         const auto pointerTypeMatch = matches[0];
 
-        //if the first member is not a pointer type, 
+        //if the first member is not a pointer type,
         //then the declaration is a variable
         if (pointerTypeMatch.get_id() != TYPE_POINTER) {
             return DECLARATION_VARIABLE;
         }
 
         const auto typenameMatch = pointerTypeMatch[0];
-           
+
         //if the base type of the pointer type is not a type name,
         //then the declaration is a variable
         if (typenameMatch.get_id() != TYPE_NAME) {
             return DECLARATION_VARIABLE;
         }
 
-        //the type name that might be a variable identifier 
+        //the type name that might be a variable identifier
         const auto id = (*typenameMatch.get_start_position())->get_source();
 
         //for a multiplication to be valid, there must be a previous variable declaration that has an identifier
@@ -1247,7 +1294,7 @@ static void test_contextual_parsing() {
     auto parser_grammar = *declaration;
 
     {
-        string input = 
+        std::string input =
             "typedef int x;"
             "int y = 0;"
             "x* a;"
@@ -1269,6 +1316,7 @@ static void test_contextual_parsing() {
 
 void test_parser_engine() {
     test_terminal_value_parser();
+    test_terminal_function_parser();
     test_terminal_string_parser();
     test_terminal_set_parser();
     test_terminal_range_parser();

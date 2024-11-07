@@ -562,6 +562,58 @@ namespace parserlib {
         };
 
         /**
+         * A parser that uses a function to test if a token is acceptable.
+         * @param F type of function to store internally.
+         */
+        template <typename F>
+        class terminal_function_parser : public parser<terminal_function_parser<F>> {
+        public:
+            /**
+             * function type.
+             */
+            using function_type = F;
+
+            /**
+             * Constructor.
+             * @param f function to use for parsing.
+             */
+            terminal_function_parser(const function_type& f) : m_function(f) {
+            }
+
+            /**
+             * Constructor.
+             * @param f function to use for parsing; moved object.
+             */
+            terminal_function_parser(function_type&& f) : m_function(std::move(f)) {
+            }
+
+            /**
+             * Uses the internal function to test if the current token is acceptable.
+             * The function must return non-zero if the input token is accepted.
+             * @param pc parse context.
+             * @return success if the function returned non-zero, failure otherwise.
+             */
+            parse_result parse(parse_context& pc) const {
+                if (pc.is_valid_position() && m_function(*pc.get_current_position())) {
+                    pc.increment_position();
+                    return parse_result::success;
+                }
+                return parse_result::failure;
+            }
+
+            parse_result parse_left_recursion_base(parse_context& pc) const {
+                return parse(pc);
+            }
+
+            parse_result parse_left_recursion_continuation(parse_context& pc) const {
+                return parse_result::failure;
+            }
+
+        private:
+            function_type m_function;
+        };
+
+        /**
          * A parser for strings.
          */
         template <typename ValueT>
@@ -1940,33 +1992,13 @@ namespace parserlib {
         };
 
         /**
-         * Helper function for creating a terminal value parser.
-         * param value value to create a terminal value parser from.
-         * @return a terminal value parser object.
+         * Helper function for creating a terminal parser.
+         * param value value to create a terminal parser from.
+         * @return a terminal parser object.
          */
         template <typename ValueT>
         static auto terminal(ValueT&& value) {
-            return terminal_value_parser<ValueT>(std::forward<ValueT>(value));
-        }
-
-        /**
-         * Helper function for creating a terminal string parser.
-         * param value null-terminated string to create a terminal string parser from.
-         * @return a terminal string parser object.
-         */
-        template <typename ValueT>
-        static terminal_string_parser<ValueT> terminal(const ValueT* value) {
-            return { terminal_string_type(value) };
-        }
-
-        /**
-         * Helper function for creating a terminal string parser.
-         * param value null-terminated string to create a terminal string parser from.
-         * @return a terminal string parser object.
-         */
-        template <typename ValueT>
-        static terminal_string_parser<ValueT> terminal(std::initializer_list<ValueT> values) {
-            return { std::basic_string<ValueT>(values) };
+            return make_parser_wrapper(std::forward<ValueT>(value));
         }
 
         /**
@@ -2482,17 +2514,22 @@ namespace parserlib {
             return static_cast<const DerivedT&>(t);
         }
 
-        template <typename ValueT, std::enable_if_t<!std::is_base_of_v<parser<ValueT>, ValueT>, bool> = true>
+        template <typename ValueT, std::enable_if_t<!std::is_base_of_v<parser<ValueT>, ValueT> && !std::is_invocable_v<ValueT, terminal_value_type>, bool> = true>
         static terminal_value_parser<ValueT> make_parser_wrapper(ValueT val) {
             return val;
         }
 
-        template <typename ValueT>
+        template <typename FuncT, std::enable_if_t<!std::is_base_of_v<parser<FuncT>, FuncT> && std::is_invocable_v<FuncT, terminal_value_type>, bool> = true>
+        static terminal_function_parser<FuncT> make_parser_wrapper(FuncT val) {
+            return val;
+        }
+
+        template <typename ValueT, std::enable_if_t<!std::is_invocable_v<ValueT, terminal_value_type>, bool> = true>
         static terminal_string_parser<ValueT> make_parser_wrapper(ValueT* str) {
             return str;
         }
 
-        template <typename ValueT>
+        template <typename ValueT, std::enable_if_t<!std::is_invocable_v<ValueT, terminal_value_type>, bool> = true>
         static terminal_string_parser<ValueT> make_parser_wrapper(const ValueT* str) {
             return str;
         }
