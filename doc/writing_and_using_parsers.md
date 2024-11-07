@@ -144,6 +144,14 @@ using pe = parser_engine<std::vector<token>>;
 pe::terminal(token_type::identifier);
 ```
 
+A terminal can also be parsed with one of the std functions like `std::isalpha`. For example:
+
+```cpp
+auto grammar = +terminal(&isalpha);
+```
+
+This functionality allows to write parsers for languages that accept identifiers that can accept a letter in any human language, e.g. Java.
+
 #### Terminal sequences of values
 
 The function `parser_engine<SourceT, MatchIdT>::terminal` can be used to add a sequence of terminal values to a grammar. Examples:

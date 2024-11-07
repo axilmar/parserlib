@@ -89,6 +89,28 @@ static void test_terminal_function_parser() {
             assert(pc.get_current_position() == input.begin());
         }
     }
+
+    {
+        auto grammar = terminal('$') >> &isalpha;
+
+        //test success
+        {
+            std::string input = "&a";
+            parse_context pc(input);
+            parse_result result = grammar.parse(pc);
+            assert(result == parse_result::success);
+            assert(pc.is_end_position());
+        }
+
+        //test failure
+        {
+            std::string input = "&1";
+            parse_context pc(input);
+            parse_result result = grammar.parse(pc);
+            assert(result == parse_result::failure);
+            assert(pc.get_current_position() == input.begin());
+        }
+    }
 }
 
 

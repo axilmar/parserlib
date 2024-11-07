@@ -104,6 +104,7 @@ The above prints `16` at the console.
   - 1.0.0.5
   	- Added custom match functions in order to allow the resolution of ambiguities while parsing.
   	- allowed terminal values to be of different type that the value of the source container, in order to allow the result of a parse (the ast nodes created by a parse) to be fed to another parse function.
+  	- added terminal parsing via functions.
 
   - 1.0.0.4
   
