@@ -6,6 +6,7 @@ A `c++17` recursive-descent parser library that:
 - can handle multiple errors while parsing.
 - provides a lexer class, for tokenization.
 - allows for solving tokenization/parsing ambgiguities while parsing.
+- allows the creation of AST trees, ready for further processing.
 
 Version 1.0.0.5.
 
