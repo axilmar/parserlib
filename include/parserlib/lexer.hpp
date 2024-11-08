@@ -216,16 +216,21 @@ namespace parserlib {
         using token_container_type = std::vector<token>;
 
         /**
+         * Error container type.
+         */
+        using error_container_type = typename parse_engine_type::error_container_type;
+
+        /**
          * Utility function that helps parsing an input to a series of tokens.
          * @param input the source.
          * @param grammar the root of the grammar to use for parsing.
          * @param newLineParser parser to be used for counting lines and columns.
-         * @return a tuple of the following: success flag, tokens created, iterator where parsing stopped.
+         * @return a tuple of the following: success flag, tokens created, iterator where parsing stopped, errors.
          */
         template <typename GrammarParserT, typename NewLineParserT>
-        static std::tuple<bool, token_container_type, iterator_type> parse(SourceT& input, GrammarParserT&& grammar, NewLineParserT&& newLineParser) {
+        static std::tuple<bool, token_container_type, iterator_type, error_container_type> parse(SourceT& input, GrammarParserT&& grammar, NewLineParserT&& newLineParser) {
             //parse
-            auto [success, ast, it] = parse_engine_type::parse(input, grammar);
+            auto [success, ast, it, errors] = parse_engine_type::parse(input, grammar);
 
             //create tokens
             token_container_type tokens;
@@ -239,7 +244,7 @@ namespace parserlib {
             }
 
             //return result
-            return std::make_tuple(success, std::move(tokens), it);
+            return std::make_tuple(success, std::move(tokens), it, errors);
         }
 
         /**
@@ -247,10 +252,10 @@ namespace parserlib {
          * The newline parser is the terminal '\n'.
          * @param input the source.
          * @param grammar the root of the grammar to use for parsing.
-         * @return a tuple of the following: success flag, tokens created, iterator where parsing stopped.
+         * @return a tuple of the following: success flag, tokens created, iterator where parsing stopped, errors.
          */
         template <typename GrammarParserT>
-        static std::tuple<bool, token_container_type, iterator_type> parse(SourceT& input, GrammarParserT&& grammar) {
+        static auto parse(SourceT& input, GrammarParserT&& grammar) {
             return parse(input, std::forward<GrammarParserT>(grammar), parser_engine<SourceT>::terminal('\n'));
         }
 

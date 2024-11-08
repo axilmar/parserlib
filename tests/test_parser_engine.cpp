@@ -228,17 +228,17 @@ static void test_function_parser() {
         return pe::parse_result::failure;
         };
 
-    auto grammar = pe::function_parser(test_function_parser);
+    auto grammar = pe::function(test_function_parser);
 
     {
         std::string input = "a";
-        auto [success, ast, it] = pe::parse(input, grammar);
+        auto [success, ast, it, errors] = pe::parse(input, grammar);
         assert(success);
     }
 
     {
         std::string input = "b";
-        auto [success, ast, it] = pe::parse(input, grammar);
+        auto [success, ast, it, errors] = pe::parse(input, grammar);
         assert(!success);
     }
 }
@@ -897,140 +897,140 @@ namespace test_ast {
 
         {
             std::string input = "1";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1.);
         }
 
         {
             std::string input = "1+2";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2.);
         }
 
         {
             std::string input = "1-2";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2.);
         }
 
         {
             std::string input = "1*2";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2.);
         }
 
         {
             std::string input = "1/2";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2.);
         }
 
         {
             std::string input = "1+2-3";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3.);
         }
 
         {
             std::string input = "1+2-3*4";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3. * 4.);
         }
 
         {
             std::string input = "1+2-3*4/5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3. * 4. / 5.);
         }
 
         {
             std::string input = "1-2+3/4*5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2. + 3. / 4. * 5.);
         }
 
         {
             std::string input = "1*2/3+4-5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2. / 3. + 4. - 5.);
         }
 
         {
             std::string input = "1/2*3-4+5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2. * 3. - 4. + 5.);
         }
 
         {
             std::string input = "1+2+3+4+5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. + 3. + 4. + 5.);
         }
 
         {
             std::string input = "1+2-3+4-5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. + 2. - 3. + 4. - 5.);
         }
 
         {
             std::string input = "1-2-3-4-5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2. - 3. - 4. - 5.);
         }
 
         {
             std::string input = "1-2+3-4+5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. - 2. + 3. - 4. + 5.);
         }
 
         {
             std::string input = "1*2*3*4*5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2. * 3. * 4. * 5.);
         }
 
         {
             std::string input = "1/2/3/4/5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2. / 3. / 4. / 5.);
         }
 
         {
             std::string input = "1*2/3*4/5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. * 2. / 3. * 4. / 5.);
         }
 
         {
             std::string input = "1/2*3/4*5";
-            auto [success, ast, it] = pe::parse(input, grammar);
+            auto [success, ast, it, errors] = pe::parse(input, grammar);
             assert(ast.size() == 1);
             assert(evaluate(ast[0]) == 1. / 2. * 3. / 4. * 5.);
         }
 
         //{
         //    std::string input = "1+2-3*4/5";
-        //    auto [success, ast, it] = pe::parse(input, grammar);
+        //    auto [success, ast, it, errors] = pe::parse(input, grammar);
         //    for (const auto& astn : ast) {
         //        std::cout << astn;
         //    }
@@ -1075,7 +1075,7 @@ public:
 
     double evaluate(const SourceT& input) {
         SourceT source = input;
-        auto [success, ast, it] = pe::parse(source, m_add);
+        auto [success, ast, it, errors] = pe::parse(source, m_add);
         if (success && ast.size() == 1) {
             return evaluate_ast(ast[0]);
         }
@@ -1188,7 +1188,7 @@ static void test_contextual_tokenization() {
 
     std::string input = ">>><<<foo<bar<cee>>><<>><";
 
-    auto [success, ast, it] = pe::parse(input, grammar);
+    auto [success, ast, it, errors] = pe::parse(input, grammar);
 
     assert(ast.size() == 15);
 
@@ -1348,15 +1348,65 @@ static void test_contextual_parsing() {
             "y* b;"
             ;
 
-        auto [tokenizer_success, tokens, token_it] = pe::parse(input, tokenizer_grammar);
+        auto [tokenizer_success, tokens, token_it, token_errors] = pe::parse(input, tokenizer_grammar);
 
-        auto [parser_success, ast, parser_it] = parser_pe::parse(tokens, parser_grammar);
+        auto [parser_success, ast, parser_it, ast_errors] = parser_pe::parse(tokens, parser_grammar);
 
         assert(ast.size() == 4);
         assert(ast[0]->get_id() == DECLARATION_TYPEDEF);
         assert(ast[1]->get_id() == DECLARATION_VARIABLE);
         assert(ast[2]->get_id() == DECLARATION_VARIABLE);
         assert(ast[3]->get_id() == EXPRESSION_MULTIPLICATION);
+    }
+}
+
+
+static void test_multiple_errors() {
+    auto a = terminal('a');
+    auto b = terminal('b');
+    auto c = terminal('c');
+    auto d = terminal('d');
+    auto e = terminal('e');
+    auto f = terminal('f');
+
+    auto stm = pe::error((a | b | c | d | e | f) >> ';', 1, ';');
+
+    auto grammar = *(stm);
+
+    {
+        std::string input = "a;b;c;d;e;f;";
+        auto [success, ast, error_it, errors] = pe::parse(input, grammar);
+        assert(success);
+        assert(error_it == input.end());
+        assert(errors.size() == 0);
+    }
+
+    {
+        std::string input = "1;b;c;d;e;f;";
+        auto [success, ast, error_it, errors] = pe::parse(input, grammar);
+        assert(success);
+        assert(error_it == input.end());
+        assert(errors.size() == 1);
+
+        assert(errors[0].get_id() == 1);
+        assert(errors[0].get_position() == std::next(input.begin(), 0));
+    }
+
+    {
+        std::string input = "1;b;c;a2;e;f;3;";
+        auto [success, ast, error_it, errors] = pe::parse(input, grammar);
+        assert(success);
+        assert(error_it == input.end());
+        assert(errors.size() == 3);
+
+        assert(errors[0].get_id() == 1);
+        assert(errors[0].get_position() == std::next(input.begin(), 0));
+
+        assert(errors[1].get_id() == 1);
+        assert(errors[1].get_position() == std::next(input.begin(), 7));
+
+        assert(errors[2].get_id() == 1);
+        assert(errors[2].get_position() == std::next(input.begin(), 13));
     }
 }
 
@@ -1385,5 +1435,6 @@ void test_parser_engine() {
     //test_performance();
     test_contextual_tokenization();
     test_contextual_parsing();
+    test_multiple_errors();
 }
 

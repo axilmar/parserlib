@@ -40,7 +40,7 @@ static auto lexer_grammar = *(ws | token_a | token_b | token_c);
 
 void test_lexer() {
     std::string input = "a b c\naa ccccc\nbbb";
-    auto [success, tokens, it] = lexer_type::parse(input, lexer_grammar);
+    auto [success, tokens, it, errors] = lexer_type::parse(input, lexer_grammar);
 
     assert(tokens.size() == 6);
 

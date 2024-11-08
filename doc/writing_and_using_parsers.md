@@ -38,6 +38,9 @@
 
 [Contextual parsing](#contextual-parsing)
 
+[Multiple error handling](#multiple-error-handling)
+
+
 ### Introduction
 
 Writing a parser means to use the `class parser_engine<SourceT, MatchIdT>` to write grammars and parse some input based on those grammars.
@@ -497,36 +500,6 @@ options.create_ast_node = &my_create_ast_node;
 pe.parse(input, grammar, options);
 ```
 
-### Using parse options to customize rule parsing
-
-Sometimes the need arises to provide custom side effects from parsing some input; for example, handling multiple errors, or solving grammar ambiguities by looking up some other tables.
-
-In order to provide custom parsing, and not litter the grammar with specific functionality, the parserlib library allows the definition of custom rule handler functions, as a member of the `class parse_options`.
-
-Example:
-
-```cpp
-pe::parse_result my_custom_rule_handler(parse_context& pc, rule& r, parse_result result, void* custom_data) {
-	return result;
-}
-
-pe::rule rule1 = terminal('a');
-pe::rule rule2 = terminal('b');
-auto grammar = rule1 | rule2;
-
-pe::parse_options options;
-options.rule_handlers[&rule1] = &my_custom_rule_handler;
-options.rule_handlers[&rule2] = &my_custom_rule_handler;
-options.custom_data = &my_custom_data;
-
-std::string input = "a";
-auto [success, ast, it] = pe::parse(input, grammar, options);
-```
-
-In the above grammar, when `rule1` or `rule2` are parsed, the function `my_custom_rule_handler` will be invoked, with the custom data specified in the options.
-
-This allows to a) keep the grammar clean from side effects, b) allow side effects to happen when parsing a rule.
-
 ### Contextual tokenization
 
 In some programming languages, the symbol `>>` will be parsed over `>`, due to the 'longest parsing rule'. However, in special sections of the grammar, for example in `c++`'s templates or `Java`'s generics, the symbol `>` will take precedence over the symbol `>>`.
@@ -799,3 +772,71 @@ ast_node_ptr_type(match_id_type id, const iterator_type& start_position, const i
 A custom ast node creation function could examine the children in order to create an AST node with a different match id from the one passed to the function, and with a different set of children.
 
 For how to use custom ast node creation functions, see the section [Custom AST nodes](#custom-ast-nodes).
+
+### Multiple error handling
+
+In order not to stop parsing at the first possible error, the `class parser_engine` contains a function `error` with the following signature:
+
+```cpp
+error(grammar, error_id, continuation_function | continuation_token);
+```
+
+The function takes the following parameters:
+
+- grammar: the grammar to use for parsing.
+- error_id: an int which represents the error id.
+- continuation_function: a function of type `parse_result(parse_context&)`, which allows continuing parsing from a subsequent position.
+- continuation_token: a token that signifies the end of the current "unit" of parsing (for example, a statement). Parsing will continue after this token.
+
+Example (taken from unit tests):
+
+```cpp
+static void test_multiple_errors() {
+    auto a = terminal('a');
+    auto b = terminal('b');
+    auto c = terminal('c');
+    auto d = terminal('d');
+    auto e = terminal('e');
+    auto f = terminal('f');
+
+    auto stm = pe::error((a | b | c | d | e | f) >> ';', 1, ';');
+
+    auto grammar = *(stm);
+
+    {
+        std::string input = "a;b;c;d;e;f;";
+        auto [success, ast, error_it, errors] = pe::parse(input, grammar);
+        assert(success);
+        assert(error_it == input.end());
+        assert(errors.size() == 0);
+    }
+
+    {
+        std::string input = "1;b;c;d;e;f;";
+        auto [success, ast, error_it, errors] = pe::parse(input, grammar);
+        assert(success);
+        assert(error_it == input.end());
+        assert(errors.size() == 1);
+
+        assert(errors[0].get_id() == 1);
+        assert(errors[0].get_position() == std::next(input.begin(), 0));
+    }
+
+    {
+        std::string input = "1;b;c;a2;e;f;3;";
+        auto [success, ast, error_it, errors] = pe::parse(input, grammar);
+        assert(success);
+        assert(error_it == input.end());
+        assert(errors.size() == 3);
+
+        assert(errors[0].get_id() == 1);
+        assert(errors[0].get_position() == std::next(input.begin(), 0));
+
+        assert(errors[1].get_id() == 1);
+        assert(errors[1].get_position() == std::next(input.begin(), 7));
+
+        assert(errors[2].get_id() == 1);
+        assert(errors[2].get_position() == std::next(input.begin(), 13));
+    }
+}
+```

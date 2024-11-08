@@ -40,6 +40,7 @@ namespace parserlib {
         class match;
         class rule_reference_parser;
         class rule;
+        template <typename ParserT, typename ContFuncT> class error_parser;
         template <typename ParserT> class zero_or_more_parser;
         template <typename ParserT> class one_or_more_parser;
         template <typename ParserT> class optional_parser;
@@ -202,18 +203,46 @@ namespace parserlib {
         };
 
         /**
-         * Type of rule handler function.
-         * Rule handlers are invoked after a rule is parsed.
-         * @param pc the current parse context.
-         * @param r the rule that was parsed.
-         * @param result the result of the rule parsing.
+         * Error information.
          */
-        using rule_handler_function_type = std::function<parse_result(parse_context& pc, rule& r, parse_result result, void* custom_data)>;
+        class error_info {
+        public:
+            /**
+             * The constructor.
+             * @param id error id.
+             * @param position error position.
+             */
+            error_info(int id = 0, const iterator_type& position = iterator_type())
+                : m_id(id)
+                , m_position(position)
+            {
+            }
+
+            /**
+             * Returns the id.
+             * @return the id.
+             */
+            int get_id() const {
+                return m_id;
+            }
+
+            /**
+             * Returns the error position.
+             * @return the error position.
+             */
+            const iterator_type& get_position() const {
+                return m_position;
+            }
+
+        private:
+            int m_id;
+            iterator_type m_position;
+        };
 
         /**
-         * Type of map of rules to rule handlers.
+         * Type of error container.
          */
-        using rule_handler_function_map_type = std::map<rule*, rule_handler_function_type>;
+        using error_container_type = std::vector<error_info>;
 
         /**
          * A parse context.
@@ -232,10 +261,12 @@ namespace parserlib {
             private:
                 iterator_type m_position;
                 size_t m_matches_size;
+                size_t m_errors_size;
 
-                state(const iterator_type& si, size_t matches_size)
+                state(const iterator_type& si, size_t matches_size, size_t errors_size)
                     : m_position(si)
                     , m_matches_size(matches_size)
+                    , m_errors_size(errors_size)
                 {
                 }
 
@@ -246,13 +277,12 @@ namespace parserlib {
              * Constructor.
              * @param input the source; must be in scope while this parse context is in scope, since the matches produced
              *  create views on the source.
-             * @param rule_handlers map of rules to rule handlers, to be invoked after a rule is parsed; the given container
              *  is empty upon return.
              */
-            parse_context(source_type& input, const rule_handler_function_map_type& rule_handlers = rule_handler_function_map_type())
+            parse_context(source_type& input)
                 : m_current_position(input.begin())
                 , m_end_position(input.end())
-                , m_rule_handler_functions(rule_handlers)
+                , m_unparsed_position(input.begin())
             {
             }
 
@@ -260,13 +290,11 @@ namespace parserlib {
              * Constructor.
              * @param begin beginning of source.
              * @param end end of source.
-             * @param rule_handlers map of rules to rule handlers, to be invoked after a rule is parsed; the given container
-             *  is empty upon return.
              */
-            parse_context(const iterator_type& begin, const iterator_type& end, const rule_handler_function_map_type& rule_handlers = rule_handler_function_map_type())
+            parse_context(const iterator_type& begin, const iterator_type& end)
                 : m_current_position(begin)
                 , m_end_position(end)
-                , m_rule_handler_functions(rule_handlers)
+                , m_unparsed_position(begin)
             {
             }
 
@@ -308,6 +336,9 @@ namespace parserlib {
              */
             void increment_position() {
                 ++m_current_position;
+                if (m_current_position > m_unparsed_position) {
+                    m_unparsed_position = m_current_position;
+                }
             }
 
             /**
@@ -317,6 +348,9 @@ namespace parserlib {
              */
             void increment_position(size_t count) {
                 m_current_position += count;
+                if (m_current_position > m_unparsed_position) {
+                    m_unparsed_position = m_current_position;
+                }
             }
 
             /**
@@ -324,7 +358,7 @@ namespace parserlib {
              * @return the current state of the parse context.
              */
             state get_state() const {
-                return { m_current_position, m_matches.size() };
+                return { m_current_position, m_matches.size(), m_errors.size() };
             }
 
             /**
@@ -334,6 +368,7 @@ namespace parserlib {
             void restore_state(const state& st) {
                 m_current_position = st.m_position;
                 m_matches.resize(st.m_matches_size);
+                m_errors.resize(st.m_errors_size);
             }
 
             /**
@@ -345,19 +380,28 @@ namespace parserlib {
             }
 
             /**
-             * Returns the custom data attached to this parse context.
-             * @return the custom data attached to this parse context.
+             * Returns the error container.
+             * @return the error container.
              */
-            void* get_custom_data() const {
-                return m_custom_data;
+            const error_container_type& get_errors() const {
+                return m_errors;
             }
 
             /**
-             * Sets the custom data attached to this parse context.
-             * @param data custom data.
+             * Adds an error to this parse context.
+             * @param id error id.
+             * @param position error position.
              */
-            void set_custom_data(void* data) {
-                m_custom_data = data;
+            void add_error(int id, const iterator_type& position) {
+                m_errors.emplace_back(id, position);
+            }
+
+            /**
+             * Returns the furthest position that is not yet parsed.
+             * @return the furthest position that is not yet parsed.
+             */
+            const iterator_type& get_unparsed_position() const {
+                return m_unparsed_position;
             }
 
         private:
@@ -372,8 +416,8 @@ namespace parserlib {
             match_container_type m_matches;
             std::map<rule*, std::vector<iterator_type>> m_rule_parse_positions;
             std::vector<left_recursion_match_position> m_left_recursion_match_positions;
-            rule_handler_function_map_type m_rule_handler_functions;
-            void* m_custom_data;
+            error_container_type m_errors;
+            iterator_type m_unparsed_position;
 
             void add_match(match_id_type id, const iterator_type& start_position, const iterator_type& end_position, size_t child_count) {
                 if (child_count > m_matches.size()) {
@@ -432,12 +476,7 @@ namespace parserlib {
             }
 
             parse_result parse_rule(rule& r) {
-                parse_result result = r.parse(*this);
-                auto it = m_rule_handler_functions.find(r.get_this_ptr());
-                if (it != m_rule_handler_functions.end()) {
-                    result = it->second(*this, r, result, m_custom_data);
-                }
-                return result;
+                return r.parse(*this);
             }
 
             parse_result parse_rule_left_recursion_base(rule& r) {
@@ -448,6 +487,11 @@ namespace parserlib {
                 return r.parse_left_recursion_continuation(*this);
             }
 
+            void set_unparsed_position(const iterator_type& position) {
+                m_unparsed_position = position;
+            }
+
+            template <typename ParserT, typename ContFuncT> friend class error_parser;
             template <typename ParserT> friend class match_parser;
             template <typename ParserT, typename MatchFuncT> friend class custom_match_parser;
             friend class rule_reference_parser;
@@ -897,6 +941,106 @@ namespace parserlib {
 
         private:
             FuncT m_func;
+        };
+
+        /**
+         * An error parser.
+         * @param ParserT type of grammar to use for error parsing.
+         * @param ContFuncT continuation function.
+         */
+        template <typename ParserT, typename ContFuncT>
+        class error_parser : public parser<error_parser<ParserT, ContFuncT>> {
+        public:
+            /**
+             * Constructor.
+             * @param parser grammar.
+             * @param error_id error id.
+             * @paam cont_func continuation function.
+             */
+            error_parser(const ParserT& parser, int error_id, ContFuncT&& cont_func)
+                : m_parser(parser)
+                , m_error_id(error_id)
+                , m_cont_func(std::move(cont_func))
+            {
+            }
+
+            /**
+             * Constructor.
+             * @param parser grammar; moved object.
+             * @param error_id error id.
+             * @paam cont_func continuation function.
+             */
+            error_parser(ParserT&& parser, int error_id, ContFuncT&& cont_func)
+                : m_parser(std::move(parser))
+                , m_error_id(error_id)
+                , m_cont_func(std::move(cont_func))
+            {
+            }
+
+            /**
+             * Invokes the internal parser; if the internal parser returns error,
+             * then this class adds an error to the parse context, then tries to continue parsing
+             * using the supplied continuation function.
+             * @param pc parse context.
+             * @return if success, then either the internal parser did not create an error
+             *  or the continuation function managed to sety up the parse context for continuing the parsing;
+             *  otherwise failure.
+             */
+            parse_result parse(parse_context& pc) const {
+                iterator_type prev_unparsed_position = pc.get_unparsed_position();
+                pc.set_unparsed_position(pc.get_current_position());
+                try {
+                    if (m_parser.parse(pc) == parse_result::success) {
+                        return parse_result::success;
+                    }
+                }
+                catch (...) {
+                    pc.set_unparsed_position(prev_unparsed_position);
+                    throw;
+                }
+                pc.add_error(m_error_id, pc.get_unparsed_position());
+                pc.set_unparsed_position(prev_unparsed_position);
+                return m_cont_func(pc);
+            }
+
+            parse_result parse_left_recursion_base(parse_context& pc) const {
+                iterator_type prev_unparsed_position = pc.get_unparsed_position();
+                pc.set_unparsed_position(pc.get_current_position());
+                try {
+                    if (m_parser.parse_left_recursion_base(pc) == parse_result::success) {
+                        return parse_result::success;
+                    }
+                }
+                catch (...) {
+                    pc.set_unparsed_position(prev_unparsed_position);
+                    throw;
+                }
+                pc.add_error(m_error_id, pc.get_unparsed_position());
+                pc.set_unparsed_position(prev_unparsed_position);
+                return m_cont_func(pc);
+            }
+
+            parse_result parse_left_recursion_continuation(parse_context& pc) const {
+                iterator_type prev_unparsed_position = pc.get_unparsed_position();
+                pc.set_unparsed_position(pc.get_current_position());
+                try {
+                    if (m_parser.parse_left_recursion_continuation(pc) == parse_result::success) {
+                        return parse_result::success;
+                    }
+                }
+                catch (...) {
+                    pc.set_unparsed_position(prev_unparsed_position);
+                    throw;
+                }
+                pc.add_error(m_error_id, pc.get_unparsed_position());
+                pc.set_unparsed_position(prev_unparsed_position);
+                return m_cont_func(pc);
+            }
+
+        private:
+            ParserT m_parser;
+            int m_error_id;
+            ContFuncT m_cont_func;
         };
 
         /**
@@ -2111,6 +2255,49 @@ namespace parserlib {
             return debug_parser(std::move(parser));
         }
 
+        /**
+         * Helper function for creating a function parser.
+         * @param func function to create a function parser for.
+         * @return the function parser.
+         */
+        template <typename FuncT>
+        static auto function(FuncT&& func) {
+            return function_parser<std::decay_t<FuncT>>(std::forward<FuncT>(func));
+        }
+
+        /**
+         * Helper function that creates an error parser.
+         * @param grammar grammar to use for parsing.
+         * @param error_id id of error.
+         * @param cont_func function to use for continuation; it must have the signature `parse_result(parse_context&)`.
+         * @return an error parser.
+         */
+        template <typename ParserT, typename ContFuncT, std::enable_if_t<std::is_invocable_r_v<parse_result, ContFuncT, parse_context&>, bool> = true>
+        static auto error(ParserT&& grammar, int error_id, ContFuncT&& cont_func) {
+            return error_parser<ParserT, ContFuncT>(std::forward<ParserT>(grammar), error_id, std::forward<ContFuncT>(cont_func));
+        }
+
+        /**
+         * Helper function that creates an error parser.
+         * @param grammar grammar to use for parsing.
+         * @param error_id id of error.
+         * @param cont_token token to search for in order to continue from.
+         * @return an error parser.
+         */
+        template <typename ParserT, typename ContTokenT, std::enable_if_t<!std::is_invocable_v<ContTokenT, parse_context&>, bool> = true>
+        static auto error(ParserT&& grammar, int error_id, ContTokenT&& cont_token) {
+            return error_parser(std::forward<ParserT>(grammar), error_id, [ct = std::forward<ContTokenT>(cont_token)](parse_context& pc) {
+                while (pc.is_valid_position()) {
+                    const bool found_cont_token = *pc.get_current_position() == ct;
+                    pc.increment_position();
+                    if (found_cont_token) {
+                        return parse_result::success;
+                    }
+                }
+                return parse_result::failure;
+            });
+        }
+
     private:
         template <typename T> struct is_parser_class {
             using base_type = std::decay_t<T>;
@@ -2490,20 +2677,9 @@ namespace parserlib {
          */
         struct parse_options {
             /**
-             * Map of rules to rule handlers.
-             * Adding an entry to this map allows custom processing of rules.
-             */
-            rule_handler_function_map_type rule_handlers;
-
-            /**
              * Function that allows to create custom ast nodes.
              */
             create_ast_node_func_type create_ast_node;
-
-            /**
-             * Pointer to custom data.
-             */
-            void* custom_data{ nullptr };
 
             /**
              * The default constructor.
@@ -2533,16 +2709,15 @@ namespace parserlib {
          * @param input the source.
          * @param grammar the grammar to use for parsing.
          * @param options parse options.
-         * @return a tuple of the following: success flag, ast nodes created, iterator where parsing stopped.
+         * @return a tuple of the following: success flag, ast nodes created, iterator where parsing stopped, errors.
          */
         template <typename GrammarT>
-        static std::tuple<bool, ast_node_container_type, iterator_type> parse(SourceT& input, GrammarT&& grammar, const parse_options& options) {
-            parse_context pc(input, options.rule_handlers);
-            pc.set_custom_data(options.custom_data);
+        static std::tuple<bool, ast_node_container_type, iterator_type, error_container_type> parse(SourceT& input, GrammarT&& grammar, const parse_options& options) {
+            parse_context pc(input);
             const bool ok = grammar.parse(pc) == parse_result::success && pc.is_end_position();
             ast_node_container_type ast_nodes;
             create_ast(pc.get_matches(), ast_nodes, options.create_ast_node);
-            return std::make_tuple(ok, std::move(ast_nodes), pc.get_current_position());
+            return std::make_tuple(ok, std::move(ast_nodes), pc.get_unparsed_position(), pc.get_errors());
         }
 
         /**
@@ -2550,10 +2725,10 @@ namespace parserlib {
          * Uses the default parse options.
          * @param input the source.
          * @param grammar the grammar to use for parsing.
-         * @return a tuple of the following: success flag, ast nodes created, iterator where parsing stopped.
+         * @return a tuple of the following: success flag, ast nodes created, iterator where parsing stopped, errors.
          */
         template <typename GrammarT>
-        static std::tuple<bool, ast_node_container_type, iterator_type>  parse(SourceT& input, GrammarT&& grammar) {
+        static auto parse(SourceT& input, GrammarT&& grammar) {
             return parse(input, std::forward<GrammarT>(grammar), parse_options());
         }
 
