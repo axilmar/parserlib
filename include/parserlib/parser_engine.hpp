@@ -660,44 +660,24 @@ namespace parserlib {
         /**
          * A parser for strings.
          */
-        template <typename ValueT>
-        class terminal_string_parser : public parser<terminal_string_parser<ValueT>> {
+        template <typename StringT>
+        class terminal_string_parser : public parser<terminal_string_parser<StringT>> {
         public:
             /**
              * Constructor from null-terminated string.
              * @param string string to parse.
              */
-            terminal_string_parser(const ValueT* string)
+            terminal_string_parser(const StringT& string)
                 : m_string(string)
             {
             }
 
             /**
-             * Constructor from string.
-             * @param string string to parse.
+             * Constructor from null-terminated string.
+             * @param string string to parse; moved object.
              */
-            template <typename TraitsT, typename AllocT>
-            terminal_string_parser(const std::basic_string<ValueT, TraitsT, AllocT>& string)
-                : m_string(string)
-            {
-            }
-
-            /**
-             * Constructor from movable string.
-             * @param string string to parse.
-             */
-            template <typename TraitsT, typename AllocT>
-            terminal_string_parser(std::basic_string<ValueT, TraitsT, AllocT>&& string)
+            terminal_string_parser(StringT&& string)
                 : m_string(std::move(string))
-            {
-            }
-
-            /**
-             * Constructor from list of values.
-             * @param values list of values.
-             */
-            terminal_string_parser(std::initializer_list<ValueT> values)
-                : m_string(values)
             {
             }
 
@@ -743,7 +723,7 @@ namespace parserlib {
             }
 
         private:
-            std::basic_string<ValueT> m_string;
+            StringT m_string;
         };
 
         /**
@@ -797,10 +777,10 @@ namespace parserlib {
              */
             parse_result parse(parse_context& pc) const {
                 if (pc.is_valid_position()) {
-                    const terminal_value_type& val = *pc.get_current_position();
+                    const auto val = *pc.get_current_position();
                     auto it = std::upper_bound(m_set.begin(), m_set.end(), val);
                     if (it != m_set.begin()) {
-                        const terminal_value_type& pv = *std::prev(it);
+                        const auto pv = *std::prev(it);
                         if (pv == val) {
                             pc.increment_position();
                             return parse_result::success;
@@ -872,7 +852,7 @@ namespace parserlib {
              */
             parse_result parse(parse_context& pc) const {
                 if (pc.is_valid_position()) {
-                    const terminal_value_type& val = *pc.get_current_position();
+                    const auto val = *pc.get_current_position();
                     if (val >= m_min && val <= m_max) {
                         pc.increment_position();
                         return parse_result::success;
@@ -2774,13 +2754,13 @@ namespace parserlib {
         }
 
         template <typename ValueT, std::enable_if_t<is_terminal_value_v<ValueT>, bool> = true>
-        static terminal_string_parser<ValueT> make_parser_wrapper(ValueT* str) {
-            return str;
+        static auto make_parser_wrapper(ValueT* str) {
+            return terminal_string_parser<std::basic_string<ValueT>>(str);
         }
 
         template <typename ValueT, std::enable_if_t<is_terminal_value_v<ValueT>, bool> = true>
-        static terminal_string_parser<ValueT> make_parser_wrapper(const ValueT* str) {
-            return str;
+        static auto make_parser_wrapper(const ValueT* str) {
+            return terminal_string_parser<std::basic_string<ValueT>>(str);
         }
 
         template <typename FuncT, std::enable_if_t<is_parser_function_v<FuncT>, bool> = true>
@@ -2789,8 +2769,8 @@ namespace parserlib {
         }
 
         template <typename ValueT, typename CharTraits, typename Alloc>
-        static terminal_string_parser<ValueT> make_parser_wrapper(std::basic_string<ValueT, CharTraits, Alloc> str) {
-            return str;
+        static auto make_parser_wrapper(std::basic_string<ValueT, CharTraits, Alloc> str) {
+            return terminal_string_parser<std::basic_string<ValueT, CharTraits, Alloc>>(str);
         }
 
         static rule_reference_parser make_parser_wrapper(rule& r) {
