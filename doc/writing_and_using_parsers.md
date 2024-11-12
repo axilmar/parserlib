@@ -761,7 +761,7 @@ In the above example, the code `x* a` is parsed as a variable declaration, becau
 
 #### Solving ambiguities by using custom AST creation functions
 
-When invoking the `parse` function of a `parser_engine` type instance, one of the options paased is a custom ast node creation function.
+When invoking the `parse` function of a `parser_engine` type instance, one of the options passed is a custom ast node creation function.
 
 An ast node creation function has the following type signature:
 
