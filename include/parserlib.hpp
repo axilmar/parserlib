@@ -2,7 +2,8 @@
 #define PARSERLIB_HPP
 
 
-#include "parserlib/parser_engine.hpp"
+#include "parserlib/lexer.hpp"
+#include "parserlib/utf8_string.hpp"
 
 
 #endif //PARSERLIB_HPP
