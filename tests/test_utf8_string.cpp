@@ -7,22 +7,22 @@
 using pe = parserlib::parser_engine<parserlib::utf8_string>;
 
 
-bool test_isalpha(uint32_t v) {
+static bool test_isalpha(uint32_t v) {
     const bool result = std::iswalpha((wint_t)v);
     return result;
 }
 
 
-auto letter = pe::terminal(&test_isalpha);
+static auto letter = pe::terminal(&test_isalpha);
 
 
-auto digit = pe::terminal(&std::iswdigit);
+static auto digit = pe::terminal(&std::iswdigit);
 
 
-auto identifier = letter >> *(letter | digit | '_');
+static auto identifier = letter >> *(letter | digit | '_');
 
 
-auto grammar = identifier >> ';';
+static auto grammar = identifier >> ';';
 
 
 void test_utf8_string() {
