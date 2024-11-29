@@ -16,7 +16,7 @@ static bool test_isalpha(uint32_t v) {
 static auto letter = pe::terminal(&test_isalpha);
 
 
-static auto digit = pe::terminal(&std::iswdigit);
+static auto digit = pe::range('0', '9');
 
 
 static auto identifier = letter >> *(letter | digit | '_');

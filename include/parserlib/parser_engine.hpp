@@ -15,6 +15,7 @@
 #include <string_view>
 #include <functional>
 #include <typeinfo>
+#include "compare.hpp"
 
 
 namespace parserlib {
@@ -586,7 +587,7 @@ namespace parserlib {
              * @return success if parsing suceeds, failure otherwise.
              */
             parse_result parse(parse_context& pc) const {
-                if (pc.is_valid_position() && *pc.get_current_position() == m_value) {
+                if (pc.is_valid_position() && compare_equal(*pc.get_current_position(), m_value)) {
                     pc.increment_position();
                     return parse_result::success;
                 }
@@ -703,7 +704,7 @@ namespace parserlib {
                     if (it_pc == pc.get_end_position()) {
                         return parse_result::failure;
                     }
-                    if (*it_pc != *it_str) {
+                    if (!compare_equal(*it_pc, *it_str)) {
                         return parse_result::failure;
                     }
                     ++it_str;
@@ -778,7 +779,7 @@ namespace parserlib {
             parse_result parse(parse_context& pc) const {
                 if (pc.is_valid_position()) {
                     const auto val = *pc.get_current_position();
-                    auto it = std::upper_bound(m_set.begin(), m_set.end(), val);
+                    auto it = std::upper_bound(m_set.begin(), m_set.end(), val, parserlib::less_than());
                     if (it != m_set.begin()) {
                         const auto pv = *std::prev(it);
                         if (pv == val) {
@@ -853,7 +854,7 @@ namespace parserlib {
             parse_result parse(parse_context& pc) const {
                 if (pc.is_valid_position()) {
                     const auto val = *pc.get_current_position();
-                    if (val >= m_min && val <= m_max) {
+                    if (compare_greater_than_or_equal_to(val, m_min) && compare_less_than_or_equal_to(val, m_max)) {
                         pc.increment_position();
                         return parse_result::success;
                     }
@@ -2392,25 +2393,35 @@ namespace parserlib {
         }
 
         /**
-         * Adds a match for the specific grammar.
+         * Adds a match function for the specific grammar.
          * @param left the grammar to add a match for.
-         * @param id the match id for this grammar.
-         * @return a match parser for the given grammar and id.
+         * @param right function that produces a match id, or match id to match.
+         * @return a match parser for the given grammar and match function.
          */
-        template <typename Left, std::enable_if_t<std::is_base_of_v<parser<Left>, Left> || std::is_same_v<Left, rule>, bool> = true>
-        friend auto operator ->* (Left&& left, match_id_type id) {
-            return match_parser(make_parser_wrapper(std::forward<Left>(left)), id);
+        template <typename Left, typename Right>
+        friend auto operator ->* (const parser<Left>& left, Right&& right) {
+            if constexpr (std::is_invocable_r_v<match_id_type, Right, parse_context&, match_container_type&>) {
+                return custom_match_parser(make_parser_wrapper(static_cast<const Left&>(left)), std::forward<Right>(right));
+            }
+            else {
+                return match_parser(make_parser_wrapper(static_cast<const Left&>(left)), right);
+            }
         }
 
         /**
-         * Adds a match function for the specific grammar.
-         * @param left the grammar to add a match for.
-         * @param func function to invoke that creates the match id.
+         * Adds a match function for the specific rule.
+         * @param left the rule to match.
+         * @param right function that produces a match id, or match id to match.
          * @return a match parser for the given grammar and match function.
          */
-        template <typename Left, typename MatchFuncT, std::enable_if_t<std::is_invocable_r_v<match_id_type, MatchFuncT, parse_context&, match_container_type &>, bool> = true>
-        friend auto operator ->* (Left&& left, MatchFuncT&& func) {
-            return custom_match_parser<Left, MatchFuncT>(make_parser_wrapper(std::forward<Left>(left)), std::forward<MatchFuncT>(func));
+        template <typename Right>
+        friend auto operator ->* (rule& left, Right&& right) {
+            if constexpr (std::is_invocable_r_v<match_id_type, Right, parse_context&, match_container_type&>) {
+                return custom_match_parser(make_parser_wrapper(left), std::forward<Right>(right));
+            }
+            else {
+                return match_parser(make_parser_wrapper(left), right);
+            }
         }
 
         class ast_node;
