@@ -63,15 +63,15 @@ The `class parser_engine<SourceT, MatchIdT>` provides classes and functions that
 	- match
 - `class rule` that can be used for recursive grammars.
 - grammar operators: 
-	- zero or more: unary `operator *`
-	- one or more: unary `operator +`
-	- optional: unary `operator -`
-	- logical AND: `unary operator &`
-	- logical NOT: `unary operator !`
-	- sequence: binary `operator >>`
-	- choice: binary `operator |`
-	- exclusion: binary `operator -`
-	- match: binary `operator ->*`
+	- zero or more: unary operator `*`
+	- one or more: unary operator `+`
+	- optional: unary operator `-`
+	- logical AND: unary operator `&`
+	- logical NOT: unary operator `!`
+	- sequence: binary operator `>>`
+	- choice: binary operator `|`
+	- exclusion: binary operator `-`
+	- match: binary operator `->*`
 
 By combining the terminal and non terminal expressions, a grammar may be developed.
 
