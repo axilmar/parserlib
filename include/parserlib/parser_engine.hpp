@@ -1882,7 +1882,7 @@ namespace parserlib {
         };
 
         /**
-         * A rule keeps a parsing expession hidden away behind an interface,
+         * A rule keeps a parsing expression hidden away behind an interface,
          * in order to allow recursive grammars.
          *
          * With rules, it is possible to write, for example:
