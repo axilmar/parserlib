@@ -59,7 +59,7 @@ add
   |-> &mul    
 ```
 
-Left recursion can be parsed in two steps:
+Left recursion will be parsed in two steps:
 
 1. let the rule 'add' reject the parsing if left recursion is found; this is called the REJECT phase.
 2. let the rule 'add' accept the parsing without advancing the parser input; this is called the ACCEPT phase.
@@ -99,7 +99,7 @@ ACCEPTing a rule means to return true withouth advancing the parse position.
 
 ### Matches
 
-While during left recursion parsing, matches in the grammar tree are executed at the end of each matched sentence, maintaining associativty.
+While during left recursion parsing, matches in the grammar tree are executed at the end of each matched sentence, maintaining associativity.
 
 For example, a Parserlib grammar with matches would look like this:
 
@@ -135,7 +135,7 @@ add
   |-> &mul    
 ```
 
-During the ACCEPT ptas, the object tree shall look like this:
+During the ACCEPT phase, the object tree shall look like this:
 ```
 add
   | -> loop
@@ -146,3 +146,23 @@ add
   |-> &mul    
 ```
 
+For an expression like `1 + 2 - 3 + 4`, Parserlib will create the following:
+
+ 1. `TokenType::Num` match for `1`.
+ 1. `TokenType::Add` match for the subexpressions `1`, `+ 2`
+ 1. `TokenType::Sub` match for the subexpressions `1 + 2`, `- 3`
+ 1. `TokenType::Add` match for the subexpressions `1 + 2 - 3`, ` + 4`
+
+The following AST tree will be created:
+
+```
+addition
+  |-> subtraction
+  |   |-> addition
+  |   |   |-> 1
+  |   |   |-> 2
+  |   |-> 3
+  |-> 4
+```
+
+Which equals the expression `(((1 + 2) - 3) + 4)`.
