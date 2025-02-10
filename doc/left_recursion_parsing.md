@@ -50,7 +50,7 @@ rule add = add >> '+' >> mul
          | mul;
 ```
 
-Parserlib would create the following object tree, for example for 'add':
+Parserlib would create the following parser object tree, for example for 'add' (`&` denotes `reference to`, rules are always by reference to allow recursion):
 
 ```
 add
@@ -66,7 +66,7 @@ Left recursion will be parsed in two steps:
 
 #### The REJECT phase
 
-In the REJECT phase, left-recursive rules are rejected. The object tree can be thought of like this (`&` denotes `reference to`, rules are always by reference to allow recursion):
+In the REJECT phase, left-recursive rules are rejected. The object tree can be thought of like this:
 
 ```
 add
@@ -145,7 +145,7 @@ add
   |       |    |-> ACCEPT(&add) -> terminal('+') -> &mul
   |       |-> match(TokenType::Sub)
   |       |    |-> ACCEPT(&add) -> terminal('-') -> &mul
-  |-> &mul    
+  |-> REJECT(&mul)
 ```
 
 For an expression like `1 + 2 - 3 + 4`, Parserlib will create the following:
