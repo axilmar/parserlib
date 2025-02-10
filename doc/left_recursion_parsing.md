@@ -88,8 +88,9 @@ During the ACCEPT phase, the object tree looks like this:
 ```
 add
    |-> loop
-   |   |-> ACCEPT(&add) -> terminal('+') -> &mul
-   |   |-> ACCEPT(&add) -> terminal('-') -> &mul
+   |   |-> or
+   |       |-> ACCEPT(&add) -> terminal('+') -> &mul
+   |       |-> ACCEPT(&add) -> terminal('-') -> &mul
    |-> REJECT(&mul)
 ```
 
@@ -139,10 +140,11 @@ During the ACCEPT phase, the object tree shall look like this:
 ```
 add
   | -> loop
-  |   |-> match(TokenType::Add)
-  |   |    |-> ACCEPT(&add) -> terminal('+') -> &mul
-  |   |-> match(TokenType::Sub)
-  |   |    |-> ACCEPT(&add) -> terminal('-') -> &mul
+  |   |-> or
+  |       |-> match(TokenType::Add)
+  |       |    |-> ACCEPT(&add) -> terminal('+') -> &mul
+  |       |-> match(TokenType::Sub)
+  |       |    |-> ACCEPT(&add) -> terminal('-') -> &mul
   |-> &mul    
 ```
 
