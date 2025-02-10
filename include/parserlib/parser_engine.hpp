@@ -174,10 +174,8 @@ namespace parserlib {
              * Returns a view of the source that corresponds to this match.
              * @return a view of the source that corresponds to this match.
              */
-            std::basic_string_view<terminal_value_type> get_source() const {
-                const terminal_value_type* start = &*m_start_position;
-                const size_t size = m_end_position - m_start_position;
-                return { start, size };
+            auto get_source() const {
+                return get_source_helper(m_start_position, m_end_position);
             }
 
         private:
@@ -2608,10 +2606,8 @@ namespace parserlib {
              * Returns a view of the portion of the source that corresponds to this node.
              * @return a view of the portion of the source that corresponds to this node.
              */
-            std::basic_string_view<terminal_value_type> get_source() const {
-                const terminal_value_type* start = &*m_start_position;
-                const size_t size = m_end_position - m_start_position;
-                return { start, size };
+            auto get_source() const {
+                return get_source_helper(m_start_position, m_end_position);
             }
 
             /**
@@ -2810,7 +2806,18 @@ namespace parserlib {
             }
         }
 
-
+    private:
+        //return a string view, if token is trivial, otherwise return an std::vector.
+        template <class It> static auto get_source_helper(const It& begin, const It& end) {
+            if constexpr (std::is_trivial_v<terminal_value_type>) {
+                const terminal_value_type* start = &*begin;
+                const size_t size = end - begin;
+                return std::basic_string_view<terminal_value_type>(start, size);
+            }
+            else {
+                return std::vector<terminal_value_type>(begin, end);
+            }
+        }
     };
 
 
