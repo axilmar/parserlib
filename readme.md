@@ -16,6 +16,8 @@ Version 1.0.0.5.
 
 [Writing And Using Parsers](./doc/writing_and_using_parsers.md)
 
+[Left Recursion Parsing](./doc/left_recursion_parsing.md)
+
 [Versions](#versions)
 
 ## Introduction
