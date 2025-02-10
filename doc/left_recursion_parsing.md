@@ -70,9 +70,9 @@ In the REJECT phase, left-recursive rules are rejected. The object tree can be t
 
 ```
 add
-   <span style="color:red">|-> reject(&add) -> terminal('+') -> &mul</span>
-   <span style="color:red">|-> reject(&add) -> terminal('-') -> &mul</span>
-   <span style="color:green">|-> &mul</span>
+   $${\color{red}|-> reject(&add) -> terminal('+') -> &mul}$$
+   $${\color{red}|-> reject(&add) -> terminal('-') -> &mul}$$
+   $${\color{green}|-> &mul}$$
 ```
 
 So, when parsing, for example, `1 + 2`, the add rule becomes the same as the rule `mul`.
@@ -86,9 +86,9 @@ During the ACCEPT phase, the object tree looks like this:
 ```
 add
    |-> loop
-   |   <span style="color:green">|-> accept(&add) -> terminal('+') -> &mul</span>
-   |   <span style="color:green">|-> accept(&add) -> terminal('-') -> &mul</span>
-   |-> <span style="color:red">reject(&mul)</span>
+   |   $${\color{green}|-> accept(&add) -> terminal('+') -> &mul}$$
+   |   $${\color{green}|-> accept(&add) -> terminal('-') -> &mul}$$
+   |-> $${\color{red}reject(&mul)}$$
 ```
 
 The left recursive rule itself is ignored, as as that `+ 2 - 3 + 4...` is parsed, until no more parsing can be done.
