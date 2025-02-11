@@ -36,7 +36,9 @@ bool parse_add(parsing_context& c) {
 
 However, the above is left-recursive on two `if` blocks, and will crash the process if run.
 
-### Solution
+### The Solution
+
+Parserlib solves this issue by changing the order rules are invoked, in order to achieve the desired result.
 
 The above grammar would be written with Parserlib like this:
 
@@ -168,3 +170,36 @@ addition
 ```
 
 Which equals the expression `(((1 + 2) - 3) + 4)`.
+
+### Solution With Functions
+
+In order to better understand the solution, let's see the solution as a function.
+
+The following function does exactly what Parserlib does: it first parses `mul`, then it enters a loop, trying to parse `+ mul` or `- mul` repeatedly, until there are no more input tokens.
+
+```cpp
+bool parse_add(parsing_context& c) {
+	if (parse_mul(c)) {
+    	while (true) {
+        	//parse '+ mul'
+        	if (parse_terminal(c, '+') && parse_mul(c)) {
+            	//match addition
+                continue;
+            }
+            
+            //parse '- mul'
+            if (parse_terminal(c, '-') && parse_mul(c)) {
+            	//match subtraction
+                continue;
+            }
+
+			//even if parsing fails, at least mul was parsed,
+            //therefore success
+            return true;
+        }
+    }
+    
+    //nothing could be matched
+    return false;
+}
+```
