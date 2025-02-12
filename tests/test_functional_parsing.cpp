@@ -2,10 +2,14 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 #include "parserlib/functional_parsing.hpp"
 
 
 using namespace parserlib::functional;
+
+
+#define TEST_EXPR(E) test_expr(#E, E)
 
 
 struct test_common {
@@ -500,141 +504,476 @@ struct test_parse_left_recursion : test_common {
         return parse_add(c, s);
     }
 
-    static double eval(const match<SourceType, MatchIdType>& m) {
+    static int eval(const match<SourceType, MatchIdType>& m) {
         switch (m.id) {
             case NUM: {
                 std::stringstream stream;
                 stream << m.get_source();
-                double v;
+                int v;
                 stream >> v;
                 return v;
             }
 
-            case ADD:
-                return eval(m.children[0]) + eval(m.children[1]);
+            case ADD: {
+                const int v0 = eval(m.children[0]);
+                const int v1 = eval(m.children[1]);
+                return v0 + v1;
+            }
 
-            case SUB:
-                return eval(m.children[0]) - eval(m.children[1]);
+            case SUB: {
+                const int v0 = eval(m.children[0]);
+                const int v1 = eval(m.children[1]);
+                return v0 - v1;
+            }
 
-            case MUL:
-                return eval(m.children[0]) * eval(m.children[1]);
+            case MUL: {
+                const int v0 = eval(m.children[0]);
+                const int v1 = eval(m.children[1]);
+                return v0 * v1;
+            }
 
-            case DIV:
-                return eval(m.children[0]) / eval(m.children[1]);
+            case DIV: {
+                const int v0 = eval(m.children[0]);
+                const int v1 = eval(m.children[1]);
+                return v0 / v1;
+            }
         }
 
         throw std::logic_error("Unknown match id.");
     }
 
+    static void test_expr(const char* src, int value) {
+        SourceType source = src;
+        parse_result result = parse<MatchIdType>(source, &grammar);
+        assert(result.success);
+        assert(result.parse_success);
+        assert(result.completion_success);
+        assert(result.parse_position == source.end());
+
+        assert(result.matches.size() == 1);
+        const int parsed_value = eval(result.matches[0]);
+        assert(parsed_value == value);
+    }
+
     static void test() {
-        {
-            SourceType source = "1";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == 1);
-
-            assert(result.matches[0].id == NUM);
-            assert(result.matches[0].get_source() == "1");
-        }
-        {
-            SourceType source = "1+2";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == 1+2);
-
-            assert(result.matches[0].id == ADD);
-            assert(result.matches[0].get_source() == "1+2");
-
-            assert(result.matches[0].children[0].id == NUM);
-            assert(result.matches[0].children[0].get_source() == "1");
-
-            assert(result.matches[0].children[1].id == NUM);
-            assert(result.matches[0].children[1].get_source() == "2");
-        }
-        {
-            SourceType source = "1+2-3";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == 1 + 2 - 3);
-        }
-        {
-            SourceType source = "(1+2)-3";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == (1 + 2) - 3);
-        }
-        {
-            SourceType source = "1+(2-3)";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == 1 + (2 - 3));
-        }
-        {
-            SourceType source = "1+2-3*4";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == 1 + 2 - 3 * 4);
-        }
-        {
-            SourceType source = "((1+2)-3)*4";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == ((1 + 2) - 3) * 4);
-        }
-        {
-            SourceType source = "(1+(2-3))*4";
-            parse_result result = parse<MatchIdType>(source, &grammar);
-            assert(result.success);
-            assert(result.parse_success);
-            assert(result.completion_success);
-            assert(result.parse_position == source.end());
-
-            assert(result.matches.size() == 1);
-
-            assert(eval(result.matches[0]) == (1 + (2 - 3)) * 4);
-        }
+        TEST_EXPR(1);
+        TEST_EXPR(1+2);
+        TEST_EXPR(1-2);
+        TEST_EXPR(1*2);
+        TEST_EXPR(1/2);
+        TEST_EXPR(1+2+3);
+        TEST_EXPR(1+2-3);
+        TEST_EXPR(1-2+3);
+        TEST_EXPR(1-2-3);
+        TEST_EXPR((1+2)+3);
+        TEST_EXPR(1+(2-3));
+        TEST_EXPR((1-2)+3);
+        TEST_EXPR(1-(2-3));
+        TEST_EXPR(1*2*3);
+        TEST_EXPR(1*2/3);
+        TEST_EXPR(1/2*3);
+        TEST_EXPR(1/2/3);
+        TEST_EXPR((1*2)*3);
+        TEST_EXPR(1*(2/3));
+        TEST_EXPR((1/2)*3);
+        TEST_EXPR(1+2+3);
+        TEST_EXPR(1+2*3);
+        TEST_EXPR(1*2+3);
+        TEST_EXPR(1*2*3);
+        TEST_EXPR((1+2)+3);
+        TEST_EXPR(1+(2*3));
+        TEST_EXPR((1*2)+3);
+        TEST_EXPR(1*(2*3));
+        TEST_EXPR(1+2+3);
+        TEST_EXPR(1+2/3);
+        TEST_EXPR(1/2+3);
+        TEST_EXPR(1/2/3);
+        TEST_EXPR((1+2)+3);
+        TEST_EXPR(1+(2/3));
+        TEST_EXPR((1/2)+3);
+        TEST_EXPR(1-2-3);
+        TEST_EXPR(1-2*3);
+        TEST_EXPR(1*2-3);
+        TEST_EXPR(1*2*3);
+        TEST_EXPR((1-2)-3);
+        TEST_EXPR(1-(2*3));
+        TEST_EXPR((1*2)-3);
+        TEST_EXPR(1*(2*3));
+        TEST_EXPR(1-2-3);
+        TEST_EXPR(1-2/3);
+        TEST_EXPR(1/2-3);
+        TEST_EXPR(1/2/3);
+        TEST_EXPR((1-2)-3);
+        TEST_EXPR(1-(2/3));
+        TEST_EXPR((1/2)-3);
+        TEST_EXPR(1+2+3+4);
+        TEST_EXPR(1+2+3-4);
+        TEST_EXPR(1+2+3*4);
+        TEST_EXPR(1+2+3/4);
+        TEST_EXPR(1+2-3+4);
+        TEST_EXPR(1+2-3-4);
+        TEST_EXPR(1+2-3*4);
+        TEST_EXPR(1+2-3/4);
+        TEST_EXPR(1+2*3+4);
+        TEST_EXPR(1+2*3-4);
+        TEST_EXPR(1+2*3*4);
+        TEST_EXPR(1+2*3/4);
+        TEST_EXPR(1+2/3+4);
+        TEST_EXPR(1+2/3-4);
+        TEST_EXPR(1+2/3*4);
+        TEST_EXPR(1+2/3/4);
+        TEST_EXPR(1-2+3+4);
+        TEST_EXPR(1-2+3-4);
+        TEST_EXPR(1-2+3*4);
+        TEST_EXPR(1-2+3/4);
+        TEST_EXPR(1-2-3+4);
+        TEST_EXPR(1-2-3-4);
+        TEST_EXPR(1-2-3*4);
+        TEST_EXPR(1-2-3/4);
+        TEST_EXPR(1-2*3+4);
+        TEST_EXPR(1-2*3-4);
+        TEST_EXPR(1-2*3*4);
+        TEST_EXPR(1-2*3/4);
+        TEST_EXPR(1-2/3+4);
+        TEST_EXPR(1-2/3-4);
+        TEST_EXPR(1-2/3*4);
+        TEST_EXPR(1-2/3/4);
+        TEST_EXPR(1*2+3+4);
+        TEST_EXPR(1*2+3-4);
+        TEST_EXPR(1*2+3*4);
+        TEST_EXPR(1*2+3/4);
+        TEST_EXPR(1*2-3+4);
+        TEST_EXPR(1*2-3-4);
+        TEST_EXPR(1*2-3*4);
+        TEST_EXPR(1*2-3/4);
+        TEST_EXPR(1*2*3+4);
+        TEST_EXPR(1*2*3-4);
+        TEST_EXPR(1*2*3*4);
+        TEST_EXPR(1*2*3/4);
+        TEST_EXPR(1*2/3+4);
+        TEST_EXPR(1*2/3-4);
+        TEST_EXPR(1*2/3*4);
+        TEST_EXPR(1*2/3/4);
+        TEST_EXPR(1/2+3+4);
+        TEST_EXPR(1/2+3-4);
+        TEST_EXPR(1/2+3*4);
+        TEST_EXPR(1/2+3/4);
+        TEST_EXPR(1/2-3+4);
+        TEST_EXPR(1/2-3-4);
+        TEST_EXPR(1/2-3*4);
+        TEST_EXPR(1/2-3/4);
+        TEST_EXPR(1/2*3+4);
+        TEST_EXPR(1/2*3-4);
+        TEST_EXPR(1/2*3*4);
+        TEST_EXPR(1/2*3/4);
+        TEST_EXPR(1/2/3+4);
+        TEST_EXPR(1/2/3-4);
+        TEST_EXPR(1/2/3*4);
+        TEST_EXPR(1/2/3/4);
+        TEST_EXPR((1+2)+3+4);
+        TEST_EXPR(1+(2+3)+4);
+        TEST_EXPR(1+2+(3+4));
+        TEST_EXPR(((1+2)+3)+4);
+        TEST_EXPR(1+(2+(3+4)));
+        TEST_EXPR((1+2)+3-4);
+        TEST_EXPR(1+(2+3)-4);
+        TEST_EXPR(1+2+(3-4));
+        TEST_EXPR(((1+2)+3)-4);
+        TEST_EXPR(1+(2+(3-4)));
+        TEST_EXPR((1+2)+3*4);
+        TEST_EXPR(1+(2+3)*4);
+        TEST_EXPR(1+2+(3*4));
+        TEST_EXPR(((1+2)+3)*4);
+        TEST_EXPR(1+(2+(3*4)));
+        TEST_EXPR((1+2)+3/4);
+        TEST_EXPR(1+(2+3)/4);
+        TEST_EXPR(1+2+(3/4));
+        TEST_EXPR(((1+2)+3)/4);
+        TEST_EXPR(1+(2+(3/4)));
+        TEST_EXPR((1+2)-3+4);
+        TEST_EXPR(1+(2-3)+4);
+        TEST_EXPR(1+2-(3+4));
+        TEST_EXPR(((1+2)-3)+4);
+        TEST_EXPR(1+(2-(3+4)));
+        TEST_EXPR((1+2)-3-4);
+        TEST_EXPR(1+(2-3)-4);
+        TEST_EXPR(1+2-(3-4));
+        TEST_EXPR(((1+2)-3)-4);
+        TEST_EXPR(1+(2-(3-4)));
+        TEST_EXPR((1+2)-3*4);
+        TEST_EXPR(1+(2-3)*4);
+        TEST_EXPR(1+2-(3*4));
+        TEST_EXPR(((1+2)-3)*4);
+        TEST_EXPR(1+(2-(3*4)));
+        TEST_EXPR((1+2)-3/4);
+        TEST_EXPR(1+(2-3)/4);
+        TEST_EXPR(1+2-(3/4));
+        TEST_EXPR(((1+2)-3)/4);
+        TEST_EXPR(1+(2-(3/4)));
+        TEST_EXPR((1+2)*3+4);
+        TEST_EXPR(1+(2*3)+4);
+        TEST_EXPR(1+2*(3+4));
+        TEST_EXPR(((1+2)*3)+4);
+        TEST_EXPR(1+(2*(3+4)));
+        TEST_EXPR((1+2)*3-4);
+        TEST_EXPR(1+(2*3)-4);
+        TEST_EXPR(1+2*(3-4));
+        TEST_EXPR(((1+2)*3)-4);
+        TEST_EXPR(1+(2*(3-4)));
+        TEST_EXPR((1+2)*3*4);
+        TEST_EXPR(1+(2*3)*4);
+        TEST_EXPR(1+2*(3*4));
+        TEST_EXPR(((1+2)*3)*4);
+        TEST_EXPR(1+(2*(3*4)));
+        TEST_EXPR((1+2)*3/4);
+        TEST_EXPR(1+(2*3)/4);
+        TEST_EXPR(1+2*(3/4));
+        TEST_EXPR(((1+2)*3)/4);
+        TEST_EXPR(1+(2*(3/4)));
+        TEST_EXPR((1+2)/3+4);
+        TEST_EXPR(1+(2/3)+4);
+        TEST_EXPR(1+2/(3+4));
+        TEST_EXPR(((1+2)/3)+4);
+        TEST_EXPR(1+(2/(3+4)));
+        TEST_EXPR((1+2)/3-4);
+        TEST_EXPR(1+(2/3)-4);
+        TEST_EXPR(1+2/(3-4));
+        TEST_EXPR(((1+2)/3)-4);
+        TEST_EXPR(1+(2/(3-4)));
+        TEST_EXPR((1+2)/3*4);
+        TEST_EXPR(1+(2/3)*4);
+        TEST_EXPR(1+2/(3*4));
+        TEST_EXPR(((1+2)/3)*4);
+        TEST_EXPR(1+(2/(3*4)));
+        TEST_EXPR((1+2)/3/4);
+        TEST_EXPR(1+(2/3)/4);
+        TEST_EXPR((1-2)+3+4);
+        TEST_EXPR(1-(2+3)+4);
+        TEST_EXPR(1-2+(3+4));
+        TEST_EXPR(((1-2)+3)+4);
+        TEST_EXPR(1-(2+(3+4)));
+        TEST_EXPR((1-2)+3-4);
+        TEST_EXPR(1-(2+3)-4);
+        TEST_EXPR(1-2+(3-4));
+        TEST_EXPR(((1-2)+3)-4);
+        TEST_EXPR(1-(2+(3-4)));
+        TEST_EXPR((1-2)+3*4);
+        TEST_EXPR(1-(2+3)*4);
+        TEST_EXPR(1-2+(3*4));
+        TEST_EXPR(((1-2)+3)*4);
+        TEST_EXPR(1-(2+(3*4)));
+        TEST_EXPR((1-2)+3/4);
+        TEST_EXPR(1-(2+3)/4);
+        TEST_EXPR(1-2+(3/4));
+        TEST_EXPR(((1-2)+3)/4);
+        TEST_EXPR(1-(2+(3/4)));
+        TEST_EXPR((1-2)-3+4);
+        TEST_EXPR(1-(2-3)+4);
+        TEST_EXPR(1-2-(3+4));
+        TEST_EXPR(((1-2)-3)+4);
+        TEST_EXPR(1-(2-(3+4)));
+        TEST_EXPR((1-2)-3-4);
+        TEST_EXPR(1-(2-3)-4);
+        TEST_EXPR(1-2-(3-4));
+        TEST_EXPR(((1-2)-3)-4);
+        TEST_EXPR(1-(2-(3-4)));
+        TEST_EXPR((1-2)-3*4);
+        TEST_EXPR(1-(2-3)*4);
+        TEST_EXPR(1-2-(3*4));
+        TEST_EXPR(((1-2)-3)*4);
+        TEST_EXPR(1-(2-(3*4)));
+        TEST_EXPR((1-2)-3/4);
+        TEST_EXPR(1-(2-3)/4);
+        TEST_EXPR(1-2-(3/4));
+        TEST_EXPR(((1-2)-3)/4);
+        TEST_EXPR(1-(2-(3/4)));
+        TEST_EXPR((1-2)*3+4);
+        TEST_EXPR(1-(2*3)+4);
+        TEST_EXPR(1-2*(3+4));
+        TEST_EXPR(((1-2)*3)+4);
+        TEST_EXPR(1-(2*(3+4)));
+        TEST_EXPR((1-2)*3-4);
+        TEST_EXPR(1-(2*3)-4);
+        TEST_EXPR(1-2*(3-4));
+        TEST_EXPR(((1-2)*3)-4);
+        TEST_EXPR(1-(2*(3-4)));
+        TEST_EXPR((1-2)*3*4);
+        TEST_EXPR(1-(2*3)*4);
+        TEST_EXPR(1-2*(3*4));
+        TEST_EXPR(((1-2)*3)*4);
+        TEST_EXPR(1-(2*(3*4)));
+        TEST_EXPR((1-2)*3/4);
+        TEST_EXPR(1-(2*3)/4);
+        TEST_EXPR(1-2*(3/4));
+        TEST_EXPR(((1-2)*3)/4);
+        TEST_EXPR(1-(2*(3/4)));
+        TEST_EXPR((1-2)/3+4);
+        TEST_EXPR(1-(2/3)+4);
+        TEST_EXPR(1-2/(3+4));
+        TEST_EXPR(((1-2)/3)+4);
+        TEST_EXPR(1-(2/(3+4)));
+        TEST_EXPR((1-2)/3-4);
+        TEST_EXPR(1-(2/3)-4);
+        TEST_EXPR(1-2/(3-4));
+        TEST_EXPR(((1-2)/3)-4);
+        TEST_EXPR(1-(2/(3-4)));
+        TEST_EXPR((1-2)/3*4);
+        TEST_EXPR(1-(2/3)*4);
+        TEST_EXPR(1-2/(3*4));
+        TEST_EXPR(((1-2)/3)*4);
+        TEST_EXPR(1-(2/(3*4)));
+        TEST_EXPR((1-2)/3/4);
+        TEST_EXPR(1-(2/3)/4);
+        TEST_EXPR(((1-2)/3)/4);
+        TEST_EXPR((1*2)+3+4);
+        TEST_EXPR(1*(2+3)+4);
+        TEST_EXPR(1*2+(3+4));
+        TEST_EXPR(((1*2)+3)+4);
+        TEST_EXPR(1*(2+(3+4)));
+        TEST_EXPR((1*2)+3-4);
+        TEST_EXPR(1*(2+3)-4);
+        TEST_EXPR(1*2+(3-4));
+        TEST_EXPR(((1*2)+3)-4);
+        TEST_EXPR(1*(2+(3-4)));
+        TEST_EXPR((1*2)+3*4);
+        TEST_EXPR(1*(2+3)*4);
+        TEST_EXPR(1*2+(3*4));
+        TEST_EXPR(((1*2)+3)*4);
+        TEST_EXPR(1*(2+(3*4)));
+        TEST_EXPR((1*2)+3/4);
+        TEST_EXPR(1*(2+3)/4);
+        TEST_EXPR(1*2+(3/4));
+        TEST_EXPR(((1*2)+3)/4);
+        TEST_EXPR(1*(2+(3/4)));
+        TEST_EXPR((1*2)-3+4);
+        TEST_EXPR(1*(2-3)+4);
+        TEST_EXPR(1*2-(3+4));
+        TEST_EXPR(((1*2)-3)+4);
+        TEST_EXPR(1*(2-(3+4)));
+        TEST_EXPR((1*2)-3-4);
+        TEST_EXPR(1*(2-3)-4);
+        TEST_EXPR(1*2-(3-4));
+        TEST_EXPR(((1*2)-3)-4);
+        TEST_EXPR(1*(2-(3-4)));
+        TEST_EXPR((1*2)-3*4);
+        TEST_EXPR(1*(2-3)*4);
+        TEST_EXPR(1*2-(3*4));
+        TEST_EXPR(((1*2)-3)*4);
+        TEST_EXPR(1*(2-(3*4)));
+        TEST_EXPR((1*2)-3/4);
+        TEST_EXPR(1*(2-3)/4);
+        TEST_EXPR(1*2-(3/4));
+        TEST_EXPR(((1*2)-3)/4);
+        TEST_EXPR(1*(2-(3/4)));
+        TEST_EXPR((1*2)*3+4);
+        TEST_EXPR(1*(2*3)+4);
+        TEST_EXPR(1*2*(3+4));
+        TEST_EXPR(((1*2)*3)+4);
+        TEST_EXPR(1*(2*(3+4)));
+        TEST_EXPR((1*2)*3-4);
+        TEST_EXPR(1*(2*3)-4);
+        TEST_EXPR(1*2*(3-4));
+        TEST_EXPR(((1*2)*3)-4);
+        TEST_EXPR(1*(2*(3-4)));
+        TEST_EXPR((1*2)*3*4);
+        TEST_EXPR(1*(2*3)*4);
+        TEST_EXPR(1*2*(3*4));
+        TEST_EXPR(((1*2)*3)*4);
+        TEST_EXPR(1*(2*(3*4)));
+        TEST_EXPR((1*2)*3/4);
+        TEST_EXPR(1*(2*3)/4);
+        TEST_EXPR(1*2*(3/4));
+        TEST_EXPR(((1*2)*3)/4);
+        TEST_EXPR(1*(2*(3/4)));
+        TEST_EXPR((1*2)/3+4);
+        TEST_EXPR(1*(2/3)+4);
+        TEST_EXPR(1*2/(3+4));
+        TEST_EXPR(((1*2)/3)+4);
+        TEST_EXPR(1*(2/(3+4)));
+        TEST_EXPR((1*2)/3-4);
+        TEST_EXPR(1*(2/3)-4);
+        TEST_EXPR(1*2/(3-4));
+        TEST_EXPR(((1*2)/3)-4);
+        TEST_EXPR(1*(2/(3-4)));
+        TEST_EXPR((1*2)/3*4);
+        TEST_EXPR(1*(2/3)*4);
+        TEST_EXPR(1*2/(3*4));
+        TEST_EXPR(((1*2)/3)*4);
+        TEST_EXPR(1*(2/(3*4)));
+        TEST_EXPR((1*2)/3/4);
+        TEST_EXPR(1*(2/3)/4);
+        TEST_EXPR(((1*2)/3)/4);
+        TEST_EXPR((1/2)+3+4);
+        TEST_EXPR(1/(2+3)+4);
+        TEST_EXPR(1/2+(3+4));
+        TEST_EXPR(((1/2)+3)+4);
+        TEST_EXPR(1/(2+(3+4)));
+        TEST_EXPR((1/2)+3-4);
+        TEST_EXPR(1/(2+3)-4);
+        TEST_EXPR(1/2+(3-4));
+        TEST_EXPR(((1/2)+3)-4);
+        TEST_EXPR(1/(2+(3-4)));
+        TEST_EXPR((1/2)+3*4);
+        TEST_EXPR(1/(2+3)*4);
+        TEST_EXPR(1/2+(3*4));
+        TEST_EXPR(((1/2)+3)*4);
+        TEST_EXPR(1/(2+(3*4)));
+        TEST_EXPR((1/2)+3/4);
+        TEST_EXPR(1/(2+3)/4);
+        TEST_EXPR(1/2+(3/4));
+        TEST_EXPR(((1/2)+3)/4);
+        TEST_EXPR(1/(2+(3/4)));
+        TEST_EXPR((1/2)-3+4);
+        TEST_EXPR(1/(2-3)+4);
+        TEST_EXPR(1/2-(3+4));
+        TEST_EXPR(((1/2)-3)+4);
+        TEST_EXPR(1/(2-(3+4)));
+        TEST_EXPR((1/2)-3-4);
+        TEST_EXPR(1/(2-3)-4);
+        TEST_EXPR(1/2-(3-4));
+        TEST_EXPR(((1/2)-3)-4);
+        TEST_EXPR(1/(2-(3-4)));
+        TEST_EXPR((1/2)-3*4);
+        TEST_EXPR(1/(2-3)*4);
+        TEST_EXPR(1/2-(3*4));
+        TEST_EXPR(((1/2)-3)*4);
+        TEST_EXPR(1/(2-(3*4)));
+        TEST_EXPR((1/2)-3/4);
+        TEST_EXPR(1/(2-3)/4);
+        TEST_EXPR(1/2-(3/4));
+        TEST_EXPR(((1/2)-3)/4);
+        TEST_EXPR(1/(2-(3/4)));
+        TEST_EXPR((1/2)*3+4);
+        TEST_EXPR(1/(2*3)+4);
+        TEST_EXPR(1/2*(3+4));
+        TEST_EXPR(((1/2)*3)+4);
+        TEST_EXPR(1/(2*(3+4)));
+        TEST_EXPR((1/2)*3-4);
+        TEST_EXPR(1/(2*3)-4);
+        TEST_EXPR(1/2*(3-4));
+        TEST_EXPR(((1/2)*3)-4);
+        TEST_EXPR(1/(2*(3-4)));
+        TEST_EXPR((1/2)*3*4);
+        TEST_EXPR(1/(2*3)*4);
+        TEST_EXPR(1/2*(3*4));
+        TEST_EXPR(((1/2)*3)*4);
+        TEST_EXPR(1/(2*(3*4)));
+        TEST_EXPR((1/2)*3/4);
+        TEST_EXPR(1/(2*3)/4);
+        TEST_EXPR(1/2*(3/4));
+        TEST_EXPR(((1/2)*3)/4);
+        TEST_EXPR((1/2)/3+4);
+        TEST_EXPR(1/2/(3+4));
+        TEST_EXPR(((1/2)/3)+4);
+        TEST_EXPR((1/2)/3-4);
+        TEST_EXPR(1/2/(3-4));
+        TEST_EXPR(((1/2)/3)-4);
+        TEST_EXPR(1/(2/(3-4)));
+        TEST_EXPR((1/2)/3*4);
+        TEST_EXPR(1/2/(3*4));
+        TEST_EXPR(((1/2)/3)*4);
+        TEST_EXPR((1/2)/3/4);
+        TEST_EXPR(((1/2)/3)/4);
     }
 };
 
