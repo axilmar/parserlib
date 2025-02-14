@@ -30,6 +30,8 @@ Here is a calculator parser example:
 
 ```cpp
 #include "parserlib.hpp"
+#include <iostream> // std::cout
+#include <sstream>  // std::stringstream
 
 template <typename SourceT = std::string> class calculator_grammar {
 public:
@@ -62,7 +64,7 @@ public:
 
     double evaluate(const SourceT& input) {
         SourceT source = input;
-        auto [success, ast, it] = pe::parse(source, m_add);
+        auto [success, ast, it, error] = pe::parse(source, m_add);
         if (success && ast.size() == 1) {
             return evaluate_ast(ast[0]);
         }
