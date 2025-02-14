@@ -431,7 +431,7 @@ The `parse` function accepts the following arguments:
 
 The function `parse` returns a tuple of:
 
-- a flag that says if parsing suceeded and the whole input is consumed, or there was an error.
+- a flag that says if parsing succeeded and the whole input is consumed, or there was an error.
 - a vector of shared pointers to AST nodes; this contains what is matched by the match parsers of the grammar.
 - an iterator of the source where parsing stopped; if parsing succeeds, it is equal to input.end().
 
