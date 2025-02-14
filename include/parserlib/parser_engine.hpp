@@ -1448,7 +1448,7 @@ namespace parserlib {
             /**
              * Parses a sequence.
              * @param pc parse context; upon failure, it's state is restored to the state before this call.
-             * @return success if all parsers suceeded, failure otherwise.
+             * @return success if all parsers succeeded, failure otherwise.
              */
             parse_result parse(parse_context& pc) const {
                 auto state = pc.get_state();
@@ -2062,7 +2062,7 @@ namespace parserlib {
             /**
              * Invokes the internal grammar expression for parsing of this rule.
              * @param pc parse context.
-             * @return success if the internal parser suceeded, failure otherwise.
+             * @return success if the internal parser succeeded, failure otherwise.
              */
             parse_result parse(parse_context& pc) {
                 if (!pc.is_left_recursive_parse_position(this)) {
