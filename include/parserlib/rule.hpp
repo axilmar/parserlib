@@ -32,14 +32,9 @@ namespace parserlib {
         {
         }
 
-        rule(rule& r) noexcept
-            : m_parser(std::make_unique<parser_implementation<ParseContext, rule_reference<ParseContext>>>(r))
-        {
-        }
-
         template <class Parser>
         rule(const Parser& parser) noexcept
-            : m_parser(std::make_unique<parser_implementation<ParseContext, Parser>>(parser))
+            : m_parser(std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<Parser>>>(get_parser_wrapper(parser)))
         {
         }
 
@@ -54,15 +49,9 @@ namespace parserlib {
             return *this;
         }
 
-        rule& operator = (rule& r) noexcept {
-            assert(&r != this);
-            m_parser = std::make_unique<parser_implementation<ParseContext, rule_reference<ParseContext>>>(r);
-            return *this;
-        }
-
         template <class Parser>
         rule& operator = (const Parser& parser) noexcept {
-            m_parser = std::make_unique<parser_implementation<ParseContext, Parser>>(parser);
+            m_parser = std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<Parser>>>(get_parser_wrapper(parser));
             return *this;
         }
 
@@ -94,8 +83,7 @@ namespace parserlib {
         }
 
     private:
-        struct left_recursion {
-        };
+        struct left_recursion {};
 
         parser_ptr_type m_parser;
 
