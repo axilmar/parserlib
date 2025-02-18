@@ -8,7 +8,7 @@ A `c++17` recursive-descent parser library that:
 - allows for solving tokenization/parsing ambgiguities while parsing.
 - allows the creation of AST trees, ready for further processing.
 
-Version 1.0.0.5.
+Version 1.0.0.6.
 
 ## Table Of Contents
 
@@ -17,6 +17,8 @@ Version 1.0.0.5.
 [Writing And Using Parsers](./doc/writing_and_using_parsers.md)
 
 [Left Recursion Parsing](./doc/left_recursion_parsing.md)
+
+[Functional Parsers](./doc/functional_parsers.md)
 
 [Versions](#versions)
 
@@ -108,6 +110,9 @@ int main() {
 The above prints `16` at the console.
 
 ## Versions
+
+  - 1.0.0.6
+  	- Added function-based parsing.
 
   - 1.0.0.5
   	- Added custom match functions in order to allow the resolution of ambiguities while parsing.
