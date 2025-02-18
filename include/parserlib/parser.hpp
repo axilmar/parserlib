@@ -22,8 +22,6 @@ namespace parserlib {
     template <class Derived>
     class parser {
     public:
-        using parser_type = Derived;
-
         auto operator *() const noexcept;
 
         auto operator +() const noexcept;

@@ -45,7 +45,7 @@ namespace parserlib {
     }
 
 
-    template <class T, std::enable_if_t<std::is_trivial_v<T>, bool> = true>
+    template <class T, std::enable_if_t<!std::is_base_of_v<parser<T>, T>, bool> = true>
     terminal_parser<T> get_parser_wrapper(const T& obj) noexcept {
         return obj;
     }
