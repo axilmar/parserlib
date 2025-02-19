@@ -30,7 +30,7 @@ namespace parserlib {
     public:
         // types --------------------------------------------------------------
 
-        using source_type = typename ParseDefinitions::source_type;
+        using input_type = typename ParseDefinitions::input_type;
         using input_iterator_type = typename ParseDefinitions::input_iterator_type;
         using input_token_comparator_type = typename ParseDefinitions::input_token_comparator_type;
         using output_token_type = typename ParseDefinitions::output_token_type;
@@ -74,7 +74,7 @@ namespace parserlib {
 
         // constructors / destructor ------------------------------------------
 
-        parse_context(source_type& source) noexcept
+        parse_context(input_type& source) noexcept
             : m_source(source)
             , m_parse_position(source.begin())
             , m_first_unparsed_position(source.begin())
@@ -83,11 +83,11 @@ namespace parserlib {
 
         // source and parse positions -----------------------------------------
 
-        const source_type& source() const {
+        const input_type& source() const {
             return m_source;
         }
 
-        source_type& source() {
+        input_type& source() {
             return m_source;
         }
 
@@ -260,7 +260,7 @@ namespace parserlib {
 
     private:
         //source type, parse positions
-        source_type& m_source;
+        input_type& m_source;
         input_iterator_type m_parse_position;
         input_iterator_type m_first_unparsed_position;
 
