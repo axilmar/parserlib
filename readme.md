@@ -51,24 +51,24 @@ Version 1.0.0.7.
 
   - 1.0.0.2
  
- 	Rewrote the library from scratch in order to provide a better interface. Changes:
+ 	- Rewrote the library from scratch in order to provide a better interface. Changes:
  	
-	- All the getter methods now start with 'get', in order to play better with Intellisense.
-	- The `ParseContext` class is now configured over the Source type, with the default class being the class `SourceString`.
-	- The class `SourceString` provides custom iterator which counts lines and columns, compatible with the `std::string` interface.
-	- The functions `terminal`, `terminalSet`, `terminalRange` are changed to `term`, `oneOf`, `oneIn`.
-	- Matches are now only hierarchical (as in `operator >=` of previous version).
-	- The `'operator >=` has been replaced with `operator ->*`, which is much more distinct than the former; no more typing accidentally '>>' where `>=` was intended.
-	- The default match id type is no longer a string; it is an int.
-	- Simplified the left recursion parsing implementation.
+        - All the getter methods now start with 'get', in order to play better with Intellisense.
+        - The `ParseContext` class is now configured over the Source type, with the default class being the class `SourceString`.
+        - The class `SourceString` provides custom iterator which counts lines and columns, compatible with the `std::string` interface.
+        - The functions `terminal`, `terminalSet`, `terminalRange` are changed to `term`, `oneOf`, `oneIn`.
+        - Matches are now only hierarchical (as in `operator >=` of previous version).
+        - The `'operator >=` has been replaced with `operator ->*`, which is much more distinct than the former; no more typing accidentally '>>' where `>=` was intended.
+        - The default match id type is no longer a string; it is an int.
+        - Simplified the left recursion parsing implementation.
  
   - 1.0.0.1
  
-  	Added support for compiler front-end construction.
+  	- Added support for compiler front-end construction.
   	
 - 1.0.0.0
  
-  	Initial release.
+  	- Initial release.
 
 ### TODO
 
