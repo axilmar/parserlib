@@ -7,16 +7,19 @@ using namespace parserlib;
 
 
 void test_parse_context() {
-    //using ParseDefinitions = parse_definitions<std::stringstream>;
-    //using ParseContext = parse_context<ParseDefinitions>;
+    using Stream = std::stringstream;
+    using StreamContainer = stream_container<Stream>;
+    using ParseDefinitions = parse_definitions<StreamContainer>;
+    using ParseContext = parse_context<ParseDefinitions>;
 
-    //const auto grammar = +(range('0', '9'));
+    const auto grammar = +(range('0', '9'));
 
-    //{
-    //    std::stringstream source;
-    //    source << "0123456789";
-    //    ParseContext context(source);
-    //    assert(grammar.parse(context));
-    //    assert(context.is_end_parse_position());
-    //}
+    {
+        std::stringstream source;
+        source << "0123456789";
+        StreamContainer container(source);
+        ParseContext context(container);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
 }

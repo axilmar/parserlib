@@ -10,12 +10,10 @@
 namespace parserlib {
 
 
-    template <class Source = std::string, class OutputToken = int, class ErrorId = int, class TokenComparator = default_token_comparator>
+    template <class Input = std::string, class OutputToken = int, class ErrorId = int, class TokenComparator = default_token_comparator>
     class parse_definitions {
     public:
-        using source_type = Source;
-
-        using input_type = source_type;
+        using input_type = Input;
         using input_token_type = typename input_type::value_type;
         using input_iterator_type = typename input_type::const_iterator;
         using input_span_type = span<input_iterator_type>;
