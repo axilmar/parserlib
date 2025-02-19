@@ -3,7 +3,7 @@
 A `c++17` recursive-descent parser library that:
 
 - provides an easy EBNF-like syntax for writing grammars.
-- allows any type of container or stream to be used as input.
+- allows any type of STL-like container or STL-like stream to be used as input.
 - allows case-insensitive parsing.
 - allows for multiple errors per parse (error recovery).
 - allows for parsing left-recursive grammars.
@@ -12,9 +12,10 @@ Version 1.0.0.7.
 
 ## Table Of Contents
 
-TODO
+ - [Versions](#versions)
+ - [TODO](#todo)
 
-## Versions
+### Versions
 
   - 1.0.0.7
     - Rewritten from scratch, to improve quality of the API.
@@ -68,4 +69,13 @@ TODO
 - 1.0.0.0
  
   	Initial release.
+
+### TODO
+
+TODO list in the current version:
+
+ - document code.
+ - complete the library documentation.
+ - provide API for counting lines and columns for character parsers.
+ - provide translation of matches to AST nodes.
 
