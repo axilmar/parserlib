@@ -17,19 +17,19 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             m_parser.parse(context);
             return true;
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             m_parser.parse_left_recursion_start(context);
             return true;
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             m_parser.parse_left_recursion_continuation(context, context.get_state());
             return true;
         }

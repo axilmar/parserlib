@@ -22,15 +22,8 @@ namespace parserlib {
         rule() noexcept {
         }
 
-        rule(const rule& r) noexcept
-            : m_parser(r.m_parser ? r.m_parser->clone() : nullptr)
-        {
-        }
-
-        rule(rule&& r) noexcept
-            : m_parser(std::move(r.m_parser))
-        {
-        }
+        rule(const rule& r) = delete;
+        rule(rule&& r) = delete;
 
         template <class Parser>
         rule(const Parser& parser) noexcept
@@ -38,20 +31,24 @@ namespace parserlib {
         {
         }
 
-        rule& operator = (const rule& r) noexcept {
-            assert(&r != this);
-            m_parser = r.m_parser ? r.m_parser->clone() : nullptr;
-            return *this;
+        template <class Parser, std::enable_if_t<std::is_same_v<Parser, rule>, bool> = true>
+        explicit rule(Parser& r) noexcept
+            : m_parser(std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<rule>>>(get_parser_wrapper(r)))
+        {
         }
 
-        rule& operator = (rule&& r) noexcept {
-            m_parser = std::move(r.m_parser);
-            return *this;
-        }
+        rule& operator = (const rule& r) = delete;
+        rule& operator = (rule&& r) = delete;
 
         template <class Parser>
         rule& operator = (const Parser& parser) noexcept {
             m_parser = std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<Parser>>>(get_parser_wrapper(parser));
+            return *this;
+        }
+
+        template <class Parser, std::enable_if_t<std::is_same_v<Parser, rule>, bool> = true>
+        rule& operator = (Parser& r) noexcept {
+            m_parser = std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<rule>>>(get_parser_wrapper(r));
             return *this;
         }
 
@@ -64,7 +61,7 @@ namespace parserlib {
             }
         }
 
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             if (context.is_rule_left_recursive(*this)) {
                 return false;
             }
@@ -73,7 +70,7 @@ namespace parserlib {
             }
         }
 
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             if (context.is_rule_left_recursive(*this)) {
                 return true;
             }
@@ -88,7 +85,7 @@ namespace parserlib {
         parser_ptr_type m_parser;
 
         template <class ParseContext>
-        bool parse_non_left_recursion(ParseContext& context) const noexcept {
+        bool parse_non_left_recursion(ParseContext& context) const {
             const auto state = context.get_state();
             context.push_rule_parse_position(*this);
             bool result;
@@ -104,7 +101,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse_left_recursion(ParseContext& context) const noexcept {
+        bool parse_left_recursion(ParseContext& context) const {
             const auto match_start_state = context.get_state();
 
             //parse left recursion start

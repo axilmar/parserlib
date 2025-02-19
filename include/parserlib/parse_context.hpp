@@ -244,7 +244,7 @@ namespace parserlib {
 
         bool is_rule_left_recursive(const rule_type& rule) const noexcept {
             auto it = m_rule_parse_positions.find(rule.pointer_to_derived());
-            return it != m_rule_parse_positions.end() && it->second.back() == m_parse_position;
+            return it != m_rule_parse_positions.end() && !it->second.empty() && it->second.back() == m_parse_position;
         }
 
         void push_rule_parse_position(const rule_type& rule) {

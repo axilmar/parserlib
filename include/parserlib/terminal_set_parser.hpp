@@ -39,7 +39,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             if (context.is_valid_parse_position()) {
                 const auto token = *context.parse_position();
                 auto it = std::upper_bound(m_set.begin(), m_set.end(), token, less<typename ParseContext::input_token_comparator_type>());
@@ -55,12 +55,12 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             return parse(context);
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             return false;
         }
 

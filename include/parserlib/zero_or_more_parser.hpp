@@ -17,7 +17,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             while (true) {
                 const bool result = m_parser.parse(context);
                 if (!result) {
@@ -28,7 +28,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             while (true) {
                 const bool result = m_parser.parse_left_recursion_start(context);
                 if (!result) {
@@ -39,7 +39,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             while (true) {
                 const bool result = m_parser.parse_left_recursion_continuation(context, context.get_state());
                 if (!result) {

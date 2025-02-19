@@ -21,15 +21,15 @@ namespace parserlib {
         {
         }
 
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             return m_rule.parse(context);
         }
 
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             return m_rule.parse_left_recursion_start(context);
         }
 
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             return m_rule.parse_left_recursion_continuation(context, match_start_state);
         }
 

@@ -16,20 +16,16 @@ namespace parserlib {
         {
         }
 
-        bool parse(ParseContext& context) const noexcept override {
+        bool parse(ParseContext& context) const override {
             return m_parser.parse(context);
         }
 
-        bool parse_left_recursion_start(ParseContext& context) const noexcept override {
+        bool parse_left_recursion_start(ParseContext& context) const override {
             return m_parser.parse_left_recursion_start(context);
         }
 
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept override {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const override {
             return m_parser.parse_left_recursion_continuation(context, match_start_state);
-        }
-
-        std::unique_ptr<parser_interface<ParseContext>> clone() const noexcept override {
-            return std::make_unique<parser_implementation<ParseContext, Parser>>(m_parser);
         }
 
     private:

@@ -22,17 +22,17 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             return parse_loop<0>(context);
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             return parse_left_recursion_start_loop<0>(context);
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             return parse_left_recursion_continuation_loop<0>(context, match_start_state);
         }
 
@@ -44,7 +44,7 @@ namespace parserlib {
         const tuple_type m_parsers;
 
         template <std::size_t Index, class ParseContext>
-        bool parse_loop(ParseContext& context) const noexcept {
+        bool parse_loop(ParseContext& context) const {
             if constexpr (Index < std::tuple_size_v<tuple_type>) {
                 return std::get<Index>(m_parsers).parse(context) || parse_loop<Index + 1>(context);
             }
@@ -54,7 +54,7 @@ namespace parserlib {
         }
 
         template <std::size_t Index, class ParseContext>
-        bool parse_left_recursion_start_loop(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start_loop(ParseContext& context) const {
             if constexpr (Index < std::tuple_size_v<tuple_type>) {
                 return std::get<Index>(m_parsers).parse_left_recursion_start(context) || parse_left_recursion_start_loop<Index + 1>(context);
             }
@@ -64,7 +64,7 @@ namespace parserlib {
         }
 
         template <std::size_t Index, class ParseContext>
-        bool parse_left_recursion_continuation_loop(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation_loop(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             if constexpr (Index < std::tuple_size_v<tuple_type>) {
                 return std::get<Index>(m_parsers).parse_left_recursion_continuation(context, match_start_state) || parse_left_recursion_continuation_loop<Index + 1>(context, match_start_state);
             }
@@ -75,7 +75,7 @@ namespace parserlib {
     };
 
 
-    template <class L, class R>
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parser<L>, L> || std::is_base_of_v<parser<R>, R>, bool> = true>
     choice_parser<parser_wrapper_type<L>, parser_wrapper_type<R>> operator | (const L& l, const R& r) noexcept {
         return { std::make_tuple(get_parser_wrapper(l), get_parser_wrapper(r)) };
     }

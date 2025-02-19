@@ -39,6 +39,14 @@ namespace parserlib {
             return std::distance(m_begin, m_end);
         }
 
+        auto data() const noexcept {
+            return &*begin();
+        }
+
+        auto size() const noexcept {
+            return end() - begin();
+        }
+
     private:
         Iterator m_begin;
         Iterator m_end;

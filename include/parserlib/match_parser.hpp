@@ -18,7 +18,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             const auto match_start_state = context.get_state();
             if (m_parser.parse(context)) {
                 context.add_match(m_token, match_start_state, context.get_state());
@@ -28,7 +28,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_start(ParseContext& context) const noexcept {
+        bool parse_left_recursion_start(ParseContext& context) const {
             const auto match_start_state = context.get_state();
             if (m_parser.parse_left_recursion_start(context)) {
                 context.add_match(m_token, match_start_state, context.get_state());
@@ -38,7 +38,7 @@ namespace parserlib {
         }
 
         template <class ParseContext>
-        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const noexcept {
+        bool parse_left_recursion_continuation(ParseContext& context, const typename ParseContext::state& match_start_state) const {
             if (m_parser.parse_left_recursion_continuation(context, context.get_state())) {
                 context.add_match(m_token, match_start_state, context.get_state());
                 return true;
