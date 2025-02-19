@@ -30,18 +30,19 @@ namespace parserlib {
     public:
         // types --------------------------------------------------------------
 
+        using source_type = typename ParseDefinitions::source_type;
+
         using input_type = typename ParseDefinitions::input_type;
         using input_iterator_type = typename ParseDefinitions::input_iterator_type;
         using input_token_comparator_type = typename ParseDefinitions::input_token_comparator_type;
-        using output_token_type = typename ParseDefinitions::output_token_type;
-        using error_id_type = typename ParseDefinitions::error_id_type;
         using input_span_type = typename ParseDefinitions::input_span_type;
 
-        using span_type = span<input_iterator_type>;
+        using output_token_type = typename ParseDefinitions::output_token_type;
 
         using match_type = match<ParseDefinitions>;
         using match_container_type = std::vector<match_type>;
 
+        using error_id_type = typename ParseDefinitions::error_id_type;
         using error_type = error<ParseDefinitions>;
         using error_container_type = std::vector<error_type>;
 
@@ -74,21 +75,17 @@ namespace parserlib {
 
         // constructors / destructor ------------------------------------------
 
-        parse_context(input_type& source) noexcept
-            : m_source(source)
-            , m_parse_position(source.begin())
-            , m_first_unparsed_position(source.begin())
+        parse_context(source_type& source) noexcept
+            : m_input(source)
+            , m_parse_position(m_input.begin())
+            , m_first_unparsed_position(m_input.begin())
         {
         }
 
-        // source and parse positions -----------------------------------------
+        // input and iterators ------------------------------------------------
 
-        const input_type& source() const {
-            return m_source;
-        }
-
-        input_type& source() {
-            return m_source;
+        const input_type& input() const {
+            return m_input;
         }
 
         const input_iterator_type& parse_position() const noexcept {
@@ -96,25 +93,25 @@ namespace parserlib {
         }
 
         input_iterator_type end_position() const noexcept {
-            return m_source.end();
+            return m_input.end();
         }
 
         bool is_valid_parse_position() const noexcept {
-            return m_parse_position != m_source.end();
+            return m_parse_position != m_input.end();
         }
 
         bool is_end_parse_position() const noexcept {
-            return m_parse_position == m_source.end();
+            return m_parse_position == m_input.end();
         }
 
         void increment_parse_position() noexcept {
-            assert(m_parse_position < m_source.end());
+            assert(m_parse_position < m_input.end());
             ++m_parse_position;
             update_first_unparsed_position();
         }
 
         void increment_parse_position(std::size_t count) noexcept {
-            assert(m_parse_position + count <= m_source.end());
+            assert(m_parse_position + count <= m_input.end());
             m_parse_position += count;
             update_first_unparsed_position();
         }
@@ -148,7 +145,7 @@ namespace parserlib {
                 if (it == end) {
                     break;
                 }
-                if (pos == m_source.end()) {
+                if (pos == m_input.end()) {
                     return -1;
                 }
                 const int comp_result = compare_tokens(*pos, *it);
@@ -198,7 +195,7 @@ namespace parserlib {
             const auto children_end = m_matches.begin() + match_end_state.matches_size();
             std::vector<match_type> children(children_begin, children_end);
             m_matches.erase(children_begin, children_end);
-            m_matches.push_back(match_type(token, span_type(match_start_state.parse_position(), match_end_state.parse_position()), std::move(children)));
+            m_matches.push_back(match_type(token, input_span_type(match_start_state.parse_position(), match_end_state.parse_position()), std::move(children)));
         }
 
         // state --------------------------------------------------------------
@@ -259,8 +256,8 @@ namespace parserlib {
         }
 
     private:
-        //source type, parse positions
-        input_type& m_source;
+        //input type and iterators
+        input_type& m_input;
         input_iterator_type m_parse_position;
         input_iterator_type m_first_unparsed_position;
 
