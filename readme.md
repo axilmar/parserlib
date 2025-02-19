@@ -2,114 +2,22 @@
 
 A `c++17` recursive-descent parser library that:
 
-- can parse left-recursive grammars.
-- can handle multiple errors while parsing.
-- provides a lexer class, for tokenization.
-- allows for solving tokenization/parsing ambgiguities while parsing.
-- allows the creation of AST trees, ready for further processing.
+- provides an easy EBNF-like syntax for writing grammars.
+- allows any type of container or stream to be used as input.
+- allows case-insensitive parsing.
+- allows for multiple errors per parse (error recovery).
+- allows for parsing left-recursive grammars.
 
-Version 1.0.0.6.
+Version 1.0.0.7.
 
 ## Table Of Contents
 
-[Introduction](#introduction)
-
-[Writing And Using Parsers](./doc/writing_and_using_parsers.md)
-
-[Left Recursion Parsing](./doc/left_recursion_parsing.md)
-
-[Functional Parsers](./doc/functional_parsers.md)
-
-[Versions](#versions)
-
-## Introduction
-
-Parserlib is a `c++17` library that allows the creation of recursive-descent parsers, based on `EBNF`-like notation using the available `c++` operators.
-
-The library allows the declaration of left-recursive grammars.
-
-Here is a calculator parser example:
-
-```cpp
-#include "parserlib.hpp"
-
-template <typename SourceT = std::string> class calculator_grammar {
-public:
-    enum class ast_id {
-        number,
-        add,
-        sub,
-        mul,
-        div
-    };
-
-    using pe = parserlib::parser_engine<SourceT, ast_id>;
-
-    calculator_grammar() {
-        auto digit = pe::range('0', '9');
-
-        auto number = (-pe::one_of("+-") >> +digit >> -('.' >> +digit))->*ast_id::number;
-
-        auto val = '(' >> m_add >> ')'
-                 | number;
-
-        m_mul = (m_mul >> '*' >> val) ->* ast_id::mul
-              | (m_mul >> '/' >> val) ->* ast_id::div
-              | val;
-
-        m_add = (m_add >> '+' >> m_mul) ->* ast_id::add
-              | (m_add >> '-' >> m_mul) ->* ast_id::mul
-              | m_mul;
-    }
-
-    double evaluate(const SourceT& input) {
-        SourceT source = input;
-        auto [success, ast, it] = pe::parse(source, m_add);
-        if (success && ast.size() == 1) {
-            return evaluate_ast(ast[0]);
-        }
-        throw std::invalid_argument("Parse error: " + std::string(it, source.cend()));
-    }
-
-private:
-    typename pe::rule m_add, m_mul;
-
-    static double evaluate_ast(const typename pe::ast_node_ptr_type& node) {
-        switch (node->get_id()) {
-            case ast_id::number: {
-                std::stringstream stream;
-                stream << node->get_source();
-                double r;
-                stream >> r;
-                return r;
-            }
-
-            case ast_id::add:
-                return evaluate_ast(node->get_children()[0]) + evaluate_ast(node->get_children()[1]);
-
-            case ast_id::sub:
-                return evaluate_ast(node->get_children()[0]) - evaluate_ast(node->get_children()[1]);
-
-            case ast_id::mul:
-                return evaluate_ast(node->get_children()[0]) * evaluate_ast(node->get_children()[1]);
-
-            case ast_id::div:
-                return evaluate_ast(node->get_children()[0]) / evaluate_ast(node->get_children()[1]);
-        }
-
-        throw std::logic_error("invalid ast id");
-    }
-};
-
-int main() {
-    calculator_grammar<> calculator;
-    std::cout << calculator.evaluate("1+(5*6)/2") ;
-}
-```
-
-The above prints `16` at the console.
+TODO
 
 ## Versions
+
+  - 1.0.0.7
+    - Rewritten from scratch, to improve quality of the API.
 
   - 1.0.0.6
   	- Added function-based parsing.
