@@ -31,6 +31,14 @@ namespace parserlib {
         auto operator &() const noexcept;
 
         auto operator !() const noexcept;
+
+        const Derived* pointer_to_derived() const noexcept {
+            return static_cast<const Derived*>(this);
+        }
+
+        Derived* pointer_to_derived() noexcept {
+            return static_cast<Derived*>(this);
+        }
     };
 
 

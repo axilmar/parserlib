@@ -55,12 +55,12 @@ namespace parserlib {
             return *this;
         }
 
-        bool parse(ParseContext& context) const noexcept {
+        bool parse(ParseContext& context) const {
             if (context.is_rule_left_recursive(*this)) {
                 throw left_recursion();
             }
             else {
-                parse_non_left_recursion(context);
+                return parse_non_left_recursion(context);
             }
         }
 
@@ -69,7 +69,7 @@ namespace parserlib {
                 return false;
             }
             else {
-                parse_non_left_recursion(context);
+                return parse_non_left_recursion(context);
             }
         }
 
@@ -78,7 +78,7 @@ namespace parserlib {
                 return true;
             }
             else {
-                parse_non_left_recursion(context);
+                return parse_non_left_recursion(context);
             }
         }
 

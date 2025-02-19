@@ -7,6 +7,7 @@
 #include <string_view>
 #include <list>
 #include <array>
+#include <initializer_list>
 #include <type_traits>
 
 
@@ -39,6 +40,11 @@ namespace parserlib {
 
 
     template <class Elem, std::size_t Size> struct is_sequence_container<std::array<Elem, Size>> {
+        static constexpr bool value = true;
+    };
+
+
+    template <class T> struct is_sequence_container<std::initializer_list<T>> {
         static constexpr bool value = true;
     };
 

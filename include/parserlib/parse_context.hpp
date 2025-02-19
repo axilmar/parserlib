@@ -243,16 +243,16 @@ namespace parserlib {
         // left recursion -----------------------------------------------------
 
         bool is_rule_left_recursive(const rule_type& rule) const noexcept {
-            auto it = m_rule_parse_positions.find(&rule);
-            return it != m_rule_parse_positions.end() && *it == m_parse_position;
+            auto it = m_rule_parse_positions.find(rule.pointer_to_derived());
+            return it != m_rule_parse_positions.end() && it->second.back() == m_parse_position;
         }
 
         void push_rule_parse_position(const rule_type& rule) {
-            m_rule_parse_positions[&rule].push_back(m_parse_position);
+            m_rule_parse_positions[rule.pointer_to_derived()].push_back(m_parse_position);
         }
 
         void pop_rule_parse_position(const rule_type& rule) {
-            auto it = m_rule_parse_positions.find(&rule);
+            auto it = m_rule_parse_positions.find(rule.pointer_to_derived());
             assert(it != m_rule_parse_positions.end());
             assert(it->second.size() > 0);
             it->second.pop_back();

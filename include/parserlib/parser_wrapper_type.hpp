@@ -16,8 +16,8 @@ namespace parserlib {
 
 
     template <class ParseContext>
-    rule_reference<ParseContext> get_parser_wrapper(const rule<ParseContext>& rule) noexcept {
-        return rule_reference(rule);
+    rule_reference<ParseContext> get_parser_wrapper(const parser<rule<ParseContext>>& rule) noexcept {
+        return rule_reference(*rule.pointer_to_derived());
     }
 
 
@@ -45,7 +45,7 @@ namespace parserlib {
     }
 
 
-    template <class T, std::enable_if_t<!std::is_base_of_v<parser<T>, T>, bool> = true>
+    template <class T, std::enable_if_t<!std::is_base_of_v<parser<T>, T> && !is_sequence_container_v<T>, bool> = true>
     terminal_parser<T> get_parser_wrapper(const T& obj) noexcept {
         return obj;
     }
