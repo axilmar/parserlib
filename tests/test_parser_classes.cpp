@@ -349,8 +349,6 @@ static void test_rule() {
         assert(calc.evaluate(context.matches()[0]) == 2.0 + 1.0);
     }
 
-    //3 factors
-
     {
         calculator calc;
         std::string source = "2.0/1.0*3.0";
@@ -1073,6 +1071,49 @@ static void test_rule() {
 }
 
 
+static void test_sequence_parser() {
+    {
+        const auto grammar = terminal('a') >> 'b' >> 'c' >> 'd';
+        std::string source = "abcd";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = (terminal('a') >> 'b') >> 'c' >> 'd';
+        std::string source = "abcd";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = terminal('a') >> 'b' >> (terminal('c') >> 'd');
+        std::string source = "abcd";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = (terminal('a') >> 'b') >> (terminal('c') >> 'd');
+        std::string source = "abcd";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = terminal('a') >> 'b' >> 'c' >> 'd';
+        std::string source = "abce";
+        parse_context<> context(source);
+        assert(!grammar.parse(context));
+        assert(context.parse_position() == source.begin());
+    }
+}
+
+
 static void test_terminal_parser() {
     {
         const auto grammar = terminal('a');
@@ -1149,6 +1190,41 @@ static void test_terminal_set_parser() {
 }
 
 
+static void test_zero_or_more_parser() {
+    {
+        const auto grammar = *terminal('a');
+        std::string source = "a";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = *terminal('a');
+        std::string source = "aa";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = *terminal('a');
+        std::string source = "aab";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position() - 1);
+    }
+
+    {
+        const auto grammar = *terminal('a');
+        std::string source = "ba";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.parse_position() == source.begin());
+    }
+}
+
+
 void test_parser_classes() {
     test_choice_parser();
     test_end_parser();
@@ -1159,9 +1235,10 @@ void test_parser_classes() {
     test_one_or_more_parser();
     test_optional_parser();
     test_rule();
-
+    test_sequence_parser();
     test_terminal_parser();
     test_terminal_string_parser();
     test_terminal_range_parser();
     test_terminal_set_parser();
+    test_zero_or_more_parser();
 }
