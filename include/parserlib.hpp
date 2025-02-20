@@ -15,10 +15,12 @@
 #include "parserlib/rule.hpp"
 #include "parserlib/sequence_parser.hpp"
 #include "parserlib/stream_container.hpp"
+#include "parserlib/terminal_function_parser.hpp"
 #include "parserlib/terminal_parser.hpp"
 #include "parserlib/terminal_range_parser.hpp"
 #include "parserlib/terminal_set_parser.hpp"
 #include "parserlib/terminal_string_parser.hpp"
+#include "parserlib/utf8_string.hpp"
 #include "parserlib/zero_or_more_parser.hpp"
 
 
