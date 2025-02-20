@@ -34,8 +34,8 @@ namespace parserlib {
         class const_iterator {
         public:
             const_iterator()
-                : m_string(nullptr)
-                , m_iterator{}
+                : m_iterator{}
+                , m_end_iterator{}
                 , m_line(-1)
                 , m_column(-1)
             {
@@ -46,7 +46,7 @@ namespace parserlib {
             }
 
             const_iterator& operator ++() noexcept {
-                const std::size_t newlineSequenceLength = NewlineSequenceLength()(m_iterator, m_string->end());
+                const std::size_t newlineSequenceLength = NewlineSequenceLength()(m_iterator, m_end_iterator);
                 if (newlineSequenceLength) {
                     m_iterator += newlineSequenceLength;
                     ++m_line;
@@ -92,14 +92,14 @@ namespace parserlib {
             }
 
         private:
-            const string_type* m_string;
             string_iterator_type m_iterator;
+            string_iterator_type m_end_iterator;
             std::size_t m_line;
             std::size_t m_column;
 
             const_iterator(const string_type& string, const string_iterator_type& it, std::size_t line, std::size_t column) noexcept
-                : m_string(&string)
-                , m_iterator(it)
+                : m_iterator(it)
+                , m_end_iterator(string.end())
                 , m_line(line)
                 , m_column(column)
             {
