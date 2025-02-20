@@ -11,7 +11,7 @@ void test_string_wrapper() {
     const int NEWLINE = 2;
 
     const auto digit = range('0', '9') ->* DIGIT;
-    const auto line_end = newline(terminal("\r\n")) ->* NEWLINE;
+    const auto line_end = newline("\r\n") ->* NEWLINE;
     const auto grammar = *(digit | line_end);
 
     using StringWrapper = string_wrapper<std::string>;

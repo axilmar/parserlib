@@ -36,7 +36,7 @@ namespace parserlib {
 
     template <class T>
     auto get_parser_wrapper(const T* str) noexcept {
-        return terminal_string_parser<typename T::value_type>(str);
+        return terminal_string_parser<T>(str);
     }
 
 

@@ -48,8 +48,8 @@ namespace parserlib {
 
 
     template <class Parser>
-    newline_parser<Parser> newline(const Parser& parser) noexcept {
-        return parser;
+    newline_parser<parser_wrapper_type<Parser>> newline(const Parser& parser) noexcept {
+        return get_parser_wrapper(parser);
     }
 
 
