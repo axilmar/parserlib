@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_LINE_PARSER_HPP
-#define PARSERLIB_LINE_PARSER_HPP
+#ifndef PARSERLIB_NEWLINE_PARSER_HPP
+#define PARSERLIB_NEWLINE_PARSER_HPP
 
 
 #include "parser.hpp"
@@ -9,9 +9,9 @@ namespace parserlib {
 
 
     template <class Parser>
-    class line_parser : public parser<line_parser<Parser>> {
+    class newline_parser : public parser<newline_parser<Parser>> {
     public:
-        line_parser(const Parser& parser) noexcept
+        newline_parser(const Parser& parser) noexcept
             : m_parser(parser)
         {
         }
@@ -48,7 +48,7 @@ namespace parserlib {
 
 
     template <class Parser>
-    line_parser<Parser> newline(const Parser& parser) noexcept {
+    newline_parser<Parser> newline(const Parser& parser) noexcept {
         return parser;
     }
 
@@ -56,4 +56,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif //PARSERLIB_LINE_PARSER_HPP
+#endif //PARSERLIB_NEWLINE_PARSER_HPP
