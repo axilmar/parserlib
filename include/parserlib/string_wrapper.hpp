@@ -19,10 +19,10 @@ namespace parserlib {
     };
 
 
-    template <class String, class StringStorage = String&, class NewlineSequenceLength = DefaultNewlineSequenceLength>
+    template <class String, class NewlineSequenceLength = DefaultNewlineSequenceLength, class StringStorage = String&>
     class string_wrapper {
     public:
-        using string_wrapper_type = string_wrapper<String, StringStorage, NewlineSequenceLength>;
+        using string_wrapper_type = string_wrapper<String, NewlineSequenceLength, StringStorage>;
         
         using string_type = String;
         using newline_sequence_length_type = NewlineSequenceLength;
