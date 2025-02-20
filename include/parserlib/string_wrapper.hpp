@@ -10,16 +10,16 @@
 namespace parserlib {
 
 
-    class DefaultNewlineCharacter {
+    template <int Char = '\n'> class NewlineCharacter {
     public:
         template <class Token>
         bool operator ()(const Token& token) const noexcept {
-            return token == '\n';
+            return token == Char;
         }
     };
 
 
-    template <class String, class NewlineCharacter = DefaultNewlineCharacter, class StringStorage = String&>
+    template <class String, class NewlineCharacter = NewlineCharacter<>, class StringStorage = String&>
     class string_wrapper {
     public:
         using string_wrapper_type = string_wrapper<String, NewlineCharacter, StringStorage>;

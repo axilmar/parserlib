@@ -53,7 +53,7 @@ static void test_string_wrapper_by_value() {
     const auto newline = terminal('\n')->*NEWLINE;
     const auto grammar = *(digit | newline);
 
-    using StringWrapper = string_wrapper<std::string, DefaultNewlineCharacter, std::string>;
+    using StringWrapper = string_wrapper<std::string, NewlineCharacter<>, std::string>;
     using ParseDefinitions = parse_definitions<StringWrapper>;
     using ParseContext = parse_context<ParseDefinitions>;
 
