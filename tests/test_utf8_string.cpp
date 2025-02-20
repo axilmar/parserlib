@@ -11,7 +11,13 @@ static bool test_isalpha(uint32_t v) {
 }
 
 
-static auto letter = terminal_function(&test_isalpha);
+static auto letter = function([](auto& context) {
+    if (test_isalpha(*context.parse_position())) {
+        context.increment_parse_position();
+        return true;
+    }
+    return false;
+    });
 
 
 static auto digit = range('0', '9');
