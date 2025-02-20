@@ -16,6 +16,7 @@
 #include "parserlib/rule.hpp"
 #include "parserlib/sequence_parser.hpp"
 #include "parserlib/stream_wrapper.hpp"
+#include "parserlib/string_wrapper.hpp"
 #include "parserlib/terminal_parser.hpp"
 #include "parserlib/terminal_range_parser.hpp"
 #include "parserlib/terminal_set_parser.hpp"
