@@ -121,6 +121,10 @@ namespace parserlib {
             update_first_unparsed_position();
         }
 
+        void increment_line() {
+            m_parse_position.increment_line();
+        }
+
         // token comparison ---------------------------------------------------
 
         template <class L, class R>

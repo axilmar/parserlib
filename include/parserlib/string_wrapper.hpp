@@ -19,15 +19,11 @@ namespace parserlib {
     };
 
 
-    template <class String, class NewlineCharacter = NewlineCharacter<>, class StringStorage = String&>
+    template <class String>
     class string_wrapper {
     public:
-        using string_wrapper_type = string_wrapper<String, NewlineCharacter, StringStorage>;
-        
+        using string_wrapper_type = string_wrapper<String>;        
         using string_type = String;
-        using newline_character_type = NewlineCharacter;
-        using string_storage_type = StringStorage;
-
         using value_type = typename String::value_type;
         using string_iterator_type = typename String::const_iterator;
 
@@ -45,22 +41,20 @@ namespace parserlib {
             }
 
             const_iterator& operator ++() noexcept {
-                if (NewlineCharacter()(*m_iterator)) {
-                    ++m_line;
-                    m_column = 0;
-                }
-                else {
-                    ++m_column;
-                }
                 ++m_iterator;
+                ++m_column;
                 return *this;
             }
 
             const_iterator& operator += (std::size_t count) noexcept {
-                for (; count > 0; ) {
-                    operator ++();
-                }
+                m_iterator += count;
+                m_column += count;
                 return *this;
+            }
+
+            void increment_line() {
+                ++m_line;
+                m_column = 0;
             }
 
             bool operator == (const const_iterator& it) const noexcept {
@@ -129,7 +123,7 @@ namespace parserlib {
         }
 
     private:
-        string_storage_type m_string;
+        string_type& m_string;
     };
 
 

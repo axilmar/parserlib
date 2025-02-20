@@ -7,6 +7,7 @@
 #include "parserlib/end_parser.hpp"
 #include "parserlib/error_parser.hpp"
 #include "parserlib/function_parser.hpp"
+#include "parserlib/line_parser.hpp"
 #include "parserlib/logical_and_parser.hpp"
 #include "parserlib/logical_not_parser.hpp"
 #include "parserlib/match_parser.hpp"
