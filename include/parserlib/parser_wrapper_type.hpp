@@ -2,7 +2,8 @@
 #define PARSERLIB_PARSER_WRAPPER_TYPE_HPP
 
 
-#include "is_sequence_container.hpp"
+#include <type_traits>
+#include "is_container.hpp"
 
 
 namespace parserlib {
@@ -27,7 +28,7 @@ namespace parserlib {
     }
 
 
-    template <class T, std::enable_if_t<is_sequence_container_v<T>, bool> = true>
+    template <class T, std::enable_if_t<is_container_v<T>, bool> = true>
     auto get_parser_wrapper(const T& container) noexcept {
         return terminal_string_parser<T::value_type>(container.begin(), container.end());
     }
@@ -45,7 +46,7 @@ namespace parserlib {
     }
 
 
-    template <class T, std::enable_if_t<!std::is_base_of_v<parser<T>, T> && !is_sequence_container_v<T>, bool> = true>
+    template <class T, std::enable_if_t<!std::is_base_of_v<parser<T>, T> && !is_container_v<T>, bool> = true>
     terminal_parser<T> get_parser_wrapper(const T& obj) noexcept {
         return obj;
     }
