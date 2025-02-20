@@ -32,7 +32,11 @@ enum class ast_token_id {
 
 
 void test_custom_token_parsing() {
-    const auto grammar = +(terminal(source_token_id::A) | source_token_id::B | source_token_id::C);
+    const auto grammar = +(
+        (terminal(source_token_id::A) ->* ast_token_id::A) | 
+        (terminal(source_token_id::B) ->* ast_token_id::B) |
+        (terminal(source_token_id::C) ->* ast_token_id::C)
+    );
 
     using ParseDefinitions = parse_definitions<std::vector<token>, ast_token_id>;
     using ParseContext = parse_context<ParseDefinitions>;
@@ -44,4 +48,9 @@ void test_custom_token_parsing() {
 
     ParseContext context(source);
     assert(grammar.parse(context));
+
+    assert(context.matches().size() == 3);
+    assert(context.matches()[0].token() == ast_token_id::A);
+    assert(context.matches()[1].token() == ast_token_id::B);
+    assert(context.matches()[2].token() == ast_token_id::C);
 }
