@@ -13,7 +13,7 @@ namespace parserlib {
     class DefaultNewlineCharacter {
     public:
         template <class Token>
-        std::size_t operator ()(const Token& token) const noexcept {
+        bool operator ()(const Token& token) const noexcept {
             return token == '\n';
         }
     };
