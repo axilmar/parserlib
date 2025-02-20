@@ -10,22 +10,22 @@
 namespace parserlib {
 
 
-    class DefaultNewlineSequenceLength {
+    class DefaultNewlineCharacter {
     public:
-        template <class It>
-        std::size_t operator ()(const It& begin, const It& end) const noexcept {
-            return *begin == '\n';
+        template <class Token>
+        std::size_t operator ()(const Token& token) const noexcept {
+            return token == '\n';
         }
     };
 
 
-    template <class String, class NewlineSequenceLength = DefaultNewlineSequenceLength, class StringStorage = String&>
+    template <class String, class NewlineCharacter = DefaultNewlineCharacter, class StringStorage = String&>
     class string_wrapper {
     public:
-        using string_wrapper_type = string_wrapper<String, NewlineSequenceLength, StringStorage>;
+        using string_wrapper_type = string_wrapper<String, NewlineCharacter, StringStorage>;
         
         using string_type = String;
-        using newline_sequence_length_type = NewlineSequenceLength;
+        using newline_character_type = NewlineCharacter;
         using string_storage_type = StringStorage;
 
         using value_type = typename String::value_type;
@@ -35,7 +35,6 @@ namespace parserlib {
         public:
             const_iterator()
                 : m_iterator{}
-                , m_end_iterator{}
                 , m_line(-1)
                 , m_column(-1)
             {
@@ -46,15 +45,20 @@ namespace parserlib {
             }
 
             const_iterator& operator ++() noexcept {
-                const std::size_t newlineSequenceLength = NewlineSequenceLength()(m_iterator, m_end_iterator);
-                if (newlineSequenceLength) {
-                    m_iterator += newlineSequenceLength;
+                if (NewlineCharacter()(*m_iterator)) {
                     ++m_line;
                     m_column = 0;
                 }
                 else {
-                    ++m_iterator;
                     ++m_column;
+                }
+                ++m_iterator;
+                return *this;
+            }
+
+            const_iterator& operator += (std::size_t count) noexcept {
+                for (; count > 0; ) {
+                    operator ++();
                 }
                 return *this;
             }
@@ -93,13 +97,11 @@ namespace parserlib {
 
         private:
             string_iterator_type m_iterator;
-            string_iterator_type m_end_iterator;
             std::size_t m_line;
             std::size_t m_column;
 
-            const_iterator(const string_type& string, const string_iterator_type& it, std::size_t line, std::size_t column) noexcept
+            const_iterator(const string_iterator_type& it, std::size_t line, std::size_t column) noexcept
                 : m_iterator(it)
-                , m_end_iterator(string.end())
                 , m_line(line)
                 , m_column(column)
             {
@@ -115,11 +117,11 @@ namespace parserlib {
         }
 
         const_iterator begin() const noexcept {
-            return const_iterator(m_string, m_string.begin(), 0, 0);
+            return const_iterator(m_string.begin(), 0, 0);
         }
 
         const_iterator end() const noexcept {
-            return const_iterator(m_string, m_string.end(), -1, -1);
+            return const_iterator(m_string.end(), -1, -1);
         }
 
         const string_type& string() const noexcept {
