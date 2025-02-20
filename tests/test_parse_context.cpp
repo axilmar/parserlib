@@ -8,7 +8,7 @@ using namespace parserlib;
 
 static void test_parse_stream() {
     using Stream = std::stringstream;
-    using StreamContainer = stream_container<Stream>;
+    using StreamContainer = stream_wrapper<Stream>;
     using ParseDefinitions = parse_definitions<StreamContainer>;
     using ParseContext = parse_context<ParseDefinitions>;
     const auto grammar = +(range('0', '9'));

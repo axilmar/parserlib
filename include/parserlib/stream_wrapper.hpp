@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_STREAM_CONTAINER_HPP
-#define PARSERLIB_STREAM_CONTAINER_HPP
+#ifndef PARSERLIB_STREAM_WRAPPER_HPP
+#define PARSERLIB_STREAM_WRAPPER_HPP
 
 
 #include <cstddef>
@@ -11,16 +11,15 @@
 namespace parserlib {
 
 
-    template <class Stream>
-    class stream_container {
+    template <class Stream, class BufferType = std::vector<typename Stream::char_type>>
+    class stream_wrapper {
     public:
-        using stream_container_type = stream_container<Stream>;
+        using stream_wrapper_type = stream_wrapper<Stream>;
         using stream_type = Stream;
         using value_type = typename Stream::char_type;
         using traits_type = typename Stream::traits_type;
         using stream_iterator_type = std::istream_iterator<value_type, value_type, traits_type>;
-
-        using buffer_type = std::vector<value_type>;
+        using buffer_type = BufferType;
 
         static std::size_t constexpr end_buffer_index = -1;
 
@@ -85,10 +84,10 @@ namespace parserlib {
             }
 
         private:
-            stream_container_type* m_container;
+            stream_wrapper_type* m_container;
             std::size_t m_buffer_index;
 
-            const_iterator(stream_container_type& container, std::size_t buffer_index) noexcept
+            const_iterator(stream_wrapper_type& container, std::size_t buffer_index) noexcept
                 : m_container(&container)
                 , m_buffer_index(buffer_index)
             {
@@ -98,21 +97,21 @@ namespace parserlib {
                 assert(m_container == it.m_container);
             }
 
-            friend stream_container_type;
+            friend stream_wrapper_type;
         };
 
-        stream_container(stream_type& stream) noexcept
+        stream_wrapper(stream_type& stream) noexcept
             : m_iterator(stream)
             , m_buffer(init_buffer(m_iterator, m_end_iterator))
         {            
         }
 
         const_iterator begin() const noexcept {
-            return const_iterator(*const_cast<stream_container_type*>(this), 0);
+            return const_iterator(*const_cast<stream_wrapper_type*>(this), 0);
         }
 
         const_iterator end() const noexcept {
-            return const_iterator(*const_cast<stream_container_type*>(this), end_buffer_index);
+            return const_iterator(*const_cast<stream_wrapper_type*>(this), end_buffer_index);
         }
 
     private:
@@ -135,4 +134,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif //PARSERLIB_STREAM_CONTAINER_HPP
+#endif //PARSERLIB_STREAM_WRAPPER_HPP
