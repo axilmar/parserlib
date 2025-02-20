@@ -30,19 +30,19 @@ namespace parserlib {
 
     template <class T, std::enable_if_t<is_container_v<T>, bool> = true>
     auto get_parser_wrapper(const T& container) noexcept {
-        return terminal_string_parser<T::value_type>(container.begin(), container.end());
+        return terminal_string_parser<typename T::value_type>(container.begin(), container.end());
     }
 
 
     template <class T>
     auto get_parser_wrapper(const T* str) noexcept {
-        return terminal_string_parser<T::value_type>(str);
+        return terminal_string_parser<typename T::value_type>(str);
     }
 
 
     template <class T, std::size_t Size>
     auto get_parser_wrapper(const T arr[Size]) noexcept {
-        return terminal_string_parser<T::value_type>(arr, arr + Size);
+        return terminal_string_parser<typename T::value_type>(arr, arr + Size);
     }
 
 

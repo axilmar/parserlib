@@ -84,7 +84,6 @@ namespace parserlib {
 
         parser_ptr_type m_parser;
 
-        template <class ParseContext>
         bool parse_non_left_recursion(ParseContext& context) const {
             const auto state = context.get_state();
             context.push_rule_parse_position(*this);
@@ -100,7 +99,6 @@ namespace parserlib {
             return result;
         }
 
-        template <class ParseContext>
         bool parse_left_recursion(ParseContext& context) const {
             const auto match_start_state = context.get_state();
 

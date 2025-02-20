@@ -255,7 +255,7 @@ struct calculator {
             {
                 assert(match.children().size() == 2);
                 const double divisor = evaluate(match.children()[1]);
-                const double result = fpclassify(divisor) != FP_ZERO ? (evaluate(match.children()[0]) / divisor) : 0;
+                const double result = std::fpclassify(divisor) != FP_ZERO ? (evaluate(match.children()[0]) / divisor) : 0;
                 return result;
             }
         }
