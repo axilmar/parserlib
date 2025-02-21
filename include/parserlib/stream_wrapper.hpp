@@ -53,6 +53,13 @@ namespace parserlib {
                 return *this;
             }
 
+            const_iterator& operator += (std::size_t count) noexcept {
+                for (; count > 0; --count) {
+                    operator ++();
+                }
+                return *this;
+            }
+
             bool operator == (const const_iterator& it) const noexcept {
                 check_container(it);
                 return m_buffer_index == it.m_buffer_index;
