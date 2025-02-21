@@ -50,7 +50,7 @@ void test_custom_token_parsing() {
     assert(grammar.parse(context));
 
     assert(context.matches().size() == 3);
-    assert(context.matches()[0].token() == ast_token_id::A);
-    assert(context.matches()[1].token() == ast_token_id::B);
-    assert(context.matches()[2].token() == ast_token_id::C);
+    assert(context.matches()[0].id() == ast_token_id::A);
+    assert(context.matches()[1].id() == ast_token_id::B);
+    assert(context.matches()[2].id() == ast_token_id::C);
 }

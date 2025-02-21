@@ -1,9 +1,11 @@
 #include <sstream>
 #include <cmath>
 #include "parserlib.hpp"
+#include "calculator.hpp"
 
 
 using namespace parserlib;
+using namespace tests;
 
 
 static void test_choice_parser() {
@@ -107,7 +109,7 @@ static void test_match_parser() {
         assert(grammar.parse(context));
         assert(context.is_end_parse_position());
         assert(context.matches().size() == 1);
-        assert(context.matches()[0].token() == 1);
+        assert(context.matches()[0].id() == 1);
         assert(context.matches()[0].span().begin() == source.begin());
         assert(context.matches()[0].span().end() == source.end());
     }
@@ -183,87 +185,6 @@ static void test_optional_parser() {
         assert(context.parse_position() == source.begin());
     }
 }
-
-
-struct calculator {
-    enum OutputTokenId {
-        NUM,
-        ADD,
-        SUB,
-        MUL,
-        DIV
-    };
-
-    rule<> mul;
-    rule<> add;
-    rule<> grammar;
-
-    calculator() {
-        auto digit = range('0', '9');
-
-        auto num = (+digit >> -('.' >> +digit)) ->* NUM;
-
-        auto val = num
-                 | '(' >> add >> ')';
-
-        mul = (mul >> '*' >> val) ->* MUL
-            | (mul >> '/' >> val) ->* DIV
-            | val;
-
-        add = (add >> '+' >> mul) ->* ADD
-            | (add >> '-' >> mul) ->* SUB
-            | mul;
-
-        grammar = add;
-    }
-
-    template <class Match>
-    double evaluate(const Match& match) const noexcept {
-        switch (match.token()) {
-            case NUM:
-            {
-                assert(match.children().size() == 0);
-                std::stringstream stream;
-                stream << match.source();
-                double result{};
-                stream >> result;
-                return result;
-            }
-
-            case ADD:
-            {
-                assert(match.children().size() == 2);
-                const double result = evaluate(match.children()[0]) + evaluate(match.children()[1]);
-                return result;
-            }
-
-            case SUB:
-            {
-                assert(match.children().size() == 2);
-                const double result = evaluate(match.children()[0]) - evaluate(match.children()[1]);
-                return result;
-            }
-
-            case MUL:
-            {
-                assert(match.children().size() == 2);
-                const double result = evaluate(match.children()[0]) * evaluate(match.children()[1]);
-                return result;
-            }
-
-            case DIV:
-            {
-                assert(match.children().size() == 2);
-                const double divisor = evaluate(match.children()[1]);
-                const double result = std::fpclassify(divisor) != FP_ZERO ? (evaluate(match.children()[0]) / divisor) : 0;
-                return result;
-            }
-        }
-
-        assert(false);
-        return 0;
-    }
-};
 
 
 static void test_rule() {
