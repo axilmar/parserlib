@@ -54,7 +54,7 @@ namespace parserlib {
 
         bool parse(ParseContext& context) const {
             if (context.is_rule_left_recursive(*this)) {
-                throw left_recursion();
+                throw left_recursion{ this };
             }
             else {
                 return parse_non_left_recursion(context);
@@ -80,7 +80,9 @@ namespace parserlib {
         }
 
     private:
-        struct left_recursion {};
+        struct left_recursion {
+            const rule* recursive_rule;
+        };
 
         parser_ptr_type m_parser;
 
@@ -91,9 +93,14 @@ namespace parserlib {
             try {
                 result = m_parser->parse(context);
             }
-            catch (left_recursion) {
-                context.set_state(state);
-                return parse_left_recursion(context);
+            catch (left_recursion ex) {
+                if (ex.recursive_rule == this) {
+                    context.set_state(state);
+                    return parse_left_recursion(context);
+                }
+                else {
+                    throw;
+                }
             }
             context.pop_rule_parse_position(*this);
             return result;
