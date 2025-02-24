@@ -20,11 +20,12 @@ namespace parserlib {
     class terminal_string_parser : public parser<terminal_string_parser<Terminal>> {
     public:
         /**
-         * Constructor from pointers.
-         * @param begin start of string.
-         * @param end end of string.
+         * Constructor from range.
+         * @param begin start of range.
+         * @param end end of range.
          */
-        terminal_string_parser(const Terminal* begin, const Terminal* end) noexcept
+        template <class Iterator>
+        terminal_string_parser(const Iterator& begin, const Iterator& end) noexcept
             : m_terminal(begin, end)
         {
         }
@@ -35,17 +36,6 @@ namespace parserlib {
          */
         terminal_string_parser(const Terminal* str) noexcept
             : terminal_string_parser(str, str + null_terminated_string_length(str))
-        {
-        }
-
-        /**
-         * Constructor from range.
-         * @param begin start of range.
-         * @param end end of range.
-         */
-        template <class Iterator>
-        terminal_string_parser(const Iterator& begin, const Iterator& end) noexcept
-            : m_terminal(begin, end)
         {
         }
 
@@ -126,13 +116,13 @@ namespace parserlib {
 
 
     /**
-     * Creates a terminal string parser from a contiguous range of characters.
-     * @param begin start of string.
-     * @param end end of string.
+     * Creates a terminal string parser from a range of characters.
+     * @param begin start of range.
+     * @param end end of range.
      * @return a terminal string parser.
      */
-    template <class Terminal>
-    terminal_string_parser<Terminal> terminal(const Terminal* begin, const Terminal* end) noexcept {
+    template <class Iterator>
+    terminal_string_parser<typename Iterator::value_type> terminal(const Iterator& begin, const Iterator& end) noexcept {
         return { begin, end };
     }
 
@@ -145,18 +135,6 @@ namespace parserlib {
     template <class Terminal>
     terminal_string_parser<Terminal> terminal(const Terminal* str) noexcept {
         return str;
-    }
-
-
-    /**
-     * Creates a terminal string parser from a range of characters.
-     * @param begin start of range.
-     * @param end end of range.
-     * @return a terminal string parser.
-     */
-    template <class Iterator>
-    terminal_string_parser<typename Iterator::value_type> terminal(const Iterator& begin, const Iterator& end) noexcept {
-        return { begin, end };
     }
 
 

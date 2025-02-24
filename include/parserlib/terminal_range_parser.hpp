@@ -82,31 +82,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class Terminal>
-    terminal_range_parser<Terminal> terminal(const Terminal& min, const Terminal& max) noexcept {
-        return { min, max };
-    }
-
-
-    /**
-     * Helper function for creating a terminal range parser.
-     * @param min min value of the range.
-     * @param max max value of the range.
-     * @return the terminal range parser.
-     */
-    template <class Terminal>
     terminal_range_parser<Terminal> range(const Terminal& min, const Terminal& max) noexcept {
-        return { min, max };
-    }
-
-
-    /**
-     * Helper function for creating a terminal range parser.
-     * @param min min value of the range.
-     * @param max max value of the range.
-     * @return the terminal range parser.
-     */
-    template <class Terminal>
-    terminal_range_parser<Terminal> within(const Terminal& min, const Terminal& max) noexcept {
         return { min, max };
     }
 

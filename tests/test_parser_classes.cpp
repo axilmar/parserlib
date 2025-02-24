@@ -1102,7 +1102,7 @@ static void test_terminal_set_parser() {
     }
 
     {
-        const auto grammar = one_of({ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' });
+        const auto grammar = one_of('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
         std::string source = "a";
         parse_context<> context(source);
         assert(!grammar.parse(context));
