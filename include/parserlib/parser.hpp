@@ -19,23 +19,56 @@ namespace parserlib {
     template <class Parser> class logical_not_parser;
 
 
+    /**
+     * Base class for parsers.
+     * It defines the unary operators used for the grammar.
+     * @param Derived the derived parser class.
+     */
     template <class Derived>
     class parser {
     public:
+        /**
+         * Creates a zero-or-more loop parser out of this parser.
+         * @return a zero-or-more loop parser out of this parser.
+         */
         auto operator *() const noexcept;
 
+        /**
+         * Creates an one-or-more loop parser out of this parser.
+         * @return an one-or-more loop parser out of this parser.
+         */
         auto operator +() const noexcept;
 
+        /**
+         * Creates an optional parser out of this parser.
+         * @return an optional parser out of this parser.
+         */
         auto operator -() const noexcept;
 
+        /**
+         * Creates a logical-and parser out of this parser.
+         * @return a logical-and parser out of this parser.
+         */
         auto operator &() const noexcept;
 
+        /**
+         * Creates a logical-not parser out of this parser.
+         * @return a logical-not parser out of this parser.
+         */
         auto operator !() const noexcept;
 
+        /**
+         * Returns a pointer to derived class.
+         * @return a pointer to derived class.
+         */
         const Derived* pointer_to_derived() const noexcept {
             return static_cast<const Derived*>(this);
         }
 
+        /**
+         * Returns a pointer to derived class.
+         * @return a pointer to derived class.
+         */
         Derived* pointer_to_derived() noexcept {
             return static_cast<Derived*>(this);
         }

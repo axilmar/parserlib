@@ -8,6 +8,12 @@
 namespace parserlib {
 
 
+    /**
+     * Counts the number of characters in the given string, until '\0' is found.
+     * Provided because c++ lacks a uniform way to count 8-bit, 16-bit and 32-bit characters.
+     * @param str null-terminated string.
+     * @return length of string.
+     */
     template <class T>
     std::size_t null_terminated_string_length(const T* str) noexcept {
         std::size_t length = 0;
