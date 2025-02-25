@@ -225,7 +225,7 @@ namespace parserlib {
      * returns special node classes, depending on the match id.
      * @param ASTNode AST node class.
      */
-    template <template <class ParseDefinitions> class ASTNode>
+    template <class ASTNode>
     class ast_node_factory {
     public:
         /**
@@ -235,7 +235,7 @@ namespace parserlib {
          */
         template <class ParseDefinitions>
         ast_node_ptr_type<ParseDefinitions> operator ()(const match<ParseDefinitions>& m) const {
-            return std::make_shared<ASTNode<ParseDefinitions>>(m.id(), m.span());
+            return std::make_shared<ASTNode>(m.id(), m.span());
         }
     };
 
@@ -262,7 +262,7 @@ namespace parserlib {
      */
     template <class ParseDefinitions>
     ast_node_ptr_type<ParseDefinitions> create_ast_node(const match<ParseDefinitions>& m) {
-        return create_ast_node(m, ast_node_factory<ast_node>());
+        return create_ast_node(m, ast_node_factory<ast_node<ParseDefinitions>>());
     }
 
 
@@ -290,7 +290,7 @@ namespace parserlib {
      */
     template <class ParseDefinitions>
     std::vector<ast_node_ptr_type<ParseDefinitions>> create_ast_nodes(const std::vector<match<ParseDefinitions>>& matches) {
-        return create_ast_nodes(matches, ast_node_factory<ast_node>());
+        return create_ast_nodes(matches, ast_node_factory<ast_node<ParseDefinitions>>());
     }
 
 

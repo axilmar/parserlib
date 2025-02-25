@@ -38,6 +38,7 @@ Version 1.0.0.7.
  	- [Parsing Left Recursion](#parsing-left-recursion)
  	- [Example](#example)
  	- [Associativity](#associativity)
+ - [Creating ASTs](#creating-asts)
  - [Versions](#versions)
  - [TODO](#todo)
 
@@ -634,6 +635,21 @@ Then, by parsing the rule 'add' repeatedly, expressions like `5+3*2` can be pars
 The above algorithm maintains the left-associativity of the operations.
 
 An expression like `5+3-2` is parsed as if it was `((5+3)-2)`, for example.
+
+### Creating ASTs
+
+`Parserlib` provides classes and functions to ease creation of Abstract Syntax Trees from matches created from parsing:
+
+- `template <class ParseDefinitions> class ast_node`: base class for AST nodes.
+- `template <class ASTNode> class ast_node_factory`: factory that allows creation of AST nodes.
+- `template <class ParseDefinitions, class AstNodeFactory>
+ast_node_ptr_type<ParseDefinitions> create_ast_node(const match<ParseDefinitions>& m[, const AstNodeFactory& ast_node_factory])`: creates a single AST node from a match.
+- `template <class ParseDefinitions, class AstNodeFactory>
+std::vector<ast_node_ptr_type<ParseDefinitions>> create_ast_nodes(const std::vector<match<ParseDefinitions>>& matches[, const AstNodeFactory& ast_node_factory])`: creates multiple AST nodes from an array of matches.
+
+The ast node factory parameter is optional: if ommitted, an instance of `ast_node` will be created.
+
+For a full example of using custom ast nodes, see [the relevant unit test](https://github.com/axilmar/parserlib/blob/master/tests/test_ast_node.cpp).
 
 ### Versions
 
