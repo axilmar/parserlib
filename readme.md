@@ -2,11 +2,12 @@
 
 A `c++17` recursive-descent parser library that:
 
-- provides an easy EBNF-like syntax for writing grammars.
+- provides an easy EBNF-like C++ domain-specific-language (DSL) for writing grammars.
 - allows any type of STL-like container or STL-like stream to be used as input.
 - allows case-insensitive parsing.
 - allows for multiple errors per parse (error recovery).
 - allows for parsing left-recursive grammars.
+- provides facilities for creating Abstract Syntax Trees (ASTs) from parsing matches.
 
 Version 1.0.0.7.
 
