@@ -20,7 +20,9 @@ Version 1.0.0.7.
  	- [Expression](#expressions)
  	- [Rules](#rules)
  	- [Matches](#matches)
- - [Parsing](#parsing)
+ - [Parsing Input](#parsing-input)
+ 	- [Basic Steps](#basic-steps)
+ 	- [Customizing Parsing](#customizing-parsing) 
  - [Error Handling](#error-handling)
  	- [Managing Errors](#managing-errors)
  	- [Multiple Errors Per Parse](#multiple-errors-per-parse)
@@ -248,7 +250,9 @@ In the above grammar:
 - when 'b' is parsed, a match with id = `B` will be added to the parse context;
 - when 'c' is parsed, a match with id = `C` will be added to the parse context.
 
-### Parsing
+### Parsing Input
+
+#### Basic Steps
 
 In order to parse an input, the user has to:
 
@@ -284,6 +288,35 @@ oonst auto matches = context.matches();
 for(const auto& match : matches) {
    ...
 }
+```
+
+#### Customizing Parsing
+
+In order to customize parsing, the appropriate parse definitions type must be created and passed to the parse context.
+
+The class `parse_definitions` has the following signature:
+
+```cpp
+template <
+    class Input = std::string, 
+    class OutputToken = int, 
+    class ErrorId = int, 
+    class TokenComparator = case_sensitive_comparator>
+class parse_definitions;
+```
+
+a `parse_definitions` can be customized over the following:
+
+- Input: the type of the container that contains the source; it must have an STL container-like interface.
+- OutputToken: the type of the token produced when there is a match, i.e. the id of a match.
+- ErrorId: the type of id of errors.
+- TokenComparator: the comparator used to compare tokens and terminals; useful for parsing case-insensitive grammars.
+
+After customizing the parse definitions, they need to be passed to the `parse_context` class. For example:
+
+```cpp
+using MyParseDefinitions = parse_definitions<MyContainer, MyTokenId, MyErrorID, MyTokenComparator>;
+using MyParseContext = parse_context<MyParseDefinitions>;
 ```
 
 ### Error Handling
