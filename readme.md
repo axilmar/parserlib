@@ -13,6 +13,7 @@ Version 1.0.0.7.
 
 ## Table Of Contents
 
+ - [Example](#example)
  - [Using This Library](#using-this-library)
  - [Writing Grammars](#writing-grammars)
  	- [Terminals](#terminals)
@@ -42,6 +43,32 @@ Version 1.0.0.7.
  - [Creating ASTs](#creating-asts)
  - [Versions](#versions)
  - [TODO](#todo)
+
+### Example
+
+Here is a calculator example; the relevant EBNF is in the comments:
+
+```cpp
+#include "parserlib.hpp"
+using namespace parserlib;
+
+rule<> mul, add;
+
+auto digit = range('0', '9');                     //    digit = '0' .. '9'
+
+auto num = (+digit >> -('.' >> +digit));          //    num = digit+ ['.' digit+]
+
+auto val = num                                    //    val = num
+         | '(' >> add >> ')';                     //        | '(' add ')'
+
+mul = (mul >> '*' >> val)                         //    mul = mul '*' val
+    | (mul >> '/' >> val)                         //        | mul '/' val
+    | val;                                        //        | val
+
+add = (add >> '+' >> mul)                         //    add = add '+' mul
+    | (add >> '-' >> mul)                         //        | add '-' mul
+    | mul;                                        //        | mul
+```
 
 ### Using This Library
 
