@@ -64,7 +64,7 @@ static void test_string_wrapper_over_stream_wrapper() {
 
     std::string inputString = "123\r\n456\r\n789";
     std::stringstream inputStream;
-    inputStream << std::noskipws << inputString;
+    inputStream << inputString;
     StreamWrapper streamSource(inputStream);
     StringWrapper source(streamSource);
 

@@ -13,8 +13,10 @@ namespace parserlib {
     /**
      * An extension of std::string which provides a const iterator that knows how to decode UTF8 into unicode code points.
      * Useful for parsing utf8 strings; it does not provide other utf8 functionality.
+     * @param String string class to derive from.
      */
-    class utf8_string : public std::string {
+    template <class String = std::string>
+    class utf8_string : public String {
     public:
         /**
          * Uses the standard string constructors.

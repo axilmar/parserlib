@@ -12,11 +12,11 @@ Version 1.0.0.7.
 
 ## Table Of Contents
 
- - [Versions](#versions)
  - [Using This Library](#using-this-library)
  - [Writing Grammars](#writing-grammars)
  	- [Terminals](#terminals)
  	- [Non-Terminals](#non-terminals)
+ 	- [Custom Parsing Functions](#custom-parsing-functions)
  	- [Expression](#expressions)
  	- [Rules](#rules)
  	- [Matches](#matches)
@@ -26,11 +26,22 @@ Version 1.0.0.7.
  	- [Multiple Errors Per Parse](#multiple-errors-per-parse)
  - [Case Insensitive Parsing](#case-insensitive-parsing)
  - [Custom Token Parsing](#custom-token-parsing)
+ - [Parsing Streams](#parsing-streams)
+ - [Counting Lines And Columns](#counting-lines-and-columns)
+ 	- [Counting Lines And Columns Over Strings](#counting-lines-and-columns-over-strings)
+ 	- [Counting Lines And Columns Over Streams](#counting-lines-and-columns-over-streams)
+ - [Parsing UTF-8 Strings](#parsing-utf-8-strings)
+ - [How Left-Recursion Parsing Works](#how-left-recursion-parsing-works)
+ 	- [Detecting Left Recursion](#detecting-left-recursion)
+ 	- [Parsing Left Recursion](#parsing-left-recursion)
+ 	- [Example](#example)
+ 	- [Associativity](#associativity)
+ - [Versions](#versions)
  - [TODO](#todo)
 
 ### Using This Library
 
-The library is purely a header library. 
+The library is a header-only library. 
 
 Include the file `parserlib.hpp` in order to use it.
 
@@ -115,6 +126,38 @@ terminal('a') >> terminal('b') >> terminal("123");
 
 //choices
 terminal('a') | terminal('b') | terminal("123");
+```
+
+#### Custom Parsing Functions
+
+The Parserlib function `function` creates a parser out of a function.
+
+The function must have the following signature: `bool(ParseContext&)`.
+
+Example:
+
+```cpp
+#include <cassert>
+#include <cwctype>
+#include "parserlib.hpp"
+
+using namespace parserlib;
+
+static bool test_isalpha(uint32_t v) {
+    return std::iswalpha((wint_t)v);
+}
+
+static auto letter = function([](auto& context) {
+    if (test_isalpha(*context.parse_position())) {
+        context.increment_parse_position();
+        return true;
+    }
+    return false;
+    });
+
+static auto digit = range('0', '9');
+
+static auto identifier = letter >> *(letter | digit | '_');
 ```
 
 #### Expressions
@@ -356,6 +399,209 @@ void test_custom_token_parsing() {
 
 ```
 
+### Parsing Streams
+
+Parserlib provides the class 
+
+```cpp
+template <
+	class Stream, 
+    class Buffer = std::vector<typename Stream::char_type>, 
+    std::size_t ReadAheadCount = 4096>
+class stream_wrapper;
+```
+
+which can be used to wrap a stream in a string-like class `stream_wrapper`, which can be used as a source for parsing.
+
+Example:
+
+```cpp
+const int DIGIT = 1;
+const int NEWLINE = 2;
+
+const auto digit = range('0', '9')->*DIGIT;
+const auto line_end = terminal("\r\n")->*NEWLINE;
+const auto grammar = *(digit | line_end);
+
+using StreamWrapper = stream_wrapper<std::stringstream>;
+using ParseDefinitions = parse_definitions<StreamWrapper>;
+using ParseContext = parse_context<ParseDefinitions>;
+
+std::string inputString = "123\r\n456\r\n789";
+std::stringstream inputStream;
+inputStream << inputString;
+StreamWrapper source(inputStream);
+
+ParseContext context(source);
+
+assert(grammar.parse(context));
+assert(context.is_end_parse_position());
+
+assert(context.matches().size() == 11);
+```
+
+### Counting Lines And Columns
+
+#### Counting Lines And Columns Over Strings
+
+By default, `Parserlib` does not provide line and column information, when parsing text.
+
+For that to happen, a string class must be wrapped into the following class:
+
+```cpp
+template <class String> class string_wrapper;
+```
+
+The `string_wrapper` class provides an iterator class that provides line and column information.
+
+In order to count lines, the function `newline` should be used that increments the current line and sets the column to 0.
+
+Example:
+
+```cpp
+const int DIGIT = 1;
+const int NEWLINE = 2;
+
+const auto digit = range('0', '9')->*DIGIT;
+const auto line_end = newline("\r\n")->*NEWLINE;
+const auto grammar = *(digit | line_end);
+
+using StringWrapper = string_wrapper<std::string>;
+using ParseDefinitions = parse_definitions<StringWrapper>;
+using ParseContext = parse_context<ParseDefinitions>;
+
+std::string input = "123\r\n456\r\n789";
+StringWrapper source(input);
+
+ParseContext context(source);
+
+assert(grammar.parse(context));
+assert(context.is_end_parse_position());
+
+assert(context.matches().size() == 11);
+```
+
+#### Counting Lines And Columns Over Streams
+
+In order to count lines and columns over streams, the class `stream_wrapper` must be combined with the class `string_wrapper`.
+
+Example:
+
+```cpp
+const int DIGIT = 1;
+const int NEWLINE = 2;
+
+const auto digit = range('0', '9')->*DIGIT;
+const auto line_end = newline("\r\n")->*NEWLINE;
+const auto grammar = *(digit | line_end);
+
+using StreamWrapper = stream_wrapper<std::stringstream>;
+using StringWrapper = string_wrapper<StreamWrapper>;
+using ParseDefinitions = parse_definitions<StringWrapper>;
+using ParseContext = parse_context<ParseDefinitions>;
+
+std::string inputString = "123\r\n456\r\n789";
+std::stringstream inputStream;
+inputStream << inputString;
+StreamWrapper streamSource(inputStream);
+StringWrapper source(streamSource);
+
+ParseContext context(source);
+
+assert(grammar.parse(context));
+assert(context.is_end_parse_position());
+
+assert(context.matches().size() == 11);
+```
+
+### Parsing UTF-8 Strings
+
+In order to parse utf-8 strings, `Parserlib` provides the class
+
+```cpp
+template <class String = std::string> class utf8_string;
+```
+
+The class `utf8_string` provides the minimum functionality required for iterating over utf-8.
+
+It can be customized over the string type that it uses for iterator, which means that:
+
+- it can be combined with class `stream_wrapper` to provide parsing over utf-8 streams.
+- it can be combined with class `string_wrapper` to provide line and column counting over utf-8 strings.
+- it can be combined with class `string_wrapper<stream_wrapper>` to provide both stream parsing and lines/columns.
+
+### How Left Recursion Parsing Works
+
+`Parserlib` provides a parsing algorithm that can take care of left-recursive grammars.
+
+Left-recursion parsing is done on rules (instances of the `rule` class), because that is the only class that allows recursion.
+
+#### Detecting Left Recursion
+
+Left-recursion is detected by keeping the last position a rule was called to parse.
+
+If a rule is called to parse a position in the source again, then it is a left-recursive rule, and left-recursion parsing is activated (through the `class left_recursion` thrown as an exception, used as a non-local goto for simplicity).
+
+#### Parsing Left Recursion
+
+In order to parse left recursion, the left-recursive rule must first be deactivated, in order to parse the non-left-recursive parse of the grammar, and then it must be neutralized, in order to return 'true' without calling its internal parser, in order to parse the part of the grammar that comes after the left-recursive rule.
+
+In other words, left-recursion parsing is done in two steps:
+
+1. a non-left recursive part of the grammar must parse successfully (left recursion start).
+2. the part after the recursive rule must parse successfully (left recursion continuation).
+
+#### Example
+
+Here is a calculator grammar that is left-recursive.
+
+```cpp
+auto digit = range('0', '9');
+
+auto num = +digit >> -('.' >> +digit);
+
+auto val = num
+    | '(' >> add >> ')';
+
+mul = mul >> '*' >> val
+    | mul >> '/' >> val
+    | val;
+
+add = add >> '+' >> mul
+    | add >> '-' >> mul
+    | mul;
+```
+
+##### Step 1 - parsing left recursion start
+
+In step 1, the rule `add` is deactivated and returns false, in order to parse the non-left-recursive parts of the grammar. The grammar can be viewed like this:
+
+```cpp
+add = REJECT(add) >> '+' >> mul
+    | REJECT(add) >> '-' >> mul
+    | mul;
+```
+
+In this way, parsing skips the left-recursive branches.
+
+##### Step 2 - parsing left recursion continuation
+
+In step 2, the rule `add` is neutralized and returns `true` without calling the internal parser, allowing the part after the rule to parse. The grammar can be viewed like this:
+
+```cpp
+add = ACCEPT(add) >> '+' >> mul
+    | ACCEPT(add) >> '-' >> mul
+    | REJECT(mul);
+```
+
+Then, by parsing the rule 'add' repeatedly, expressions like `5+3*2` can be parsed.
+
+#### Associativity
+
+The above algorithm maintains the left-associativity of the operations.
+
+An expression like `5+3-2` is parsed as if it was `((5+3)-2)`, for example.
+
 ### Versions
 
   - 1.0.0.7
@@ -415,4 +661,4 @@ void test_custom_token_parsing() {
 
 TODO list in the current version:
 
- - complete the library documentation.
+ - review and improve the library documentation.
