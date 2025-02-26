@@ -232,13 +232,13 @@ Grammars that are to be used with multiple parse contexts can be implemented usi
 ```cpp
 template <class ParseDefinitions>
 struct my_grammar {
-	using ParseContext = parse_context<ParseDefinitions>;
+    using ParseContext = parse_context<ParseDefinitions>;
     using rule = parserlib::rule<ParseContext>;
     
     rule integer_list;
     
     my_grammar() {
-		const auto integer = +digit;
+        const auto integer = +digit;
     	integer_list = integer_list >> ',' >> integer
                      | integer;
     }
@@ -255,7 +255,7 @@ For example:
 
 ```cpp
 enum ID {
-	A, B, C
+    A, B, C
 }
 
 //'a' -> 'A'
@@ -467,7 +467,7 @@ Parserlib provides the class
 
 ```cpp
 template <
-	class Stream, 
+    class Stream, 
     class Buffer = std::vector<typename Stream::char_type>, 
     std::size_t ReadAheadCount = 4096>
 class stream_wrapper;
