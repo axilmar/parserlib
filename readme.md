@@ -397,7 +397,7 @@ In order to parse a character input with case insensitivity, the `class parse_de
 Parserlib provides the class `case_insensitive_comparator`, which uses the c++ function `std:tolower` in order to compare tokens. For example:
 
 ```cpp
-using ParseDefinitions = parse_definitions<std::string, int, int, case_insensitive_token_comparator>;
+using ParseDefinitions = parse_definitions<std::string, int, int, case_insensitive_comparator>;
 using ParseContext = parse_context<ParseDefinitions>;
 ```
 
