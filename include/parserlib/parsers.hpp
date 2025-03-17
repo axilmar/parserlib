@@ -12,6 +12,7 @@
 #include "parserlib/logical_not_parser.hpp"
 #include "parserlib/match_parser.hpp"
 #include "parserlib/newline_parser.hpp"
+#include "parserlib/n_times_parser.hpp"
 #include "parserlib/one_or_more_parser.hpp"
 #include "parserlib/optional_parser.hpp"
 #include "parserlib/parse_context.hpp"

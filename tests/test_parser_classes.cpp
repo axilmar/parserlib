@@ -125,6 +125,33 @@ static void test_match_parser() {
 }
 
 
+static void test_n_times_parser() {
+    {
+        const auto grammar = terminal('a')[1];
+        std::string source = "a";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = terminal('a')[2];
+        std::string source = "a";
+        parse_context<> context(source);
+        assert(!grammar.parse(context));
+        assert(context.parse_position() == source.begin());
+    }
+
+    {
+        const auto grammar = terminal('a')[2];
+        std::string source = "aa";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+    }
+}
+
+
 static void test_one_or_more_parser() {
     {
         const auto grammar = +terminal('a');
@@ -1153,6 +1180,7 @@ void test_parser_classes() {
     test_logical_and_parser();
     test_logical_not_parser();
     test_match_parser();
+    test_n_times_parser();
     test_one_or_more_parser();
     test_optional_parser();
     test_rule();

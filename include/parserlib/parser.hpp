@@ -14,6 +14,7 @@ namespace parserlib {
 
     template <class Parser> class zero_or_more_parser;
     template <class Parser> class one_or_more_parser;
+    template <class Parser> class n_times_parser;
     template <class Parser> class optional_parser;
     template <class Parser> class logical_and_parser;
     template <class Parser> class logical_not_parser;
@@ -56,6 +57,13 @@ namespace parserlib {
          * @return a logical-not parser out of this parser.
          */
         auto operator !() const noexcept;
+
+        /**
+         * Creates a repetition of this parser for a specific count.
+         * @param count number of times to repeat this parser.
+         * @return the repetition parser.
+         */
+        auto operator [](std::size_t count) const noexcept;
 
         /**
          * Returns a pointer to derived class.
@@ -102,6 +110,12 @@ namespace parserlib {
     template <class Derived>
     auto parser<Derived>::operator !() const noexcept {
         return logical_not_parser(get_parser_wrapper(*this));
+    }
+
+
+    template <class Derived>
+    auto parser<Derived>::operator [](std::size_t count) const noexcept {
+        return n_times_parser(get_parser_wrapper(*this), count);
     }
 
 
