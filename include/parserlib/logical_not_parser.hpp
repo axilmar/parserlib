@@ -73,6 +73,18 @@ namespace parserlib {
     };
 
 
+    /**
+     * Creates a sequence of parsers where the 2nd expression is turned into a negative predicate.
+     * @param l the left parser.
+     * @param r the right parser.
+     * @return the sequence of not(the right parser) to the left parser.
+     */
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parser<L>, L> || std::is_base_of_v<parser<R>, R>, bool> = true>
+    auto operator - (const L& l, const R& r) noexcept {
+        return !get_parser_wrapper(r) >> get_parser_wrapper(l);
+    }
+
+
 } //namespace parserlib
 
 
