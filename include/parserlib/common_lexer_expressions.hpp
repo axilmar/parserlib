@@ -5,6 +5,7 @@
 #include <cctype>
 #include "terminal_range_parser.hpp"
 #include "function_parser.hpp"
+#include "terminal_string_parser.hpp"
 
 
 namespace parserlib {
@@ -61,6 +62,38 @@ namespace parserlib {
         return function([](auto& context) {
             return std::isspace(static_cast<int>(*context.parse_position()));
             });
+    }
+
+
+    template <class Start, class Char, class End>
+    auto block_comment(const Start& start, const Char& ch, const End& end) noexcept {
+        return start >> *(ch - end) >> end;
+    }
+
+
+    template <class Start, class Char>
+    auto line_comment(const Start& start, const Char& ch) noexcept {
+        return block_comment(start, ch, newline('\n') | end());
+    }
+
+
+    inline auto string_escaped_char() noexcept {
+        return terminal("\0") | "\n" | "\r" | "\t" | "\v" | "\\" | "\\\"" | "\\\'";
+    }
+
+
+    inline auto hex_prefix() noexcept {
+        return one_of('x', 'X');
+    }
+
+
+    inline auto hex_2_digits() noexcept {
+        return hex_prefix() || hex_char()[2];
+    }
+
+
+    inline auto string_char() noexcept {
+        return string_escaped_char() | (any() - string_escaped_char);
     }
 
 

@@ -104,6 +104,7 @@ The library provides the following functions for creating terminal parsers:
 - `range(min, max)`: creates a range parser.
 - `one_of(begin, end)|const T*|container|initializer_list|tuple|T...)`: creates a set parser.
 - `end`: used to test if the input was fully parsed.
+- `any`: matches any terminal.
 
 Examples:
 
@@ -128,7 +129,7 @@ auto some_grammar = terminal('a') >> end;
 
 Non-terminals are:
 
-- loops: zero or time times, one or more times.
+- loops: zero or time times, one or more times, n times.
 - optionals.
 - logical predicates: logical and, logical not.
 - series: sequence, choice.
@@ -141,6 +142,9 @@ Examples:
 
 //parse a terminal one or more times
 +terminal('a');
+
+//parse a terminal n times
+terminal('a')[2];
 
 //parse a terminal optionally
 -terminal('a');
