@@ -3,9 +3,7 @@
 
 
 #include <cctype>
-#include "terminal_range_parser.hpp"
-#include "function_parser.hpp"
-#include "terminal_string_parser.hpp"
+#include "parsers.hpp"
 
 
 namespace parserlib {
@@ -16,7 +14,7 @@ namespace parserlib {
      * Digits from '0' to '9' are considered.
      * @return a range parser for digits.
      */
-    inline auto digit() noexcept {
+    inline auto digit() {
         return range('0', '9');
     }
 
@@ -25,10 +23,14 @@ namespace parserlib {
      * Creates a lowercase letter parser, using the function std::islower.
      * @return a lowercase letter parser.
      */
-    inline auto lowercase_letter() noexcept {
+    inline auto lowercase_letter() {
         return function([](auto& context) {
-            return std::islower(static_cast<int>(*context.parse_position()));
-            });
+            if (std::islower(static_cast<int>(*context.parse_position()))) {
+                context.increment_parse_position();
+                return true;
+            }
+            return false;
+        });
     }
 
 
@@ -36,10 +38,14 @@ namespace parserlib {
      * Creates an uppercase letter parser, using the function std::islower.
      * @return an uppercase letter parser.
      */
-    inline auto uppercase_letter() noexcept {
+    inline auto uppercase_letter() {
         return function([](auto& context) {
-            return std::isupper(static_cast<int>(*context.parse_position()));
-            });
+            if (std::isupper(static_cast<int>(*context.parse_position()))) {
+                context.increment_parse_position();
+                return true;
+            }
+            return false;
+        });
     }
 
 
@@ -47,10 +53,14 @@ namespace parserlib {
      * Creates a letter parser, using the function std::isalpha.
      * @return a letter parser.
      */
-    inline auto letter() noexcept {
+    inline auto letter() {
         return function([](auto& context) {
-            return std::isalpha(static_cast<int>(*context.parse_position()));
-            });
+            if (std::isalpha(static_cast<int>(*context.parse_position()))) {
+                context.increment_parse_position();
+                return true;
+            }
+            return false;
+        });
     }
 
 
@@ -58,42 +68,40 @@ namespace parserlib {
      * Creates a whitespace parser, using the function std::isspace.
      * @return a whitespace parser.
      */
-    inline auto whitespace() noexcept {
+    inline auto whitespace() {
         return function([](auto& context) {
-            return std::isspace(static_cast<int>(*context.parse_position()));
-            });
+            if (std::isspace(static_cast<int>(*context.parse_position()))) {
+                context.increment_parse_position();
+                return true;
+            }
+            return false;
+        });
     }
 
 
+    /**
+     * Creates a block comment.
+     * @param Start block comment start.
+     * @param Char block comment character.
+     * @param End block comment end.
+     * @return a grammar that parses a block comment.
+     */
     template <class Start, class Char, class End>
-    auto block_comment(const Start& start, const Char& ch, const End& end) noexcept {
+    auto block_comment(const Start& start, const Char& ch, const End& end) {
         return start >> *(ch - end) >> end;
     }
 
 
+    /**
+     * Creates a line comment.
+     * The end of a line comment is newline('\n') or the end of input.
+     * @param Start line comment start.
+     * @param Char block comment character.
+     * @return a grammar that parses a line comment.
+     */
     template <class Start, class Char>
-    auto line_comment(const Start& start, const Char& ch) noexcept {
+    auto line_comment(const Start& start, const Char& ch) {
         return block_comment(start, ch, newline('\n') | end());
-    }
-
-
-    inline auto string_escaped_char() noexcept {
-        return terminal("\0") | "\n" | "\r" | "\t" | "\v" | "\\" | "\\\"" | "\\\'";
-    }
-
-
-    inline auto hex_prefix() noexcept {
-        return one_of('x', 'X');
-    }
-
-
-    inline auto hex_2_digits() noexcept {
-        return hex_prefix() || hex_char()[2];
-    }
-
-
-    inline auto string_char() noexcept {
-        return string_escaped_char() | (any() - string_escaped_char);
     }
 
 

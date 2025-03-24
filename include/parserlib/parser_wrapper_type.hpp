@@ -23,7 +23,7 @@ namespace parserlib {
      * @return a rule_reference object for this rule.
      */
     template <class ParseContext>
-    rule_reference<ParseContext> get_parser_wrapper(const parser<rule<ParseContext>>& rule) noexcept {
+    rule_reference<ParseContext> get_parser_wrapper(const parser<rule<ParseContext>>& rule) {
         return rule_reference(*rule.pointer_to_derived());
     }
 
@@ -35,7 +35,7 @@ namespace parserlib {
      * @return the parser object given as input.
      */
     template <class Derived>
-    const Derived& get_parser_wrapper(const parser<Derived>& parser) noexcept {
+    const Derived& get_parser_wrapper(const parser<Derived>& parser) {
         return static_cast<const Derived&>(parser);
     }
 
@@ -47,7 +47,7 @@ namespace parserlib {
      * @return a terminal string parser for the given container.
      */
     template <class T, std::enable_if_t<is_container_v<T>, bool> = true>
-    auto get_parser_wrapper(const T& container) noexcept {
+    auto get_parser_wrapper(const T& container) {
         return terminal_string_parser<typename T::value_type>(container.begin(), container.end());
     }
 
@@ -58,7 +58,7 @@ namespace parserlib {
      * @return a terminal string parser for the given null-terminated string.
      */
     template <class T>
-    auto get_parser_wrapper(const T* str) noexcept {
+    auto get_parser_wrapper(const T* str) {
         return terminal_string_parser<T>(str);
     }
 
@@ -69,7 +69,7 @@ namespace parserlib {
      * @return a terminal string parser for the given array.
      */
     template <class T, std::size_t Size>
-    auto get_parser_wrapper(const T arr[Size]) noexcept {
+    auto get_parser_wrapper(const T arr[Size]) {
         return terminal_string_parser<typename T::value_type>(arr, arr + Size);
     }
 
@@ -80,7 +80,7 @@ namespace parserlib {
      * @return a terminal value parser for this object.
      */
     template <class T, std::enable_if_t<!std::is_base_of_v<parser<T>, T> && !is_container_v<T>, bool> = true>
-    terminal_parser<T> get_parser_wrapper(const T& obj) noexcept {
+    terminal_parser<T> get_parser_wrapper(const T& obj) {
         return obj;
     }
 

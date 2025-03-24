@@ -15,7 +15,7 @@ namespace parserlib {
      * @return length of string.
      */
     template <class T>
-    std::size_t null_terminated_string_length(const T* str) noexcept {
+    std::size_t null_terminated_string_length(const T* str) {
         std::size_t length = 0;
         for (; *str != '\0'; ++str, ++length) {
         }

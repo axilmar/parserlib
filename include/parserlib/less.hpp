@@ -22,7 +22,7 @@ namespace parserlib {
          * @return true if the result of their subtraction is less than 0, false otherwise.
          */
         template <class L, class R>
-        bool operator ()(const L& l, const R& r) const noexcept {
+        bool operator ()(const L& l, const R& r) const {
             return Comparator()(l, r) < 0;
         }
     };

@@ -54,7 +54,7 @@ static void test_library_ast_node() {
 template <class ParseDefinitions>
 class calculator_ast_node : public ast_node<ParseDefinitions> {
 public:
-    virtual double evaluate() const noexcept = 0;
+    virtual double evaluate() const = 0;
 };
 
 
@@ -64,7 +64,7 @@ public:
     num_ast_node(double value) : m_value(value) {
     }
 
-    virtual double evaluate() const noexcept {
+    virtual double evaluate() const {
         return m_value;
     }
 
@@ -95,7 +95,7 @@ class add_ast_node : public binary_ast_node<ParseDefinitions> {
 public:
     using binary_ast_node<ParseDefinitions>::binary_ast_node;
 
-    virtual double evaluate() const noexcept {
+    virtual double evaluate() const {
         return this->left()->evaluate() + this->right()->evaluate();
     }
 };
@@ -106,7 +106,7 @@ class sub_ast_node : public binary_ast_node<ParseDefinitions> {
 public:
     using binary_ast_node<ParseDefinitions>::binary_ast_node;
 
-    virtual double evaluate() const noexcept {
+    virtual double evaluate() const {
         return this->left()->evaluate() - this->right()->evaluate();
     }
 };
@@ -117,7 +117,7 @@ class mul_ast_node : public binary_ast_node<ParseDefinitions> {
 public:
     using binary_ast_node<ParseDefinitions>::binary_ast_node;
 
-    virtual double evaluate() const noexcept {
+    virtual double evaluate() const {
         return this->left()->evaluate() * this->right()->evaluate();
     }
 };
@@ -128,7 +128,7 @@ class div_ast_node : public binary_ast_node<ParseDefinitions> {
 public:
     using binary_ast_node<ParseDefinitions>::binary_ast_node;
 
-    virtual double evaluate() const noexcept {
+    virtual double evaluate() const {
         return this->left()->evaluate() / this->right()->evaluate();
     }
 };

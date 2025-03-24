@@ -26,6 +26,9 @@ namespace parserlib {
         /** Input iterator type. */
         using input_iterator_type = typename ParseDefinitions::input_iterator_type;
 
+        /** Input token type. */
+        using input_token_type = typename ParseDefinitions::input_token_type;
+
         /**
          * The default constructor.
          * The object is constructed in an invalid state.
@@ -43,7 +46,7 @@ namespace parserlib {
          * @param span the span of the error in the source.
          * @param error_pos the position the error starts from.
          */
-        error(const error_id_type& id, const input_span_type& span, const input_iterator_type& error_pos) noexcept
+        error(const error_id_type& id, const input_span_type& span, const input_iterator_type& error_pos)
             : m_id(id)
             , m_span(span)
             , m_error_pos(error_pos)
@@ -56,7 +59,7 @@ namespace parserlib {
          * Returns the id of the error.
          * @return the id of the error.
          */
-        const error_id_type& id() const noexcept {
+        const error_id_type& id() const {
             assert(m_valid);
             return m_id;
         }
@@ -65,7 +68,7 @@ namespace parserlib {
          * Returns the span of the error.
          * @return the span of the error.
          */
-        const input_span_type& span() const noexcept {
+        const input_span_type& span() const {
             assert(m_valid);
             return m_span;
         }
@@ -74,7 +77,7 @@ namespace parserlib {
          * Returns the error position.
          * @return the error position.
          */
-        const input_iterator_type& position() const noexcept {
+        const input_iterator_type& position() const {
             return m_error_pos;
         }
 
@@ -82,7 +85,7 @@ namespace parserlib {
          * Returns the validity flag.
          * @return the validity flag.
          */
-        bool valid() const noexcept {
+        bool valid() const {
             return m_valid;
         }
 
@@ -90,8 +93,18 @@ namespace parserlib {
          * Returns true if the error is invalid.
          * @return true if the error is invalid, false otherwise.
          */
-        bool invalid() const noexcept {
+        bool invalid() const {
             return !m_valid;
+        }
+
+        /**
+         * Returns the source that this node corresponds to.
+         * If the input token is trivial, then it returns an std::basic_string_view,
+         * otherwise it returns a vector that is copied from the source.
+         * @return the source that this node corresponds to.
+         */
+        auto source() const {
+            return m_span.source();
         }
 
     private:

@@ -20,7 +20,7 @@ namespace parserlib {
          * @return the result of their subtraction, after they are converted to lowercase.
          */
         template <class L, class R>
-        auto operator ()(const L& l, const R& r) const noexcept {
+        auto operator ()(const L& l, const R& r) const {
             return std::tolower(l) - std::tolower(r);
         }
     };

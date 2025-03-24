@@ -19,7 +19,7 @@ namespace parserlib {
          * The constructor.
          * @param terminal the terminal value.
          */
-        terminal_parser(const Terminal& terminal) noexcept
+        terminal_parser(const Terminal& terminal)
             : m_terminal(terminal)
         {
         }
@@ -73,7 +73,7 @@ namespace parserlib {
      * @return the terminal parser.
      */
     template <class Terminal>
-    terminal_parser<Terminal> terminal(const Terminal& terminal) noexcept {
+    terminal_parser<Terminal> terminal(const Terminal& terminal) {
         return terminal;
     }
 

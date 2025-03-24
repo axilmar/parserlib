@@ -25,7 +25,7 @@ namespace parserlib {
          * @param end end of range.
          */
         template <class Iterator>
-        terminal_string_parser(const Iterator& begin, const Iterator& end) noexcept
+        terminal_string_parser(const Iterator& begin, const Iterator& end)
             : m_terminal(begin, end)
         {
         }
@@ -34,7 +34,7 @@ namespace parserlib {
          * Constructor from null-terminated string.
          * @param str null-terminated string.
          */
-        terminal_string_parser(const Terminal* str) noexcept
+        terminal_string_parser(const Terminal* str)
             : terminal_string_parser(str, str + null_terminated_string_length(str))
         {
         }
@@ -44,7 +44,7 @@ namespace parserlib {
          * @param str string.
          */
         template <class Traits, class Alloc>
-        terminal_string_parser(const std::basic_string<Terminal, Traits, Alloc>& str) noexcept
+        terminal_string_parser(const std::basic_string<Terminal, Traits, Alloc>& str)
             : m_terminal(str.begin(), str.end())
         {
         }
@@ -54,7 +54,7 @@ namespace parserlib {
          * @param str string view.
          */
         template <class Traits>
-        terminal_string_parser(const std::basic_string_view<Terminal, Traits>& str) noexcept
+        terminal_string_parser(const std::basic_string_view<Terminal, Traits>& str)
             : m_terminal(str.begin(), str.end())
         {
         }
@@ -122,7 +122,7 @@ namespace parserlib {
      * @return a terminal string parser.
      */
     template <class Iterator>
-    terminal_string_parser<typename Iterator::value_type> terminal(const Iterator& begin, const Iterator& end) noexcept {
+    terminal_string_parser<typename Iterator::value_type> terminal(const Iterator& begin, const Iterator& end) {
         return { begin, end };
     }
 
@@ -133,7 +133,7 @@ namespace parserlib {
      * @return a terminal string parser.
      */
     template <class Terminal>
-    terminal_string_parser<Terminal> terminal(const Terminal* str) noexcept {
+    terminal_string_parser<Terminal> terminal(const Terminal* str) {
         return str;
     }
 
@@ -144,7 +144,7 @@ namespace parserlib {
      * @return a terminal string parser.
      */
     template <class Terminal, class Traits, class Alloc>
-    terminal_string_parser<Terminal> terminal(const std::basic_string<Terminal, Traits, Alloc>& str) noexcept {
+    terminal_string_parser<Terminal> terminal(const std::basic_string<Terminal, Traits, Alloc>& str) {
         return str;
     }
 
@@ -155,7 +155,7 @@ namespace parserlib {
      * @return a terminal string parser.
      */
     template <class Terminal, class Traits>
-    terminal_string_parser<Terminal> terminal(const std::basic_string_view<Terminal, Traits>& str) noexcept {
+    terminal_string_parser<Terminal> terminal(const std::basic_string_view<Terminal, Traits>& str) {
         return str;
     }
 

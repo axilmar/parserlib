@@ -48,6 +48,10 @@ namespace parserlib {
     };
 
 
+    /**
+     * Created an end parser.
+     * @return an end parser.
+     */
     inline end_parser end() {
         return {};
     }

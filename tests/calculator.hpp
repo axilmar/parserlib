@@ -54,7 +54,7 @@ namespace parserlib::tests {
         }
 
         template <class Match>
-        double evaluate(const Match& match) const noexcept {
+        double evaluate(const Match& match) const {
             switch (match.id()) {
                 case NUM:
                 {

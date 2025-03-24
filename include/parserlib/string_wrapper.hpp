@@ -15,7 +15,7 @@ namespace parserlib {
      * providing line and column counting to the parsing.
      * @param String string type.
      */
-    template <class String>
+    template <class String = std::string>
     class string_wrapper {
     public:
         /** String wrapper type. */
@@ -35,6 +35,21 @@ namespace parserlib {
          */
         class const_iterator {
         public:
+            /** Value type. */
+            using value_type = typename String::value_type;
+
+            /** Difference type. */
+            using difference_type = typename String::const_iterator::difference_type;
+
+            /** Pointer type. */
+            using pointer = typename String::const_iterator::pointer;
+
+            /** Reference type. */
+            using reference = typename String::const_iterator::reference;
+
+            /** Iterator category type. */
+            using iterator_category = typename String::const_iterator::iterator_category;
+
             /**
              * The empty iterator constructor.
              */
@@ -49,7 +64,7 @@ namespace parserlib {
              * Returns a value at the current position.
              * @return a value at the current position.
              */
-            value_type operator *() const noexcept {
+            const value_type& operator *() const {
                 return *m_iterator;
             }
 
@@ -57,7 +72,7 @@ namespace parserlib {
              * Increments the internal iterator and column.
              * @return reference to this.
              */
-            const_iterator& operator ++() noexcept {
+            const_iterator& operator ++() {
                 ++m_iterator;
                 ++m_column;
                 return *this;
@@ -68,18 +83,18 @@ namespace parserlib {
              * @param count amount of positions to increment the iterator.
              * @return reference to this.
              */
-            const_iterator& operator += (std::size_t count) noexcept {
+            const_iterator& operator += (std::size_t count) {
                 m_iterator += count;
                 m_column += count;
                 return *this;
             }
 
             /**
-             * Increments the line and sets the column to 0.
+             * Increments the line and sets the column to 1.
              */
             void increment_line() {
                 ++m_line;
-                m_column = 0;
+                m_column = 1;
             }
 
             /**
@@ -87,7 +102,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if the iterators are equal, false otherwise.
              */
-            bool operator == (const const_iterator& it) const noexcept {
+            bool operator == (const const_iterator& it) const {
                 return m_iterator == it.m_iterator;
             }
 
@@ -96,7 +111,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if the iterators are different, false otherwise.
              */
-            bool operator != (const const_iterator& it) const noexcept {
+            bool operator != (const const_iterator& it) const {
                 return m_iterator != it.m_iterator;
             }
 
@@ -105,7 +120,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is less than the given one, false otherwise.
              */
-            bool operator < (const const_iterator& it) const noexcept {
+            bool operator < (const const_iterator& it) const {
                 return m_iterator < it.m_iterator;
             }
 
@@ -114,7 +129,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is less than or equal to the given one, false otherwise.
              */
-            bool operator <= (const const_iterator& it) const noexcept {
+            bool operator <= (const const_iterator& it) const {
                 return m_iterator <= it.m_iterator;
             }
 
@@ -123,7 +138,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is greater than the given one, false otherwise.
              */
-            bool operator > (const const_iterator& it) const noexcept {
+            bool operator > (const const_iterator& it) const {
                 return m_iterator > it.m_iterator;
             }
 
@@ -132,13 +147,13 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is greater than or equal to the given one, false otherwise.
              */
-            bool operator >= (const const_iterator& it) const noexcept {
+            bool operator >= (const const_iterator& it) const {
                 return m_iterator >= m_iterator;
             }
 
             /**
              * Returns the current line.
-             * @return the current line; 0 for the 1st line.
+             * @return the current line; 1 for the 1st line.
              */
             std::size_t line() const {
                 return m_line;
@@ -146,10 +161,20 @@ namespace parserlib {
 
             /**
              * Returns the current column.
-             * @return the current column; 0 for the 1st column.
+             * @return the current column; 1 for the 1st column.
              */
             std::size_t column() const {
                 return m_column;
+            }
+
+            /**
+             * Calculate difference between iterators.
+             * @param a first iterator.
+             * @param b second iterator.
+             * @return their difference.
+             */
+            friend difference_type operator - (const const_iterator& a, const const_iterator& b) {
+                return a.m_iterator - b.m_iterator;
             }
 
         private:
@@ -157,7 +182,7 @@ namespace parserlib {
             std::size_t m_line;
             std::size_t m_column;
 
-            const_iterator(const string_iterator_type& it, std::size_t line, std::size_t column) noexcept
+            const_iterator(const string_iterator_type& it, std::size_t line, std::size_t column)
                 : m_iterator(it)
                 , m_line(line)
                 , m_column(column)
@@ -172,7 +197,7 @@ namespace parserlib {
          * @param string the string object.
          */
         template <class T>
-        string_wrapper(T&& string) noexcept
+        string_wrapper(T&& string)
             : m_string(std::forward<T>(string))
         {
         }
@@ -181,15 +206,15 @@ namespace parserlib {
          * Returns an iterator to the beginning of the sequence.
          * @return an iterator to the beginning of the sequence.
          */
-        const_iterator cbegin() const noexcept {
-            return const_iterator(m_string.begin(), 0, 0);
+        const_iterator cbegin() const {
+            return const_iterator(m_string.begin(), 1, 1);
         }
 
         /**
          * Returns an iterator to the end of the sequence.
          * @return an iterator to the end of the sequence.
          */
-        const_iterator cend() const noexcept {
+        const_iterator cend() const {
             return const_iterator(m_string.end(), -1, -1);
         }
 
@@ -197,15 +222,15 @@ namespace parserlib {
          * Returns an iterator to the beginning of the sequence.
          * @return an iterator to the beginning of the sequence.
          */
-        const_iterator begin() const noexcept {
-            return const_iterator(m_string.begin(), 0, 0);
+        const_iterator begin() const {
+            return const_iterator(m_string.begin(), 1, 1);
         }
 
         /**
          * Returns an iterator to the end of the sequence.
          * @return an iterator to the end of the sequence.
          */
-        const_iterator end() const noexcept {
+        const_iterator end() const {
             return const_iterator(m_string.end(), -1, -1);
         }
 
@@ -213,7 +238,7 @@ namespace parserlib {
          * Returns the string.
          * @return the string.
          */
-        const string_type& string() const noexcept {
+        const string_type& string() const {
             return m_string;
         }
 

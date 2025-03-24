@@ -19,7 +19,7 @@ namespace parserlib {
          * The constructor.
          * @param function the function to invoke for parsing.
          */
-        function_parser(const Function& function) noexcept
+        function_parser(const Function& function)
             : m_function(function)
         {
         }
@@ -63,7 +63,7 @@ namespace parserlib {
 
 
     template <class Function>
-    function_parser<Function> function(const Function& function) noexcept {
+    function_parser<Function> function(const Function& function) {
         return function;
     }
 

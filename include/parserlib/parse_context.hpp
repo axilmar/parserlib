@@ -26,13 +26,31 @@ namespace parserlib {
     template <class ParseContext> class rule;
 
 
+    //trait for testing if class has method 'increment_line'.
+    template <class T>
+    struct has_increment_line {
+    private:
+        struct yes { char c[1]; };
+        struct no { char c[2]; };
+        template <class C> static yes test(decltype(&C::increment_line));
+        template <class C> static no test(...);
+    public:
+        static constexpr bool value = sizeof(test<T>(nullptr)) == sizeof(yes);
+    };
+
+
+    //trait value
+    template <class T>
+    constexpr bool has_increment_line_v = has_increment_line<T>::value;
+
+
     /**
      * Holds the data for parsing.
      * An instance of it is passed down the grammar tree,
      * each object using and manipulating the context as required.
      * @param ParseDefinitions parse definitions.
      */
-    template <class ParseDefinitions> 
+    template <class ParseDefinitions>
     class parse_context : public ParseDefinitions {
     public:
         // types --------------------------------------------------------------
@@ -71,7 +89,7 @@ namespace parserlib {
         using error_container_type = std::vector<error_type>;
 
         /**
-         * Context state. 
+         * Context state.
          */
         class state {
         public:
@@ -79,7 +97,7 @@ namespace parserlib {
              * Returns the parse position stored in this state.
              * @return the parse position stored in this state.
              */
-            const input_iterator_type& parse_position() const noexcept {
+            const input_iterator_type& parse_position() const {
                 return m_parse_position;
             }
 
@@ -87,12 +105,12 @@ namespace parserlib {
              * Returns the size of the matches internal stack.
              * @return the size of the matches internal stack.
              */
-            const std::size_t matches_size() const noexcept {
+            const std::size_t matches_size() const {
                 return m_matches_size;
             }
 
         private:
-            state(const input_iterator_type& parse_position, std::size_t matches_size) noexcept
+            state(const input_iterator_type& parse_position, std::size_t matches_size)
                 : m_parse_position(parse_position)
                 , m_matches_size(matches_size)
             {
@@ -116,7 +134,7 @@ namespace parserlib {
          * The constructor.
          * @param input the input (the source).
          */
-        parse_context(input_type& input) noexcept
+        parse_context(input_type& input)
             : m_input(input)
             , m_parse_position(m_input.begin())
             , m_first_unparsed_position(m_input.begin())
@@ -137,7 +155,7 @@ namespace parserlib {
          * Returns the current parse position.
          * @return the current parse position.
          */
-        const input_iterator_type& parse_position() const noexcept {
+        const input_iterator_type& parse_position() const {
             return m_parse_position;
         }
 
@@ -145,7 +163,7 @@ namespace parserlib {
          * Returns the end position.
          * @return the end position.
          */
-        input_iterator_type end_position() const noexcept {
+        input_iterator_type end_position() const {
             return m_input.end();
         }
 
@@ -153,7 +171,7 @@ namespace parserlib {
          * Checks if the current parse position has reached the input end.
          * @return true if the current parse position does not equal the end position, false otherwise.
          */
-        bool is_valid_parse_position() const noexcept {
+        bool is_valid_parse_position() const {
             return m_parse_position != m_input.end();
         }
 
@@ -161,14 +179,14 @@ namespace parserlib {
          * Checks if the current parse position has reached the input end.
          * @return true if the current parse position equals the end position, false otherwise.
          */
-        bool is_end_parse_position() const noexcept {
+        bool is_end_parse_position() const {
             return m_parse_position == m_input.end();
         }
 
         /**
-         * Increments the parse position by 1. 
+         * Increments the parse position by 1.
          */
-        void increment_parse_position() noexcept {
+        void increment_parse_position() {
             ++m_parse_position;
             update_first_unparsed_position();
         }
@@ -177,7 +195,7 @@ namespace parserlib {
          * Increments the parse position by by the given count.
          * @param count number of positions to increment the parse position.
          */
-        void increment_parse_position(std::size_t count) noexcept {
+        void increment_parse_position(std::size_t count) {
             m_parse_position += count;
             update_first_unparsed_position();
         }
@@ -187,7 +205,7 @@ namespace parserlib {
          * Used in managing errors (the longest parsing is the most valid).
          * @return the first position that is not parsed yet.
          */
-        const input_iterator_type& first_unparsed_position() const noexcept {
+        const input_iterator_type& first_unparsed_position() const {
             return m_first_unparsed_position;
         }
 
@@ -195,7 +213,7 @@ namespace parserlib {
          * Sets the parse position.
          * @param pos the new parse position.
          */
-        void set_parse_position(const input_iterator_type& pos) noexcept {
+        void set_parse_position(const input_iterator_type& pos) {
             m_parse_position = pos;
             update_first_unparsed_position();
         }
@@ -203,9 +221,12 @@ namespace parserlib {
         /**
          * Invokes the function `increment_line()` on the current parse position.
          * The input iterator type must provide this function.
+         * If the function is not provided, nothing happens.
          */
         void increment_line() {
-            m_parse_position.increment_line();
+            if constexpr (has_increment_line_v<input_iterator_type>) {
+                m_parse_position.increment_line();
+            }
         }
 
         // token comparison ---------------------------------------------------
@@ -217,7 +238,7 @@ namespace parserlib {
          * @return the result of the input token comparator.
          */
         template <class L, class R>
-        static int compare_tokens(const L& l, const R& r) noexcept {
+        static int compare_tokens(const L& l, const R& r) {
             return input_token_comparator_type()(l, r);
         }
 
@@ -228,7 +249,7 @@ namespace parserlib {
          * @return the result of the input token comparator.
          */
         template <class T>
-        int compare_tokens_at_parse_position(const T& token) const noexcept {
+        int compare_tokens_at_parse_position(const T& token) const {
             return input_token_comparator_type()(*parse_position(), token);
         }
 
@@ -240,7 +261,7 @@ namespace parserlib {
          * @return the result of the input token comparator for the first pair of tokens that are not equal.
          */
         template <class It>
-        int compare_tokens_at_parse_position(const It& begin, const It& end) const noexcept {
+        int compare_tokens_at_parse_position(const It& begin, const It& end) const {
             auto pos = m_parse_position;
             auto it = begin;
             for (;;) {
@@ -268,7 +289,7 @@ namespace parserlib {
          * @return the result of the input token comparator for the first pair of tokens that are not equal.
          */
         template <class T, std::enable_if_t<is_container_v<T>, bool> = true>
-        int compare_tokens_at_parse_position(const T& container) const noexcept {
+        int compare_tokens_at_parse_position(const T& container) const {
             return compare_tokens_at_parse_position(container.begin(), container.end());
         }
 
@@ -280,7 +301,7 @@ namespace parserlib {
          * @return the result of the input token comparator for the first pair of tokens that are not equal.
          */
         template <class T>
-        int compare_tokens_at_parse_position(const T* str) const noexcept {
+        int compare_tokens_at_parse_position(const T* str) const {
             return compare_tokens_at_parse_position(str, str + null_terminated_string_length(str));
         }
 
@@ -290,7 +311,7 @@ namespace parserlib {
          * @return 1.
          */
         template <class T>
-        std::size_t get_sequence_length(const T& token) const noexcept {
+        std::size_t get_sequence_length(const T& token) const {
             return 1;
         }
 
@@ -300,7 +321,7 @@ namespace parserlib {
          * @return the length of the container (`container.size()`).
          */
         template <class T, std::enable_if_t<is_container_v<T>, bool> = true>
-        std::size_t get_sequence_length(const T& container) const noexcept {
+        std::size_t get_sequence_length(const T& container) const {
             return container.size();
         }
 
@@ -310,7 +331,7 @@ namespace parserlib {
          * @return the length of the null-terminated string.
          */
         template <class T>
-        std::size_t get_sequence_length(const T* str) const noexcept {
+        std::size_t get_sequence_length(const T* str) const {
             return null_terminated_string_length(str);
         }
 
@@ -320,7 +341,7 @@ namespace parserlib {
          * Returns the matches identified currently for this context.
          * @return the matches.
          */
-        const match_container_type& matches() const noexcept {
+        const match_container_type& matches() const {
             return m_matches;
         }
 
@@ -330,7 +351,7 @@ namespace parserlib {
          * @param match_start_state state the signifies the start of the match.
          * @param match_end_state state the signifies the end of the match.
          */
-        void add_match(const output_token_type& id, const state& match_start_state, const state& match_end_state) noexcept {
+        void add_match(const output_token_type& id, const state& match_start_state, const state& match_end_state) {
             assert(match_start_state.parse_position() <= match_end_state.parse_position());
             const auto children_begin = m_matches.begin() + match_start_state.matches_size();
             const auto children_end = m_matches.begin() + match_end_state.matches_size();
@@ -345,7 +366,7 @@ namespace parserlib {
          * Returns the current state of the context.
          * @return the current state of the context.
          */
-        state get_state() const noexcept {
+        state get_state() const {
             return { m_parse_position, m_matches.size() };
         }
 
@@ -353,18 +374,18 @@ namespace parserlib {
          * Sets the state of the context.
          * @param s the state to set.
          */
-        void set_state(const state& s) noexcept {
+        void set_state(const state& s) {
             m_parse_position = s.parse_position();
             m_matches.resize(s.matches_size());
         }
 
         // error handling -----------------------------------------------------
-        
+
         /**
          * Returns the errors identified currently for this context.
          * @return the errors.
          */
-        const error_container_type& errors() const noexcept {
+        const error_container_type& errors() const {
             return m_errors;
         }
 
@@ -372,7 +393,7 @@ namespace parserlib {
          * Returns the current error.
          * @return the current error.
          */
-        const error_type& error() const noexcept {
+        const error_type& error() const {
             return m_error;
         }
 
@@ -383,7 +404,7 @@ namespace parserlib {
          * @param error the current error.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool set_error(const error_type& error) noexcept {
+        bool set_error(const error_type& error) {
             if (m_error.invalid() || error.position() > m_error.position()) {
                 m_error = error;
                 return true;
@@ -398,7 +419,7 @@ namespace parserlib {
          * @param error_pos position that the error starts.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool set_error(const error_id_type& error_id, const input_span_type& span, const input_iterator_type& error_pos) noexcept {
+        bool set_error(const error_id_type& error_id, const input_span_type& span, const input_iterator_type& error_pos) {
             return set_error(error_type(error_id, span, error_pos));
         }
 
@@ -409,7 +430,7 @@ namespace parserlib {
          * @param end end position of the span that contains the error.
          * @param error_pos position that the error starts.
          */
-        bool set_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end, const input_iterator_type& error_pos) noexcept {
+        bool set_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end, const input_iterator_type& error_pos) {
             return set_error(error_id, input_span_type(begin, end), error_pos);
         }
 
@@ -417,7 +438,7 @@ namespace parserlib {
          * If the current error is valid, then it is added to the internal container of errors,
          * and the current error is reset to an invalid one.
          */
-        void commit_error() noexcept {
+        void commit_error() {
             if (m_error.valid()) {
                 m_errors.push_back(m_error);
                 m_error = error_type();
@@ -432,7 +453,7 @@ namespace parserlib {
          * @param error_pos position that the error starts.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool add_error(const error_id_type& error_id, const input_span_type& span, const input_iterator_type& error_pos) noexcept {
+        bool add_error(const error_id_type& error_id, const input_span_type& span, const input_iterator_type& error_pos) {
             if (set_error(error_id, span, error_pos)) {
                 commit_error();
                 return true;
@@ -449,7 +470,7 @@ namespace parserlib {
          * @param error_pos position that the error starts.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool add_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end, const input_iterator_type& error_pos) noexcept {
+        bool add_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end, const input_iterator_type& error_pos) {
             return add_error(error_id, input_span_type(begin, end), error_pos);
         }
 
@@ -460,7 +481,7 @@ namespace parserlib {
          * @param rule rule to check for.
          * @return true if the given rule is left-recursive at the current parse position, false otherwise.
          */
-        bool is_rule_left_recursive(const rule_type& rule) const noexcept {
+        bool is_rule_left_recursive(const rule_type& rule) const {
             auto it = m_rule_parse_positions.find(rule.pointer_to_derived());
             return it != m_rule_parse_positions.end() && !it->second.empty() && it->second.back() == m_parse_position;
         }
@@ -500,7 +521,7 @@ namespace parserlib {
         //left recursion
         std::map<const rule_type*, std::vector<input_iterator_type>> m_rule_parse_positions;
 
-        void update_first_unparsed_position() noexcept {
+        void update_first_unparsed_position() {
             if (m_parse_position > m_first_unparsed_position) {
                 m_first_unparsed_position = m_parse_position;
             }

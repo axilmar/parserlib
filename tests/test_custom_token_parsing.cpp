@@ -19,7 +19,7 @@ struct token {
 };
 
 
-static int operator - (const token& a, const source_token_id& b) noexcept {
+static int operator - (const token& a, const source_token_id& b) {
     return static_cast<int>(a.id) - static_cast<int>(b);
 }
 

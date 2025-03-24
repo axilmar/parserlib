@@ -32,7 +32,7 @@ namespace parserlib {
          * The default constructor.
          * It creates an empty rule.
          */
-        rule() noexcept {
+        rule() {
         }
 
         /**
@@ -53,7 +53,7 @@ namespace parserlib {
          * @param parser the parser to create an internal parser wrapper for.
          */
         template <class Parser>
-        rule(const Parser& parser) noexcept
+        rule(const Parser& parser)
             : m_parser(std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<Parser>>>(get_parser_wrapper(parser)))
         {
         }
@@ -64,7 +64,7 @@ namespace parserlib {
          * @param r the rule to refer to by this rule.
          */
         template <class Parser, std::enable_if_t<std::is_same_v<Parser, rule>, bool> = true>
-        explicit rule(Parser& r) noexcept
+        explicit rule(Parser& r)
             : m_parser(std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<rule>>>(get_parser_wrapper(r)))
         {
         }
@@ -88,7 +88,7 @@ namespace parserlib {
          * @return reference to this.
          */
         template <class Parser>
-        rule& operator = (const Parser& parser) noexcept {
+        rule& operator = (const Parser& parser) {
             m_parser = std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<Parser>>>(get_parser_wrapper(parser));
             return *this;
         }
@@ -100,7 +100,7 @@ namespace parserlib {
          * @return reference to this.
          */
         template <class Parser, std::enable_if_t<std::is_same_v<Parser, rule>, bool> = true>
-        rule& operator = (Parser& r) noexcept {
+        rule& operator = (Parser& r) {
             m_parser = std::make_unique<parser_implementation<ParseContext, parser_wrapper_type<rule>>>(get_parser_wrapper(r));
             return *this;
         }

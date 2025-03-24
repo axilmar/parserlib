@@ -21,7 +21,7 @@ namespace parserlib {
          * The constructor.
          * @param parser the internal parser.
          */
-        newline_parser(const Parser& parser) noexcept
+        newline_parser(const Parser& parser)
             : m_parser(parser)
         {
         }
@@ -79,7 +79,7 @@ namespace parserlib {
 
 
     template <class Parser>
-    newline_parser<parser_wrapper_type<Parser>> newline(const Parser& parser) noexcept {
+    newline_parser<parser_wrapper_type<Parser>> newline(const Parser& parser) {
         return get_parser_wrapper(parser);
     }
 

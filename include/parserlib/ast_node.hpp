@@ -41,7 +41,7 @@ namespace parserlib {
         /**
          * The default constructor.
          */
-        ast_node() noexcept {
+        ast_node() {
         }
 
         /**
@@ -49,7 +49,7 @@ namespace parserlib {
          * @param id id of node.
          * @param span span over input that this AST node corresponds to.
          */
-        ast_node(const ast_node_id_type& id, const input_span_type& span) noexcept
+        ast_node(const ast_node_id_type& id, const input_span_type& span)
             : m_id(id)
             , m_span(span)
         {
@@ -65,7 +65,7 @@ namespace parserlib {
          * Returns a pointer to the parent node.
          * @return pointer to the parent node, or null if this node is not a child node.
          */
-        ast_node_ptr_type parent() const noexcept {
+        ast_node_ptr_type parent() const {
             return m_parent.lock();
         }
 
@@ -73,7 +73,7 @@ namespace parserlib {
          * Returns the list of children nodes.
          * @return the list of children nodes.
          */
-        const ast_node_list_type& children() const noexcept {
+        const ast_node_list_type& children() const {
             return m_children;
         }
 
@@ -82,7 +82,7 @@ namespace parserlib {
          * @param descentant node to check if it is contained in this tree.
          * @return true if the given node is contained in this tree, false otherwise.
          */
-        bool contains(const ast_node_ptr_type& descentant) const noexcept {
+        bool contains(const ast_node_ptr_type& descentant) const {
             assert(descentant);
             for (ast_node_ptr_type node = descentant; node; node = node->parent()) {
                 if (node.get() == this) {
@@ -96,7 +96,7 @@ namespace parserlib {
          * Adds a child node.
          * @param child node to add.
          */
-        void add(const ast_node_ptr_type& child) noexcept {
+        void add(const ast_node_ptr_type& child) {
             assert(child);
             assert(!child->parent());
             auto this_ptr = this->shared_from_this();
@@ -109,7 +109,7 @@ namespace parserlib {
          * Removes a child node.
          * @param child child node to remove.
          */
-        void remove(const ast_node_ptr_type& child) noexcept {
+        void remove(const ast_node_ptr_type& child) {
             assert(child);
             assert(child->parent().get() == this);
             m_children.erase(child->m_it);
@@ -130,7 +130,7 @@ namespace parserlib {
          * Returns the id of the node.
          * @return the id of the node.
          */
-        const ast_node_id_type& id() const noexcept {
+        const ast_node_id_type& id() const {
             return m_id;
         }
 
@@ -138,7 +138,7 @@ namespace parserlib {
          * Sets the id of the node.
          * @param id the id of the node.
          */
-        void set_id(const ast_node_id_type& id) noexcept {
+        void set_id(const ast_node_id_type& id) {
             m_id = id;
         }
 
@@ -146,7 +146,7 @@ namespace parserlib {
          * Returns the span of the node.
          * @return the span of the node.
          */
-        const input_span_type& span() const noexcept {
+        const input_span_type& span() const {
             return m_span;
         }
 
@@ -154,7 +154,7 @@ namespace parserlib {
          * Sets the span of the node.
          * @param span the span of the node.
          */
-        void set_span(const input_span_type& span) noexcept {
+        void set_span(const input_span_type& span) {
             m_span = span;
         }
 
@@ -164,13 +164,8 @@ namespace parserlib {
          * otherwise it returns a vector that is copied from the source.
          * @return the source that this node corresponds to.
          */
-        auto source() const noexcept {
-            if constexpr (std::is_trivial_v<input_token_type>) {
-                return std::basic_string_view<input_token_type>(m_span.data(), m_span.size());
-            }
-            else {
-                return std::vector<input_token_type>(m_span.begin(), m_span.end());
-            }
+        auto source() const {
+            return m_span.source();
         }
 
         /**

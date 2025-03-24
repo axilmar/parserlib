@@ -30,7 +30,7 @@ namespace parserlib {
          * @param end end of the container that represents the set of values.
          */
         template <class Iterator>
-        terminal_set_parser(const Iterator& begin, const Iterator& end) noexcept
+        terminal_set_parser(const Iterator& begin, const Iterator& end)
             : m_set(sort(std::vector<Terminal>(begin, end)))
         {
         }
@@ -39,7 +39,7 @@ namespace parserlib {
          * Constructor from null-terminated string.
          * @param str null-terminated string.
          */
-        terminal_set_parser(const Terminal* str) noexcept
+        terminal_set_parser(const Terminal* str)
             : terminal_set_parser(str, str + null_terminated_string_length(str))
         {
         }
@@ -49,7 +49,7 @@ namespace parserlib {
          * @param set the set of terminal values.
          */
         template <class Container, std::enable_if_t<is_container_v<Container>, bool> = true>
-        terminal_set_parser(const Container& set) noexcept
+        terminal_set_parser(const Container& set)
             : terminal_set_parser(set.begin(), set.end())
         {
         }
@@ -58,7 +58,7 @@ namespace parserlib {
          * Constructor from initializer list.
          * @param set the set of terminal values.
          */
-        terminal_set_parser(const std::initializer_list<Terminal>& set) noexcept
+        terminal_set_parser(const std::initializer_list<Terminal>& set)
             : terminal_set_parser(set.begin(), set.end())
         {
         }
@@ -68,7 +68,7 @@ namespace parserlib {
          * @param set the set of terminal values.
          */
         template <class... Terminals>
-        terminal_set_parser(const std::tuple<Terminals...>& set) noexcept {
+        terminal_set_parser(const std::tuple<Terminals...>& set) {
             get_vector<0>(set, m_set);
             m_set = sort(m_set);
         }
@@ -121,14 +121,14 @@ namespace parserlib {
     private:
         std::vector<Terminal> m_set;
 
-        static std::vector<Terminal> sort(const std::vector<Terminal>& vec) noexcept {
+        static std::vector<Terminal> sort(const std::vector<Terminal>& vec) {
             std::vector<Terminal> result(vec.begin(), vec.end());
             std::sort(result.begin(), result.end());
             return result;
         }
 
         template <std::size_t Index, class... Terminals>
-        static void get_vector(const std::tuple<Terminals...>& tpl, std::vector<Terminal>& vec) noexcept {
+        static void get_vector(const std::tuple<Terminals...>& tpl, std::vector<Terminal>& vec) {
             if constexpr (Index < sizeof...(Terminals)) {
                 vec.push_back(std::get<Index>(tpl));
                 get_vector<Index + 1>(tpl, vec);
@@ -144,7 +144,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class Iterator>
-    terminal_set_parser<typename Iterator::value_type> one_of(const Iterator& begin, const Iterator& end) noexcept {
+    terminal_set_parser<typename Iterator::value_type> one_of(const Iterator& begin, const Iterator& end) {
         return { begin, end };
     }
 
@@ -155,7 +155,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class Terminal>
-    terminal_set_parser<Terminal> one_of(const Terminal* str) noexcept {
+    terminal_set_parser<Terminal> one_of(const Terminal* str) {
         return { str, str + null_terminated_string_length(str)};
     }
 
@@ -166,7 +166,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class Container, std::enable_if_t<is_container_v<Container>, bool> = true>
-    terminal_set_parser<typename Container::value_type> one_of(const Container& set) noexcept {
+    terminal_set_parser<typename Container::value_type> one_of(const Container& set) {
         return set;
     }
 
@@ -177,7 +177,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class Terminal>
-    terminal_set_parser<std::common_type_t<Terminal>> one_of(const std::initializer_list<Terminal>& set) noexcept {
+    terminal_set_parser<std::common_type_t<Terminal>> one_of(const std::initializer_list<Terminal>& set) {
         return set;
     }
 
@@ -188,7 +188,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class... Terminals>
-    terminal_set_parser<std::common_type_t<Terminals...>> one_of(const std::tuple<Terminals...>& set) noexcept {
+    terminal_set_parser<std::common_type_t<Terminals...>> one_of(const std::tuple<Terminals...>& set) {
         return set;
     }
 
@@ -199,7 +199,7 @@ namespace parserlib {
      * @return the terminal range parser.
      */
     template <class... Terminals>
-    terminal_set_parser<std::common_type_t<Terminals...>> one_of(const Terminals&... set) noexcept {
+    terminal_set_parser<std::common_type_t<Terminals...>> one_of(const Terminals&... set) {
         return std::make_tuple(set...);
     }
 

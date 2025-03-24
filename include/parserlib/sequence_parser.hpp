@@ -67,7 +67,7 @@ namespace parserlib {
             return false;
         }
 
-        const tuple_type& parsers() const noexcept {
+        const tuple_type& parsers() const {
             return m_parsers;
         }
 
@@ -130,7 +130,7 @@ namespace parserlib {
      * @return the sequence of parsers.
      */
     template <class L, class R, std::enable_if_t<std::is_base_of_v<parser<L>, L> || std::is_base_of_v<parser<R>, R>, bool> = true>
-    sequence_parser<parser_wrapper_type<L>, parser_wrapper_type<R>>  operator >> (const L& l, const R& r) noexcept {
+    sequence_parser<parser_wrapper_type<L>, parser_wrapper_type<R>>  operator >> (const L& l, const R& r) {
         return { std::make_tuple(get_parser_wrapper(l), get_parser_wrapper(r)) };
     }
 
@@ -142,7 +142,7 @@ namespace parserlib {
      * @return the sequence of parsers that contains all the parsers of the left object and the parser of the right object.
      */
     template <class... LeftParsers, class R>
-    sequence_parser<LeftParsers..., parser_wrapper_type<R>>  operator >> (const sequence_parser<LeftParsers...>& l, const R& r) noexcept {
+    sequence_parser<LeftParsers..., parser_wrapper_type<R>>  operator >> (const sequence_parser<LeftParsers...>& l, const R& r) {
         return { std::tuple_cat(l.parsers(), std::make_tuple(get_parser_wrapper(r))) };
     }
 
@@ -154,7 +154,7 @@ namespace parserlib {
      * @return  the parser of the left object and the sequence of parsers that contains all the parsers of the left object.
      */
     template <class L, class... RightParsers>
-    sequence_parser<parser_wrapper_type<L>, RightParsers...>  operator >> (const L& l, const sequence_parser<RightParsers...>& r) noexcept {
+    sequence_parser<parser_wrapper_type<L>, RightParsers...>  operator >> (const L& l, const sequence_parser<RightParsers...>& r) {
         return { std::tuple_cat(std::make_tuple(get_parser_wrapper(l)), r.parsers()) };
     };
 
@@ -166,7 +166,7 @@ namespace parserlib {
      * @return a sequence parser that contains the parsers of the left and the parsers of the right parsers.
      */
     template <class... LeftParsers, class... RightParsers>
-    sequence_parser<LeftParsers..., RightParsers...>  operator >> (const sequence_parser<LeftParsers...>& l, const sequence_parser<RightParsers...>& r) noexcept {
+    sequence_parser<LeftParsers..., RightParsers...>  operator >> (const sequence_parser<LeftParsers...>& l, const sequence_parser<RightParsers...>& r) {
         return { std::tuple_cat(l.parsers(), r.parsers()) };
     };
 

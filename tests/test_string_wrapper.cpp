@@ -30,15 +30,15 @@ static void test_string_wrapper_only() {
 
     assert(context.matches().size() == 11);
 
-    size_t line = 0;
-    size_t col = 0;
+    size_t line = 1;
+    size_t col = 1;
     for (size_t i = 0, m = 0; i < source.string().size(); ++i, ++m) {
         const char c = source.string()[i];
         assert(context.matches()[m].span().begin().line() == line);
         assert(context.matches()[m].span().begin().column() == col);
         if (c == '\r') {
             ++line;
-            col = 0;
+            col = 1;
             ++i;
         }
         else {
@@ -75,15 +75,15 @@ static void test_string_wrapper_over_stream_wrapper() {
 
     assert(context.matches().size() == 11);
 
-    size_t line = 0;
-    size_t col = 0;
+    size_t line = 1;
+    size_t col = 1;
     for (size_t i = 0, m = 0; i < inputString.size(); ++i, ++m) {
         const char c = inputString[i];
         assert(context.matches()[m].span().begin().line() == line);
         assert(context.matches()[m].span().begin().column() == col);
         if (c == '\r') {
             ++line;
-            col = 0;
+            col = 1;
             ++i;
         }
         else {

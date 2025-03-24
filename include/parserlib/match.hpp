@@ -55,7 +55,7 @@ namespace parserlib {
          * @param span span of the match.
          * @param children children matches.
          */
-        match(const match_id_type& id, const input_span_type& span, match_container_type&& children) noexcept
+        match(const match_id_type& id, const input_span_type& span, match_container_type&& children)
             : m_id(id)
             , m_span(span)
             , m_children(std::move(children))
@@ -66,7 +66,7 @@ namespace parserlib {
          * Returns the id of the match.
          * @return the id of the match.
          */
-        const match_id_type& id() const noexcept {
+        const match_id_type& id() const {
             return m_id;
         }
 
@@ -74,7 +74,7 @@ namespace parserlib {
          * Returns the span of the match.
          * @return the span of the match.
          */
-        const input_span_type& span() const noexcept {
+        const input_span_type& span() const {
             return m_span;
         }
 
@@ -82,7 +82,7 @@ namespace parserlib {
          * Returns the children matches.
          * @return the children matches.
          */
-        const match_container_type& children() const noexcept {
+        const match_container_type& children() const {
             return m_children;
         }
 
@@ -92,13 +92,8 @@ namespace parserlib {
          * otherwise it returns a vector that is copied from the source.
          * @return the source that this match corresponds to.
          */
-        auto source() const noexcept {
-            if constexpr (std::is_trivial_v<input_token_type>) {
-                return std::basic_string_view<input_token_type>(m_span.data(), m_span.size());
-            }
-            else {
-                return std::vector<input_token_type>(m_span.begin(), m_span.end());
-            }
+        auto source() const {
+            return m_span.source();
         }
 
         /**

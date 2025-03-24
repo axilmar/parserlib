@@ -50,6 +50,21 @@ namespace parserlib {
          */
         class const_iterator {
         public:
+            /** Value type. */
+            using value_type = typename Stream::char_type;
+
+            /** Difference type. */
+            using difference_type = typename Buffer::const_iterator::difference_type;
+
+            /** Pointer type. */
+            using pointer = typename Buffer::const_iterator::pointer;
+
+            /** Reference type. */
+            using reference = typename Buffer::const_iterator::reference;
+
+            /** Iterator category type. */
+            using iterator_category = std::random_access_iterator_tag;
+
             /**
              * The empty iterator constructor.
              */
@@ -64,7 +79,7 @@ namespace parserlib {
              * Undefined if the end of the stream is reached.
              * @return the value type at the current position.
              */
-            const value_type& operator *() const noexcept {
+            const value_type& operator *() const {
                 assert(m_buffer_index < m_container->m_buffer.size());
                 return m_container->m_buffer[m_buffer_index];
             }
@@ -74,7 +89,7 @@ namespace parserlib {
              * New elements are pulled from the stream, if the end of the internal buffer is reached.
              * @return reference to this.
              */
-            const_iterator& operator ++() noexcept {
+            const_iterator& operator ++() {
                 assert(m_buffer_index <= m_container->m_buffer.size());
                 if (m_buffer_index < m_container->m_buffer.size()) {
                     ++m_buffer_index;
@@ -92,7 +107,7 @@ namespace parserlib {
              * @param count number of positions to advance the iterator.
              * @return reference to this.
              */
-            const_iterator& operator += (std::size_t count) noexcept {
+            const_iterator& operator += (std::size_t count) {
                 for (; count > 0; --count) {
                     operator ++();
                 }
@@ -104,7 +119,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if the iterators are equal, false otherwise.
              */
-            bool operator == (const const_iterator& it) const noexcept {
+            bool operator == (const const_iterator& it) const {
                 check_container(it);
                 return m_buffer_index == it.m_buffer_index;
             }
@@ -114,7 +129,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if the iterators are different, false otherwise.
              */
-            bool operator != (const const_iterator& it) const noexcept {
+            bool operator != (const const_iterator& it) const {
                 check_container(it);
                 return m_buffer_index != it.m_buffer_index;
             }
@@ -124,7 +139,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is less than the given one, false otherwise.
              */
-            bool operator < (const const_iterator& it) const noexcept {
+            bool operator < (const const_iterator& it) const {
                 check_container(it);
                 return m_buffer_index < it.m_buffer_index;
             }
@@ -134,7 +149,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is less than or equal to the given one, false otherwise.
              */
-            bool operator <= (const const_iterator& it) const noexcept {
+            bool operator <= (const const_iterator& it) const {
                 check_container(it);
                 return m_buffer_index <= it.m_buffer_index;
             }
@@ -144,7 +159,7 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is greater than the given one, false otherwise.
              */
-            bool operator > (const const_iterator& it) const noexcept {
+            bool operator > (const const_iterator& it) const {
                 check_container(it);
                 return m_buffer_index > it.m_buffer_index;
             }
@@ -154,22 +169,32 @@ namespace parserlib {
              * @param it the other iterator to compare this to.
              * @return true if this is greater than or equal to the given one, false otherwise.
              */
-            bool operator >= (const const_iterator& it) const noexcept {
+            bool operator >= (const const_iterator& it) const {
                 check_container(it);
                 return m_buffer_index >= it.m_buffer_index;
+            }
+
+            /**
+             * Calculate difference between iterators.
+             * @param a first iterator.
+             * @param b second iterator.
+             * @return their difference.
+             */
+            friend difference_type operator - (const const_iterator& a, const const_iterator& b) {
+                return static_cast<difference_type>(a.buffer_index - b.m_buffer_index);
             }
 
         private:
             stream_wrapper_type* m_container;
             std::size_t m_buffer_index;
 
-            const_iterator(stream_wrapper_type& container, std::size_t buffer_index) noexcept
+            const_iterator(stream_wrapper_type& container, std::size_t buffer_index)
                 : m_container(&container)
                 , m_buffer_index(buffer_index)
             {
             }
 
-            void check_container(const const_iterator& it) const noexcept {
+            void check_container(const const_iterator& it) const {
                 assert(m_container == it.m_container);
             }
 
@@ -180,7 +205,7 @@ namespace parserlib {
          * The constructor.
          * @param stream stream to wrap.
          */
-        stream_wrapper(stream_type& stream) noexcept
+        stream_wrapper(stream_type& stream)
             : m_stream(stream)
             , m_buffer{}
         {
@@ -191,7 +216,7 @@ namespace parserlib {
          * Returns an iterator to the beginning of the sequence.
          * @return an iterator to the beginning of the sequence.
          */
-        const_iterator cbegin() const noexcept {
+        const_iterator cbegin() const {
             return const_iterator(*const_cast<stream_wrapper_type*>(this), 0);
         }
 
@@ -199,7 +224,7 @@ namespace parserlib {
          * Returns an iterator to the end of the sequence.
          * @return an iterator to the end of the sequence.
          */
-        const_iterator cend() const noexcept {
+        const_iterator cend() const {
             return const_iterator(*const_cast<stream_wrapper_type*>(this), end_buffer_index);
         }
 
@@ -207,7 +232,7 @@ namespace parserlib {
          * Returns an iterator to the beginning of the sequence.
          * @return an iterator to the beginning of the sequence.
          */
-        const_iterator begin() const noexcept {
+        const_iterator begin() const {
             return const_iterator(*const_cast<stream_wrapper_type*>(this), 0);
         }
 
@@ -215,7 +240,7 @@ namespace parserlib {
          * Returns an iterator to the end of the sequence.
          * @return an iterator to the end of the sequence.
          */
-        const_iterator end() const noexcept {
+        const_iterator end() const {
             return const_iterator(*const_cast<stream_wrapper_type*>(this), end_buffer_index);
         }
 
@@ -223,7 +248,7 @@ namespace parserlib {
          * Returns the stream.
          * @return the stream.
          */
-        const stream_type& stream() const noexcept {
+        const stream_type& stream() const {
             return m_stream;
         }
 

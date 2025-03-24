@@ -57,7 +57,7 @@ namespace parserlib {
      * Helper function for creating a terminal any parser.
      * @return the terminal any parser.
      */
-    inline terminal_any_parser any() noexcept {
+    inline terminal_any_parser any() {
         return {};
     }
 

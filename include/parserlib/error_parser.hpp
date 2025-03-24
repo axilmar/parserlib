@@ -105,8 +105,9 @@ namespace parserlib {
                 const auto error_start = context.parse_position();
                 const auto error_pos = context.first_unparsed_position();
                 while (context.is_valid_parse_position()) {
+                    const auto error_end = context.parse_position();
                     if (skip_error_token_func(context)) {
-                        context.add_error(error_id, error_start, context.parse_position(), error_pos);
+                        context.add_error(error_id, error_start, error_end, error_pos);
                         return true;
                     }
                     context.increment_parse_position();

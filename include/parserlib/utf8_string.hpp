@@ -177,7 +177,9 @@ namespace parserlib {
             }
 
         private:
-            const_iterator(const std::string::const_iterator& it) :std::string::const_iterator(it) {
+            const_iterator(const std::string::const_iterator& it) 
+                : std::string::const_iterator(it)
+            {
             }
 
             const std::string::const_iterator& it() const {

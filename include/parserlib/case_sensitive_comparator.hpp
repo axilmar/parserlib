@@ -17,7 +17,7 @@ namespace parserlib {
          * @return the result of their subtraction; no conversion is performed.
          */
         template <class L, class R>
-        auto operator ()(const L& l, const R& r) const noexcept {
+        auto operator ()(const L& l, const R& r) const {
             return l - r;
         }
     };
