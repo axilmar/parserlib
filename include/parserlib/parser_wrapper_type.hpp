@@ -14,6 +14,7 @@ namespace parserlib {
     template <class ParseContext> class rule_reference;
     template <class Terminal> class terminal_parser;
     template <class Terminal> class terminal_string_parser;
+    class boolean_parser;
 
 
     /**
@@ -83,6 +84,14 @@ namespace parserlib {
     terminal_parser<T> get_parser_wrapper(const T& obj) {
         return obj;
     }
+
+
+    /**
+     * Turns a boolean value into a boolean parser.
+     * @param value boolean value to return as a parser.
+     * @return the boolean parser.
+     */
+    inline boolean_parser get_parser_wrapper(bool value);
 
 
     /**
