@@ -373,16 +373,15 @@ const unparsed_pos = context.first_unparsed_position();
 
 Parserlib allows for parsing to continue after an error, providing various `error recovery` facilities:
 
-- the function `on_error(parser, error_handler)` can be used to specify an error handler when the given `parser` fails to parse.
-- the function `on_error_continue(parser, error_id, skip_error_func)` can be used to add an error with the given error id to the parse context, then continue parsing.
-- the function `on_error_continue_after(parser, skip_error_token)` can be used to skip tokens until the `skip_error_token` is matched.
+- the fucntion `skip_to(grammar, error_id)` can be used to skip the input until the given grammar parses successfully, and to add an error with the given error id.
+- the fucntion `skip_after(grammar, error_id)` can be used to skip the input until after the given grammar parses successfully, and to add an error with the given error id.
 
 For example:
 
 ```cpp
 //will continue parsing after ';', even if there is an error in a statement.
 const auto statement_decl = ...;
-const auto statement = on_error_continue_after(statement_decl, MyErrorID, ';');
+const auto statement = statement_decl | skip_after(';', MyErrorID);
 ```
 
 Errors can be processed after parsing by calling the member function `errors()` on a `parse context`. For example:

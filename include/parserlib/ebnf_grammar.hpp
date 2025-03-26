@@ -36,129 +36,65 @@ namespace parserlib {
 
             using character_comparator_type = case_sensitive_comparator;
           
-            static auto block_comment() -> decltype(parserlib::block_comment("(*", newline('\n') | any(), "*)")) {
-                return parserlib::block_comment("(*", newline('\n') | any(), "*)");
-            }
+            enum class ERROR_ID {
+                SYNTAX_ERROR
+            };
 
-            static auto whitespace() -> decltype(block_comment() | newline('\n') | parserlib::whitespace()) {
-                return block_comment() | newline('\n') | parserlib::whitespace();
-            }
+            using error_id_type = ERROR_ID;
 
-            template <class Letter>
-            static auto identifier(const Letter& letter) -> decltype(letter >> *(letter | parserlib::digit() | '_' | '-')) {
-                return letter >> *(letter | parserlib::digit() | '_' | '-');
-            }
+            static auto grammar() {
+                //whitespace
+                auto newline = parserlib::newline('\n');
+                auto block_comment = parserlib::block_comment("(*", newline | any(), "*)");
+                auto whitespace = block_comment | newline | parserlib::whitespace();
+                
+                //identifiers
+                auto identifier = [](const auto& letter) { return letter >> *(letter | parserlib::digit() | '_' | '-'); };
+                auto lexer_identifier = identifier(parserlib::uppercase_letter())->*TOKEN_ID::LEXER_IDENTIFIER;
+                auto parser_identifier = identifier(parserlib::lowercase_letter())->*TOKEN_ID::PARSER_IDENTIFIER;
 
-            static auto lexer_identifier() -> decltype(identifier(parserlib::uppercase_letter())->*TOKEN_ID::LEXER_IDENTIFIER) {
-                return identifier(parserlib::uppercase_letter())->*TOKEN_ID::LEXER_IDENTIFIER;
-            }
+                //string
+                auto escaped_char = terminal("\\\"") | "\\\'" | "\\n" | "\\r" | "\\t" | "\\v" | "\\f" | "\\0";
+                auto hex_digit = one_of("0123456789abcdefABCDEF");
+                auto hex_char = (terminal("\\x") | "\\X") >> hex_digit >> -(hex_digit >> -(hex_digit >> -hex_digit));
+                auto string_char = escaped_char | hex_char | any();
+                auto string = ('\"' >> *((string_char | skip_to(string_char, ERROR_ID::SYNTAX_ERROR)) - '"') >> '\"')->*TOKEN_ID::STRING;
 
-            static auto parser_identifier() -> decltype(identifier(parserlib::lowercase_letter())->*TOKEN_ID::PARSER_IDENTIFIER) {
-                return identifier(parserlib::lowercase_letter())->*TOKEN_ID::PARSER_IDENTIFIER;
-            }
+                //single character terminals
+                auto assignment = terminal('=')->*TOKEN_ID::ASSIGNMENT;
+                auto groupStart = terminal('(')->*TOKEN_ID::GROUP_START;
+                auto groupEnd = terminal(')')->*TOKEN_ID::GROUP_END;
+                auto repetitionStart = terminal('{')->*TOKEN_ID::REPETITION_START;
+                auto repetitionEnd = terminal('}')->*TOKEN_ID::REPETITION_END;
+                auto optionalStart = terminal('[')->*TOKEN_ID::OPTIONAL_START;
+                auto optionalEnd = terminal(']')->*TOKEN_ID::OPTIONAL_END;
+                auto loop0 = terminal('*')->*TOKEN_ID::LOOP_0;
+                auto loop1 = terminal('+')->*TOKEN_ID::LOOP_1;
+                auto optional = terminal('?')->*TOKEN_ID::OPTIONAL;
+                auto branch = terminal('|')->*TOKEN_ID::BRANCH;
+                auto exclusion = terminal('-')->*TOKEN_ID::EXCLUSION;
+                auto terminator = terminal(';')->*TOKEN_ID::TERMINATOR;
 
-            static auto escaped_char() -> decltype(terminal("\\\"") | "\\\'" | "\\n" | "\\r" | "\\t" | "\\v" | "\\f" | "\\0") {
-                return terminal("\\\"") | "\\\'" | "\\n" | "\\r" | "\\t" | "\\v" | "\\f" | "\\0";
-            }
+                //tokens
+                auto token = lexer_identifier
+                           | parser_identifier
+                           | string
+                           | assignment
+                           | groupStart
+                           | groupEnd
+                           | repetitionStart
+                           | repetitionEnd
+                           | optionalStart
+                           | optionalEnd
+                           | loop0
+                           | loop1
+                           | optional
+                           | branch
+                           | exclusion
+                           | terminator;
 
-            static auto hex_digit() -> decltype(one_of("0123456789abcdefABCDEF")) {
-                return one_of("0123456789abcdefABCDEF");
-            }
-
-            static auto hex_char() -> decltype((terminal("\\x") | "\\X") >> hex_digit() >> -(hex_digit() >> -(hex_digit() >> -hex_digit()))) {
-                return (terminal("\\x") | "\\X") >> hex_digit() >> -(hex_digit() >> -(hex_digit() >> -hex_digit()));
-            }
-
-            static auto string_char_no_error() -> decltype(escaped_char() | hex_char() | any()) {
-                return escaped_char() | hex_char() | any();
-            }
-
-            template <class ErrorID>
-            static auto string_char(ErrorID syntax_error_id) -> decltype(on_error_continue_after(string_char_no_error(), syntax_error_id, string_char_no_error())) {
-                return on_error_continue_after(string_char_no_error(), syntax_error_id, string_char_no_error());
-            }
-
-            template <class ErrorID>
-            static auto string(ErrorID syntax_error_id) -> decltype(('\"' >> *(string_char(syntax_error_id) - '\"') >> '\"')->*TOKEN_ID::STRING) {
-                return ('\"' >> *(string_char(syntax_error_id) - '\"') >> '\"')->*TOKEN_ID::STRING;
-            }
-
-            static auto assignment() -> decltype(terminal('=')->*TOKEN_ID::ASSIGNMENT) {
-                return terminal('=')->*TOKEN_ID::ASSIGNMENT;
-            }
-
-            static auto groupStart() -> decltype(terminal('(')->*TOKEN_ID::GROUP_START) {
-                return terminal('(')->*TOKEN_ID::GROUP_START;
-            }
-
-            static auto groupEnd() -> decltype(terminal(')')->*TOKEN_ID::GROUP_END) {
-                return terminal(')')->*TOKEN_ID::GROUP_END;
-            }
-
-            static auto repetitionStart() -> decltype(terminal('{')->*TOKEN_ID::REPETITION_START) {
-                return terminal('{')->*TOKEN_ID::REPETITION_START;
-            }
-
-            static auto repetitionEnd() -> decltype(terminal('}')->*TOKEN_ID::REPETITION_END) {
-                return terminal('}')->*TOKEN_ID::REPETITION_END;
-            }
-
-            static auto optionalStart() -> decltype(terminal('[')->*TOKEN_ID::OPTIONAL_START) {
-                return terminal('[')->*TOKEN_ID::OPTIONAL_START;
-            }
-
-            static auto optionalEnd() -> decltype(terminal(']')->*TOKEN_ID::OPTIONAL_END) {
-                return terminal(']')->*TOKEN_ID::OPTIONAL_END;
-            }
-
-            static auto loop0() -> decltype(terminal('*')->*TOKEN_ID::LOOP_0) {
-                return terminal('*')->*TOKEN_ID::LOOP_0;
-            }
-
-            static auto loop1() -> decltype(terminal('+')->*TOKEN_ID::LOOP_1) {
-                return terminal('+')->*TOKEN_ID::LOOP_1;
-            }
-
-            static auto optional() -> decltype(terminal('?')->*TOKEN_ID::OPTIONAL) {
-                return terminal('?')->*TOKEN_ID::OPTIONAL;
-            }
-
-            static auto branch() -> decltype(terminal('|')->*TOKEN_ID::BRANCH) {
-                return terminal('|')->*TOKEN_ID::BRANCH;
-            }
-
-            static auto exclusion() -> decltype(terminal('-')->*TOKEN_ID::EXCLUSION) {
-                return terminal('-')->*TOKEN_ID::EXCLUSION;
-            }
-
-            static auto terminator() -> decltype(terminal(';')->*TOKEN_ID::TERMINATOR) {
-                return terminal(';')->*TOKEN_ID::TERMINATOR;
-            }
-
-            template <class ErrorID>
-            static auto token(ErrorID syntax_error_id) {
-                return lexer_identifier()
-                     | parser_identifier()
-                     | string(syntax_error_id)
-                     | assignment()
-                     | groupStart()
-                     | groupEnd()
-                     | repetitionStart()
-                     | repetitionEnd()
-                     | optionalStart()
-                     | optionalEnd()
-                     | loop0()
-                     | loop1()
-                     | optional()
-                     | branch()
-                     | exclusion()
-                     | terminator();
-            }
-
-            template <class ErrorID>
-            static auto grammar(ErrorID syntax_error_id) {
-                const auto valid_token_start_character = parserlib::letter() | one_of("\n\"\'=(){}[]*+?|-;");
-                return *(whitespace() | on_error_continue_after(token(syntax_error_id), syntax_error_id, valid_token_start_character)) >> end();
+                //grammar
+                return *(whitespace | token | skip_to(whitespace | token, ERROR_ID::SYNTAX_ERROR)) >> end();
             }
         };
     };

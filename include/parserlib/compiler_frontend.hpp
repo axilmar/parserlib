@@ -21,15 +21,11 @@ namespace parserlib {
 
         class lexer {
         public:
-            enum class ERROR_ID {
-                INVALID_CHARACTERS
-            };
-
-            using error_id_type = ERROR_ID;
-
             using token_id_type = typename lexer_type::token_id_type;
 
             using character_comparator_type = typename lexer_type::character_comparator_type;
+
+            using error_id_type = typename lexer_type::error_id_type;
 
             template <class Input>
             using parse_definitions_type = parse_definitions<Input, token_id_type, error_id_type, character_comparator_type>;
@@ -60,7 +56,7 @@ namespace parserlib {
 
                 //parse
                 parse_context<parse_definitions_type> context(input);
-                const bool success = lexer_type::grammar(ERROR_ID::INVALID_CHARACTERS).parse(context);
+                const bool success = lexer_type::grammar().parse(context);
 
                 //gather tokens
                 token_container_type tokens;

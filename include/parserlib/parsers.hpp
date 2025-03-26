@@ -3,8 +3,8 @@
 
 
 #include "parserlib/choice_parser.hpp"
+#include "parserlib/debug_parser.hpp"
 #include "parserlib/end_parser.hpp"
-#include "parserlib/error_parser.hpp"
 #include "parserlib/function_parser.hpp"
 #include "parserlib/logical_and_parser.hpp"
 #include "parserlib/logical_not_parser.hpp"
@@ -16,6 +16,7 @@
 #include "parserlib/parse_context.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/sequence_parser.hpp"
+#include "parserlib/skip_parser.hpp"
 #include "parserlib/stream_wrapper.hpp"
 #include "parserlib/string_wrapper.hpp"
 #include "parserlib/terminal_any_parser.hpp"
