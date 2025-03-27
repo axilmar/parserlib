@@ -86,9 +86,9 @@ namespace parserlib {
      * @param End block comment end.
      * @return a grammar that parses a block comment.
      */
-    template <class Start, class Char, class End>
-    auto block_comment(const Start& start, const Char& ch, const End& end) {
-        return start >> *(ch - end) >> end;
+    template <class Start, class Char, class End, class ErrorID>
+    auto block_comment(const Start& start, const Char& ch, const End& end, ErrorID error_id) {
+        return start >> *(ch - end) >> expected(end, error_id);
     }
 
 
@@ -99,9 +99,9 @@ namespace parserlib {
      * @param Char block comment character.
      * @return a grammar that parses a line comment.
      */
-    template <class Start, class Char>
-    auto line_comment(const Start& start, const Char& ch) {
-        return block_comment(start, ch, newline('\n') | end());
+    template <class Start, class Char, class ErrorID>
+    auto line_comment(const Start& start, const Char& ch, ErrorID error_id) {
+        return block_comment(start, ch, newline('\n') | end(), error_id);
     }
 
 

@@ -9,8 +9,51 @@
 namespace parserlib {
 
 
+    /**
+     * ENBF grammar.
+     */
     class ebnf_grammar {
     public:
+        enum class ERROR_ID {
+            EXPECTED_BLOCK_COMMENT_END,
+            EXPECTED_DOUBLE_QUOTE,
+            EXPECTED_SINGLE_QUOTE,
+            EXPECTED_TOKEN,
+            EXPECTED_GROUP_END,
+            EXPECTED_OPTIONAL_END,
+            EXPECTED_REPETITION_END,
+            EXPECTED_CHARACTER,
+            EXPECTED_UNARY_EXPRESSION,
+            EXPECTED_ASSIGNMENT,
+            EXPECTED_EXPRESSION,
+            EXPECTED_TERMINATOR,
+            EXPECTED_DECLARATION
+        };
+
+        using error_id_type = ERROR_ID;
+
+        enum class AST_ID {
+            STRING,
+            LEXER_IDENTIFIER,
+            LEXER_DECLARATION,
+            PARSER_IDENTIFIER,
+            PARSER_DECLARATION,
+            OPTIONAL,
+            LOOP_0,
+            LOOP_1,
+            GROUP,
+            BRANCH,
+            SEQUENCE,
+            EXCLUSION,
+            CHAR,
+            CHAR_RANGE
+        };
+
+        using ast_id_type = AST_ID;
+
+        /**
+         * EBNF Lexer.
+         */
         class lexer {
         public:
             enum class TOKEN_ID {
@@ -38,19 +81,13 @@ namespace parserlib {
 
             using character_comparator_type = case_sensitive_comparator;
 
-            enum class ERROR_ID {
-                SYNTAX_ERROR
-            };
-
-            using error_id_type = ERROR_ID;
-
-            template <class Context>
+            template <class ParseContext>
             class grammar {
             public:
                 grammar() {
                 }
 
-                bool parse(Context& context) const {
+                bool parse(ParseContext& context) const {
                     return get_grammar().parse(context);
                 }
 
@@ -58,7 +95,7 @@ namespace parserlib {
                 auto get_grammar() const {
                     //whitespace
                     auto newline = parserlib::newline('\n');
-                    auto block_comment = parserlib::block_comment("(*", newline | any(), "*)");
+                    auto block_comment = parserlib::block_comment("(*", newline | any(), "*)", ERROR_ID::EXPECTED_BLOCK_COMMENT_END);
                     auto whitespace = block_comment | newline | parserlib::whitespace();
 
                     //identifiers
@@ -71,10 +108,10 @@ namespace parserlib {
                     auto hex_digit = one_of("0123456789abcdefABCDEF");
                     auto hex_char = (terminal("\\x") | "\\X") >> hex_digit >> -(hex_digit >> -(hex_digit >> -hex_digit));
                     auto string_char = escaped_char | hex_char | any();
-                    auto string = ('\"' >> *((string_char | skip_to(string_char, ERROR_ID::SYNTAX_ERROR)) - '"') >> '\"')->*TOKEN_ID::STRING;
+                    auto string = ('\"' >> *(string_char - '"') >> expected('\"', ERROR_ID::EXPECTED_DOUBLE_QUOTE))->*TOKEN_ID::STRING;
 
                     //char
-                    auto character = (terminal('\'') >> ((string_char - '\'') | skip_to('\'', ERROR_ID::SYNTAX_ERROR)) >> '\'')->*TOKEN_ID::CHAR;
+                    auto character = (terminal('\'') >> (string_char - '\'') >> expected('\'', ERROR_ID::EXPECTED_SINGLE_QUOTE))->*TOKEN_ID::CHAR;
 
                     //range
                     auto range = terminal("..")->*TOKEN_ID::RANGE;
@@ -95,7 +132,8 @@ namespace parserlib {
                     auto terminator = terminal(';')->*TOKEN_ID::TERMINATOR;
 
                     //tokens
-                    auto token = lexer_identifier
+                    auto token 
+                        = lexer_identifier
                         | parser_identifier
                         | string
                         | character
@@ -115,64 +153,39 @@ namespace parserlib {
                         | terminator;
 
                     //grammar
-                    return *(whitespace | token | skip_to(whitespace | token, ERROR_ID::SYNTAX_ERROR)) >> end();
+                    return *((whitespace | expected(token, ERROR_ID::EXPECTED_TOKEN, skip_before(whitespace | token))) - end()) >> end();
                 }
             };
         };
 
         class parser {
         public:
-            enum class AST_ID {
-                STRING,
-                LEXER_IDENTIFIER,
-                LEXER_DECLARATION,
-                PARSER_IDENTIFIER,
-                PARSER_DECLARATION,
-                OPTIONAL,
-                LOOP_0,
-                LOOP_1,
-                GROUP,
-                BRANCH,
-                SEQUENCE,
-                EXCLUSION,
-                CHAR,
-                CHAR_RANGE
-            };
-
-            using ast_id_type = AST_ID;
-
-            enum class ERROR_ID {
-                SYNTAX_ERROR
-            };
-
-            using error_id_type = ERROR_ID;
-
-            template <class Context>
+            template <class ParseContext>
             class grammar {
             public:
-                bool parse(Context& context) {
+                bool parse(ParseContext& context) {
                     auto grammar = get_grammar();
                     return grammar.parse(context);
                 }
 
             private:
-                rule<Context> m_lexer_branch_expression;
-                rule<Context> m_parser_branch_expression;
+                rule<ParseContext> m_lexer_branch_expression;
+                rule<ParseContext> m_parser_branch_expression;
 
                 auto get_grammar() {
                     //lexer and parser declarations differ; lexer declarations require ALL_CAPS for lexer tokens.
-                    auto create_declaration = [&](const auto& identifier, rule<Context>& branch_expression, const auto& extra_values) {
+                    auto create_declaration = [&](const auto& identifier, rule<ParseContext>& branch_expression, const auto& extra_values) {
                         const auto string = terminal(lexer::TOKEN_ID::STRING)->*AST_ID::STRING;
 
-                        const auto group = (lexer::TOKEN_ID::GROUP_START >> branch_expression >> lexer::TOKEN_ID::GROUP_END)->*AST_ID::GROUP;
+                        const auto group = (lexer::TOKEN_ID::GROUP_START >> branch_expression >> expected(lexer::TOKEN_ID::GROUP_END, ERROR_ID::EXPECTED_GROUP_END))->*AST_ID::GROUP;
 
-                        const auto optional_group = (lexer::TOKEN_ID::OPTIONAL_START >> branch_expression >> lexer::TOKEN_ID::OPTIONAL_END)->*AST_ID::OPTIONAL;
+                        const auto optional_group = (lexer::TOKEN_ID::OPTIONAL_START >> branch_expression >> expected(lexer::TOKEN_ID::OPTIONAL_END, ERROR_ID::EXPECTED_OPTIONAL_END))->*AST_ID::OPTIONAL;
 
-                        const auto repetition_group = (lexer::TOKEN_ID::REPETITION_START >> branch_expression >> lexer::TOKEN_ID::REPETITION_END)->*AST_ID::LOOP_0;
+                        const auto repetition_group = (lexer::TOKEN_ID::REPETITION_START >> branch_expression >> expected(lexer::TOKEN_ID::REPETITION_END, ERROR_ID::EXPECTED_REPETITION_END))->*AST_ID::LOOP_0;
 
                         const auto character = terminal(lexer::TOKEN_ID::CHAR)->*AST_ID::CHAR;
 
-                        const auto char_range = (character >> lexer::TOKEN_ID::RANGE >> character)->*AST_ID::CHAR_RANGE;
+                        const auto char_range = (character >> lexer::TOKEN_ID::RANGE >> expected(character, ERROR_ID::EXPECTED_CHARACTER))->*AST_ID::CHAR_RANGE;
 
                         const auto value
                             = identifier
@@ -196,6 +209,8 @@ namespace parserlib {
                             | loop_1
                             | value;
 
+                        //const auto unary_expression = expected(unary_expression_content, ERROR_ID::EXPECTED_UNARY_EXPRESSION);
+
                         const auto exclusion = (unary_expression >> lexer::TOKEN_ID::EXCLUSION >> unary_expression)->*AST_ID::EXCLUSION;
 
                         const auto binary_expression
@@ -212,16 +227,21 @@ namespace parserlib {
                             = (branch_expression >> lexer::TOKEN_ID::BRANCH >> sequence_expression)->*AST_ID::BRANCH
                             | sequence_expression;
 
-                        return identifier >> terminal(lexer::TOKEN_ID::ASSIGNMENT) >> branch_expression >> lexer::TOKEN_ID::TERMINATOR;
+                        return identifier 
+                            >> expected(lexer::TOKEN_ID::ASSIGNMENT, ERROR_ID::EXPECTED_ASSIGNMENT)
+                            >> expected(branch_expression, ERROR_ID::EXPECTED_EXPRESSION)
+                            >> expected(lexer::TOKEN_ID::TERMINATOR, ERROR_ID::EXPECTED_TERMINATOR);
                     };
 
                     const auto lexer_identifier = terminal(lexer::TOKEN_ID::LEXER_IDENTIFIER)->*AST_ID::LEXER_IDENTIFIER;
-                    const auto parser_identifier = terminal(lexer::TOKEN_ID::PARSER_IDENTIFIER)->*AST_ID::PARSER_IDENTIFIER;
 
                     const auto lexer_declaration = create_declaration(lexer_identifier, m_lexer_branch_expression, false)->*AST_ID::LEXER_DECLARATION;
+
+                    const auto parser_identifier = terminal(lexer::TOKEN_ID::PARSER_IDENTIFIER)->*AST_ID::PARSER_IDENTIFIER;
+
                     const auto parser_declaration = create_declaration(parser_identifier, m_parser_branch_expression, lexer_identifier)->*AST_ID::PARSER_DECLARATION;
 
-                    return (*(lexer_declaration | parser_declaration | skip_after(lexer::TOKEN_ID::TERMINATOR, ERROR_ID::SYNTAX_ERROR))) >> end();
+                    return *(expected(lexer_declaration | parser_declaration, ERROR_ID::EXPECTED_DECLARATION, skip_after(lexer::TOKEN_ID::TERMINATOR)) - end()) >> end();
                 }
             }; //class grammar
         

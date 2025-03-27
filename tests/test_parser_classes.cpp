@@ -44,6 +44,93 @@ static void test_end_parser() {
 }
 
 
+static void test_expected_parser() {
+    enum ERROR_ID {
+        EXPECTED_TERMINATOR
+    };
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR);
+        std::string source = "a;";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().empty());
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR);
+        std::string source = "a.";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.parse_position() == std::next(source.begin(), 1));
+        assert(context.errors().size() == 1);
+        assert(context.errors()[0].span().begin() == std::next(source.begin(), 1));
+        assert(context.errors()[0].span().end() == std::next(source.begin(), 1));
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR, skip_before('.')) >> '.';
+        std::string source = "a;.";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().empty());
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR, skip_before('.')) >> '.';
+        std::string source = "a.";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().size() == 1);
+        assert(context.errors()[0].span().begin() == std::next(source.begin(), 1));
+        assert(context.errors()[0].span().end() == std::next(source.begin(), 1));
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR, skip_after(';')) >> '.';
+        std::string source = "a;.";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().empty());
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR, skip_after(';')) >> '.';
+        std::string source = "ab;.";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().size() == 1);
+        assert(context.errors()[0].span().begin() == std::next(source.begin(), 1));
+        assert(context.errors()[0].span().end() == std::next(source.begin(), 2));
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR, skip_count(1)) >> '.';
+        std::string source = "a;.";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().empty());
+    }
+
+    {
+        const auto grammar = terminal('a') >> expected(';', EXPECTED_TERMINATOR, skip_count(1)) >> '.';
+        std::string source = "a..";
+        parse_context<> context(source);
+        assert(grammar.parse(context));
+        assert(context.is_end_parse_position());
+        assert(context.errors().size() == 1);
+        assert(context.errors()[0].span().begin() == std::next(source.begin(), 1));
+        assert(context.errors()[0].span().end() == std::next(source.begin(), 2));
+    }
+}
+
+
 static void test_logical_and_parser() {
     {
         const auto grammar = &terminal('a');
@@ -1043,45 +1130,6 @@ static void test_sequence_parser() {
 }
 
 
-static void test_skip_parser() {
-    {
-        const auto grammar = terminal('a') >> ';' | skip_to(';', 0);
-        std::string source = "a;";
-        parse_context<> context(source);
-        assert(grammar.parse(context));
-        assert(context.is_end_parse_position());
-    }
-
-    {
-        const auto grammar = terminal('a') >> ';' | skip_to(';', 0);
-        std::string source = "b;";
-        parse_context<> context(source);
-        assert(grammar.parse(context));
-        assert(context.parse_position() == std::next(source.begin(), 1));
-        assert(context.errors().size() == 1);
-        assert(context.errors()[0].source() == "b");
-    }
-
-    {
-        const auto grammar = terminal('a') >> ';' | skip_after(';', 0);
-        std::string source = "a;";
-        parse_context<> context(source);
-        assert(grammar.parse(context));
-        assert(context.is_end_parse_position());
-    }
-
-    {
-        const auto grammar = terminal('a') >> ';' | skip_after(';', 0);
-        std::string source = "b;";
-        parse_context<> context(source);
-        assert(grammar.parse(context));
-        assert(context.is_end_parse_position());
-        assert(context.errors().size() == 1);
-        assert(context.errors()[0].source() == "b");
-    }
-}
-
-
 static void test_terminal_parser() {
     {
         const auto grammar = terminal('a');
@@ -1196,6 +1244,7 @@ static void test_zero_or_more_parser() {
 void test_parser_classes() {
     test_choice_parser();
     test_end_parser();
+    test_expected_parser();
     test_logical_and_parser();
     test_logical_not_parser();
     test_match_parser();
@@ -1204,7 +1253,6 @@ void test_parser_classes() {
     test_optional_parser();
     test_rule();
     test_sequence_parser();
-    test_skip_parser();
     test_terminal_parser();
     test_terminal_string_parser();
     test_terminal_range_parser();

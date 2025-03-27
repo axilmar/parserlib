@@ -68,13 +68,13 @@ static void test_parser() {
 
     assert(result.success);
     assert(result.parser.ast_nodes.size() == 7);
-    assert(result.parser.ast_nodes[0]->id() == ebnf_grammar::parser::AST_ID::LEXER_DECLARATION);
-    assert(result.parser.ast_nodes[1]->id() == ebnf_grammar::parser::AST_ID::LEXER_DECLARATION);
-    assert(result.parser.ast_nodes[2]->id() == ebnf_grammar::parser::AST_ID::LEXER_DECLARATION);
-    assert(result.parser.ast_nodes[3]->id() == ebnf_grammar::parser::AST_ID::LEXER_DECLARATION);
-    assert(result.parser.ast_nodes[4]->id() == ebnf_grammar::parser::AST_ID::PARSER_DECLARATION);
-    assert(result.parser.ast_nodes[5]->id() == ebnf_grammar::parser::AST_ID::PARSER_DECLARATION);
-    assert(result.parser.ast_nodes[6]->id() == ebnf_grammar::parser::AST_ID::PARSER_DECLARATION);
+    assert(result.parser.ast_nodes[0]->id() == ebnf_grammar::AST_ID::LEXER_DECLARATION);
+    assert(result.parser.ast_nodes[1]->id() == ebnf_grammar::AST_ID::LEXER_DECLARATION);
+    assert(result.parser.ast_nodes[2]->id() == ebnf_grammar::AST_ID::LEXER_DECLARATION);
+    assert(result.parser.ast_nodes[3]->id() == ebnf_grammar::AST_ID::LEXER_DECLARATION);
+    assert(result.parser.ast_nodes[4]->id() == ebnf_grammar::AST_ID::PARSER_DECLARATION);
+    assert(result.parser.ast_nodes[5]->id() == ebnf_grammar::AST_ID::PARSER_DECLARATION);
+    assert(result.parser.ast_nodes[6]->id() == ebnf_grammar::AST_ID::PARSER_DECLARATION);
 }
 
 

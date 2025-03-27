@@ -405,7 +405,7 @@ namespace parserlib {
          * @return true if the error was set, false if there is an error in a greater position.
          */
         bool set_error(const error_type& error) {
-            if (m_error.invalid() || error.position() > m_error.position()) {
+            if (m_error.invalid() || error.span().begin() > m_error.span().begin()) {
                 m_error = error;
                 return true;
             }
@@ -415,12 +415,11 @@ namespace parserlib {
         /**
          * Sets the current error.
          * @param error_id the error id.
-         * @param span the area of the source that the error is within.
-         * @param error_pos position that the error starts.
+         * @param span the source area that is the error.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool set_error(const error_id_type& error_id, const input_span_type& span, const input_iterator_type& error_pos) {
-            return set_error(error_type(error_id, span, error_pos));
+        bool set_error(const error_id_type& error_id, const input_span_type& span) {
+            return set_error(error_type(error_id, span));
         }
 
         /**
@@ -428,10 +427,9 @@ namespace parserlib {
          * @param error_id the error id.
          * @param begin start position of span that contains the error.
          * @param end end position of the span that contains the error.
-         * @param error_pos position that the error starts.
          */
-        bool set_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end, const input_iterator_type& error_pos) {
-            return set_error(error_id, input_span_type(begin, end), error_pos);
+        bool set_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end) {
+            return set_error(error_id, input_span_type(begin, end));
         }
 
         /**
@@ -449,12 +447,11 @@ namespace parserlib {
          * Adds an error.
          * It sets the current error, then commits it.
          * @param error_id the error id.
-         * @param span the area of the source that the error is within.
-         * @param error_pos position that the error starts.
+         * @param span the area of the source that is the error.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool add_error(const error_id_type& error_id, const input_span_type& span, const input_iterator_type& error_pos) {
-            if (set_error(error_id, span, error_pos)) {
+        bool add_error(const error_id_type& error_id, const input_span_type& span) {
+            if (set_error(error_id, span)) {
                 commit_error();
                 return true;
             }
@@ -467,11 +464,10 @@ namespace parserlib {
          * @param error_id the error id.
          * @param begin start position of span that contains the error.
          * @param end end position of the span that contains the error.
-         * @param error_pos position that the error starts.
          * @return true if the error was set, false if there is an error in a greater position.
          */
-        bool add_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end, const input_iterator_type& error_pos) {
-            return add_error(error_id, input_span_type(begin, end), error_pos);
+        bool add_error(const error_id_type& error_id, const input_iterator_type& begin, const input_iterator_type& end) {
+            return add_error(error_id, input_span_type(begin, end));
         }
 
         // left recursion -----------------------------------------------------

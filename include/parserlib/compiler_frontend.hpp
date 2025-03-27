@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <vector>
+#include <algorithm>
 #include "parse_context.hpp"
 #include "token.hpp"
 #include "error.hpp"
@@ -18,6 +19,10 @@ namespace parserlib {
     public:
         using grammar_type = Grammar;
 
+        using ast_id_type = typename grammar_type::ast_id_type;
+
+        using error_id_type = typename grammar_type::error_id_type;
+
         using lexer_type = typename grammar_type::lexer;
 
         using parser_type = typename grammar_type::parser;
@@ -28,18 +33,15 @@ namespace parserlib {
 
             using character_comparator_type = typename lexer_type::character_comparator_type;
 
-            using error_id_type = typename lexer_type::error_id_type;
-
-            template <class Input>
-            using parse_definitions_type = parse_definitions<Input, token_id_type, error_id_type, character_comparator_type>;
-
             template <class Input>
             struct result {
+                using parse_definitions_type = parse_definitions<Input, token_id_type, error_id_type, character_comparator_type>;
+
                 using token_type = token<Input, token_id_type>;
 
                 using token_container_type = std::vector<token_type>;
 
-                using error_type = error<parse_definitions_type<Input>>;
+                using error_type = error<parse_definitions_type>;
 
                 using error_container_type = std::vector<error_type>;
 
@@ -53,7 +55,7 @@ namespace parserlib {
             template <class Input>
             static result<Input> tokenize(Input& input) {
                 //types
-                using parse_definitions_type = parse_definitions_type<Input>;
+                using parse_definitions_type = typename result<Input>::parse_definitions_type;
                 using result_type = result<Input>;
                 using token_container_type = typename result_type::token_container_type;
                 using parse_context_type = parse_context<parse_definitions_type>;
@@ -77,20 +79,13 @@ namespace parserlib {
 
         class parser {
         public:
-            using ast_id_type = typename parser_type::ast_id_type;
-
-            using error_id_type = typename parser_type::error_id_type;
-
-            template <class Input>
-            using parse_definitions_type = parse_definitions<Input, ast_id_type, error_id_type>;
-
             template <class Input>
             struct result {
-                using parse_definitions_type = parse_definitions_type<Input>;
+                using parse_definitions_type = parse_definitions<Input, ast_id_type, error_id_type>;
 
-                using ast_node_ptr_type = parserlib::ast_node_ptr_type<parse_definitions_type>;
+                using ast_node_type = ast_node<parse_definitions_type>;
 
-                using ast_container_type = std::vector<ast_node_ptr_type>;
+                using ast_container_type = std::vector<ast_node_ptr_type<parse_definitions_type>>;
 
                 using error_type = error<parse_definitions_type>;
 
@@ -106,8 +101,8 @@ namespace parserlib {
             template <class Input, class AstNodeFactory>
             static result<Input> parse(Input& input, const AstNodeFactory& ast_node_factory) {
                 //types
-                using parse_definitions_type = parse_definitions_type<Input>;
                 using result_type = result<Input>;
+                using parse_definitions_type = typename result_type::parse_definitions_type;
                 using ast_container_type = typename result_type::ast_container_type;
                 using parse_context_type = parse_context<parse_definitions_type>;
                 using grammar_type = typename parser_type::template grammar<parse_context_type>;
@@ -125,20 +120,16 @@ namespace parserlib {
 
             template <class Input>
             static result<Input> parse(Input& input) {
-                return parse(input, ast_node_factory<ast_node<parse_definitions_type<Input>>>());
+                return parse(input, ast_node_factory<typename result<Input>::ast_node_type>());
             }
         };
 
         template <class Input>
         struct result {
-            using tokenizer_input_type = std::vector<token<Input, typename lexer_type::token_id_type>>;
-
+            using ParserInput = typename lexer:: template result<Input>::token_container_type;
             bool success;
-
             typename lexer::template result<Input> lexer;
-
-            typename parser::template result<tokenizer_input_type> parser;
-
+            typename parser::template result<ParserInput> parser;
         };
     
         template <class Input> 

@@ -44,15 +44,12 @@ namespace parserlib {
          * The valid object constructor.
          * @param id id of the error.
          * @param span the span of the error in the source.
-         * @param error_pos the position the error starts from.
          */
-        error(const error_id_type& id, const input_span_type& span, const input_iterator_type& error_pos)
+        error(const error_id_type& id, const input_span_type& span)
             : m_id(id)
             , m_span(span)
-            , m_error_pos(error_pos)
             , m_valid(true)
         {
-            assert(error_pos >= span.begin() && error_pos < span.end());
         }
 
         /**
@@ -71,14 +68,6 @@ namespace parserlib {
         const input_span_type& span() const {
             assert(m_valid);
             return m_span;
-        }
-
-        /**
-         * Returns the error position.
-         * @return the error position.
-         */
-        const input_iterator_type& position() const {
-            return m_error_pos;
         }
 
         /**
@@ -110,7 +99,6 @@ namespace parserlib {
     private:
         error_id_type m_id;
         input_span_type m_span;
-        input_iterator_type m_error_pos;
         bool m_valid;
     };
 
