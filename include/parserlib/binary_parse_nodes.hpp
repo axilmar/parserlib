@@ -14,7 +14,7 @@ namespace parserlib {
         using tuple_type = std::tuple<Parsers...>;
     public:
         sequence_parse_node(const tuple_type& parsers) noexcept
-            : m_parsers(std::make_tuple(parsers))
+            : m_parsers(parsers)
         {
         }
 
@@ -43,7 +43,7 @@ namespace parserlib {
 
         template <std::size_t I, class State, class ParseContext>
         parse_result parse_loop(const State& initial_state, ParseContext& pc) const noexcept {
-            if constexpr (I < sizeof...(Parsers)>) {
+            if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse(pc);
                 if (!result) {
                     pc.set_state(initial_state);
@@ -107,7 +107,7 @@ namespace parserlib {
         using tuple_type = std::tuple<Parsers...>;
     public:
         choice_parse_node(const tuple_type& parsers) noexcept
-            : m_parsers(std::make_tuple(parsers))
+            : m_parsers(parsers)
         {
         }
 
@@ -136,7 +136,7 @@ namespace parserlib {
 
         template <std::size_t I, class State, class ParseContext>
         parse_result parse_loop(const State& initial_state, ParseContext& pc) const noexcept {
-            if constexpr (I < sizeof...(Parsers)>) {
+            if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse(pc);
                 if (result) {
                     return result;
@@ -152,7 +152,7 @@ namespace parserlib {
 
         template <std::size_t I, class State, class ParseContext>
         parse_result parse_left_recursion_start_loop(const State& initial_state, ParseContext& pc) const noexcept {
-            if constexpr (I < sizeof...(Parsers)>) {
+            if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse_left_recursion_start(pc);
                 if (result) {
                     return result;
@@ -168,7 +168,7 @@ namespace parserlib {
 
         template <std::size_t I, class State, class ParseContext>
         parse_result parse_left_recursion_continuation_loop(const State& initial_state, ParseContext& pc, const State& match_start) const noexcept {
-            if constexpr (I < sizeof...(Parsers)>) {
+            if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse_left_recursion_continuation(pc, match_start);
                 if (result) {
                     return result;
@@ -228,7 +228,7 @@ namespace parserlib {
             const auto match_start = pc.state();
             parse_result result = m_parser.parse(pc);
             if (result) {
-                pc.add_match(match_id, match_start.position(), pc.parse_position(), match_start.match_count());
+                pc.add_match(m_match_id, match_start.position(), pc.parse_position(), match_start.match_count());
             }
             return result;
         }
@@ -238,7 +238,7 @@ namespace parserlib {
             const auto match_start = pc.state();
             parse_result result = m_parser.parse_left_recursion_start(pc);
             if (result) {
-                pc.add_match(match_id, match_start.position(), pc.parse_position(), match_start.match_count());
+                pc.add_match(m_match_id, match_start.position(), pc.parse_position(), match_start.match_count());
             }
             return result;
         }
@@ -247,7 +247,7 @@ namespace parserlib {
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             parse_result result = m_parser.parse_left_recursion_continuation(pc, pc.state());
             if (result) {
-                pc.add_match(match_id, match_start.position(), pc.parse_position(), match_start.match_count());
+                pc.add_match(m_match_id, match_start.position(), pc.parse_position(), match_start.match_count());
             }
             return result;
         }
