@@ -78,6 +78,10 @@ namespace parserlib {
     }
 
 
+    template <class T>
+    using parse_node_wrapper_type = std::decay_t<decltype(get_parse_node_wrapper(*(T*)nullptr))>;
+
+
     template <class Derived>
     class parse_node : public parse_node_base {
     public:
@@ -87,36 +91,6 @@ namespace parserlib {
         auto operator &() const noexcept;
         auto operator !() const noexcept;
     };
-
-
-    template <class Derived> 
-    auto parse_node<Derived>::operator *() const noexcept {
-        return zero_or_more_parse_node(get_parse_node_wrapper(*this));
-    }
-
-
-    template <class Derived>
-    auto parse_node<Derived>::operator +() const noexcept {
-        return one_or_more_parse_node(get_parse_node_wrapper(*this));
-    }
-
-
-    template <class Derived>
-    auto parse_node<Derived>::operator -() const noexcept {
-        return optional_parse_node(get_parse_node_wrapper(*this));
-    }
-
-
-    template <class Derived>
-    auto parse_node<Derived>::operator &() const noexcept {
-        return logical_and_parse_node(get_parse_node_wrapper(*this));
-    }
-
-
-    template <class Derived>
-    auto parse_node<Derived>::operator !() const noexcept {
-        return logical_not_parse_node(get_parse_node_wrapper(*this));
-    }
 
 
     struct left_recursion {
@@ -159,14 +133,6 @@ namespace parserlib {
             return is_true();
         }
 
-        bool operator == (bool value) const noexcept {
-            return is_true() == value;
-        }
-
-        bool operator != (bool value) const noexcept {
-            return is_true() != value;
-        }
-
         enum value_type {
             FALSE = 0,
             TRUE = 1,
@@ -175,10 +141,6 @@ namespace parserlib {
 
         value_type value() const noexcept {
             return static_cast<value_type>(m_value.index());
-        }
-
-        operator value_type() const noexcept {
-            return value();
         }
 
     private:

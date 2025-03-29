@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <map>
 #include <cctype>
+#include <type_traits>
+#include <string_view>
 
 
 namespace parserlib {
@@ -40,7 +42,9 @@ namespace parserlib {
     public:
         // TYPES --------------------------------------------------------------
 
+        using parse_context_type = parse_context<Source, MatchId, ErrorId, Comparator>;
         using source_type = Source;
+        using value_type = typename Source::value_type;
         using match_id_type = MatchId;
         using error_id_type = ErrorId;
         using comparator_type = Comparator;
@@ -124,6 +128,16 @@ namespace parserlib {
             m_matches.resize(state.match_count());
         }
 
+        template <class It>
+        static auto source(const It& begin, const It& end) noexcept {
+            if constexpr (std::is_integral_v<value_type>) {
+                return std::string_view(&*begin, std::distance(begin, end));
+            }
+            else {
+                return std::vector(begin, end);
+            }
+        }
+
         // COMPARISONS --------------------------------------------------------
 
         template <class T1, class T2>
@@ -161,6 +175,10 @@ namespace parserlib {
 
             const std::vector<match>& children() const noexcept {
                 return m_children;
+            }
+
+            auto source() const noexcept {
+                return parse_context_type::source(m_begin, m_end);
             }
 
         private:
@@ -207,6 +225,10 @@ namespace parserlib {
 
             const iterator_type& end() const noexcept {
                 return m_end;
+            }
+
+            auto source() const noexcept {
+                return parse_context_type::source(m_begin, m_end);
             }
 
         private:

@@ -300,6 +300,36 @@ namespace parserlib {
     };
 
 
+    template <class Derived>
+    auto parse_node<Derived>::operator *() const noexcept {
+        return zero_or_more_parse_node<Derived>(static_cast<const Derived&>(*this));
+    }
+
+
+    template <class Derived>
+    auto parse_node<Derived>::operator +() const noexcept {
+        return one_or_more_parse_node<Derived>(static_cast<const Derived&>(*this));
+    }
+
+
+    template <class Derived>
+    auto parse_node<Derived>::operator -() const noexcept {
+        return optional_parse_node<Derived>(static_cast<const Derived&>(*this));
+    }
+
+
+    template <class Derived>
+    auto parse_node<Derived>::operator &() const noexcept {
+        return logical_and_parse_node<Derived>(static_cast<const Derived&>(*this));
+    }
+
+
+    template <class Derived>
+    auto parse_node<Derived>::operator !() const noexcept {
+        return logical_not_parse_node<Derived>(static_cast<const Derived&>(*this));
+    }
+
+
 } //namespace parserlib
 
 

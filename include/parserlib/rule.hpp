@@ -11,7 +11,7 @@ namespace parserlib {
 
     template <class ParseContext>
     class rule : public parse_node<rule<ParseContext>> {
-        using state_type = typename ParseContext::state;
+        using state_type = class ParseContext::state;
     public:
         rule() {
         }
@@ -22,6 +22,8 @@ namespace parserlib {
         {
         }
 
+        rule(const rule&) = delete;
+
         rule(rule&&) = delete;
 
         template <class T, std::enable_if_t<!std::is_same_v<T, rule<ParseContext>>, bool> = true>
@@ -30,7 +32,15 @@ namespace parserlib {
             return *this;
         }
 
+        rule& operator =(const rule&) = delete;
+
         rule& operator =(rule&&) = delete;
+
+        zero_or_more_parse_node<rule_ref_parse_node<ParseContext>> operator *() noexcept { return *this; }
+        one_or_more_parse_node<rule_ref_parse_node<ParseContext>> operator +() noexcept { return *this; }
+        optional_parse_node<rule_ref_parse_node<ParseContext>> operator -() noexcept { return *this; }
+        logical_and_parse_node<rule_ref_parse_node<ParseContext>> operator &() noexcept { return *this; }
+        logical_not_parse_node<rule_ref_parse_node<ParseContext>> operator !() noexcept { return *this; }
 
         parse_result parse(ParseContext& pc) noexcept {
             if (pc.is_left_recursive_rule(*this)) {
@@ -96,7 +106,7 @@ namespace parserlib {
 
         template <class T>
         static auto create_impl(const T& t) noexcept {
-            return std::make_unique<expr_impl<decltype(get_parse_node_wrapper(t))>>(get_parse_node_wrapper(t));
+            return std::make_unique<expr_impl<parse_node_wrapper_type<T>>>(get_parse_node_wrapper(t));
         }
 
         parse_result parse_left_recursion(ParseContext& pc) noexcept {
@@ -114,17 +124,17 @@ namespace parserlib {
             }
 
             //left recursion continuation
-            for (;;) {
+            do {
                 pc.push_rule_parse_position(*this);
                 parse_result result = m_expr->parse_left_recursion_continuation(pc, match_start);
                 pc.pop_rule_parse_position(*this);
                 switch (result.value()) {
                     case parse_result::FALSE:
-                        break;
+                        return true;
                     case parse_result::LEFT_RECURSION:
                         return result;
                 }
-            }
+            } while (pc.is_valid_parse_position());
 
             return true;
         }
@@ -154,15 +164,18 @@ namespace parserlib {
         {
         }
 
-        parse_result parse(ParseContext& pc) noexcept {
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
             return m_rule.parse(pc);
         }
 
-        parse_result parse_left_recursion_start(ParseContext& pc) noexcept {
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
             return m_rule.parse_left_recursion_start(pc);
         }
 
-        parse_result parse_left_recursion_continuation(ParseContext& pc, const state_type& match_start) noexcept {
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             return m_rule.parse_left_recursion_continuation(pc, match_start);
         }
 

@@ -3,14 +3,18 @@
 
 
 #include <tuple>
+#include <utility>
 #include "parse_node.hpp"
 
 
 namespace parserlib {
 
 
+    class sequence_parse_node_base {};
+
+
     template <class... Parsers>
-    class sequence_parse_node : public parse_node<sequence_parse_node<Parsers...>> {
+    class sequence_parse_node : public parse_node<sequence_parse_node<Parsers...>>, public sequence_parse_node_base {
         using tuple_type = std::tuple<Parsers...>;
     public:
         sequence_parse_node(const tuple_type& parsers) noexcept
@@ -21,7 +25,6 @@ namespace parserlib {
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
             return parse_loop<0>(pc.state(), pc);
-
         }
 
         template <class ParseContext>
@@ -78,32 +81,35 @@ namespace parserlib {
     };
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, L> || std::is_base_of_v<parse_node_base, R>, bool> = true>
-    auto operator >> (const L& l, const R& r) noexcept {
-        return sequence_parse_node(std::make_tuple(get_parse_node_wrapper(l), get_parse_node_wrapper(r)));
+    template <class L, class R, std::enable_if_t<(std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>) && !std::is_base_of_v<sequence_parse_node_base, L> && !std::is_base_of_v<sequence_parse_node_base, R>, bool> = true>
+    auto operator >> (L&& l, R&& r) noexcept {
+        return sequence_parse_node(std::make_tuple(get_parse_node_wrapper(std::forward<L>(l)), get_parse_node_wrapper(std::forward<R>(r))));
     }
 
 
-    template <class... L, class ...R>
+    template <class... L, class... R>
     auto operator >> (const sequence_parse_node<L...>& l, const sequence_parse_node<R...>& r) noexcept {
         return sequence_parse_node(std::tuple_cat(l.parsers(), r.parsers()));
     }
 
 
-    template <class... L, class R>
-    auto operator >> (const sequence_parse_node<L...>& l, const R& r) noexcept {
-        return sequence_parse_node(std::tuple_cat(l.parsers(), std::make_tuple(get_parse_node_wrapper(r))));
+    template <class... L, class R, std::enable_if_t<!std::is_base_of_v<sequence_parse_node_base, R>, bool> = true>
+    auto operator >> (const sequence_parse_node<L...>& l, R&& r) noexcept {
+        return sequence_parse_node(std::tuple_cat(l.parsers(), std::make_tuple(get_parse_node_wrapper(std::forward<R>(r)))));
     }
 
 
-    template <class L, class ...R>
-    auto operator >> (const L& l, const sequence_parse_node<R...>& r) noexcept {
-        return sequence_parse_node(std::tuple_cat(std::make_tuple(get_parse_node_wrapper(l)), r.parsers()));
+    template <class L, class... R, std::enable_if_t<!std::is_base_of_v<sequence_parse_node_base, L>, bool> = true>
+    auto operator >> (L&& l, const sequence_parse_node<R...>& r) noexcept {
+        return sequence_parse_node(std::tuple_cat(std::make_tuple(get_parse_node_wrapper(std::forward<L>(l))), r.parsers()));
     }
+
+
+    class choice_parse_node_base {};
 
 
     template <class... Parsers>
-    class choice_parse_node : public parse_node<choice_parse_node<Parsers...>> {
+    class choice_parse_node : public parse_node<choice_parse_node<Parsers...>>, public choice_parse_node_base {
         using tuple_type = std::tuple<Parsers...>;
     public:
         choice_parse_node(const tuple_type& parsers) noexcept
@@ -114,17 +120,16 @@ namespace parserlib {
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
             return parse_loop<0>(pc.state(), pc);
-
         }
 
         template <class ParseContext>
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
-            return parse_left_recursion_start_loop(pc.state(), pc);
+            return parse_left_recursion_start_loop<0>(pc.state(), pc);
         }
 
         template <class ParseContext, class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
-            return parse_left_recursion_continuation_loop(pc.state(), pc, match_start);
+            return parse_left_recursion_continuation_loop<0>(pc.state(), pc, match_start);
         }
 
         const tuple_type& parsers() const noexcept {
@@ -138,8 +143,10 @@ namespace parserlib {
         parse_result parse_loop(const State& initial_state, ParseContext& pc) const noexcept {
             if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse(pc);
-                if (result) {
-                    return result;
+                switch (result.value()) {
+                    case parse_result::TRUE:
+                    case parse_result::LEFT_RECURSION:
+                        return result;
                 }
                 pc.set_state(initial_state);
                 return parse_loop<I + 1>(initial_state, pc);
@@ -154,8 +161,10 @@ namespace parserlib {
         parse_result parse_left_recursion_start_loop(const State& initial_state, ParseContext& pc) const noexcept {
             if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse_left_recursion_start(pc);
-                if (result) {
-                    return result;
+                switch (result.value()) {
+                    case parse_result::TRUE:
+                    case parse_result::LEFT_RECURSION:
+                        return result;
                 }
                 pc.set_state(initial_state);
                 return parse_left_recursion_start_loop<I + 1>(initial_state, pc);
@@ -170,8 +179,10 @@ namespace parserlib {
         parse_result parse_left_recursion_continuation_loop(const State& initial_state, ParseContext& pc, const State& match_start) const noexcept {
             if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse_left_recursion_continuation(pc, match_start);
-                if (result) {
-                    return result;
+                switch (result.value()) {
+                    case parse_result::TRUE:
+                    case parse_result::LEFT_RECURSION:
+                        return result;
                 }
                 pc.set_state(initial_state);
                 return parse_left_recursion_continuation_loop<I + 1>(initial_state, pc, match_start);
@@ -184,33 +195,33 @@ namespace parserlib {
     };
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, L> || std::is_base_of_v<parse_node_base, R>, bool> = true>
-    auto operator | (const L& l, const R& r) noexcept {
-        return choice_parse_node(std::make_tuple(get_parse_node_wrapper(l), get_parse_node_wrapper(r)));
+    template <class L, class R, std::enable_if_t<(std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>) && !std::is_base_of_v<choice_parse_node_base, L> && !std::is_base_of_v<choice_parse_node_base, R>, bool> = true>
+    auto operator | (L&& l, R&& r) noexcept {
+        return choice_parse_node(std::make_tuple(get_parse_node_wrapper(std::forward<L>(l)), get_parse_node_wrapper(std::forward<R>(r))));
     }
 
 
-    template <class... L, class ...R>
+    template <class... L, class... R>
     auto operator | (const choice_parse_node<L...>& l, const choice_parse_node<R...>& r) noexcept {
         return choice_parse_node(std::tuple_cat(l.parsers(), r.parsers()));
     }
 
 
-    template <class... L, class R>
-    auto operator | (const choice_parse_node<L...>& l, const R& r) noexcept {
-        return choice_parse_node(std::tuple_cat(l.parsers(), std::make_tuple(get_parse_node_wrapper(r))));
+    template <class... L, class R, std::enable_if_t<!std::is_base_of_v<choice_parse_node_base, R>, bool> = true>
+    auto operator | (const choice_parse_node<L...>& l, R&& r) noexcept {
+        return choice_parse_node(std::tuple_cat(l.parsers(), std::make_tuple(get_parse_node_wrapper(std::forward<R>(r)))));
     }
 
 
-    template <class L, class ...R>
-    auto operator | (const L& l, const choice_parse_node<R...>& r) noexcept {
-        return choice_parse_node(std::tuple_cat(std::make_tuple(get_parse_node_wrapper(l)), r.parsers()));
+    template <class L, class... R, std::enable_if_t<!std::is_base_of_v<choice_parse_node_base, L>, bool> = true>
+    auto operator | (L&& l, const choice_parse_node<R...>& r) noexcept {
+        return choice_parse_node(std::tuple_cat(std::make_tuple(get_parse_node_wrapper(std::forward<L>(l))), r.parsers()));
     }
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, L> || std::is_base_of_v<parse_node_base, R>, bool> = true>
-    auto operator - (const L& l, const R& r) noexcept {
-        return !get_parser_wrapper(r), get_parse_node_wrapper(l);
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true>
+    auto operator - (L&& l, R&& r) noexcept {
+        return !get_parser_wrapper(r), get_parse_node_wrapper(std::forward<L>(l));
     }
 
 
@@ -259,8 +270,8 @@ namespace parserlib {
 
 
     template <class T, class MatchId>
-    auto operator ->* (const T& t, const MatchId& match_id) noexcept {
-        return match_parser_node(get_parse_node_wrapper(t), match_id);
+    auto operator ->* (T&& t, const MatchId& match_id) noexcept {
+        return match_parser_node(get_parse_node_wrapper(std::forward<T>(t)), match_id);
     }
 
 
