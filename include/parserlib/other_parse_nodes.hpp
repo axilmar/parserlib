@@ -66,6 +66,43 @@ namespace parserlib {
     inline constexpr end_parse_node end;
 
 
+    template <class F>
+    class function_parse_node : public parse_node<function_parse_node<F>> {
+    public:
+        function_parse_node(const F& f) noexcept
+            : m_function(f)
+        {
+        }
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            if (pc.is_valid_parse_position() && m_function(pc)) {
+                return true;
+            }
+            return false;
+        }
+
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            return parse(pc);
+        }
+
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            return false;
+        }
+
+    private:
+        F m_function;
+    };
+
+
+    template <class F>
+    auto function(const F& f) noexcept {
+        return function_parse_node([f](auto& pc) { return f(pc); });
+    }
+
+
 } //namespace parserlib
 
 
