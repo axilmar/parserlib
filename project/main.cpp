@@ -4,6 +4,7 @@ extern void test_unary_parse_nodes();
 extern void test_binary_parse_nodes();
 extern void test_other_parse_nodes();
 extern void test_rule();
+extern void test_utility();
 
 
 static void run_tests() {
@@ -13,6 +14,7 @@ static void run_tests() {
     test_binary_parse_nodes();
     test_other_parse_nodes();
     test_rule();
+    test_utility();
 }
 
 
