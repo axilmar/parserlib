@@ -128,12 +128,6 @@ namespace parserlib {
         using variant_type = std::variant<std::false_type, std::true_type, struct left_recursion>;
 
     public:
-        enum value_type {
-            FALSE,
-            TRUE,
-            LEFT_RECURSION
-        };
-
         parse_result(bool value) noexcept 
             : m_value(value ? variant_type(std::true_type()) : variant_type(std::false_type()))
         {
@@ -172,6 +166,12 @@ namespace parserlib {
         bool operator != (bool value) const noexcept {
             return is_true() != value;
         }
+
+        enum value_type {
+            FALSE = 0,
+            TRUE = 1,
+            LEFT_RECURSION = 2
+        };
 
         value_type value() const noexcept {
             return static_cast<value_type>(m_value.index());

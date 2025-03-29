@@ -20,7 +20,7 @@ namespace parserlib {
         parse_result parse(ParseContext& pc) const noexcept {
             for (;;) {
                 parse_result result = m_parser.parse(pc);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
                     case parse_result::TRUE:
@@ -35,7 +35,7 @@ namespace parserlib {
         template <class ParseContext>
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
             parse_result result = m_parser.parse_left_recursion_start(pc);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
                 case parse_result::LEFT_RECURSION:
@@ -43,7 +43,7 @@ namespace parserlib {
             }
             for (;;) {
                 parse_result result = m_parser.parse(pc);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
                     case parse_result::TRUE:
@@ -58,7 +58,7 @@ namespace parserlib {
         template <class ParseContext, class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             parse_result result = m_parser.parse_left_recursion_continuation(pc, match_start);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
                 case parse_result::LEFT_RECURSION:
@@ -66,7 +66,7 @@ namespace parserlib {
             }
             for (;;) {
                 parse_result result = m_parser.parse(pc);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
                     case parse_result::TRUE:
@@ -99,7 +99,7 @@ namespace parserlib {
             }
             for (;;) {
                 parse_result result = m_parser.parse(pc);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
                     case parse_result::TRUE:
@@ -119,7 +119,7 @@ namespace parserlib {
             }
             for (;;) {
                 parse_result result = m_parser.parse(pc);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
                     case parse_result::TRUE:
@@ -139,7 +139,7 @@ namespace parserlib {
             }
             for (;;) {
                 parse_result result = m_parser.parse(pc);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
                     case parse_result::TRUE:
@@ -167,7 +167,7 @@ namespace parserlib {
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
             parse_result result = m_parser.parse(pc);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                 case parse_result::TRUE:
                     return true;
@@ -180,7 +180,7 @@ namespace parserlib {
         template <class ParseContext>
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
             parse_result result = m_parser.parse_left_recursion_start(pc);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                 case parse_result::TRUE:
                     return true;
@@ -193,7 +193,7 @@ namespace parserlib {
         template <class ParseContext, class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             parse_result result = m_parser.parse_left_recursion_continuation(pc, match_start);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                 case parse_result::TRUE:
                     return true;
@@ -257,7 +257,8 @@ namespace parserlib {
         parse_result parse(ParseContext& pc) const noexcept {
             const auto state = pc.state();
             parse_result result = m_parser.parse(pc);
-            switch (result) {
+            pc.set_state(state);
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
                 case parse_result::TRUE:
@@ -270,7 +271,8 @@ namespace parserlib {
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
             const auto state = pc.state();
             parse_result result = m_parser.parse_left_recursion_start(pc);
-            switch (result) {
+            pc.set_state(state);
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
                 case parse_result::TRUE:
@@ -283,7 +285,8 @@ namespace parserlib {
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             const auto state = pc.state();
             parse_result result = m_parser.parse_left_recursion_continuation(pc, match_start);
-            switch (result) {
+            pc.set_state(state);
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
                 case parse_result::TRUE:

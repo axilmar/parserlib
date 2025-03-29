@@ -106,7 +106,7 @@ namespace parserlib {
             pc.push_rule_parse_position(*this);
             parse_result result = m_expr->parse_left_recursion_start(pc);
             pc.pop_rule_parse_position(*this);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return false;
                 case parse_result::LEFT_RECURSION:
@@ -118,7 +118,7 @@ namespace parserlib {
                 pc.push_rule_parse_position(*this);
                 parse_result result = m_expr->parse_left_recursion_continuation(pc, match_start);
                 pc.pop_rule_parse_position(*this);
-                switch (result) {
+                switch (result.value()) {
                     case parse_result::FALSE:
                         break;
                     case parse_result::LEFT_RECURSION:
@@ -133,7 +133,7 @@ namespace parserlib {
             pc.push_rule_parse_position(*this);
             parse_result result = m_expr->parse(pc);
             pc.pop_rule_parse_position(*this);
-            switch (result) {
+            switch (result.value()) {
                 case parse_result::FALSE:
                     return false;
                 case parse_result::TRUE:

@@ -118,7 +118,7 @@ namespace parserlib {
             return { m_parse_position, m_matches.size() };
         }
 
-        void set_state(class state& state) noexcept {
+        void set_state(const class state& state) noexcept {
             assert(state.position() <= m_source.end());
             m_parse_position = state.position();
             m_matches.resize(state.match_count());
