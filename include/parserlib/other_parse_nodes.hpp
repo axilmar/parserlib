@@ -99,6 +99,12 @@ namespace parserlib {
 
     template <class F>
     auto function(const F& f) noexcept {
+        return function_parse_node(f);
+    }
+
+
+    template <class F>
+    auto function(const F* f) noexcept {
         return function_parse_node([f](auto& pc) { return f(pc); });
     }
 
