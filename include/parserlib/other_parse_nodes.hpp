@@ -10,7 +10,7 @@ namespace parserlib {
 
     class bool_parse_node : public parse_node<bool_parse_node> {
     public:
-        bool_parse_node(bool value) noexcept
+        constexpr bool_parse_node(bool value) noexcept
             : m_value(value)
         {
         }
@@ -38,6 +38,10 @@ namespace parserlib {
     inline bool_parse_node get_parse_node_wrapper(bool value) {
         return value;
     }
+
+
+    inline constexpr bool_parse_node false_(false);
+    inline constexpr bool_parse_node true_(true);
 
 
     class end_parse_node : public parse_node<end_parse_node> {
