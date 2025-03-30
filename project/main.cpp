@@ -6,6 +6,7 @@ extern void test_other_parse_nodes();
 extern void test_rule();
 extern void test_utility();
 extern void test_strings();
+extern void test_error_handling();
 
 
 static void run_tests() {
@@ -17,6 +18,7 @@ static void run_tests() {
     test_rule();
     test_utility();
     test_strings();
+    test_error_handling();
 }
 
 

@@ -197,7 +197,7 @@ namespace parserlib {
                 , m_end(end)
                 , m_children(std::move(children))
             {
-                assert(m_begin < m_end);
+                assert(m_begin <= m_end);
             }
 
             const match_id_type& id() const noexcept {
@@ -240,6 +240,10 @@ namespace parserlib {
             match new_match{ id, begin, end, { matches_begin, matches_end } };
             m_matches.resize(match_count);
             m_matches.push_back(std::move(new_match));
+        }
+
+        void add_match(const match_id_type& id, const iterator_type& begin, const iterator_type& end) noexcept {
+            add_match(id, begin, end, m_matches.size());
         }
 
         // ERRORS -------------------------------------------------------------

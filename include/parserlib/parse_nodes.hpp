@@ -6,6 +6,7 @@
 #include "unary_parse_nodes.hpp"
 #include "binary_parse_nodes.hpp"
 #include "other_parse_nodes.hpp"
+#include "error_handling_parse_nodes.hpp"
 #include "rule.hpp"
 
 
