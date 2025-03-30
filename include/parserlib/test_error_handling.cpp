@@ -8,7 +8,7 @@ using namespace parserlib;
 
 static void test_skip() {
     {
-        const auto grammar = terminal('a') >> ('b' | skip_to(';')) >> ';';
+        const auto grammar = terminal('a') >> ('b' | skip_until(';')) >> ';';
         std::string source = "a;";
         parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
         assert(grammar.parse(pc));
@@ -16,8 +16,16 @@ static void test_skip() {
     }
 
     {
-        const auto grammar = terminal('a') >> ('b' | skip_after('@')) >> ';';
+        const auto grammar = terminal('a') >> ('b' | skip_until_after('@')) >> ';';
         std::string source = "a@;";
+        parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
+        assert(grammar.parse(pc));
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        const auto grammar = terminal('a') >> ('b' | skip_while('@')) >> ';';
+        std::string source = "a@@@@;";
         parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
         assert(grammar.parse(pc));
         assert(pc.is_end_parse_position());

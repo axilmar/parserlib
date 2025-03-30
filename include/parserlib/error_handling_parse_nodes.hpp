@@ -15,9 +15,9 @@ namespace parserlib {
 
 
     template <class Parser>
-    class skip_to_parse_node : public parse_node<skip_to_parse_node<Parser>>, public skip_policy_base {
+    class skip_until_parse_node : public parse_node<skip_until_parse_node<Parser>>, public skip_policy_base {
     public:
-        skip_to_parse_node(const Parser& parser) noexcept
+        skip_until_parse_node(const Parser& parser) noexcept
             : m_parser(parser)
         {
         }
@@ -79,15 +79,15 @@ namespace parserlib {
 
 
     template <class Parser>
-    auto skip_to(Parser&& parser) {
-        return skip_to_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
+    auto skip_until(Parser&& parser) {
+        return skip_until_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
     }
 
 
     template <class Parser>
-    class skip_after_parse_node : public parse_node<skip_after_parse_node<Parser>>, public skip_policy_base {
+    class skip_until_after_parse_node : public parse_node<skip_until_after_parse_node<Parser>>, public skip_policy_base {
     public:
-        skip_after_parse_node(const Parser& parser) noexcept
+        skip_until_after_parse_node(const Parser& parser) noexcept
             : m_parser(parser)
         {
         }
@@ -149,8 +149,78 @@ namespace parserlib {
 
 
     template <class Parser>
-    auto skip_after(Parser&& parser) {
-        return skip_after_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
+    auto skip_until_after(Parser&& parser) {
+        return skip_until_after_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
+    }
+
+
+    template <class Parser>
+    class skip_while_parse_node : public parse_node<skip_while_parse_node<Parser>>, public skip_policy_base {
+    public:
+        skip_while_parse_node(const Parser& parser) noexcept
+            : m_parser(parser)
+        {
+        }
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            const auto initial_state = pc.state();
+            while (pc.is_valid_parse_position()) {
+                const auto parse_position = pc.parse_position();
+                if (m_parser.parse(pc)) {
+                    pc.increment_parse_position();
+                }
+                else {
+                    pc.set_state(initial_state);
+                    pc.set_parse_position(parse_position);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            const auto initial_state = pc.state();
+            while (pc.is_valid_parse_position()) {
+                const auto parse_position = pc.parse_position();
+                if (m_parser.parse_left_recursion_start(pc)) {
+                    pc.increment_parse_position();
+                }
+                else {
+                    pc.set_state(initial_state);
+                    pc.set_parse_position(parse_position);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            const auto initial_state = pc.state();
+            while (pc.is_valid_parse_position()) {
+                const auto parse_position = pc.parse_position();
+                if (m_parser.parse_left_recursion_continuation(pc, match_start)) {
+                    pc.increment_parse_position();
+                }
+                else {
+                    pc.set_state(initial_state);
+                    pc.set_parse_position(parse_position);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    private:
+        Parser m_parser;
+    };
+
+
+    template <class Parser>
+    auto skip_while(Parser&& parser) {
+        return skip_while_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
     }
 
 
