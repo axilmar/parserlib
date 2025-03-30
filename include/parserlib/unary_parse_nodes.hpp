@@ -18,7 +18,7 @@ namespace parserlib {
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
-            for (;;) {
+            while (pc.is_valid_parse_position()) {
                 parse_result result = m_parser.parse(pc);
                 switch (result.value()) {
                     case parse_result::FALSE:
@@ -41,7 +41,7 @@ namespace parserlib {
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
-            for (;;) {
+            while (pc.is_valid_parse_position()) {
                 parse_result result = m_parser.parse(pc);
                 switch (result.value()) {
                     case parse_result::FALSE:
@@ -64,7 +64,7 @@ namespace parserlib {
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
-            for (;;) {
+            while (pc.is_valid_parse_position()) {
                 parse_result result = m_parser.parse(pc);
                 switch (result.value()) {
                     case parse_result::FALSE:
@@ -97,7 +97,7 @@ namespace parserlib {
             if (!result) {
                 return result;
             }
-            for (;;) {
+            while (pc.is_valid_parse_position()) {
                 parse_result result = m_parser.parse(pc);
                 switch (result.value()) {
                     case parse_result::FALSE:
@@ -117,7 +117,7 @@ namespace parserlib {
             if (!result) {
                 return result;
             }
-            for (;;) {
+            while (pc.is_valid_parse_position()) {
                 parse_result result = m_parser.parse(pc);
                 switch (result.value()) {
                     case parse_result::FALSE:
@@ -137,7 +137,7 @@ namespace parserlib {
             if (!result) {
                 return result;
             }
-            for (;;) {
+            while (pc.is_valid_parse_position()) {
                 parse_result result = m_parser.parse(pc);
                 switch (result.value()) {
                     case parse_result::FALSE:

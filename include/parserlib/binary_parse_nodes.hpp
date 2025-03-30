@@ -221,7 +221,7 @@ namespace parserlib {
 
     template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true>
     auto operator - (L&& l, R&& r) noexcept {
-        return !get_parser_wrapper(r), get_parse_node_wrapper(std::forward<L>(l));
+        return !get_parse_node_wrapper(std::forward<R>(r)), get_parse_node_wrapper(std::forward<L>(l));
     }
 
 

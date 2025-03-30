@@ -6,6 +6,7 @@
 #include "parserlib/parse_nodes.hpp"
 #include "parserlib/strings.hpp"
 #include "parserlib/utility.hpp"
+#include "parserlib/parser.hpp"
 
 
 #endif //PARSERLIB_HPP

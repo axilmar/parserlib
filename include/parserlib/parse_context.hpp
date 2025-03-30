@@ -52,6 +52,7 @@ namespace parserlib {
     template <class ErrorId, class Iterator>
     class parse_error {
     public:
+        using error_type = parse_error<ErrorId, Iterator>;
         using error_id_type = ErrorId;
         using iterator_type = Iterator;
 
@@ -77,6 +78,10 @@ namespace parserlib {
 
         auto source() const noexcept {
             return parserlib::source(m_begin, m_end);
+        }
+
+        friend bool operator < (const error_type& error1, const error_type& error2) noexcept {
+            return error1.m_begin < error2.m_begin;
         }
 
     private:
@@ -258,6 +263,10 @@ namespace parserlib {
 
         void add_error(const error_id_type& id, const iterator_type& begin, const iterator_type& end) noexcept {
             m_errors.emplace_back(id, begin, end);
+        }
+
+        void sort_errors() {
+            std::sort(m_errors.begin(), m_errors.end());
         }
 
         // RULES ------------------------------------------------------------------

@@ -36,7 +36,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         template <class ParseContext>
@@ -53,7 +53,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         template <class ParseContext, class State>
@@ -70,7 +70,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
     private:
@@ -106,7 +106,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         template <class ParseContext>
@@ -123,7 +123,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         template <class ParseContext, class State>
@@ -140,7 +140,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
     private:
@@ -176,7 +176,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         template <class ParseContext>
@@ -193,7 +193,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         template <class ParseContext, class State>
@@ -210,7 +210,7 @@ namespace parserlib {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
     private:
@@ -233,11 +233,10 @@ namespace parserlib {
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
-            std::size_t count = m_count;
-            for (; pc.is_valid_parse_position() && count > 0; --count) {
+            for (std::size_t count = m_count; pc.is_valid_parse_position() && count > 0; --count) {
                 pc.increment_parse_position();
             }
-            return count == 0;
+            return true;
         }
 
         template <class ParseContext>
