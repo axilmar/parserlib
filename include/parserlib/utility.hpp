@@ -28,41 +28,6 @@ namespace parserlib {
     }
 
 
-    template <class Source>
-    struct source_position {
-        typename Source::const_iterator iterator;
-        std::size_t line;
-        std::size_t column;
-    };
-
-
-    /**
-     * Retrieves the line and column for each character in a source.
-     * @param source source to get the line and column of.
-     * @param delim line delimiter; by default, the character '\n'.
-     * @return buffer with positions.
-     */
-    template <class Source>
-    std::vector<source_position<Source>> get_source_positions(Source& source, char delim = '\n') {
-        std::vector<source_position<Source>> result;
-
-        std::size_t line = 1, column = 1;
-        
-        for (auto it = source.cbegin(); it != source.cend(); ++it) {
-            if (*it == delim) {
-                ++line;
-                column = 1;
-            }
-
-            result.push_back(source_position<Source>{it, line, column});
-            
-            ++column;
-        }
-
-        return result;
-    }
-
-
 } //namespace parserlib
 
 
