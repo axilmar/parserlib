@@ -8,52 +8,10 @@
 namespace parserlib {
 
 
+    // ERROR SKIP POLICIES ----------------------------------------------------
+
+
     class skip_policy_base {};
-
-
-    template <class ErrorId, class SkipPolicy>
-    class skip_error_handler_parse_node : public parse_node<skip_error_handler_parse_node<ErrorId, SkipPolicy>> {
-    public:
-        using error_id_type = ErrorId;
-        using skip_policy_type = SkipPolicy;
-
-        skip_error_handler_parse_node(const error_id_type& error_id, const skip_policy_type& skip_policy, bool result) noexcept
-            : m_error_id(error_id)
-            , m_skip_policy(skip_policy)
-            , m_result(result)
-        {
-        }
-
-        template <class ParseContext>
-        parse_result parse(ParseContext& pc) const noexcept {
-            const auto error_start = pc.parse_position();
-            m_skip_policy.parse(pc);                
-            const auto error_end = pc.parse_position();
-            pc.add_error(m_error_id, error_start, error_end);
-            return m_result;
-        }
-
-        template <class ParseContext>
-        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
-            return parse(pc);
-        }
-
-        template <class ParseContext, class State>
-        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
-            return parse(pc);
-        }
-
-    private:
-        error_id_type m_error_id;
-        skip_policy_type m_skip_policy;
-        bool m_result;
-    };
-
-
-    template <class ErrorId, class SkipPolicy, std::enable_if_t<std::is_base_of_v<skip_policy_base, SkipPolicy>, bool> = true>
-    auto error(const ErrorId& error_id, const SkipPolicy& skip_policy, bool result = true) noexcept {
-        return skip_error_handler_parse_node(error_id, skip_policy, result);
-    }
 
 
     template <class Parser>
@@ -237,14 +195,16 @@ namespace parserlib {
     }
 
 
+    // ERROR HANDLER ----------------------------------------------------------
+
+
     template <class ErrorId>
     class error_handler_parse_node : public parse_node<error_handler_parse_node<ErrorId>> {
     public:
         using error_id_type = ErrorId;
 
-        error_handler_parse_node(const error_id_type& error_id, bool result) noexcept
+        error_handler_parse_node(const error_id_type& error_id) noexcept
             : m_error_id(error_id)
-            , m_result(result)
         {
         }
 
@@ -253,7 +213,7 @@ namespace parserlib {
             const auto error_start = pc.parse_position();
             const auto error_end = pc.parse_position();
             pc.add_error(m_error_id, error_start, error_end);
-            return m_result;
+            return true;
         }
 
         template <class ParseContext>
@@ -268,70 +228,22 @@ namespace parserlib {
 
     private:
         error_id_type m_error_id;
-        bool m_result;
     };
 
 
     template <class ErrorId>
-    auto error(const ErrorId& error_id, bool result = true) noexcept {
-        return error_handler_parse_node(error_id, result);
+    auto error(const ErrorId& error_id) noexcept {
+        return error_handler_parse_node(error_id);
     }
 
 
-    template <class Parser, class MatchId>
-    class error_match_parse_node : public parse_node<error_match_parse_node<Parser, MatchId>> {
-    public:
-        error_match_parse_node(const Parser& parser, const MatchId& match_id) noexcept
-            : m_parser(parser)
-            , m_match_id(match_id)
-        {
-        }
-
-        template <class ParseContext>
-        parse_result parse(ParseContext& pc) const noexcept {
-            const auto match_start = pc.state();
-            parse_result result = m_parser.parse(pc);
-            if (!result) {
-                pc.add_match(m_match_id, match_start.position(), pc.parse_position(), match_start.match_count());
-            }
-            return true;
-        }
-
-        template <class ParseContext>
-        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
-            const auto match_start = pc.state();
-            parse_result result = m_parser.parse_left_recursion_start(pc);
-            if (!result) {
-                pc.add_match(m_match_id, match_start.position(), pc.parse_position(), match_start.match_count());
-            }
-            return true;
-        }
-
-        template <class ParseContext, class State>
-        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
-            parse_result result = m_parser.parse_left_recursion_continuation(pc, pc.state());
-            if (!result) {
-                pc.add_match(m_match_id, match_start.position(), pc.parse_position(), match_start.match_count());
-            }
-            return true;
-        }
-
-    private:
-        Parser m_parser;
-        MatchId m_match_id;
-    };
-
-
-    template <class Parser, class MatchId>
-    auto error_match(Parser&& parser, const MatchId& match_id) noexcept {
-        return error_match_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)), match_id);
-    }
+    // ERROR MATCH ------------------------------------------------------------
 
 
     template <class MatchId>
-    class error_match_id_parse_node : public parse_node<error_match_id_parse_node<MatchId>> {
+    class error_match_parse_node : public parse_node<error_match_parse_node<MatchId>> {
     public:
-        error_match_id_parse_node(const MatchId& match_id) noexcept
+        error_match_parse_node(const MatchId& match_id) noexcept
             : m_match_id(match_id)
         {
         }
@@ -359,7 +271,7 @@ namespace parserlib {
 
     template <class MatchId>
     auto error_match(const MatchId& match_id) noexcept {
-        return error_match_id_parse_node(match_id);
+        return error_match_parse_node(match_id);
     }
 
 
