@@ -37,6 +37,55 @@ namespace parserlib {
     };
 
 
+    template <class It>
+    auto source(const It& begin, const It& end) {
+        using value_type = typename It::value_type;
+        if constexpr (std::is_integral_v<value_type>) {
+            return std::string_view(&*begin, std::distance(begin, end));
+        }
+        else {
+            return std::vector(begin, end);
+        }
+    }
+
+
+    template <class ErrorId, class Iterator>
+    class parse_error {
+    public:
+        using error_id_type = ErrorId;
+        using iterator_type = Iterator;
+
+        parse_error(const error_id_type& id, const iterator_type& begin, const iterator_type& end) noexcept
+            : m_id(id)
+            , m_begin(begin)
+            , m_end(end)
+        {
+            assert(m_begin <= m_end);
+        }
+
+        const error_id_type& id() const noexcept {
+            return m_id;
+        }
+
+        const iterator_type& begin() const noexcept {
+            return m_begin;
+        }
+
+        const iterator_type& end() const noexcept {
+            return m_end;
+        }
+
+        auto source() const noexcept {
+            return parserlib::source(m_begin, m_end);
+        }
+
+    private:
+        error_id_type m_id;
+        iterator_type m_begin;
+        iterator_type m_end;
+    };
+
+
     template <class Source, class MatchId, class ErrorId, class Comparator>
     class parse_context {
     public:
@@ -128,16 +177,6 @@ namespace parserlib {
             m_matches.resize(state.match_count());
         }
 
-        template <class It>
-        static auto source(const It& begin, const It& end) noexcept {
-            if constexpr (std::is_integral_v<value_type>) {
-                return std::string_view(&*begin, std::distance(begin, end));
-            }
-            else {
-                return std::vector(begin, end);
-            }
-        }
-
         // COMPARISONS --------------------------------------------------------
 
         template <class T1, class T2>
@@ -178,7 +217,7 @@ namespace parserlib {
             }
 
             auto source() const noexcept {
-                return parse_context_type::source(m_begin, m_end);
+                return parserlib::source(m_begin, m_end);
             }
 
         private:
@@ -205,39 +244,9 @@ namespace parserlib {
 
         // ERRORS -------------------------------------------------------------
 
-        class error {
-        public:
-            error(const error_id_type& id, const iterator_type& begin, const iterator_type& end) noexcept
-                : m_id(id)
-                , m_begin(begin)
-                , m_end(end)
-            {
-                assert(m_begin <= m_end);
-            }
+        using error_type = parse_error<error_id_type, iterator_type>;
 
-            const error_id_type& id() const noexcept {
-                return m_id;
-            }
-
-            const iterator_type& begin() const noexcept {
-                return m_begin;
-            }
-
-            const iterator_type& end() const noexcept {
-                return m_end;
-            }
-
-            auto source() const noexcept {
-                return parse_context_type::source(m_begin, m_end);
-            }
-
-        private:
-            error_id_type m_id;
-            iterator_type m_begin;
-            iterator_type m_end;
-        };
-
-        using error_container_type = std::vector<error>;
+        using error_container_type = std::vector<error_type>;
 
         const error_container_type& errors() const noexcept {
             return m_errors;
