@@ -57,13 +57,37 @@ namespace parserlib {
     };
 
 
+    template <class T> 
+    class has_parse_context_extension {
+    private:
+        struct no { char c[1]; };
+        struct yes { char c[2]; };
+        template <class U> static no test(...);
+        template <class U> static yes test(typename U::parse_context_extension*);
+
+    public:
+        static constexpr bool value = sizeof(test<T>(0)) == sizeof(yes);
+    };
+
+
+    template <class T> 
+    class get_grammar_comparator_type {
+    private:
+        template <class U> static case_sensitive_comparator test(...);
+        template <class U> static typename U::comparator_type test(typename U::comparator_type*);
+
+    public:
+        using type = decltype(test<T>(0));
+    };
+
+
     template <class Grammar, class Source>
     class lexer {
     public:
         using grammar_type = Grammar;
         using match_id_type = typename grammar_type::match_id_type;
         using error_id_type = typename grammar_type::error_id_type;
-        using comparator_type = typename grammar_type::comparator_type;
+        using comparator_type = typename get_grammar_comparator_type<Grammar>::type;
 
         using source_type = Source;
         using iterator_type = typename source_type::const_iterator;
@@ -80,8 +104,18 @@ namespace parserlib {
             error_container_type errors;
         };
 
-        template <class Extension = empty_parse_context_extension>
-        static result parse(Source& source, const Extension& extension = Extension()) noexcept {
+        static result parse(Source& source) noexcept {
+            if constexpr (has_parse_context_extension<Grammar>::value) {
+                return parse_helper(source, typename Grammar::parse_context_extension());
+            }
+            else {
+                return parse_helper(source, empty_parse_context_extension());
+            }
+        }
+
+    private:
+        template <class Source, class Extension>
+        static result parse_helper(Source& source, const Extension& extension) noexcept {
             //parse
             using parse_context_type = parse_context<source_type, match_id_type, error_id_type, comparator_type, Extension>;
             parse_context_type pc(source, extension);
@@ -108,6 +142,10 @@ namespace parserlib {
     };
 
 
+    class ast_factory_base {
+    };
+
+
     template <class LexerGrammar, class ParserGrammar, class Source>
     class parser {
     public:
@@ -131,14 +169,50 @@ namespace parserlib {
             error_container_type errors;
         };
 
-        template <class AstFactory, class Extension = empty_parse_context_extension>
+        template <
+            class AstFactory, 
+            class Extension = empty_parse_context_extension, 
+            std::enable_if_t<std::is_base_of_v<ast_factory_base, AstFactory> && std::is_base_of_v<parse_context_extension_base, Extension>, bool> = true>
         static result parse(Source& source, const AstFactory& ast_factory, const Extension& extension = Extension()) noexcept {
+            if constexpr (has_parse_context_extension<ParserGrammar>::value) {
+                return parse_helper(source, typename ParserGrammar::parse_context_extension());
+            }
+            else {
+                return parse_helper(source, empty_parse_context_extension());
+            }
+        }
+
+        class default_ast_factory : public ast_factory_base {
+        public:
+            ast_node_ptr_type operator ()(const node_id_type& node_id, const iterator_type& begin, const iterator_type& end, ast_node_container_type&& children) const noexcept {
+                return std::make_shared<ast_node_type>(node_id, begin, end, std::move(children));
+            }
+        };
+
+        template <class Extension = empty_parse_context_extension, std::enable_if_t<std::is_base_of_v<parse_context_extension_base, Extension>, bool> = true>
+        static result parse(Source& source, const Extension& extension = Extension()) noexcept {
+            return parse(source, default_ast_factory(), extension);
+        }
+
+    private:
+        template <class Match, class AstFactory>
+        static ast_node_ptr_type create_ast_node(const Match& match, const AstFactory& ast_factory) noexcept {
+            ast_node_container_type children;
+            for (const auto& child_match : match.children()) {
+                children.push_back(create_ast_node(child_match, ast_factory));
+            }
+            return ast_factory(match.id(), match.begin()->begin(), match.end()->begin(), std::move(children));
+        }
+
+        template <class Source, class AstFactory, class Extension>
+        static result parse_helper(Source& source, const AstFactory& ast_factory, const Extension& extension) noexcept {
             //tokenize
             typename lexer_type::result lexer_result = lexer_type::parse(source);
 
             //parse the tokens
             ParserGrammar grammar;
-            parse_context<typename lexer_type::parsed_token_container_type, node_id_type, error_id_type, case_sensitive_comparator> pc(lexer_result.parsed_tokens);
+            using parse_context_type = parse_context<typename lexer_type::parsed_token_container_type, node_id_type, error_id_type, case_sensitive_comparator, Extension>;
+            parse_context_type pc(lexer_result.parsed_tokens, extension);
             const bool success = grammar.parse(pc) && pc.is_end_parse_position();
 
             //create the ast nodes
@@ -169,28 +243,6 @@ namespace parserlib {
 
             //return the result
             return { success, ast_nodes, errors };
-        }
-
-        class default_ast_factory {
-        public:
-            ast_node_ptr_type operator ()(const node_id_type& node_id, const iterator_type& begin, const iterator_type& end, ast_node_container_type&& children) const noexcept {
-                return std::make_shared<ast_node_type>(node_id, begin, end, std::move(children));
-            }
-        };
-
-        template <class Extension = empty_parse_context_extension>
-        static result parse(Source& source, const Extension& extension = Extension()) noexcept {
-            return parse(source, default_ast_factory(), extension);
-        }
-
-    private:
-        template <class Match, class AstFactory>
-        static ast_node_ptr_type create_ast_node(const Match& match, const AstFactory& ast_factory) noexcept {
-            ast_node_container_type children;
-            for (const auto& child_match : match.children()) {
-                children.push_back(create_ast_node(child_match, ast_factory));
-            }
-            return ast_factory(match.id(), match.begin()->begin(), match.end()->begin(), std::move(children));
         }
     };
 

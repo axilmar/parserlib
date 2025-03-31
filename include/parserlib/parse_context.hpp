@@ -91,7 +91,11 @@ namespace parserlib {
     };
 
 
-    class empty_parse_context_extension {
+    class parse_context_extension_base {
+    };
+
+
+    class empty_parse_context_extension : public parse_context_extension_base {
     };
 
 
