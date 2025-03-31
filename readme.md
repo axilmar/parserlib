@@ -20,17 +20,29 @@ Version 1.0.0.8
 ## Table Of Contents
 
 [ENBF-like syntax](doc/ebnf_like_syntax.md)
+
 [Terminals](doc/terminals.md)
+
 [Recursion](doc/recursion.md)
+
 [Custom Functions/Callbacks](doc/custom_functions.md)
+
 [Multiple Errors](doc/multiple_errors.md)
+
 [Case Sensitivity](doc/case_sensitivity.md)
+
 [Line/Column counting](doc/line_counting.md)
+
 [UTF-8 strings](doc/utf8_strings.md)
+
 [AST Nodes](doc/ast_nodes.md)
+
 [Loading A File to Memory](doc/load_file.md)
+
 [Parsing Streams](doc/parsing_streams.md)
+
 [Lexing And Parsing](doc/lexing_parsing.md)
+
 [Versions](versions)
 
 ### Versions

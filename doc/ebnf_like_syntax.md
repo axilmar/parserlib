@@ -3,14 +3,23 @@
 ## EBNF-like syntax
 
 [Operator Table](operator-table)
+
 [Loop Zero Or More Times](loop-zero-or-more-times)
+
 [Loop One Or More Times](loop-one-or-more-times)
+
 [Optional](optional)
+
 [Logical And](logical-and)
+
 [Logical Not](logical-not)
+
 [Sequence](sequence)
+
 [Choice](choice)
+
 [Exclusion](exclusion)
+
 [Callback][callback]
 
 ### Operator Table
