@@ -2,25 +2,25 @@
 
 ## EBNF-like syntax
 
-[Operator Table](operator-table)
+[Operator Table](#operator-table)
 
-[Loop Zero Or More Times](loop-zero-or-more-times)
+[Loop Zero Or More Times](#loop-zero-or-more-times)
 
-[Loop One Or More Times](loop-one-or-more-times)
+[Loop One Or More Times](#loop-one-or-more-times)
 
-[Optional](optional)
+[Optional](#optional)
 
-[Logical And](logical-and)
+[Logical And](#logical-and)
 
-[Logical Not](logical-not)
+[Logical Not](#logical-not)
 
-[Sequence](sequence)
+[Sequence](#sequence)
 
-[Choice](choice)
+[Choice](#choice)
 
-[Exclusion](exclusion)
+[Exclusion](#exclusion)
 
-[Callback][callback]
+[Callback][#callback]
 
 ### Operator Table
 
