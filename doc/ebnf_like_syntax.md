@@ -34,7 +34,7 @@ The library offers the following operators for writing a grammar using an EBNF-l
 | &          | logical and                      | `&terminal('a')`                   | does not consume input          |
 | !          | logical not                      | `!terminal('a')`                   | does not consume input          |
 | >>         | sequence                         | `terminal('a') >> 'b'`             |                                 |
-| \|         | choice                           | `terminal('a') | 'b'`              |                                 |
+| \|         | choice                           | `terminal('a') \| 'b'`             |                                 |
 | - (binary) | exclusion                        | `terminal('a') - 'b'`              |                                 |
 | []         | callback                         | `terminal('a')[my_callback]`       |                                 |
 
