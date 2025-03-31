@@ -3,21 +3,34 @@
 A `c++17` recursive-descent parser library with the following features:
 
 - ENBF-like syntax for writing grammar expressions.
-- support for recursive and left-recursive grammars.
-- translation of source to AST nodes.
-- support for multiple errors per parse and error continuation policy customization.
 - character, string, boolean, set, range terminals.
-- support for custom parsing functions.
-- support for custom parsing callbacks.
+- recursive and left-recursive grammars.
+- custom parsing functions and callbacks.
+- multiple errors per parse.
 - case sensitive/insensitive parsing.
-- support for line/column counting.
-- support for parsing utf-8 strings.
-- utilities (load file into memory for processing).
+- optional line/column counting.
+- parsing utf-8 strings.
+- translation of source to AST nodes.
+- loading a file directly into memory.
+- parsing streams.
+- lexing/parsing.
 
 Version 1.0.0.8
 
 ## Table Of Contents
 
+[ENBF-like syntax](doc/ebnf_like_syntax.md)
+[Terminals](doc/terminals.md)
+[Recursion](doc/recursion.md)
+[Custom Functions/Callbacks](doc/custom_functions.md)
+[Multiple Errors](doc/multiple_errors.md)
+[Case Sensitivity](doc/case_sensitivity.md)
+[Line/Column counting](doc/line_counting.md)
+[UTF-8 strings](doc/utf8_strings.md)
+[AST Nodes](doc/ast_nodes.md)
+[Loading A File to Memory](doc/load_file.md)
+[Parsing Streams](doc/parsing_streams.md)
+[Lexing And Parsing](doc/lexing_parsing.md)
 [Versions](versions)
 
 ### Versions

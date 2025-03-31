@@ -82,8 +82,47 @@ static void test_line_counting_string() {
 }
 
 
+static void test_stream_string_iteration() {
+    {
+        std::stringstream stream1, stream2;
+        stream1 << "12345";
+        stream_string<std::stringstream> container(stream1);
+        for (auto it = container.begin(); it != container.end(); ++it) {
+            stream2 << *it;
+        }
+        assert(stream1.str() == stream2.str());
+    }
+}
+
+
+static void test_stream_string_parsing() {
+    const int DIGIT = 1;
+    const int NEWLINE = 2;
+
+    const auto digit = range('0', '9')->*DIGIT;
+    const auto line_end = terminal("\r\n")->*NEWLINE;
+    const auto grammar = *(digit | line_end);
+
+    using StreamString = stream_string<std::stringstream>;
+    using ParseContext = parse_context<StreamString>;
+
+    std::string inputString = "123\r\n456\r\n789";
+    std::stringstream inputStream;
+    inputStream << inputString;
+    StreamString source(inputStream);
+
+    ParseContext context(source);
+
+    assert(grammar.parse(context));
+    assert(context.is_end_parse_position());
+
+    assert(context.matches().size() == 11);
+}
+
+
 void test_strings() {
     test_utf8_string();
     test_line_counting_string();
+    test_stream_string_iteration();
+    test_stream_string_parsing();
 }
-

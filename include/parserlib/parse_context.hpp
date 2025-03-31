@@ -99,7 +99,7 @@ namespace parserlib {
     };
 
 
-    template <class Source, class MatchId, class ErrorId, class Comparator, class Extension = empty_parse_context_extension>
+    template <class Source, class MatchId = int, class ErrorId = int, class Comparator = case_sensitive_comparator, class Extension = empty_parse_context_extension>
     class parse_context {
     public:
         // TYPES --------------------------------------------------------------
