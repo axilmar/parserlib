@@ -51,7 +51,7 @@ static void test_error_handler() {
         assert(pc.errors().size() == 1);
         assert(pc.errors()[0].id() == 1);
         assert(pc.errors()[0].begin() == std::next(source.begin(), 1));
-        assert(pc.errors()[0].end() == std::next(source.begin(), 1));
+        assert(pc.errors()[0].end() == std::next(source.begin(), 2));
     }
 }
 
@@ -71,7 +71,7 @@ static void test_error_match() {
         assert(pc.matches()[0].end() == std::next(source.begin(), 1));
         assert(pc.matches()[1].id() == 3);
         assert(pc.matches()[1].begin() == std::next(source.begin(), 1));
-        assert(pc.matches()[1].end() == std::next(source.begin(), 1));
+        assert(pc.matches()[1].end() == std::next(source.begin(), 2));
     }
 }
 

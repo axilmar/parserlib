@@ -129,17 +129,23 @@ namespace parserlib {
             }
 
             //left recursion continuation
-            do {
+            while (pc.is_valid_parse_position()) {
                 pc.push_rule_parse_position(*this);
+                const auto start = pc.parse_position();
                 parse_result result = m_expr->parse_left_recursion_continuation(pc, match_start);
                 pc.pop_rule_parse_position(*this);
                 switch (result.value()) {
                     case parse_result::FALSE:
                         return true;
+                    case parse_result::TRUE:
+                        if (pc.parse_position() == start) {
+                            return true;
+                        }
+                        break;
                     case parse_result::LEFT_RECURSION:
                         return result;
                 }
-            } while (pc.is_valid_parse_position());
+            }
 
             return true;
         }

@@ -144,6 +144,43 @@ namespace parserlib {
     };
 
 
+    template <class Parser>
+    class debug_parse_node : public parse_node<debug_parse_node<Parser>> {
+    public:
+        debug_parse_node(const Parser& parser) noexcept
+            : m_parser(parser)
+        {
+        }
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            const parse_result result = m_parser.parse(pc);
+            return result;
+        }
+
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            const parse_result result = m_parser.parse_left_recursion_start(pc);
+            return result;
+        }
+
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            const parse_result result = m_parser.parse_left_recursion_continuation(pc, match_start);
+            return result;
+        }
+
+    private:
+        Parser m_parser;
+    };
+
+
+    template <class T>
+    auto debug(T&& t) noexcept {
+        return debug_parse_node(get_parse_node_wrapper(std::forward<T>(t)));
+    }
+
+
 } //namespace parserlib
 
 

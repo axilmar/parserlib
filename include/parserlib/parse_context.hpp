@@ -61,7 +61,7 @@ namespace parserlib {
             , m_begin(begin)
             , m_end(end)
         {
-            assert(m_begin <= m_end);
+            assert(m_begin < m_end);
         }
 
         const error_id_type& id() const noexcept {
@@ -212,7 +212,7 @@ namespace parserlib {
                 , m_end(end)
                 , m_children(std::move(children))
             {
-                assert(m_begin <= m_end);
+                assert(m_begin < m_end);
             }
 
             const match_id_type& id() const noexcept {

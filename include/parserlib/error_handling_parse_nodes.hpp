@@ -2,6 +2,7 @@
 #define PARSERLIB_ERROR_HANDLING_PARSE_NODES_HPP
 
 
+#include <algorithm>
 #include "parse_node.hpp"
 
 
@@ -304,11 +305,14 @@ namespace parserlib {
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
-            const auto error_start = pc.parse_position();
-            m_skip_policy.parse(pc);
-            const auto error_end = pc.parse_position();
-            pc.add_error(m_error_id, error_start, error_end);
-            return true;
+            if (pc.is_valid_parse_position()) {
+                const auto error_start = pc.parse_position();
+                m_skip_policy.parse(pc);
+                const auto error_end = pc.parse_position();
+                pc.add_error(m_error_id, error_start, error_end == error_start ? std::next(error_end) : error_end);
+                return true;
+            }
+            return false;
         }
 
         template <class ParseContext>
@@ -318,7 +322,7 @@ namespace parserlib {
 
         template <class ParseContext, class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
-            return parse(pc);
+            return false;
         }
 
     private:
@@ -353,11 +357,14 @@ namespace parserlib {
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
-            const auto start = pc.parse_position();
-            m_skip_policy.parse(pc);
-            const auto end = pc.parse_position();
-            pc.add_match(m_match_id, start, end);
-            return true;
+            if (pc.is_valid_parse_position()) {
+                const auto start = pc.parse_position();
+                m_skip_policy.parse(pc);
+                const auto end = pc.parse_position();
+                pc.add_match(m_match_id, start, end == start ? std::next(end) : end);
+                return true;
+            }
+            return false;
         }
 
         template <class ParseContext>
@@ -367,7 +374,7 @@ namespace parserlib {
 
         template <class ParseContext, class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
-            return parse(pc);
+            return false;
         }
 
     private:

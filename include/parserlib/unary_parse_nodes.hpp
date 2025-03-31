@@ -8,6 +8,29 @@
 namespace parserlib {
 
 
+    template <class Parser, class ParseContext>
+    parse_result do_optional_parse_loop(const Parser& parser, ParseContext& pc) noexcept {
+        while (pc.is_valid_parse_position()) {
+            const auto start = pc.parse_position();
+            parse_result result = parser.parse(pc);
+            switch (result.value()) {
+            case parse_result::FALSE:
+                return true;
+
+            case parse_result::TRUE:
+                if (pc.parse_position() == start) {
+                    return true;
+                }
+                continue;
+
+            case parse_result::LEFT_RECURSION:
+                return result;
+            }
+        }
+        return true;
+    }
+
+
     template <class Parser>
     class zero_or_more_parse_node : public parse_node<zero_or_more_parse_node<Parser>> {
     public:
@@ -18,18 +41,7 @@ namespace parserlib {
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
-            while (pc.is_valid_parse_position()) {
-                parse_result result = m_parser.parse(pc);
-                switch (result.value()) {
-                    case parse_result::FALSE:
-                        return true;
-                    case parse_result::TRUE:
-                        continue;
-                    case parse_result::LEFT_RECURSION:
-                        return result;
-                }
-            }
-            return true;
+            return do_optional_parse_loop(m_parser, pc);
         }
 
         template <class ParseContext>
@@ -41,18 +53,7 @@ namespace parserlib {
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
-            while (pc.is_valid_parse_position()) {
-                parse_result result = m_parser.parse(pc);
-                switch (result.value()) {
-                    case parse_result::FALSE:
-                        return true;
-                    case parse_result::TRUE:
-                        continue;
-                    case parse_result::LEFT_RECURSION:
-                        return result;
-                }
-            }
-            return true;
+            return do_optional_parse_loop(m_parser, pc);
         }
 
         template <class ParseContext, class State>
@@ -64,18 +65,7 @@ namespace parserlib {
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
-            while (pc.is_valid_parse_position()) {
-                parse_result result = m_parser.parse(pc);
-                switch (result.value()) {
-                    case parse_result::FALSE:
-                        return true;
-                    case parse_result::TRUE:
-                        continue;
-                    case parse_result::LEFT_RECURSION:
-                        return result;
-                }
-            }
-            return true;
+            return do_optional_parse_loop(m_parser, pc);
         }
 
     private:
@@ -97,17 +87,7 @@ namespace parserlib {
             if (!result) {
                 return result;
             }
-            while (pc.is_valid_parse_position()) {
-                parse_result result = m_parser.parse(pc);
-                switch (result.value()) {
-                    case parse_result::FALSE:
-                        return true;
-                    case parse_result::TRUE:
-                        continue;
-                    case parse_result::LEFT_RECURSION:
-                        return result;
-                    }
-            }
+            return do_optional_parse_loop(m_parser, pc);
             return true;
         }
 
@@ -117,18 +97,7 @@ namespace parserlib {
             if (!result) {
                 return result;
             }
-            while (pc.is_valid_parse_position()) {
-                parse_result result = m_parser.parse(pc);
-                switch (result.value()) {
-                    case parse_result::FALSE:
-                        return true;
-                    case parse_result::TRUE:
-                        continue;
-                    case parse_result::LEFT_RECURSION:
-                        return result;
-                }
-            }
-            return true;
+            return do_optional_parse_loop(m_parser, pc);
         }
 
         template <class ParseContext, class State>
@@ -137,18 +106,7 @@ namespace parserlib {
             if (!result) {
                 return result;
             }
-            while (pc.is_valid_parse_position()) {
-                parse_result result = m_parser.parse(pc);
-                switch (result.value()) {
-                    case parse_result::FALSE:
-                        return true;
-                    case parse_result::TRUE:
-                        continue;
-                    case parse_result::LEFT_RECURSION:
-                        return result;
-                }
-            }
-            return true;
+            return do_optional_parse_loop(m_parser, pc);
         }
 
     private:

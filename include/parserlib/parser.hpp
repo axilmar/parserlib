@@ -22,6 +22,7 @@ namespace parserlib {
             , m_begin(begin)
             , m_end(end)
         {
+            assert(begin < end);
         }
 
         const token_id_type& id() const noexcept {
@@ -180,7 +181,7 @@ namespace parserlib {
             pc.sort_errors();
 
             //return the result
-            return { success, parsed_tokens, pc.errors() };
+            return { success && pc.errors().empty(), parsed_tokens, pc.errors()};
         }
     };
 
@@ -282,14 +283,19 @@ namespace parserlib {
 
             //translate the errors to the result errors; the result errors shall contain source positions, not token positions
             for (const auto& error : pc.errors()) {
-                errors.push_back(error_type(error.id(), error.begin()->begin(), error.end()->begin()));
+                if (error.begin() != lexer_result.parsed_tokens.end()) {
+                    errors.push_back(error_type(error.id(), error.begin()->begin(), std::prev(error.end())->end()));
+                }
+                else {
+                    errors.push_back(error_type(error.id(), source.end(), source.end()));
+                }
             }
 
             //sort the errors
             pc.sort_errors();
 
             //return the result
-            return { success, ast_nodes, errors };
+            return { success && errors.empty(), ast_nodes, errors};
         }
     };
 

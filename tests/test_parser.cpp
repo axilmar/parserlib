@@ -88,9 +88,23 @@ public:
         DIV
     };
 
+    enum error_id_type {
+        INVALID_TOKEN,
+        INVALID_UNARY_EXPRESSION
+    };
+
     template <class ParseContext>
     parse_result parse(ParseContext& pc) const noexcept {
         return instance<ParseContext>().parse(pc);
+    }
+
+    static error_id_type translate_lexer_error_id(lexer_type::error_id_type error) {
+        switch (error) {
+            case lexer_type::error_id_type::INVALID_TOKEN:
+                return error_id_type::INVALID_TOKEN;
+        }
+
+        throw std::invalid_argument("invalid lexer error id");
     }
 
 private:
@@ -102,9 +116,13 @@ private:
                 = lexer_grammar::match_id_type::LEFT_PARENTHESIS >> add >> lexer_grammar::match_id_type::RIGHT_PARENTHESIS
                 | terminal(lexer_grammar::match_id_type::NUMBER)->*match_id_type::NUM;
 
-            mul = (mul >> lexer_grammar::match_id_type::MUL >> val)->*match_id_type::MUL
-                | (mul >> lexer_grammar::match_id_type::DIV >> val)->*match_id_type::DIV
-                | val;
+            const auto val1
+                = val
+                | debug(error(error_id_type::INVALID_UNARY_EXPRESSION)) >> false;
+
+            mul = (mul >> lexer_grammar::match_id_type::MUL >> val1)->*match_id_type::MUL
+                | (mul >> lexer_grammar::match_id_type::DIV >> val1)->*match_id_type::DIV
+                | val1;
 
             add = (add >> lexer_grammar::match_id_type::ADD >> mul)->*match_id_type::ADD
                 | (add >> lexer_grammar::match_id_type::SUB >> mul)->*match_id_type::SUB
@@ -163,6 +181,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -171,6 +190,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 + 2.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -179,6 +199,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 + 2.0 * 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -187,6 +208,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 + 2.0 / 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -195,6 +217,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 - 2.0 * 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -203,6 +226,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 - 2.0 / 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -211,6 +235,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 * 2.0 + 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -219,6 +244,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 * 2.0 - 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -227,6 +253,7 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 / 2.0 + 3.0);
+        assert(result.errors.size() == 0);
     }
 
     {
@@ -235,7 +262,19 @@ static void test_parsing() {
         assert(result.success);
         assert(result.ast_nodes.size() == 1);
         assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 / 2.0 - 3.0);
+        assert(result.errors.size() == 0);
     }
+
+    {
+        source_type source = "@+2";
+        auto result = parser_type::parse(source);
+        assert(!result.success);
+        assert(result.ast_nodes.size() == 0);
+        assert(result.errors.size() == 2);
+        assert(result.errors[0].id() == calculator_parser_grammar::error_id_type::INVALID_TOKEN);
+        assert(result.errors[1].id() == calculator_parser_grammar::error_id_type::INVALID_UNARY_EXPRESSION);
+    }
+
 }
 
 
