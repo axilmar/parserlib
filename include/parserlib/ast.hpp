@@ -30,7 +30,7 @@ namespace parserlib {
         using iterator_type = Iterator;
 
         ast_node(const node_id_type& node_id, const iterator_type& begin, const iterator_type& end, ast_node_container_type<node_id_type, iterator_type>&& children) noexcept
-            : m_id(id)
+            : m_id(node_id)
             , m_begin(begin)
             , m_end(end)
             , m_children(std::move(children))

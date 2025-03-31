@@ -58,19 +58,34 @@ namespace parserlib {
 
 
     template <class T> 
-    class has_parse_context_extension {
+    class grammar_has_parse_context_extension {
     private:
         struct no { char c[1]; };
         struct yes { char c[2]; };
         template <class U> static no test(...);
-        template <class U> static yes test(typename U::parse_context_extension*);
+        template <class U> static yes test(typename U::parse_context_extension_type*);
 
     public:
         static constexpr bool value = sizeof(test<T>(0)) == sizeof(yes);
     };
 
 
-    template <class T> 
+    enum empty_error_id_type {
+    };
+
+
+    template <class T>
+    class get_grammar_error_id_type {
+    private:
+        template <class U> static empty_error_id_type test(...);
+        template <class U> static typename U::error_id_type test(typename U::error_id_type*);
+
+    public:
+        using type = decltype(test<T>(0));
+    };
+
+
+    template <class T>
     class get_grammar_comparator_type {
     private:
         template <class U> static case_sensitive_comparator test(...);
@@ -81,12 +96,38 @@ namespace parserlib {
     };
 
 
+    template <class T>
+    class grammar_has_incomplete_parse_error_id {
+    private:
+        struct no { char c[1]; };
+        struct yes { char c[2]; };
+        template <class U> static no test(...);
+        template <class U> static yes test(decltype(&U::incomplete_parse_error_id)*);
+
+    public:
+        static constexpr bool value = sizeof(test<T>(0)) == sizeof(yes);
+    };
+
+
+    template <class T>
+    class parser_grammar_has_translate_lexer_error_id {
+    private:
+        struct no { char c[1]; };
+        struct yes { char c[2]; };
+        template <class U> static no test(...);
+        template <class U> static yes test(decltype(U::translate_lexer_error_id)*);
+
+    public:
+        static constexpr bool value = sizeof(test<T>(0)) == sizeof(yes);
+    };
+
+
     template <class Grammar, class Source>
     class lexer {
     public:
         using grammar_type = Grammar;
         using match_id_type = typename grammar_type::match_id_type;
-        using error_id_type = typename grammar_type::error_id_type;
+        using error_id_type = typename get_grammar_error_id_type<Grammar>::type;
         using comparator_type = typename get_grammar_comparator_type<Grammar>::type;
 
         using source_type = Source;
@@ -105,8 +146,8 @@ namespace parserlib {
         };
 
         static result parse(Source& source) noexcept {
-            if constexpr (has_parse_context_extension<Grammar>::value) {
-                return parse_helper(source, typename Grammar::parse_context_extension());
+            if constexpr (grammar_has_parse_context_extension<Grammar>::value) {
+                return parse_helper(source, typename Grammar::parse_context_extension_type());
             }
             else {
                 return parse_helper(source, empty_parse_context_extension());
@@ -129,8 +170,10 @@ namespace parserlib {
             }
 
             //if the whole input is not consumed, then add an error to the parsed position
-            if (!pc.is_end_parse_position()) {
-                pc.add_error(Grammar::incomplete_parse_error_id(), pc.parse_position(), source.end());
+            if constexpr (grammar_has_incomplete_parse_error_id<Grammar>::value) {
+                if (!pc.is_end_parse_position()) {
+                    pc.add_error(Grammar::incomplete_parse_error_id, pc.parse_position(), source.end());
+                }
             }
 
             //sort the errors
@@ -159,7 +202,7 @@ namespace parserlib {
         using ast_node_ptr_type = parserlib::ast_node_ptr_type<node_id_type, iterator_type>;
         using ast_node_container_type = parserlib::ast_node_container_type<node_id_type, iterator_type>;
 
-        using error_id_type = typename parser_grammar_type::error_id_type;
+        using error_id_type = typename get_grammar_error_id_type<ParserGrammar>::type;
         using error_type = parse_error<error_id_type, iterator_type>;
         using error_container_type = std::vector<error_type>;
 
@@ -174,11 +217,11 @@ namespace parserlib {
             class Extension = empty_parse_context_extension, 
             std::enable_if_t<std::is_base_of_v<ast_factory_base, AstFactory> && std::is_base_of_v<parse_context_extension_base, Extension>, bool> = true>
         static result parse(Source& source, const AstFactory& ast_factory, const Extension& extension = Extension()) noexcept {
-            if constexpr (has_parse_context_extension<ParserGrammar>::value) {
-                return parse_helper(source, typename ParserGrammar::parse_context_extension());
+            if constexpr (grammar_has_parse_context_extension<ParserGrammar>::value) {
+                return parse_helper(source, ast_factory, typename ParserGrammar::parse_context_extension_type());
             }
             else {
-                return parse_helper(source, empty_parse_context_extension());
+                return parse_helper(source, ast_factory, empty_parse_context_extension());
             }
         }
 
@@ -201,7 +244,7 @@ namespace parserlib {
             for (const auto& child_match : match.children()) {
                 children.push_back(create_ast_node(child_match, ast_factory));
             }
-            return ast_factory(match.id(), match.begin()->begin(), match.end()->begin(), std::move(children));
+            return ast_factory(match.id(), match.begin()->begin(), std::prev(match.end())->end(), std::move(children));
         }
 
         template <class Source, class AstFactory, class Extension>
@@ -224,13 +267,17 @@ namespace parserlib {
             error_container_type errors;
 
             //translate the lexer errors to parser errors
-            for (const auto& lexer_error : lexer_result.errors()) {
-                errors.push_back(error_type(ParserGrammar::translate_lexer_error_id(lexer_error.id()), lexer_error.begin(), lexer_error.end()));
+            if constexpr (parser_grammar_has_translate_lexer_error_id<ParserGrammar>::value) {
+                for (const auto& lexer_error : lexer_result.errors) {
+                    errors.push_back(error_type(ParserGrammar::translate_lexer_error_id(lexer_error.id()), lexer_error.begin(), lexer_error.end()));
+                }
             }
 
             //if the whole input is not consumed, then add an error to the parsed position
-            if (!pc.is_end_parse_position()) {
-                pc.add_error(ParserGrammar::incomplete_parse_error_id(), pc.parse_position(), lexer_result.parsed_tokens.end());
+            if constexpr (grammar_has_incomplete_parse_error_id<ParserGrammar>::value) {
+                if (!pc.is_end_parse_position()) {
+                    pc.add_error(ParserGrammar::incomplete_parse_error_id, pc.parse_position(), lexer_result.parsed_tokens.end());
+                }
             }
 
             //translate the errors to the result errors; the result errors shall contain source positions, not token positions

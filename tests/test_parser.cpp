@@ -1,7 +1,12 @@
+#include <sstream>
+#include <stdexcept>
 #include "parserlib.hpp"
 
 
 using namespace parserlib;
+
+
+using source_type = line_counting_string<>;
 
 
 class calculator_lexer_grammar {
@@ -21,7 +26,11 @@ public:
         INCOMPLETE_PARSE
     };
 
-    using comparator_type = case_sensitive_comparator;
+    //using comparator_type = case_sensitive_comparator;
+
+    //static constexpr error_id_type incomplete_parse_error_id = error_id_type::INCOMPLETE_PARSE;
+
+    //using parse_context_extension_type = empty_parse_context_extension;
 
     template <class ParseContext>
     auto parse(ParseContext& pc) const noexcept {
@@ -52,15 +61,11 @@ public:
 
         return grammar.parse(pc);
     }
-
-    static error_id_type incomplete_parse_error_id() noexcept {
-        return error_id_type::INCOMPLETE_PARSE;
-    }
 };
 
 
-using source_type = line_counting_string<>;
 using lexer_type = lexer<calculator_lexer_grammar, source_type>;
+
 
 
 static void test_tokenization() {
@@ -71,7 +76,166 @@ static void test_tokenization() {
 }
 
 
+class calculator_parser_grammar {
+public:
+    using lexer_grammar = calculator_lexer_grammar;
+
+    enum match_id_type {
+        NUM,
+        ADD,
+        SUB,
+        MUL,
+        DIV
+    };
+
+    template <class ParseContext>
+    parse_result parse(ParseContext& pc) const noexcept {
+        return instance<ParseContext>().parse(pc);
+    }
+
+private:
+    template <class ParseContext> 
+    class instance {
+    public:
+        instance() {
+            const auto val
+                = lexer_grammar::match_id_type::LEFT_PARENTHESIS >> add >> lexer_grammar::match_id_type::RIGHT_PARENTHESIS
+                | terminal(lexer_grammar::match_id_type::NUMBER)->*match_id_type::NUM;
+
+            mul = (mul >> lexer_grammar::match_id_type::MUL >> val)->*match_id_type::MUL
+                | (mul >> lexer_grammar::match_id_type::DIV >> val)->*match_id_type::DIV
+                | val;
+
+            add = (add >> lexer_grammar::match_id_type::ADD >> mul)->*match_id_type::ADD
+                | (add >> lexer_grammar::match_id_type::SUB >> mul)->*match_id_type::SUB
+                | mul;
+        }
+
+        parse_result parse(ParseContext& pc) noexcept {
+            return add.parse(pc);
+        }
+
+    private:
+        rule<ParseContext> mul;
+        rule<ParseContext> add;
+    };
+
+public:
+    static double eval(const ast_node_ptr_type<match_id_type, lexer_type::iterator_type>& ast_node) {
+        switch (ast_node->id()) {
+            case match_id_type::NUM: {
+                std::stringstream stream;
+                stream << ast_node->source();
+                double v;
+                stream >> v;
+                return v;
+            }
+
+            case match_id_type::ADD:
+                assert(ast_node->children().size() == 2);
+                return eval(ast_node->children()[0]) + eval(ast_node->children()[1]);
+
+            case match_id_type::SUB:
+                assert(ast_node->children().size() == 2);
+                return eval(ast_node->children()[0]) - eval(ast_node->children()[1]);
+
+            case match_id_type::MUL:
+                assert(ast_node->children().size() == 2);
+                return eval(ast_node->children()[0]) * eval(ast_node->children()[1]);
+
+            case match_id_type::DIV:
+                assert(ast_node->children().size() == 2);
+                return eval(ast_node->children()[0]) / eval(ast_node->children()[1]);
+        }
+
+        throw std::invalid_argument("invalid ast node id");
+    }
+};
+
+
+using parser_type = parser<calculator_lexer_grammar, calculator_parser_grammar, source_type>;
+
+
 static void test_parsing() {
+    {
+        source_type source = "1";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0);
+    }
+
+    {
+        source_type source = "1+2";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 + 2.0);
+    }
+
+    {
+        source_type source = "1+2*3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 + 2.0 * 3.0);
+    }
+
+    {
+        source_type source = "1+2/3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 + 2.0 / 3.0);
+    }
+
+    {
+        source_type source = "1-2*3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 - 2.0 * 3.0);
+    }
+
+    {
+        source_type source = "1-2/3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 - 2.0 / 3.0);
+    }
+
+    {
+        source_type source = "1*2+3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 * 2.0 + 3.0);
+    }
+
+    {
+        source_type source = "1*2-3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 * 2.0 - 3.0);
+    }
+
+    {
+        source_type source = "1/2+3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 / 2.0 + 3.0);
+    }
+
+    {
+        source_type source = "1/2-3";
+        auto result = parser_type::parse(source);
+        assert(result.success);
+        assert(result.ast_nodes.size() == 1);
+        assert(calculator_parser_grammar::eval(result.ast_nodes[0]) == 1.0 / 2.0 - 3.0);
+    }
 }
 
 
