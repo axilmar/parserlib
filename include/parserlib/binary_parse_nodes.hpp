@@ -144,6 +144,8 @@ namespace parserlib {
             if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse(pc);
                 switch (result.value()) {
+                    case parse_result::FALSE:
+                        break;
                     case parse_result::TRUE:
                     case parse_result::LEFT_RECURSION:
                         return result;
@@ -162,6 +164,8 @@ namespace parserlib {
             if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse_left_recursion_start(pc);
                 switch (result.value()) {
+                    case parse_result::FALSE:
+                        break;
                     case parse_result::TRUE:
                     case parse_result::LEFT_RECURSION:
                         return result;
@@ -180,6 +184,8 @@ namespace parserlib {
             if constexpr (I < sizeof...(Parsers)) {
                 parse_result result = std::get<I>(m_parsers).parse_left_recursion_continuation(pc, match_start);
                 switch (result.value()) {
+                    case parse_result::FALSE:
+                        break;
                     case parse_result::TRUE:
                     case parse_result::LEFT_RECURSION:
                         return result;

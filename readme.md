@@ -1,6 +1,18 @@
 # Parserlib
 
-A `c++17` recursive-descent parser library.
+A `c++17` recursive-descent parser library with the following features:
+
+- ENBF-like syntax for writing grammar expressions.
+- support for recursive and left-recursive grammars.
+- translation of source to AST nodes.
+- support for multiple errors per parse and error continuation policy customization.
+- character, string, boolean, set, range terminals.
+- support for custom parsing functions.
+- support for custom parsing callbacks.
+- case sensitive/insensitive parsing.
+- support for line/column counting.
+- support for parsing utf-8 strings.
+- utilities (load file into memory for processing).
 
 Version 1.0.0.8
 
@@ -12,7 +24,8 @@ Version 1.0.0.8
 
   - 1.0.0.8
   	- Rewritten again from scratch, in order to deal with error handling in a much better way,
-  	  and to make everything `noexcept` for increased performance.
+  	  to make everything `noexcept` for increased performance,
+      to add new capabilities.
 
   - 1.0.0.7
     - Rewritten from scratch, to improve quality of the API.

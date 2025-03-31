@@ -102,13 +102,16 @@ public:
         switch (error) {
             case lexer_type::error_id_type::INVALID_TOKEN:
                 return error_id_type::INVALID_TOKEN;
+
+            default:
+                break;
         }
 
         throw std::invalid_argument("invalid lexer error id");
     }
 
 private:
-    template <class ParseContext> 
+    template <class ParseContext>
     class instance {
     public:
         instance() {

@@ -147,6 +147,8 @@ namespace parserlib {
             std::size_t m_match_count;
         };
 
+        using state_type = class state;
+
         const Source& source() const noexcept {
             return m_source;
         }

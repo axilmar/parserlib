@@ -24,6 +24,7 @@ namespace parserlib {
 
         template <class ParseContext>
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            return true;
         }
 
         template <class ParseContext, class State>

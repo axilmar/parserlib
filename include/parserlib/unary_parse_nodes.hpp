@@ -221,6 +221,8 @@ namespace parserlib {
                     return true;
                 case parse_result::TRUE:
                     return false;
+                case parse_result::LEFT_RECURSION:
+                    break;
             }
             return result;
         }

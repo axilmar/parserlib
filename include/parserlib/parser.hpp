@@ -58,7 +58,7 @@ namespace parserlib {
     };
 
 
-    template <class T> 
+    template <class T>
     class grammar_has_parse_context_extension {
     private:
         struct no { char c[1]; };
@@ -156,7 +156,7 @@ namespace parserlib {
         }
 
     private:
-        template <class Source, class Extension>
+        template <class Extension>
         static result parse_helper(Source& source, const Extension& extension) noexcept {
             //parse
             using parse_context_type = parse_context<source_type, match_id_type, error_id_type, comparator_type, Extension>;
@@ -214,8 +214,8 @@ namespace parserlib {
         };
 
         template <
-            class AstFactory, 
-            class Extension = empty_parse_context_extension, 
+            class AstFactory,
+            class Extension = empty_parse_context_extension,
             std::enable_if_t<std::is_base_of_v<ast_factory_base, AstFactory> && std::is_base_of_v<parse_context_extension_base, Extension>, bool> = true>
         static result parse(Source& source, const AstFactory& ast_factory, const Extension& extension = Extension()) noexcept {
             if constexpr (grammar_has_parse_context_extension<ParserGrammar>::value) {
@@ -248,7 +248,7 @@ namespace parserlib {
             return ast_factory(match.id(), match.begin()->begin(), std::prev(match.end())->end(), std::move(children));
         }
 
-        template <class Source, class AstFactory, class Extension>
+        template <class AstFactory, class Extension>
         static result parse_helper(Source& source, const AstFactory& ast_factory, const Extension& extension) noexcept {
             //tokenize
             typename lexer_type::result lexer_result = lexer_type::parse(source);

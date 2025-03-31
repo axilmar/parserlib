@@ -84,7 +84,6 @@ struct calculator_grammar {
             | mul;
     }
 
-    template <class ParseContext>
     parse_result parse(ParseContext& pc) noexcept {
         return add.parse(pc);
     }

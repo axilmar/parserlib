@@ -11,13 +11,13 @@ namespace parserlib {
 
     template <class ParseContext>
     class rule : public parse_node<rule<ParseContext>> {
-        using state_type = class ParseContext::state;
+        using state_type = typename ParseContext::state_type;
     public:
         rule() {
         }
 
         template <class T, std::enable_if_t<!std::is_same_v<T, rule<ParseContext>>, bool> = true>
-        rule(const T& t) 
+        rule(const T& t)
             : m_expr(create_impl(t))
         {
         }
@@ -124,6 +124,8 @@ namespace parserlib {
             switch (result.value()) {
                 case parse_result::FALSE:
                     return false;
+                case parse_result::TRUE:
+                    break;
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
@@ -175,17 +177,15 @@ namespace parserlib {
         {
         }
 
-        template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
             return m_rule.parse(pc);
         }
 
-        template <class ParseContext>
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
             return m_rule.parse_left_recursion_start(pc);
         }
 
-        template <class ParseContext, class State>
+        template <class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             return m_rule.parse_left_recursion_continuation(pc, match_start);
         }
