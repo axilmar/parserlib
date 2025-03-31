@@ -118,7 +118,7 @@ private:
 
             const auto val1
                 = val
-                | debug(error(error_id_type::INVALID_UNARY_EXPRESSION)) >> false;
+                | error(error_id_type::INVALID_UNARY_EXPRESSION) >> false;
 
             mul = (mul >> lexer_grammar::match_id_type::MUL >> val1)->*match_id_type::MUL
                 | (mul >> lexer_grammar::match_id_type::DIV >> val1)->*match_id_type::DIV
