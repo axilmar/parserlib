@@ -89,8 +89,30 @@ static void test_function_parse_node() {
 }
 
 
+static void test_callback_parse_node() {
+    struct test_extension {
+        std::size_t count{ 0 };
+    };
+
+    const auto test_callback = [](auto& pc, const auto& result, const auto& start, const auto& end) {
+        ++pc.extension().count;
+        return result;
+    };
+
+    const auto grammar = terminal('a')[test_callback] >> terminal('b')[test_callback] >> terminal('c')[test_callback];
+
+    std::string source = "abc";
+
+    parse_context<std::string, int, int, case_sensitive_comparator, test_extension> pc(source, test_extension());
+
+    assert(grammar.parse(pc));
+    assert(pc.extension().count == 3);
+}
+
+
 void test_other_parse_nodes() {
     test_bool_parse_node();
     test_end_parse_node();
     test_function_parse_node();
+    test_callback_parse_node();
 }

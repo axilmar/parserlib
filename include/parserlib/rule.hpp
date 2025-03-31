@@ -42,6 +42,11 @@ namespace parserlib {
         logical_and_parse_node<rule_ref_parse_node<ParseContext>> operator &() noexcept { return *this; }
         logical_not_parse_node<rule_ref_parse_node<ParseContext>> operator !() noexcept { return *this; }
 
+
+        template <class Callback> auto operator [](const Callback& callback) noexcept {
+            return callback_parse_node(get_parse_node_wrapper(*this), callback);
+        }
+
         parse_result parse(ParseContext& pc) noexcept {
             if (pc.is_left_recursive_rule(*this)) {
                 return left_recursion{this};

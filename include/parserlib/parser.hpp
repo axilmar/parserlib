@@ -80,10 +80,11 @@ namespace parserlib {
             error_container_type errors;
         };
 
-        static result parse(Source& source) noexcept {
+        template <class Extension = empty_parse_context_extension>
+        static result parse(Source& source, const Extension& extension = Extension()) noexcept {
             //parse
-            using parse_context_type = parse_context<source_type, match_id_type, error_id_type, comparator_type>;
-            parse_context_type pc(source);
+            using parse_context_type = parse_context<source_type, match_id_type, error_id_type, comparator_type, Extension>;
+            parse_context_type pc(source, extension);
             Grammar grammar;
             const bool success = grammar.parse(pc) && pc.is_end_parse_position();
 
@@ -130,8 +131,8 @@ namespace parserlib {
             error_container_type errors;
         };
 
-        template <class AstFactory>
-        static result parse(Source& source, const AstFactory& ast_factory) noexcept {
+        template <class AstFactory, class Extension = empty_parse_context_extension>
+        static result parse(Source& source, const AstFactory& ast_factory, const Extension& extension = Extension()) noexcept {
             //tokenize
             typename lexer_type::result lexer_result = lexer_type::parse(source);
 
@@ -177,8 +178,9 @@ namespace parserlib {
             }
         };
 
-        static result parse(Source& source) noexcept {
-            return parse(source, default_ast_factory());
+        template <class Extension = empty_parse_context_extension>
+        static result parse(Source& source, const Extension& extension = Extension()) noexcept {
+            return parse(source, default_ast_factory(), extension);
         }
 
     private:

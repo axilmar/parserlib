@@ -91,7 +91,11 @@ namespace parserlib {
     };
 
 
-    template <class Source, class MatchId, class ErrorId, class Comparator>
+    class empty_parse_context_extension {
+    };
+
+
+    template <class Source, class MatchId, class ErrorId, class Comparator, class Extension = empty_parse_context_extension>
     class parse_context {
     public:
         // TYPES --------------------------------------------------------------
@@ -105,12 +109,14 @@ namespace parserlib {
         using iterator_type = typename source_type::const_iterator;
         using this_type = parse_context<Source, MatchId, ErrorId, Comparator>;
         using rule_type = rule<this_type>;
+        using extension_type = Extension;
 
         // CONSTRUCTOR --------------------------------------------------------
 
-        parse_context(Source& source) noexcept
+        parse_context(Source& source, const Extension& extension = Extension()) noexcept
             : m_source(source)
             , m_parse_position(source.begin())
+            , m_extension(extension)
         {
         }
 
@@ -285,6 +291,16 @@ namespace parserlib {
             m_rule_parse_positions[rule.pointer()].pop_back();
         }
 
+        // EXTENSION ----------------------------------------------------------
+
+        const extension_type& extension() const noexcept {
+            return m_extension;
+        }
+
+        extension_type& extension() noexcept {
+            return m_extension;
+        }
+
     private:
         using rule_parse_position_map_type = std::map<rule_type*, std::vector<iterator_type>>;
 
@@ -293,6 +309,7 @@ namespace parserlib {
         match_container_type m_matches;
         error_container_type m_errors;
         rule_parse_position_map_type m_rule_parse_positions;
+        extension_type m_extension;
     };
 
 

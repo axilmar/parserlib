@@ -32,6 +32,7 @@ namespace parserlib {
     template <class Parser> class optional_parse_node;
     template <class Parser> class logical_and_parse_node;
     template <class Parser> class logical_not_parse_node;
+    template <class Parser, class Callback> class callback_parse_node;
 
 
     template <class Derived>
@@ -90,6 +91,10 @@ namespace parserlib {
         auto operator -() const noexcept;
         auto operator &() const noexcept;
         auto operator !() const noexcept;
+
+        template <class Callback> auto operator [](const Callback& callback) const noexcept {
+            return callback_parse_node(get_parse_node_wrapper(*this), callback);
+        }
     };
 
 

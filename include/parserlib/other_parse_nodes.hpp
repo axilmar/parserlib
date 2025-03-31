@@ -109,6 +109,41 @@ namespace parserlib {
     }
 
 
+    template <class Parser, class Callback>
+    class callback_parse_node : public parse_node<callback_parse_node<Parser, Callback>> {
+    public:
+        callback_parse_node(const Parser& parser, const Callback& callback)
+            : m_parser(parser)
+            , m_callback(callback)
+        {
+        }
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            const auto start = pc.parse_position();
+            parse_result result = m_parser.parse(pc);
+            return m_callback(pc, result, start, pc.parse_position());
+        }
+
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            const auto start = pc.parse_position();
+            parse_result result = m_parser.parse_left_recursion_start(pc);
+            return m_callback(pc, result, start, pc.parse_position());
+        }
+
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            parse_result result = m_parser.parse_left_recursion_continuation(pc, match_start);
+            return m_callback(pc, result, match_start.position(), pc.parse_position());
+        }
+
+    private:
+        Parser m_parser;
+        Callback m_callback;
+    };
+
+
 } //namespace parserlib
 
 
