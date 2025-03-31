@@ -44,7 +44,9 @@ public:
             | left_parenthesis
             | right_parenthesis;
 
-        const auto token1 = token | (error(error_id_type::INVALID_TOKEN) >> skip_until(whitespace));
+        const auto token_error = error(error_id_type::INVALID_TOKEN, skip_until(whitespace | token));
+
+        const auto token1 = token | token_error;
 
         const auto grammar = *(whitespace | token1);
 
@@ -63,7 +65,7 @@ using lexer_type = lexer<calculator_lexer_grammar, source_type>;
 
 static void test_tokenization() {
     {
-        source_type source = "1";
+        source_type source = "1@";
         auto result = lexer_type::parse(source);
     }
 }

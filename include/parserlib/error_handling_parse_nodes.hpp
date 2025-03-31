@@ -14,6 +14,29 @@ namespace parserlib {
     class skip_policy_base {};
 
 
+    class skip_nothing_parse_node : public parse_node<skip_nothing_parse_node>, public skip_policy_base {
+    public:
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            return true;
+        }
+
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+        }
+
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            return true;
+        }
+    };
+
+
+    inline skip_nothing_parse_node skip_nothing() noexcept {
+        return {};
+    }
+
+
     template <class Parser>
     class skip_until_parse_node : public parse_node<skip_until_parse_node<Parser>>, public skip_policy_base {
     public:
@@ -267,19 +290,22 @@ namespace parserlib {
     // ERROR HANDLER ----------------------------------------------------------
 
 
-    template <class ErrorId>
-    class error_handler_parse_node : public parse_node<error_handler_parse_node<ErrorId>> {
+    template <class ErrorId, class SkipPolicy>
+    class error_handler_parse_node : public parse_node<error_handler_parse_node<ErrorId, SkipPolicy>> {
     public:
         using error_id_type = ErrorId;
+        using skip_policy_type = SkipPolicy;
 
-        error_handler_parse_node(const error_id_type& error_id) noexcept
+        error_handler_parse_node(const error_id_type& error_id, const skip_policy_type& skip_policy) noexcept
             : m_error_id(error_id)
+            , m_skip_policy(skip_policy)
         {
         }
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
             const auto error_start = pc.parse_position();
+            m_skip_policy.parse(pc);
             const auto error_end = pc.parse_position();
             pc.add_error(m_error_id, error_start, error_end);
             return true;
@@ -297,29 +323,40 @@ namespace parserlib {
 
     private:
         error_id_type m_error_id;
+        skip_policy_type m_skip_policy;
     };
 
 
     template <class ErrorId>
     auto error(const ErrorId& error_id) noexcept {
-        return error_handler_parse_node(error_id);
+        return error_handler_parse_node(error_id, skip_nothing());
+    }
+
+
+    template <class ErrorId, class SkipPolicy>
+    auto error(const ErrorId& error_id, const SkipPolicy& skip_policy) noexcept {
+        return error_handler_parse_node(error_id, skip_policy);
     }
 
 
     // ERROR MATCH ------------------------------------------------------------
 
 
-    template <class MatchId>
-    class error_match_parse_node : public parse_node<error_match_parse_node<MatchId>> {
+    template <class MatchId, class SkipPolicy>
+    class error_match_parse_node : public parse_node<error_match_parse_node<MatchId, SkipPolicy>> {
     public:
-        error_match_parse_node(const MatchId& match_id) noexcept
+        error_match_parse_node(const MatchId& match_id, const SkipPolicy& skip_policy) noexcept
             : m_match_id(match_id)
+            , m_skip_policy(skip_policy)
         {
         }
 
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
-            pc.add_match(m_match_id, pc.parse_position(), pc.parse_position());
+            const auto start = pc.parse_position();
+            m_skip_policy.parse(pc);
+            const auto end = pc.parse_position();
+            pc.add_match(m_match_id, start, end);
             return true;
         }
 
@@ -335,12 +372,19 @@ namespace parserlib {
 
     private:
         MatchId m_match_id;
+        SkipPolicy m_skip_policy;
     };
 
 
     template <class MatchId>
     auto error_match(const MatchId& match_id) noexcept {
-        return error_match_parse_node(match_id);
+        return error_match_parse_node(match_id, skip_nothing());
+    }
+
+
+    template <class MatchId, class SkipPolicy>
+    auto error_match(const MatchId& match_id, const SkipPolicy& skip_policy) noexcept {
+        return error_match_parse_node(match_id, skip_policy);
     }
 
 
