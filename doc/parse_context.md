@@ -56,13 +56,13 @@ For example:
 using namespace parserlib;
 
 enum class MATCH_ID {
-	A,
+    A,
     B,
     C
 };
 
 enum class ERROR_ID {
-	ERROR_1,
+    ERROR_1,
     ERROR_2
 };
 
@@ -72,7 +72,7 @@ static const auto c = terminal('b')->*MATCH_ID::C;
 static const auto grammar = a >> b >> c;
 
 int main() {
-	std::string source = "abc";
+    std::string source = "abc";
     parse_context<std::string, MATCH_ID, ERROR_ID> pc(source);
     parse_result result = grammar.parse(pc);
 }
@@ -109,11 +109,11 @@ When constructing a parse context instance, an instance of the extension can be 
 
 ```cpp
 class my_extension {
-	std::set<std::string> identifiers;
+    std::set<std::string> identifiers;
 };
 
 int main() {
-	std::string source = "abc";
+    std::string source = "abc";
     parse_context<std::string, MATCH_ID, ERROR_ID, case_sensitive_comparator, my_extension> pc(source, my_extension());
     parse_result result = grammar.parse(pc);
 }
@@ -157,7 +157,7 @@ Example:
 
 ```cpp
 int main() {
-	std::string source = "abc";
+    std::string source = "abc";
     parse_context<std::string, MATCH_ID, ERROR_ID> pc(source);
     parse_result result = grammar.parse(pc);
     if (result.value() == parse_result::FALSE) {
@@ -200,18 +200,18 @@ static void print_match(const Match& match) noexcept {
     std::cout << "found match: " <<< match.id();
     std::cout << "; source:" << match.source();
     std::cout << std::endl;
-	print_matches(match.children());
+    print_matches(match.children());
 }
 
 template <class Matches> 
 static void print_matches(const Matches& matches) noexcept {
-	for(const auto& match : matches) {
+    for(const auto& match : matches) {
     	print_match(match);
     }
 }
 
 int main() {
-	std::string source = "abc";
+    std::string source = "abc";
     parse_context<std::string, MATCH_ID, ERROR_ID> pc(source);
     grammar.parse(pc);
     print_matches(pc.matches());
@@ -224,7 +224,7 @@ In the same manner matches can be processed after a parse, so can errors. Exampl
 
 ```cpp
 int main() {
-	std::string source = "abc";
+    std::string source = "abc";
     parse_context<std::string, MATCH_ID, ERROR_ID> pc(source);
     grammar.parse(pc);
     for(const auto& error : pc.errors()) {
