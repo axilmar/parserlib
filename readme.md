@@ -5,7 +5,7 @@ A `c++17` recursive-descent parser library with the following features:
 - ENBF-like syntax for writing grammar expressions.
 - character, string, boolean, set, range terminals.
 - recursive and left-recursive grammars.
-- custom parsing functions and callbacks.
+- custom parsing functions, callbacks and nodes.
 - multiple errors per parse.
 - case sensitive/insensitive parsing.
 - optional line/column counting.
@@ -17,35 +17,35 @@ A `c++17` recursive-descent parser library with the following features:
 
 Version 1.0.0.8
 
-## Table Of Contents
+## Quick Example
 
-[ENBF-like syntax](doc/ebnf_like_syntax.md)
+```cpp
+#include "parserlib.hpp"
+using namespace parserlib;
 
-[Terminals](doc/terminals.md)
+int main() {
+	const auto grammar = terminal("parserlib is") >> " my favorite library" >> -terminal('!');
+    std::string source = "parserlib is my favorite library!";
+    parse_context<std::string> pc(source);
+    bool success = grammar.parse(pc);
+}
+```
 
-[Recursion](doc/recursion.md)
+##### Table Of Contents
 
-[Custom Functions/Callbacks](doc/custom_functions.md)
-
-[Multiple Errors](doc/multiple_errors.md)
-
-[The Parse Context](doc/parse_context.md)
-
-[Case Sensitivity](doc/case_sensitivity.md)
-
-[Line/Column counting](doc/line_counting.md)
-
-[UTF-8 strings](doc/utf8_strings.md)
-
-[AST Nodes](doc/ast_nodes.md)
-
-[Loading A File to Memory](doc/load_file.md)
-
-[Parsing Streams](doc/parsing_streams.md)
-
-[Lexing And Parsing](doc/lexing_parsing.md)
-
-[Versions](#versions)
+1. [EBNF-like syntax](doc/ebnf_like_syntax.md)
+1. [Terminals](doc/terminals.md)
+1. [Recursive Grammars](doc/recursion.md)
+1. [The Parse Context](doc/parse_context.md)
+1. [Custom Parse Functions/Callbacks/Parse Nodes](doc/custom_functions.md)
+1. [Error Handling](doc/error_handling.md)
+1. [Line/Column counting](doc/line_counting.md)
+1. [UTF-8 strings](doc/utf8_strings.md)
+1. [AST Nodes](doc/ast_nodes.md)
+1. [Lexing And Parsing](doc/lexing_parsing.md)
+1. [Parsing In-Memory Sources](doc/load_file.md)
+1. [Parsing Sources From Streams](doc/parsing_streams.md)
+1. [Versions](#versions)
 
 ### Versions
 

@@ -4,6 +4,14 @@
 
 The library `parserlib` provides the class [`ast_node`](../include/parserlib/ast.hpp#ast_node) to allow the conversion of matches to an AST tree.
 
+###### Table Of Contents
+
+1. [Memory Management](#memory-management)
+1. [Class Signature](#class-signature)
+1. [Class Constructor](#class-constructor)
+1. [Class Destructor](#class-destructor)
+1. [Class Methods](#class-methods)
+
 ### Memory Management
 
 AST nodes are managed via shared pointers, in order to allow the sharing of nodes with other parts of a program.
