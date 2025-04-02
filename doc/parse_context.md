@@ -15,9 +15,9 @@ The class [`parse_context`](../include/parserlib/parse_context.hpp#parse_context
 1. [Customizing The Character Comparison Function](#customizing-the-character-comparison-function)
 1. [Extending A Parse Context](#extending-a-parse-context)
 1. [Processing The Results Of Parsing](#processing-the-results-of-parsing)
-    2. [Processing The Parse Result](#processing-the-parse-result)
-    3. [Processing Matches After A Parse](#processing-matches-after-a-parse)
-    4. [Processing Errors After A Parse](#processing-errors-after-a-parse)
+    1. [Processing The Parse Result](#processing-the-parse-result)
+    1. [Processing Matches After A Parse](#processing-matches-after-a-parse)
+    1. [Processing Errors After A Parse](#processing-errors-after-a-parse)
 4. [Using A Parse Context Inside A Parse Function](#using-a-parse-context-inside-a-parse-function)
 
 ### Constructing And Using A Parse Context
