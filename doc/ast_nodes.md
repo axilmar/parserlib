@@ -2,7 +2,7 @@
 
 ## Abstract Syntax Tree (AST) Nodes
 
-The library `parserlib` provides the class [`ast_node`](include/parserlib/ast.hpp#ast_node) to allow the conversion of matches to an AST tree.
+The library `parserlib` provides the class [`ast_node`](../include/parserlib/ast.hpp#ast_node) to allow the conversion of matches to an AST tree.
 
 ### Memory Management
 
