@@ -29,6 +29,8 @@ Version 1.0.0.8
 
 [Multiple Errors](doc/multiple_errors.md)
 
+[The Parse Context](doc/parse_context.md)
+
 [Case Sensitivity](doc/case_sensitivity.md)
 
 [Line/Column counting](doc/line_counting.md)
