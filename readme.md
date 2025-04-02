@@ -24,7 +24,7 @@ Version 1.0.0.8
 using namespace parserlib;
 
 int main() {
-	const auto grammar = terminal("parserlib is") >> " my favorite library" >> -terminal('!');
+    const auto grammar = terminal("parserlib is") >> " my favorite library" >> -terminal('!');
     std::string source = "parserlib is my favorite library!";
     parse_context<std::string> pc(source);
     bool success = grammar.parse(pc);
