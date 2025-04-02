@@ -166,7 +166,7 @@ int main() {
     else if (result.value() == parse_result::TRUE) {
     	std::cout <<< "parsing successful.";
     }
-    else ) {
+    else {
     	std::cout <<< "failed to parse due to unresolved left recursion.";
     }
 }
@@ -178,7 +178,7 @@ After parsing, the matches can be processed by looping over the matches of a par
 
 ```cpp
 int main() {
-	std::string source = "abc";
+    std::string source = "abc";
     parse_context<std::string, MATCH_ID, ERROR_ID> pc(source);
     grammar.parse(pc);
     for(const auto& match : pc.matches()) {
