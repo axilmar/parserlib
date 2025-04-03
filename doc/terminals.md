@@ -17,7 +17,7 @@
 The following data can be terminal types:
 
 - integral types (characters, integers, floats, booleans, etc)
-- strings (null terminated strings, std::basic_string)
+- strings (null terminated strings, `std::basic_string`)
 - sets
 - ranges
 - any other value not inheriting from class `parse_node`.
@@ -102,7 +102,7 @@ Any value not being a parse node will become a terminal automatically within an 
 
 If there is no need for a special parse node, then nothing else is required.
 
-If, however, a special parse node is required, then a special parse node lass must be created, and the function `get_parse_node_wrapper` must be overriden to return an instance of that special parse node class.
+If, however, a special parse node is required, then a special parse node class must be created, and the function `get_parse_node_wrapper` must be overriden to return an instance of that special parse node class.
 
 For example:
 
