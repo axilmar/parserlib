@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <variant>
 #include <cassert>
+#include <stdexcept>
 
 
 namespace parserlib {
@@ -83,21 +84,6 @@ namespace parserlib {
     using parse_node_wrapper_type = std::decay_t<decltype(get_parse_node_wrapper(*(T*)nullptr))>;
 
 
-    template <class Derived>
-    class parse_node : public parse_node_base {
-    public:
-        auto operator *() const noexcept;
-        auto operator +() const noexcept;
-        auto operator -() const noexcept;
-        auto operator &() const noexcept;
-        auto operator !() const noexcept;
-
-        template <class Callback> auto operator [](const Callback& callback) const noexcept {
-            return callback_parse_node(get_parse_node_wrapper(*this), callback);
-        }
-    };
-
-
     struct left_recursion {
         void* rule;
     };
@@ -107,12 +93,12 @@ namespace parserlib {
         using variant_type = std::variant<std::false_type, std::true_type, struct left_recursion>;
 
     public:
-        parse_result(bool value) noexcept 
+        parse_result(bool value) noexcept
             : m_value(value ? variant_type(std::true_type()) : variant_type(std::false_type()))
         {
         }
 
-        parse_result(const left_recursion& lr) noexcept 
+        parse_result(const left_recursion& lr) noexcept
             : m_value(lr)
         {
         }
@@ -150,6 +136,36 @@ namespace parserlib {
 
     private:
         const variant_type m_value;
+    };
+
+
+    template <class Derived>
+    class parse_node : public parse_node_base {
+    public:
+        auto operator *() const noexcept;
+        auto operator +() const noexcept;
+        auto operator -() const noexcept;
+        auto operator &() const noexcept;
+        auto operator !() const noexcept;
+
+        template <class Callback> auto operator [](const Callback& callback) const noexcept {
+            return callback_parse_node(get_parse_node_wrapper(*this), callback);
+        }
+
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            throw std::logic_error("Parse method not specified.");
+        }
+
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            return false;
+        }
+
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            return false;
+        }
     };
 
 

@@ -40,7 +40,7 @@ namespace parserlib {
     template <class It>
     auto source(const It& begin, const It& end) {
         using value_type = typename It::value_type;
-        if constexpr (std::is_integral_v<value_type>) {
+        if constexpr (!std::is_array_v<value_type> && std::is_trivial_v<value_type> && std::is_standard_layout_v<value_type>) {
             return std::string_view(&*begin, std::distance(begin, end));
         }
         else {

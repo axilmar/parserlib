@@ -13,30 +13,63 @@ namespace parserlib {
     class sequence_parse_node_base {};
 
 
+    /**
+     * A parse node that parses other parse nodes in sequence.
+     * All parse nodes must return true in order for this node to return true.
+     * @param Parsers parse nodes to invoke.
+     */
     template <class... Parsers>
     class sequence_parse_node : public parse_node<sequence_parse_node<Parsers...>>, public sequence_parse_node_base {
-        using tuple_type = std::tuple<Parsers...>;
     public:
+        /** Tuple of parsers. */
+        using tuple_type = std::tuple<Parsers...>;
+
+        /**
+         * The constructor.
+         * @param parsers tuple of parsers.
+         */
         sequence_parse_node(const tuple_type& parsers) noexcept
             : m_parsers(parsers)
         {
         }
 
+        /**
+         * Invokes the specified parsers in sequence.
+         * If a parser returns false, then parsing is stopped and the parse context is rewinded 
+         * to the state that it was before calling this function.
+         * @param pc the parse context.
+         * @return true if parsing succeeded, false if it failed, left recursion if left recursion is detected.
+         */
         template <class ParseContext>
         parse_result parse(ParseContext& pc) const noexcept {
             return parse_loop<0>(pc.state(), pc);
         }
 
+        /**
+         * Same as parse(pc), but for the first step of left recursion parsing.
+         * @param pc the parse context.
+         * @return true if parsing succeeded, false if it failed, left recursion if left recursion is detected.
+         */
         template <class ParseContext>
         parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
             return parse_left_recursion_start_loop(pc.state(), pc);
         }
 
+        /**
+         * Same as parse(pc), but for the subsequent steps of left recursion parsing.
+         * @param pc the parse context.
+         * @param match_start start state of left recursion.
+         * @return true if parsing succeeded, false if it failed, left recursion if left recursion is detected.
+         */
         template <class ParseContext, class State>
         parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
             return parse_left_recursion_continuation_loop(pc.state(), pc, match_start);
         }
 
+        /**
+         * Returns the parsers of the sequence.
+         * @return the parsers of the sequence.
+         */
         const tuple_type& parsers() const noexcept {
             return m_parsers;
         }
@@ -81,24 +114,48 @@ namespace parserlib {
     };
 
 
+    /**
+     * An operator that returns a sequence out of two values; one of the values must be a parse node.
+     * @param l the left value; promoted to the appropriate parse node type automatically, if not a parse node.
+     * @return r the right value; promoted to the appropriate parse node type automatically, if not a parse node.
+     * @return a sequence of parse nodes.
+     */
     template <class L, class R, std::enable_if_t<(std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>) && !std::is_base_of_v<sequence_parse_node_base, L> && !std::is_base_of_v<sequence_parse_node_base, R>, bool> = true>
     auto operator >> (L&& l, R&& r) noexcept {
         return sequence_parse_node(std::make_tuple(get_parse_node_wrapper(std::forward<L>(l)), get_parse_node_wrapper(std::forward<R>(r))));
     }
 
 
+    /**
+     * An operator that merges a sequence of parse nodes with a value.
+     * @param l the sequence.
+     * @return r the value; promoted to the appropriate parse node type automatically, if not a parse node.
+     * @return a sequence of parse nodes that includes the parse nodes of the sequence and the parse node for the value.
+     */
     template <class... L, class... R>
     auto operator >> (const sequence_parse_node<L...>& l, const sequence_parse_node<R...>& r) noexcept {
         return sequence_parse_node(std::tuple_cat(l.parsers(), r.parsers()));
     }
 
 
+    /**
+     * An operator that merges a value with a sequence of parse nodes.
+     * @return l the value; promoted to the appropriate parse node type automatically, if not a parse node.
+     * @param l the sequence.
+     * @return a sequence of parse nodes that includes the parse node for the value and the parse nodes of the sequence.
+     */
     template <class... L, class R, std::enable_if_t<!std::is_base_of_v<sequence_parse_node_base, R>, bool> = true>
     auto operator >> (const sequence_parse_node<L...>& l, R&& r) noexcept {
         return sequence_parse_node(std::tuple_cat(l.parsers(), std::make_tuple(get_parse_node_wrapper(std::forward<R>(r)))));
     }
 
 
+    /**
+     * An operator that merges two sequences.
+     * @param l the left sequence.
+     * @param r the right sequence.
+     * @return a sequence of nodes that includes the nodes of the left and the right sequences.
+     */
     template <class L, class... R, std::enable_if_t<!std::is_base_of_v<sequence_parse_node_base, L>, bool> = true>
     auto operator >> (L&& l, const sequence_parse_node<R...>& r) noexcept {
         return sequence_parse_node(std::tuple_cat(std::make_tuple(get_parse_node_wrapper(std::forward<L>(l))), r.parsers()));
