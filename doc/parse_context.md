@@ -108,7 +108,7 @@ The template parameter `Extension` contains the extension type. The default is t
 When constructing a parse context instance, an instance of the extension can be optionally passed to the constructor. Here is an example:
 
 ```cpp
-class my_extension {
+class my_extension : public parserlib::parse_context_extension_base {
     std::set<std::string> identifiers;
 };
 
