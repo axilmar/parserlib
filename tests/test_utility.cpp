@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstdio>
 #include "parserlib/utility.hpp"
+#include "parserlib/strings.hpp"
 
 
 using namespace parserlib;
@@ -31,6 +32,16 @@ static void test_load_file() {
 }
 
 
+static void test_load_file_utf8() {
+    const std::string path = write_test_file();
+    utf8_string<> str;
+    assert(load_file(path, str));
+    delete_test_file(path);
+    assert(str == TEST_STRING);
+}
+
+
 void test_utility() {
     test_load_file();
+    test_load_file_utf8();
 }

@@ -26,6 +26,7 @@ namespace parserlib {
     class line_counting_string : public String {
     public:
         using String::String;
+        using String::operator =;
 
         /**
          * An iterator class that knows how to count lines and columns.
@@ -136,6 +137,7 @@ namespace parserlib {
     class utf8_string : public String {
     public:
         using String::String;
+        using String::operator =;
 
         /**
          * An iterator class that knows how to read unicode code points from a UTF8 encoding.
@@ -270,7 +272,7 @@ namespace parserlib {
         static_assert(ReadAheadCount > 0);
 
         /** Stream wrapper type. */
-        using stream_string_type = stream_string<Stream>;
+        using stream_string_type = stream_string<Stream, Buffer, ReadAheadCount>;
 
         /** Stream type. */
         using stream_type = Stream;
@@ -325,7 +327,7 @@ namespace parserlib {
              * Undefined if the end of the stream is reached.
              * @return the value type at the current position.
              */
-            const value_type& operator *() const noexcept {
+            value_type operator *() const noexcept {
                 assert(m_buffer_index < m_container->m_buffer.size());
                 return m_container->m_buffer[m_buffer_index];
             }
@@ -510,8 +512,6 @@ namespace parserlib {
         Stream& m_stream;
         buffer_type m_buffer;
 
-        friend const_iterator;
-
         bool read_ahead() noexcept {
             if (!m_stream.eof() && !m_stream.fail()) {
                 const std::size_t buffer_pos = m_buffer.size();
@@ -526,6 +526,8 @@ namespace parserlib {
             }
             return false;
         }
+
+        friend const_iterator;
     };
 
 
