@@ -67,7 +67,6 @@ public:
 using lexer_type = lexer<calculator_lexer_grammar, source_type>;
 
 
-
 static void test_tokenization() {
     {
         source_type source = "1@";
