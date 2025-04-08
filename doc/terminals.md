@@ -46,7 +46,7 @@ Examples:
 
 ```cpp
 terminal("abc");
-std::string1 = "123";
+std::string str1 = "123";
 terminal(str1);
 "a" >> b >> "c";
 ```
