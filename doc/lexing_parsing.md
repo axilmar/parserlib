@@ -115,7 +115,7 @@ If an AST factory needs to create custom subclasses of class `ast_node`, then it
 
 ```cpp
 enum class MY_NODE_ID {
-	A,
+    A,
     B,
     OTHER
 };
@@ -125,7 +125,7 @@ enum class MY_NODE_ID {
 template <class Iterator>
 class ast_node_a : public ast_node<MY_NODE_ID, Iterator> {
 public:
-	ast_node_a(
+    ast_node_a(
         const Iterator& begin, 
         const Iterator& end, 
         std::vector<std::shared_ptr<ast_node<MY_NODE_ID, Iterator>>>&& children)
@@ -137,7 +137,7 @@ public:
 template <class Iterator>
 class ast_node_b : public ast_node<MY_NODE_ID, Iterator> {
 public:
-	ast_node_b(
+    ast_node_b(
         const Iterator& begin, 
         const Iterator& end, 
         std::vector<std::shared_ptr<ast_node<MY_NODE_ID, Iterator>>>&& children)
@@ -158,9 +158,9 @@ struct my_ast_factory : ast_factory_base {
     {
     	switch (node_id) {
         	case MY_NODE_ID::A:
-    			return std::make_shared<ast_node_a<MY_NODE_ID, Iterator>>(begin, end, std::move(children));
+    		    return std::make_shared<ast_node_a<MY_NODE_ID, Iterator>>(begin, end, std::move(children));
         	case MY_NODE_ID::B:
-    			return std::make_shared<ast_node_b<MY_NODE_ID, Iterator>>(begin, end, std::move(children));
+    		    return std::make_shared<ast_node_b<MY_NODE_ID, Iterator>>(begin, end, std::move(children));
             default:
                 break;
         }
@@ -230,7 +230,7 @@ public:
 
         //token
         const auto token
-        	= whitespace
+            = whitespace
             | comma
             | integer
             | error(error_id_type::INVALID_TOKEN, skip_until(set(" ,0123456789")));
@@ -254,7 +254,7 @@ For example:
 
 ```cpp
 struct my_language_grammar {
-    enum class MY_LANGUAGE_ERROR_ID {
+    enum class error_id_type {
         ...
     };
 };
