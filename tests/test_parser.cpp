@@ -64,7 +64,7 @@ public:
 };
 
 
-using lexer_type = lexer<calculator_lexer_grammar, source_type>;
+using lexer_type = lexer<source_type, calculator_lexer_grammar>;
 
 
 static void test_tokenization() {
@@ -173,7 +173,7 @@ public:
 };
 
 
-using parser_type = parser<calculator_lexer_grammar, calculator_parser_grammar, source_type>;
+using parser_type = parser<source_type, calculator_lexer_grammar, calculator_parser_grammar>;
 
 
 static void test_parsing() {

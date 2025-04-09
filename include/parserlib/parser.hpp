@@ -202,19 +202,19 @@ namespace parserlib {
     /**
      * A class that provides the typedefs and functions required for tokenization.
      *
+     * @param Source the type of source; it must define a const_iterator and value_type.
+     *
      * @param Grammar the grammar to use for tokenization.
      *
      *  The grammar must have the following members:
      *      - type match_id_type: enumeration of the match id.
-     *      - template <class ParseContext> parse_result parse(ParseContext& pc): function to use for parsing.
+     *      - template <class ParseContext> parse_result parse(ParseContext& pc) const noexcept: function to use for parsing.
      *
      *  The grammar can have the following optional members:
      *      - error_id_type: enumeration of the error id.
      *      - comparator_type: character comparator (see the class parse_context for details).
-     *
-     * @param Source the type of source; it must define a const_iterator and value_type.
      */
-    template <class Grammar, class Source>
+    template <class Source, class Grammar>
     class lexer {
     public:
         /** Grammar type. */
@@ -265,8 +265,8 @@ namespace parserlib {
          * @param extension extension to use.
          * @return the parse result.
          */
-        template <class Extension = empty_parse_context_extension>
-        static result parse(Source& source, const Extension& extension = Extension()) noexcept {
+        template <class Extension>
+        static result parse(Source& source, const Extension& extension) noexcept {
             //parse
             using parse_context_type = parse_context<source_type, match_id_type, error_id_type, comparator_type, Extension>;
             parse_context_type pc(source, extension);
@@ -292,8 +292,16 @@ namespace parserlib {
             //return the result
             return { success && pc.errors().empty(), parsed_tokens, pc.errors() };
         }
-    };
 
+        /**
+         * The parse function with an empty parse context extension.
+         * @param source the source to parse.
+         * @return the parse result.
+         */
+        static result parse(Source& source) noexcept {
+            return parse(source, empty_parse_context_extension());
+        }
+    };
 
     /**
      * Base class for AST factory classes.
@@ -307,23 +315,25 @@ namespace parserlib {
      * A type that provides a lexer and a parser.
      * It first tokenizes the input, then parses it according to a grammar to create an AST tree.
      *
+     * @param Source the type of source; it must define a const_iterator and value_type.
+     *
      * @param LexerGrammar lexer grammar type; see class lexer for details.
      *
      * @param ParserGrammar parser grammar type.
      *
      *  The parser grammar must have the following members:
      *      - type match_id_type: enumeration of the match id.
+     *      - template <class ParseContext> parse_result parse(ParseContext& pc) const noexcept: function to use for parsing.
      *
-     *  The grammar can have the following optional members:
+     *  The parser grammar can have the following optional members:
      *      - error_id_type: enumeration of the error id.
-     *
-     * @param Source the type of source; it must define a const_iterator and value_type.
+     *      - comparator_type: character comparator (see the class parse_context for details).
      */
-    template <class LexerGrammar, class ParserGrammar, class Source>
+    template <class Source, class LexerGrammar, class ParserGrammar>
     class parser {
     public:
         /** The lexer type. */
-        using lexer_type = lexer<LexerGrammar, Source>;
+        using lexer_type = lexer<Source, LexerGrammar>;
 
         /** The source iterator type. */
         using iterator_type = typename lexer_type::iterator_type;
@@ -362,6 +372,9 @@ namespace parserlib {
 
             /** Errors. */
             error_container_type errors;
+
+            /** the lexer result */
+            typename lexer_type::result lexer;
         };
 
         /**
@@ -385,17 +398,18 @@ namespace parserlib {
          * Given a source, it first tokenizes the source, then parses the tokens using the parser grammar.
          * @param source the source to parse.
          * @param ast_factory the class that creates the AST nodes; it can be overriden so as that custom AST nodes are created.
-         * @param extension the extension to use for the parse context.
+         * @param extension the extension to use for the parse context of the lexer and the parser.
          * @return the parsed result.
          */
         template <class AstFactory, class Extension>
         static result parse(Source& source, const AstFactory& ast_factory, const Extension& extension) noexcept {
             //tokenize
-            typename lexer_type::result lexer_result = lexer_type::parse(source);
+            typename lexer_type::result lexer_result = lexer_type::parse(source, extension);
 
             //parse the tokens
+            using comparator_type = typename get_grammar_comparator_type<ParserGrammar>::type;
             ParserGrammar grammar;
-            using parse_context_type = parse_context<typename lexer_type::parsed_token_container_type, node_id_type, error_id_type, case_sensitive_comparator, Extension>;
+            using parse_context_type = parse_context<typename lexer_type::parsed_token_container_type, node_id_type, error_id_type, comparator_type, Extension>;
             parse_context_type pc(lexer_result.parsed_tokens, extension);
             const bool success = grammar.parse(pc) && pc.is_end_parse_position();
 
@@ -407,8 +421,13 @@ namespace parserlib {
 
             error_container_type errors;
 
-            //translate the lexer errors to parser errors
-            if constexpr (parser_grammar_has_translate_lexer_error_id<ParserGrammar>::value) {
+            //copy the lexer errors to parser errors
+            if constexpr (std::is_same_v<typename lexer_type::error_id_type, error_id_type>) {
+                for (const auto& lexer_error : lexer_result.errors) {
+                    errors.push_back(error_type(lexer_error.id()), lexer_error.begin(), lexer_error.end());
+                }
+            }
+            else if constexpr (parser_grammar_has_translate_lexer_error_id<ParserGrammar>::value) {
                 for (const auto& lexer_error : lexer_result.errors) {
                     errors.push_back(error_type(ParserGrammar::translate_lexer_error_id(lexer_error.id()), lexer_error.begin(), lexer_error.end()));
                 }
@@ -435,7 +454,7 @@ namespace parserlib {
             pc.sort_errors();
 
             //return the result
-            return { success && errors.empty(), ast_nodes, errors };
+            return { success && errors.empty(), ast_nodes, errors, lexer_result };
         }
 
         /**
@@ -450,7 +469,7 @@ namespace parserlib {
             static_assert(std::is_base_of_v<ast_factory_base, ASTFactoryOrExtension> || std::is_base_of_v<parse_context_extension_base, ASTFactoryOrExtension>, "parserlib: parser: parse(source, ast_factory_or_extension): parameter 'ast_factory_or_extension' is neither an ast factory nor a parse context extension.");
 
             if constexpr (std::is_base_of_v<ast_factory_base, ASTFactoryOrExtension> && std::is_base_of_v<parse_context_extension_base, ASTFactoryOrExtension>) {
-                return parse(source, ast_factory_or_extension, ast_factory_or_extension);
+                return parse(source, ast_factory_or_extension, std::forward<ASTFactoryOrExtension>(ast_factory_or_extension));
             }
 
             else if constexpr (std::is_base_of_v<ast_factory_base, ASTFactoryOrExtension> && !std::is_base_of_v<parse_context_extension_base, ASTFactoryOrExtension>) {
@@ -458,7 +477,7 @@ namespace parserlib {
             }
 
             else if constexpr (!std::is_base_of_v<ast_factory_base, ASTFactoryOrExtension> && std::is_base_of_v<parse_context_extension_base, ASTFactoryOrExtension>) {
-                return parse(source, default_ast_factory(), ast_factory_or_extension);
+                return parse(source, default_ast_factory(), std::forward<ASTFactoryOrExtension>(ast_factory_or_extension));
             }
         }
 

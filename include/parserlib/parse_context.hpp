@@ -11,6 +11,7 @@
 #include <cctype>
 #include <type_traits>
 #include <string_view>
+#include <utility>
 
 
 namespace parserlib {
@@ -214,9 +215,9 @@ namespace parserlib {
         // CONSTRUCTOR --------------------------------------------------------
 
         /**
-         * The constructor.
+         * Constructor from external extension.
          * @param source the source to parse.
-         * @param extension the extension.
+         * @param extension the external extension.
          */
         parse_context(Source& source, const Extension& extension = Extension()) noexcept
             : m_source(source)
