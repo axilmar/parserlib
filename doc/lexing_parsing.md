@@ -157,9 +157,9 @@ struct my_ast_factory : ast_factory_base {
         std::vector<std::shared_ptr<ast_node<MY_NODE_ID, Iterator>>>&& children) const noexcept
     {
     	switch (node_id) {
-        	case MY_NODE_ID::A:
+            case MY_NODE_ID::A:
     		    return std::make_shared<ast_node_a<MY_NODE_ID, Iterator>>(begin, end, std::move(children));
-        	case MY_NODE_ID::B:
+            case MY_NODE_ID::B:
     		    return std::make_shared<ast_node_b<MY_NODE_ID, Iterator>>(begin, end, std::move(children));
             default:
                 break;
@@ -178,7 +178,7 @@ struct result {
     bool success;
     ast_node_container_type ast_nodes;
     error_container_type errors;
-	typename lexer_type::result lexer;
+    typename lexer_type::result lexer;
 };
 ```
 
@@ -208,7 +208,7 @@ Here is an example of a lexer class that parses a list of comma-separated intege
 ```cpp
 class integer_sequence_lexer_grammar {
 public:
-	enum class match_id_type {
+    enum class match_id_type {
         WHITESPACE,
         COMMA,
     	INTEGER
