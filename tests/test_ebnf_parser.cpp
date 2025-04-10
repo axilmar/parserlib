@@ -24,7 +24,6 @@ static void test_tokenization() {
         "]\n"
         "{\n"
         "}\n"
-        "@\n"
         "?\n"
         "*\n"
         "+\n"
@@ -34,7 +33,7 @@ static void test_tokenization() {
         "::= = :\n"
         "#\n"
         "; .\n"
-        "%\n"
+        "%0123456789%\n"
         ;
 
     const auto result = lexer<source_type, ebnf_parser::lexer_grammar>::parse(source);

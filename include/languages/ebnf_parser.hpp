@@ -92,10 +92,10 @@ namespace parserlib {
      *      'a' .. 'z'
      *      '0' .. '9'
      *
-     *  - set, using the prefix operator '%'. Example:
+     *  - set, using the symbol '%'. Example:
      *
-     *      %"0123456789"
-     *      %"0123456789abcdefABCDEF"
+     *      %0123456789%
+     *      %0123456789abcdefABCDEF%
      */
     class ebnf_parser {
     public:
@@ -113,6 +113,7 @@ namespace parserlib {
                 NEWLINE_TERMINATOR,
                 IDENTIFIER,
                 CHARACTER,
+                STRING_SET,
                 STRING,
                 INTEGER,
                 RANGE_OPERATOR,
@@ -130,10 +131,7 @@ namespace parserlib {
                 EXCEPTION_OPERATOR,
                 DEFINITION_OPERATOR,
                 LEXER_OPERATOR,
-                TERMINATOR,
-                SET_OPERATOR,
-                IDENTIFIER_START,
-                IDENTIFIER_END,
+                TERMINATOR
             };
 
             /** The error id type. */
@@ -156,7 +154,8 @@ namespace parserlib {
                 const auto letter = terminal(&isalpha);
                 const auto alnum = terminal(&isalnum);
 
-                const auto identifier = (letter >> *(alnum | '_' | '-'))->*match_id_type::IDENTIFIER;
+                const auto identifier1 = (letter >> *(alnum | '_' | '-'))->*match_id_type::IDENTIFIER;
+                const auto identifier = '<' >> identifier1 >> '>' | identifier1;
 
                 const auto escaped_character_value = terminal("\\\\") | "\\\"" | "\\\'" | "\\n" | "\\r" | "\\t" | "\\v" | "\\f" | "\\b";
 
@@ -164,11 +163,13 @@ namespace parserlib {
 
                 const auto character_value = escaped_character_value | alnum | symbol;
 
-                const auto character = ('\'' >> (character_value - '\'') >> '\'')->*match_id_type::CHARACTER;
+                const auto character = ('\'' >> (character_value - '\'') >> '\'')->*match_id_type::CHARACTER;                
 
-                const auto string1 = '"' >> *(character_value - '"') >> '"';
-                const auto string2 = '\'' >> *(character_value - '\'') >> '\'';
-                const auto string = (string1 | string2)->*match_id_type::STRING;
+                const auto string1 = (*(character_value - '"'))->*match_id_type::STRING;
+                const auto string2 = (*(character_value - '\''))->*match_id_type::STRING;
+                const auto string = '\"' >> string1 >> '\"' | '\'' >> string2 >> '\'';
+                
+                const auto string_set = '%' >> (*((character_value | "\\%") - '%'))->*match_id_type::STRING_SET >> '%';
 
                 const auto integer = +digit;
 
@@ -201,18 +202,13 @@ namespace parserlib {
 
                 const auto terminator = set(";.")->*match_id_type::TERMINATOR;
 
-                const auto set_operator = terminal('%')->*match_id_type::SET_OPERATOR;
-
-                const auto identifier_start = terminal('<')->*match_id_type::IDENTIFIER_START;
-
-                const auto identifier_end = terminal('>')->*match_id_type::IDENTIFIER_END;
-
                 const auto token
                     = newline_terminator
                     | whitespace
                     | comment
                     | identifier
                     | character
+                    | string_set
                     | string
                     | integer
                     | range_operator
@@ -231,9 +227,6 @@ namespace parserlib {
                     | definition_operator
                     | lexer_operator
                     | terminator
-                    | set_operator
-                    | identifier_start
-                    | identifier_end
                     | error(error_id_type::INVALID_CHARACTERS, skip_until(set("\n(\'\".[{?*,|-:=#;.%<") | alnum | whitespace));
 
                 const auto grammar = *token;
