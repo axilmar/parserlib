@@ -63,62 +63,9 @@ namespace parserlib {
      * @param value the boolean value.
      * @return a boolean parse node.
      */
-    inline bool_parse_node get_parse_node_wrapper(bool value) {
+    inline bool_parse_node get_parse_node_wrapper(bool value) noexcept {
         return value;
     }
-
-
-    /**
-     * A false boolean parse node.
-     */
-    inline constexpr bool_parse_node false_(false);
-
-
-    /**
-     * A true boolean parse node.
-     */
-    inline constexpr bool_parse_node true_(true);
-
-
-    /**
-     * A parse node that parses the end of the input.
-     */
-    class end_parse_node : public parse_node<end_parse_node> {
-    public:
-        /**
-         * Checks if the input has reached its end.
-         * @param pc the parse context.
-         * @return true if the input has reached its end, false otherwise.
-         */
-        template <class ParseContext>
-        parse_result parse(ParseContext& pc) const noexcept {
-            return pc.is_end_parse_position();
-        }
-
-        /**
-         * Same as parse(pc), but for the first step of left recursion parsing.
-         * @param pc the parse context.
-         * @return true if the input has reached its end, false otherwise.
-         */
-        template <class ParseContext>
-        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
-            return pc.is_end_parse_position();
-        }
-
-        /**
-         * Same as parse(pc), but for the subsequent steps of left recursion parsing.
-         * @param pc the parse context.
-         * @param match_start start state of left recursion.
-         * @return true if the input has reached its end, false otherwise.
-         */
-        template <class ParseContext, class State>
-        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
-            return pc.is_end_parse_position();
-        }
-    };
-
-
-    inline constexpr end_parse_node end;
 
 
     /**
@@ -177,24 +124,49 @@ namespace parserlib {
 
 
     /**
-     * Helper function for creating a function parse node.
-     * @param f function.
-     * @return a function parse node.
+     * Helper function for creating a function parse node from of a functor or a function.
+     * @param f functor.
+     * @return a function parse node for the functor or function.
      */
     template <class F>
     auto function(const F& f) noexcept {
-        return function_parse_node(f);
+        return function_parse_node<F>(f);
     }
 
 
     /**
-     * Helper function for creating a function parse node from a pointer to a function.
-     * @param f pointer to function.
-     * @return a function parse node.
+     * Overload for pointer to function.
+     * @param f pointer to function (with noexcept specification).
+     * @return a function parse node that uses the given function to test the current token.
      */
-    template <class F>
-    auto function(const F* f) noexcept {
-        return function_parse_node([f](auto& pc) { return f(pc); });
+    template <class R, class T>
+    auto get_parse_node_wrapper(R(*f)(T) noexcept) noexcept {
+        const auto l = [f](auto& pc) noexcept { 
+            if (f(*pc.parse_position())) {
+                pc.increment_parse_position();
+                return true;
+            }
+            return false;
+        };
+        return function_parse_node<decltype(l)>(l);
+    }
+
+
+    /**
+     * Overload for pointer to function.
+     * @param f pointer to function (without noexcept specification).
+     * @return a function parse node that uses the given function to test the current token.
+     */
+    template <class R, class T>
+    auto get_parse_node_wrapper(R(*f)(T)) noexcept {
+        const auto l = [f](auto& pc) noexcept {
+            if (f(*pc.parse_position())) {
+                pc.increment_parse_position();
+                return true;
+            }
+            return false;
+        };
+        return function_parse_node<decltype(l)>(l);
     }
 
 
@@ -329,6 +301,102 @@ namespace parserlib {
     template <class Parser>
     auto debug(Parser&& parser) noexcept {
         return debug_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
+    }
+
+
+    /**
+     * A parse node that parses any terminal. 
+     */
+    class any_parse_node : public parse_node<any_parse_node> {
+    public:
+        /**
+         * Checks if the parse position is valid, and then increments it.
+         * @param pc the parse context.
+         * @return true if the parse position was valid, false otherwise.
+         */
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            if (pc.is_valid_parse_position()) {
+                pc.increment_parse_position();
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Same as parse(pc), but for the first step of left recursion parsing.
+         * @param pc the parse context.
+         * @return whatever the parser returns.
+         */
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            return parse(pc);
+        }
+
+        /**
+         * Same as parse(pc), but for the subsequent steps of left recursion parsing.
+         * @param pc the parse context.
+         * @return whatever the parser returns.
+         */
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            return parse(pc);
+        }
+    };
+
+
+    /**
+     * Helper function for creating an any_parse_node instance.
+     * @return an any_parse_node instance.
+     */
+    inline any_parse_node any() noexcept {
+        return {};
+    }
+
+
+    /**
+     * A parse node that parses the end of input.
+     */
+    class end_parse_node : public parse_node<end_parse_node> {
+    public:
+        /**
+         * Checks if the end of input has been reached.
+         * @param pc the parse context.
+         * @return true if the end of input has been reached, false otherwise.
+         */
+        template <class ParseContext>
+        parse_result parse(ParseContext& pc) const noexcept {
+            return pc.is_end_parse_position();
+        }
+
+        /**
+         * Same as parse(pc), but for the first step of left recursion parsing.
+         * @param pc the parse context.
+         * @return whatever the parser returns.
+         */
+        template <class ParseContext>
+        parse_result parse_left_recursion_start(ParseContext& pc) const noexcept {
+            return parse(pc);
+        }
+
+        /**
+         * Same as parse(pc), but for the subsequent steps of left recursion parsing.
+         * @param pc the parse context.
+         * @return whatever the parser returns.
+         */
+        template <class ParseContext, class State>
+        parse_result parse_left_recursion_continuation(ParseContext& pc, const State& match_start) const noexcept {
+            return parse(pc);
+        }
+    };
+
+
+    /**
+     * Helper function for creating an end_parse_node instance.
+     * @return an end_parse_node instance.
+     */
+    inline end_parse_node end() noexcept {
+        return {};
     }
 
 

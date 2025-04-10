@@ -1,7 +1,6 @@
 #include <cassert>
 #include <string>
-#include "parserlib/parse_context.hpp"
-#include "parserlib/parse_nodes.hpp"
+#include "parserlib.hpp"
 
 
 using namespace parserlib;
@@ -17,7 +16,7 @@ static void test_bool_parse_node() {
     }
 
     {
-        const auto grammar = false_;
+        const auto grammar = terminal(false);
         std::string source = "a";
         parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
         assert(!grammar.parse(pc));
@@ -25,7 +24,7 @@ static void test_bool_parse_node() {
     }
 
     {
-        const auto grammar = true_;
+        const auto grammar = terminal(true);
         std::string source = "a";
         parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
         assert(grammar.parse(pc));
@@ -44,7 +43,7 @@ static void test_bool_parse_node() {
 
 static void test_end_parse_node() {
     {
-        const auto grammar = end;
+        const auto grammar = end();
         std::string source = "";
         parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
         assert(grammar.parse(pc));
@@ -52,7 +51,7 @@ static void test_end_parse_node() {
     }
 
     {
-        const auto grammar = end;
+        const auto grammar = end();
         std::string source = "a";
         parse_context<std::string, int, int, case_sensitive_comparator> pc(source);
         assert(!grammar.parse(pc));

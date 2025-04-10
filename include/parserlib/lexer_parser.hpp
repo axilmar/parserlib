@@ -1,8 +1,9 @@
-#ifndef PARSERLIB_PARSER_HPP
-#define PARSERLIB_PARSER_HPP
+#ifndef PARSERLIB_LEXER_PARSER_HPP
+#define PARSERLIB_LEXER_PARSER_HPP
 
 
 #include <vector>
+#include <algorithm>
 #include "parse_context.hpp"
 #include "ast.hpp"
 
@@ -257,6 +258,9 @@ namespace parserlib {
 
             /** Errors. */
             error_container_type errors;
+
+            /** Position parsing stopped at. */
+            iterator_type parse_position;
         };
 
         /**
@@ -267,30 +271,41 @@ namespace parserlib {
          */
         template <class Extension>
         static result parse(Source& source, const Extension& extension) noexcept {
+            result lexer_result;
+
             //parse
             using parse_context_type = parse_context<source_type, match_id_type, error_id_type, comparator_type, Extension>;
             parse_context_type pc(source, extension);
             Grammar grammar;
-            const bool success = grammar.parse(pc) && pc.is_end_parse_position();
+            lexer_result.success = grammar.parse(pc) && pc.is_end_parse_position();
 
             //prepare the parsed tokens
             parsed_token_container_type parsed_tokens;
             for (const auto& m : pc.matches()) {
-                parsed_tokens.push_back(parsed_token_type(m.id(), m.begin(), m.end()));
+                lexer_result.parsed_tokens.push_back(parsed_token_type(m.id(), m.begin(), m.end()));
             }
+
+            //save the errors
+            lexer_result.errors = pc.errors();
 
             //if the whole input is not consumed, then add an error to the parsed position
             if constexpr (grammar_has_incomplete_parse_error_id<Grammar>::value) {
                 if (!pc.is_end_parse_position()) {
-                    pc.add_error(Grammar::incomplete_parse_error_id, pc.parse_position(), source.end());
+                    lexer_result.errors.push_back(error_type(Grammar::incomplete_parse_error_id, pc.parse_position(), source.end()));
                 }
             }
 
             //sort the errors
-            pc.sort_errors();
+            std::sort(lexer_result.errors.begin(), lexer_result.errors.end());
+
+            //success is also affected by errors
+            lexer_result.success = lexer_result.success && lexer_result.errors.empty();
+
+            //also return the parse position
+            lexer_result.parse_position = pc.parse_position();
 
             //return the result
-            return { success && pc.errors().empty(), parsed_tokens, pc.errors() };
+            return lexer_result;
         }
 
         /**
@@ -403,58 +418,60 @@ namespace parserlib {
          */
         template <class AstFactory, class Extension>
         static result parse(Source& source, const AstFactory& ast_factory, const Extension& extension) noexcept {
+            result parser_result;
+
             //tokenize
-            typename lexer_type::result lexer_result = lexer_type::parse(source, extension);
+            parser_result.lexer = lexer_type::parse(source, extension);
 
             //parse the tokens
             using comparator_type = typename get_grammar_comparator_type<ParserGrammar>::type;
             ParserGrammar grammar;
             using parse_context_type = parse_context<typename lexer_type::parsed_token_container_type, node_id_type, error_id_type, comparator_type, Extension>;
-            parse_context_type pc(lexer_result.parsed_tokens, extension);
-            const bool success = grammar.parse(pc) && pc.is_end_parse_position();
+            parse_context_type pc(parser_result.lexer.parsed_tokens, extension);
+            parser_result.success = grammar.parse(pc) && pc.is_end_parse_position();
 
             //create the ast nodes
-            ast_node_container_type ast_nodes;
             for (const auto& m : pc.matches()) {
-                ast_nodes.push_back(create_ast_node(m, ast_factory));
+                parser_result.ast_nodes.push_back(create_ast_node(m, ast_factory));
             }
-
-            error_container_type errors;
 
             //copy the lexer errors to parser errors
             if constexpr (std::is_same_v<typename lexer_type::error_id_type, error_id_type>) {
-                for (const auto& lexer_error : lexer_result.errors) {
-                    errors.push_back(error_type(lexer_error.id()), lexer_error.begin(), lexer_error.end());
+                for (const auto& lexer_error : parser_result.lexer.errors) {
+                    parser_result.errors.push_back(error_type(lexer_error.id()), lexer_error.begin(), lexer_error.end());
                 }
             }
             else if constexpr (parser_grammar_has_translate_lexer_error_id<ParserGrammar>::value) {
-                for (const auto& lexer_error : lexer_result.errors) {
-                    errors.push_back(error_type(ParserGrammar::translate_lexer_error_id(lexer_error.id()), lexer_error.begin(), lexer_error.end()));
+                for (const auto& lexer_error : parser_result.lexer.errors) {
+                    parser_result.errors.push_back(error_type(ParserGrammar::translate_lexer_error_id(lexer_error.id()), lexer_error.begin(), lexer_error.end()));
+                }
+            }
+
+            //translate the errors to the result errors; the result errors shall contain source positions, not token positions
+            for (const auto& error : pc.errors()) {
+                if (error.begin() != parser_result.lexer.parsed_tokens.end()) {
+                    parser_result.errors.push_back(error_type(error.id(), error.begin()->begin(), std::prev(error.end())->end()));
+                }
+                else {
+                    parser_result.errors.push_back(error_type(error.id(), source.end(), source.end()));
                 }
             }
 
             //if the whole input is not consumed, then add an error to the parsed position
             if constexpr (grammar_has_incomplete_parse_error_id<ParserGrammar>::value) {
                 if (!pc.is_end_parse_position()) {
-                    pc.add_error(ParserGrammar::incomplete_parse_error_id, pc.parse_position(), lexer_result.parsed_tokens.end());
-                }
-            }
-
-            //translate the errors to the result errors; the result errors shall contain source positions, not token positions
-            for (const auto& error : pc.errors()) {
-                if (error.begin() != lexer_result.parsed_tokens.end()) {
-                    errors.push_back(error_type(error.id(), error.begin()->begin(), std::prev(error.end())->end()));
-                }
-                else {
-                    errors.push_back(error_type(error.id(), source.end(), source.end()));
+                    parser_result.errors.push_back(error_type(ParserGrammar::incomplete_parse_error_id, pc.parse_position()->begin(), source.end()));
                 }
             }
 
             //sort the errors
-            pc.sort_errors();
+            std::sort(parser_result.errors.begin(), parser_result.errors.end());
+
+            //success is also affected by errors
+            parser_result.success = parser_result.success && parser_result.errors.empty();
 
             //return the result
-            return { success && errors.empty(), ast_nodes, errors, lexer_result };
+            return parser_result;
         }
 
         /**
@@ -510,4 +527,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif //PARSERLIB_PARSER_HPP
+#endif //PARSERLIB_LEXER_PARSER_HPP

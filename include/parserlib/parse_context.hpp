@@ -516,13 +516,6 @@ namespace parserlib {
             m_errors.emplace_back(id, begin, end);
         }
 
-        /**
-         * Sorts the errors based on their start position.
-         */
-        void sort_errors() {
-            std::sort(m_errors.begin(), m_errors.end());
-        }
-
         // RULES ------------------------------------------------------------------
 
         /**

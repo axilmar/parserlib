@@ -89,13 +89,11 @@ public:
 
     enum error_id_type {
         INVALID_TOKEN,
-        INVALID_UNARY_EXPRESSION
+        INVALID_UNARY_EXPRESSION,
+        INCOMPLETE_PARSE
     };
 
-    template <class ParseContext>
-    parse_result parse(ParseContext& pc) const noexcept {
-        return instance<ParseContext>().parse(pc);
-    }
+    //static constexpr error_id_type incomplete_parse_error_id = error_id_type::INCOMPLETE_PARSE;
 
     static error_id_type translate_lexer_error_id(lexer_type::error_id_type error) {
         switch (error) {
@@ -107,6 +105,11 @@ public:
         }
 
         throw std::invalid_argument("invalid lexer error id");
+    }
+
+    template <class ParseContext>
+    parse_result parse(ParseContext& pc) const noexcept {
+        return instance<ParseContext>().parse(pc);
     }
 
 private:
@@ -280,7 +283,7 @@ static void test_parsing() {
 }
 
 
-void test_parser() {
+void test_lexer_parser() {
     test_tokenization();
     test_parsing();
 }

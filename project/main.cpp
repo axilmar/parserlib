@@ -7,7 +7,8 @@ extern void test_rule();
 extern void test_utility();
 extern void test_strings();
 extern void test_error_handling();
-extern void test_parser();
+extern void test_lexer_parser();
+extern void test_ebnf_parser();
 
 
 static void run_tests() {
@@ -20,7 +21,8 @@ static void run_tests() {
     test_utility();
     test_strings();
     test_error_handling();
-    test_parser();
+    test_lexer_parser();
+    test_ebnf_parser();
 }
 
 

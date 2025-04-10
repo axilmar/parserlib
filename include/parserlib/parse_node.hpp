@@ -38,6 +38,7 @@ namespace parserlib {
     template <class Parser> class logical_and_parse_node;
     template <class Parser> class logical_not_parse_node;
     template <class Parser, class Callback> class callback_parse_node;
+    class bool_parse_node;
 
 
     /**
@@ -69,7 +70,7 @@ namespace parserlib {
      * @param t value to create a terminal parse node for.
      * @return a terminal parse node.
      */
-    template <class Terminal, std::enable_if_t<!std::is_base_of_v<parse_node_base, Terminal>, bool> = true> 
+    template <class Terminal, std::enable_if_t<!std::is_base_of_v<parse_node_base, Terminal> && !std::is_pointer_v<Terminal>, bool> = true>
     terminal_parse_node<Terminal> get_parse_node_wrapper(const Terminal& t) noexcept {
         return t;
     }
@@ -80,7 +81,7 @@ namespace parserlib {
      * @param str null-terminated string to create a terminal parse node for.
      * @return a terminal parse node for a string.
      */
-    template <class Char>
+    template <class Char, std::enable_if_t<!std::is_function_v<Char>, bool> = true>
     terminal_sequence_parse_node<Char> get_parse_node_wrapper(const Char* str) noexcept {
         const Char* str_end = str;
         for(; *str_end; ++str_end) {}
@@ -119,6 +120,12 @@ namespace parserlib {
     terminal_choice_parse_node<K> get_parse_node_wrapper(const std::unordered_set<K, Hasher, KeyEq, Alloc>& set) noexcept {
         return { set.begin(), set.end() };
     }
+
+
+    //forward declarations
+    bool_parse_node get_parse_node_wrapper(bool value) noexcept;
+    template <class R, class T> auto get_parse_node_wrapper(R(*f)(T) noexcept) noexcept;
+    template <class R, class T> auto get_parse_node_wrapper(R(*f)(T)) noexcept;
 
 
     /**
