@@ -14,25 +14,21 @@ namespace parserlib {
     /**
      * An EBNF parser.
      *
-     * It provides the following grammar (expressed in EBNF):
+     * It implements the following grammar (expressed in EBNF):
      *
-     *      ebnf = *rule;
+     *      ebnf = rule*;
      *
-     *      rule = lexer_rule | basic_rule;
+     *      rule = identifier, rule_definition_operator, expression, terminator;
      *
-     *      lexer_rule = '#', basic_rule;
-     *
-     *      basic_rule = identifier, rule_definition_operator, expression, terminator;
-     *
-     *      rule_definition_operator = '=' | ':' | '::=';
+     *      rule_definition_operator = '::=' | '=' | ':';
      *
      *      expression = alternation;
      *
-     *      terminator = (';' | '.' | '\n\n')*;
+     *      terminator = ';' | '.' | '\n\n';
      *
-     *      alternation = concatenation, ('|', concatenation)*;
+     *      alternation = concatenation, {'|', concatenation};
      *
-     *      concatenation = factor, (','?, factor)*;
+     *      concatenation = factor, {','?, factor};
      *
      *      factor = term, '?'
      *             | term, '*'
@@ -41,43 +37,50 @@ namespace parserlib {
      *             | integer, '*', term
      *             | term;
      *
+     *      integer = digit* - '0';
+     *
      *      term = '[', expression, ']'
      *           | '{', expression, '}'
      *           | '(', expression, ')'
-     *           | character_string, '..', character_string
-     *           | '%' string
+     *           | single_character_string, '..', single_character_string
      *           | identifier
+     *           | string_set
+     *           | single_character_string
      *           | string;
      *
-     *      identifier = '<'?, letter, *(letter | digit | '_' | '-'), '>'?;
+     *      identifier = '#'?, '<', identifier_base, '>'
+                       | '#'?, identifier_base;
+     * 
+            identifier_base = letter, {letter | digit | '_' | '-'};
      *
-     *      string = '"', (single_character_string - '"')*, '"'
-     *             | "'", (single_character_string - "'")*, "'";
+     *      string_set = '%', {character - '%'}, '%'
      *
-     *      character_string = "'", (single_character_string - "'"), "'";
+     *      single_character_string = "'", character - "'", "'";
      *
-     *      single_character_string = escaped_character | letter | digit | symbol;
+     *      string = '"', {character - '"'}, '"'
+     *             | "'", {character - "'"}, "'";
+     *
+     *      character = escaped_character | letter | digit | symbol;
      *
      *      escaped_character = '\\' | '\"' | '\'' | '\n' | '\r' | '\t' | '\v' | '\f' | '\b';
      *
      *      symbol = one of "`~!@#$%^&*()-_=+[{]}|:;<,>.?/";
      *
-     *      integer = digit+;
-     *
      * Comments start with '(*' and end with '*)'.
      *
-     * Letter is any single_character_string for which the function 'std::isalpha' returns true for the current C locale.
+     * Letter is any character for which the function 'std::isalpha' returns true for the current C locale.
      *
-     * Digit is any single_character_string for which the function 'std::isdigit' returns true for the current C locale.
+     * Digit is any character for which the function 'std::isdigit' returns true for the current C locale.
      *
      * The grammar is flexible enough to understand various versions of EBNF:
      *
      *  - identifiers can contain hyphens.
-     *  - terminators can be a list of either a semicolon, or a dot, or two or more newline characters.
+     *  - terminators can be a list of either a semicolon, or a dot, or two newline characters.
      *  - the concatenation operator is optional.
      *  - the rule definition operator can be one of '=', ':', '::='.
      *  - identifiers can optionally be enclosed in '<', '>'.
      *  - if an identifier does not represent a rule, then it is considered to be a terminal.
+     *  - Multiplying a non-zero integer with a term repeats the term the specified number of times.
      *
      * Furthemore, it allows for the following extensions:
      *
@@ -85,7 +88,7 @@ namespace parserlib {
      *    Lexer rules can later be used to create a lexer for the specific grammar.
      *    Example:
      *
-     *      #identifier = letter (letter | digit | '_')*;
+     *      #identifier = letter {letter | digit | '_'};
      *
      *  - range, using the infix operator '..'. Example:
      *
@@ -171,7 +174,7 @@ namespace parserlib {
                 const auto string2 = (*(character_value - '\''))->*match_id_type::STRING;
                 const auto string = '\"' >> string1 >> '\"' | '\'' >> string2 >> '\'';
                 
-                const auto integer = +digit;
+                const auto integer = *digit - '0';
 
                 const auto range_operator = terminal("..")->*match_id_type::RANGE_OPERATOR;
 
