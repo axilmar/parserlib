@@ -51,12 +51,12 @@ namespace parserlib {
      *
      *      identifier = '<'?, letter, *(letter | digit | '_' | '-'), '>'?;
      *
-     *      string = '"', (character - '"')*, '"'
-     *             | "'", (character - "'")*, "'";
+     *      string = '"', (single_character_string - '"')*, '"'
+     *             | "'", (single_character_string - "'")*, "'";
      *
-     *      character_string = "'", (character - "'"), "'";
+     *      character_string = "'", (single_character_string - "'"), "'";
      *
-     *      character = escaped_character | letter | digit | symbol;
+     *      single_character_string = escaped_character | letter | digit | symbol;
      *
      *      escaped_character = '\\' | '\"' | '\'' | '\n' | '\r' | '\t' | '\v' | '\f' | '\b';
      *
@@ -66,9 +66,9 @@ namespace parserlib {
      *
      * Comments start with '(*' and end with '*)'.
      *
-     * Letter is any character for which the function 'std::isalpha' returns true for the current C locale.
+     * Letter is any single_character_string for which the function 'std::isalpha' returns true for the current C locale.
      *
-     * Digit is any character for which the function 'std::isdigit' returns true for the current C locale.
+     * Digit is any single_character_string for which the function 'std::isdigit' returns true for the current C locale.
      *
      * The grammar is flexible enough to understand various versions of EBNF:
      *
@@ -112,8 +112,8 @@ namespace parserlib {
             enum class match_id_type {
                 NEWLINE_TERMINATOR,
                 IDENTIFIER,
-                CHARACTER,
                 STRING_SET,
+                SINGLE_CHARACTER_STRING,
                 STRING,
                 INTEGER,
                 RANGE_OPERATOR,
@@ -163,14 +163,14 @@ namespace parserlib {
 
                 const auto character_value = escaped_character_value | alnum | symbol;
 
-                const auto character = ('\'' >> (character_value - '\'') >> '\'')->*match_id_type::CHARACTER;                
+                const auto string_set = '%' >> (*((character_value | "\\%") - '%'))->*match_id_type::STRING_SET >> '%';
+
+                const auto single_character_string = ('\'' >> (character_value - '\'') >> '\'')->*match_id_type::SINGLE_CHARACTER_STRING;
 
                 const auto string1 = (*(character_value - '"'))->*match_id_type::STRING;
                 const auto string2 = (*(character_value - '\''))->*match_id_type::STRING;
                 const auto string = '\"' >> string1 >> '\"' | '\'' >> string2 >> '\'';
                 
-                const auto string_set = '%' >> (*((character_value | "\\%") - '%'))->*match_id_type::STRING_SET >> '%';
-
                 const auto integer = +digit;
 
                 const auto range_operator = terminal("..")->*match_id_type::RANGE_OPERATOR;
@@ -207,8 +207,8 @@ namespace parserlib {
                     | whitespace
                     | comment
                     | identifier
-                    | character
                     | string_set
+                    | single_character_string
                     | string
                     | integer
                     | range_operator
