@@ -227,7 +227,7 @@ namespace parserlib {
                     | definition_operator
                     | lexer_operator
                     | terminator
-                    | error(error_id_type::INVALID_CHARACTERS, skip_until(set("\n(\'\".[{?*,|-:=#;.%<") | alnum | whitespace));
+                    | error(error_id_type::INVALID_CHARACTERS, skip_until(set("\n(<%\'\".[{?*+,|-:=#;.") | alnum | whitespace));
 
                 const auto grammar = *token;
 
