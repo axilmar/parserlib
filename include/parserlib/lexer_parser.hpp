@@ -438,7 +438,7 @@ namespace parserlib {
             //copy the lexer errors to parser errors
             if constexpr (std::is_same_v<typename lexer_type::error_id_type, error_id_type>) {
                 for (const auto& lexer_error : parser_result.lexer.errors) {
-                    parser_result.errors.push_back(error_type(lexer_error.id()), lexer_error.begin(), lexer_error.end());
+                    parser_result.errors.push_back(error_type(lexer_error.id(), lexer_error.begin(), lexer_error.end()));
                 }
             }
             else if constexpr (parser_grammar_has_translate_lexer_error_id<ParserGrammar>::value) {

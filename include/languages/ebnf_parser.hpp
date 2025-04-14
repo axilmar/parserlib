@@ -113,8 +113,18 @@ namespace parserlib {
     public:
         /** Error id type. */
         enum class error_id_type {
-            /** Invalid characters. */
-            INVALID_CHARACTERS
+            INVALID_CHARACTERS,
+            INVALID_OPTIONAL_GROUP_END,
+            INVALID_REPETITION_GROUP_END,
+            INVALID_GROUP_END,
+            INVALID_RANGE_END_CHARACTER,
+            INVALID_TERM,
+            INVALID_MULTIPLICATION_OPERATOR,
+            INVALID_FACTOR,
+            INVALID_ALTERNATION_OPERATOR,
+            INVALID_RULE_DEFINITION_OPERATOR,
+            INVALID_RULE_TERMINATOR,
+            INVALID_RULE
         };
 
         /** The lexer grammar. */
@@ -278,6 +288,9 @@ namespace parserlib {
                 INTEGER
             };
 
+            /** The error id type. */
+            using error_id_type = parserlib::ebnf_parser::error_id_type;
+
             /**
              * Parses the given input and creates the matches for the AST.
              * @param pc the parse context.
@@ -296,11 +309,38 @@ namespace parserlib {
                 using match_id_type = parser_grammar::match_id_type;
 
                 grammar() {
-                    const auto optional_group = (lexer_grammar::match_id_type::OPTIONAL_START >> m_expression >> lexer_grammar::match_id_type::OPTIONAL_END)->*match_id_type::OPTIONAL;
+                    const auto next_item_start
+                        = terminal(lexer_grammar::match_id_type::OPTIONAL_START)
+                        | lexer_grammar::match_id_type::REPETITION_START
+                        | lexer_grammar::match_id_type::GROUP_START
+                        | lexer_grammar::match_id_type::LEXER_IDENTIFIER
+                        | lexer_grammar::match_id_type::PARSER_IDENTIFIER
+                        | lexer_grammar::match_id_type::STRING_SET
+                        | lexer_grammar::match_id_type::SINGLE_CHARACTER_STRING
+                        | lexer_grammar::match_id_type::STRING
+                        | lexer_grammar::match_id_type::INTEGER
+                        | lexer_grammar::match_id_type::CONCATENATION_OPERATOR
+                        | lexer_grammar::match_id_type::ALTERNATION_OPERATOR
+                        | lexer_grammar::match_id_type::NEWLINE_TERMINATOR
+                        | lexer_grammar::match_id_type::TERMINATOR;
 
-                    const auto repetition_group = (lexer_grammar::match_id_type::REPETITION_START >> m_expression >> lexer_grammar::match_id_type::REPETITION_END)->*match_id_type::LOOP_0;
+                    const auto optional_group_end 
+                        = lexer_grammar::match_id_type::OPTIONAL_END 
+                        | error(error_id_type::INVALID_OPTIONAL_GROUP_END, skip_to(next_item_start));
 
-                    const auto group = (lexer_grammar::match_id_type::GROUP_START >> m_expression >> lexer_grammar::match_id_type::GROUP_END)->*match_id_type::GROUP;
+                    const auto optional_group = (lexer_grammar::match_id_type::OPTIONAL_START >> m_expression >> optional_group_end)->*match_id_type::OPTIONAL;
+
+                    const auto repetition_group_end 
+                        = lexer_grammar::match_id_type::REPETITION_END 
+                        | error(error_id_type::INVALID_REPETITION_GROUP_END, skip_to(next_item_start));
+
+                    const auto repetition_group = (lexer_grammar::match_id_type::REPETITION_START >> m_expression >> repetition_group_end)->*match_id_type::LOOP_0;
+
+                    const auto group_end 
+                        = lexer_grammar::match_id_type::GROUP_END 
+                        | error(error_id_type::INVALID_GROUP_END, skip_to(next_item_start));
+
+                    const auto group = (lexer_grammar::match_id_type::GROUP_START >> m_expression >> group_end)->*match_id_type::GROUP;
 
                     const auto lexer_identifier = terminal(lexer_grammar::match_id_type::LEXER_IDENTIFIER)->*match_id_type::LEXER_IDENTIFIER;
 
@@ -308,16 +348,21 @@ namespace parserlib {
 
                     const auto string_set = terminal(lexer_grammar::match_id_type::STRING_SET)->*match_id_type::STRING_SET;
 
-                    const auto string = (terminal(lexer_grammar::match_id_type::SINGLE_CHARACTER_STRING) | lexer_grammar::match_id_type::STRING)->*match_id_type::STRING;
+                    const auto string_value
+                        = terminal(lexer_grammar::match_id_type::SINGLE_CHARACTER_STRING)
+                        | lexer_grammar::match_id_type::STRING;
 
-                    const auto term 
+                    const auto string = string_value->*match_id_type::STRING;
+
+                    const auto term
                         = optional_group
                         | repetition_group
                         | group
                         | lexer_identifier
                         | parser_identifier
                         | string_set
-                        | string;
+                        | string
+                        | error(error_id_type::INVALID_TERM, skip_to(next_item_start));
 
                     const auto integer = terminal(lexer_grammar::match_id_type::INTEGER)->*match_id_type::INTEGER;
 
@@ -329,45 +374,68 @@ namespace parserlib {
 
                     const auto exclusion = (term >> lexer_grammar::match_id_type::EXCLUSION_OPERATOR >> term)->*match_id_type::EXCLUSION;
 
-                    const auto multiplication = (integer >> -terminal(lexer_grammar::match_id_type::LOOP_0_OPERATOR) >> term)->*match_id_type::MULTIPLICATION;
+                    const auto multiplication_operator 
+                        = terminal(lexer_grammar::match_id_type::LOOP_0_OPERATOR)
+                        | error(error_id_type::INVALID_MULTIPLICATION_OPERATOR, skip_to(next_item_start));
+
+                    const auto multiplication = (integer >> multiplication_operator >> term)->*match_id_type::MULTIPLICATION;
 
                     const auto range_character = terminal(lexer_grammar::match_id_type::SINGLE_CHARACTER_STRING)->*match_id_type::RANGE_CHARACTER;
 
-                    const auto range = (range_character >> lexer_grammar::match_id_type::RANGE_OPERATOR >> range_character)->*match_id_type::RANGE;
+                    const auto range_end_character 
+                        = range_character 
+                        | error(error_id_type::INVALID_RANGE_END_CHARACTER, skip_to(next_item_start));
 
-                    const auto factor 
+                    const auto range = (range_character >> lexer_grammar::match_id_type::RANGE_OPERATOR >> range_end_character)->*match_id_type::RANGE;
+
+                    const auto factor
                         = optional_term
                         | loop_0_term
                         | loop_1_term
                         | exclusion
                         | multiplication
                         | range
-                        | term;
+                        | term
+                        | error(error_id_type::INVALID_FACTOR, skip_to(next_item_start));
 
                     const auto concatenation 
                         = (factor >> +(-terminal(lexer_grammar::match_id_type::CONCATENATION_OPERATOR) >> factor))->*match_id_type::CONCATENATION
                         | factor;
 
-                    const auto alternation 
-                        = (concatenation >> +(lexer_grammar::match_id_type::ALTERNATION_OPERATOR >> concatenation))->*match_id_type::ALTERNATION
-                        | concatenation;
-
-                    m_expression = alternation;
-
-                    const auto rule_definition_operator = terminal(lexer_grammar::match_id_type::DEFINITION_OPERATOR);
-
-                    const auto terminator 
+                    const auto terminator
                         = terminal(lexer_grammar::match_id_type::NEWLINE_TERMINATOR)
                         | lexer_grammar::match_id_type::TERMINATOR
                         | end();
 
-                    const auto lexer_rule = (lexer_identifier >> rule_definition_operator >> m_expression >> +terminator)->*match_id_type::LEXER_RULE;
+                    const auto alternation_operator
+                        = (terminal(lexer_grammar::match_id_type::ALTERNATION_OPERATOR) 
+                           | error(error_id_type::INVALID_ALTERNATION_OPERATOR, skip_to(next_item_start))) 
+                        - terminator;
 
-                    const auto parser_rule = (parser_identifier >> rule_definition_operator >> m_expression >> +terminator)->*match_id_type::PARSER_RULE;
+                    const auto alternation 
+                        = (concatenation >> +(alternation_operator >> concatenation))->*match_id_type::ALTERNATION
+                        | concatenation;
+
+                    m_expression = alternation;
+
+                    const auto rule_definition_operator 
+                        = terminal(lexer_grammar::match_id_type::DEFINITION_OPERATOR)
+                        | error(error_id_type::INVALID_RULE_DEFINITION_OPERATOR, skip_to(next_item_start));
+
+                    const auto terminator_list = +terminator;
+
+                    const auto rule_terminator
+                        = terminator_list
+                        | error(error_id_type::INVALID_RULE_TERMINATOR, skip_to(lexer_identifier | parser_identifier));
+
+                    const auto lexer_rule = (lexer_identifier >> rule_definition_operator >> m_expression >> rule_terminator)->*match_id_type::LEXER_RULE;
+
+                    const auto parser_rule = (parser_identifier >> rule_definition_operator >> m_expression >> rule_terminator)->*match_id_type::PARSER_RULE;
 
                     const auto rule 
                         = lexer_rule 
-                        | parser_rule;
+                        | parser_rule
+                        | error(error_id_type::INVALID_RULE, skip_to_after(terminator_list));
 
                     m_grammar = *rule;
                 }

@@ -172,6 +172,17 @@ namespace parserlib {
 
 
     /**
+     * A helper function that creates a skip until parse node.
+     * @param parser the parser to use for recognizing the input.
+     * A skip until parse node.
+     */
+    template <class Parser>
+    auto skip_to(Parser&& parser) {
+        return skip_until_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
+    }
+
+
+    /**
      * A class that skips input until a specific grammar parses successfully.
      * Upon successful parsing, the parse context position is set to the first token
      * after the token sequence that the specified parser recognized successfully.
@@ -271,6 +282,17 @@ namespace parserlib {
      */
     template <class Parser>
     auto skip_until_after(Parser&& parser) {
+        return skip_until_after_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
+    }
+
+
+    /**
+     * A helper function that creates a skip until after parse node.
+     * @param parser the parser to use for recognizing the input.
+     * A skip until after parse node.
+     */
+    template <class Parser>
+    auto skip_to_after(Parser&& parser) {
         return skip_until_after_parse_node(get_parse_node_wrapper(std::forward<Parser>(parser)));
     }
 
