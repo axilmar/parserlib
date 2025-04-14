@@ -13,6 +13,12 @@ namespace parserlib {
 
     template <class NodeId, class Iterator> 
     class ast_node;
+
+
+    template <class T>
+    const char* get_id_name(T id) noexcept {
+        return nullptr;
+    }
     
     
     /**
@@ -122,6 +128,29 @@ namespace parserlib {
          */
         auto source() const noexcept {
             return parserlib::source(m_begin, m_end);
+        }
+
+        /**
+         * Prints the AST onto the given stream.
+         * @param stream destination stream.
+         * @param depth tree depth.
+         * @param tabSize tab size.
+         */
+        template <class Stream>
+        void print(Stream& stream, std::size_t depth = 0, std::size_t tabSize = 4) const noexcept {
+            for (std::size_t i = 0; i < depth * tabSize; ++i) {
+                stream << ' ';
+            }
+            stream << get_id_name(m_id);
+            if (m_children.empty()) {
+                stream << " : " << source() << '\n';
+            }
+            else {
+                stream << '\n';
+                for (const auto& child : m_children) {
+                    child->print(stream, depth + 1, tabSize);
+                }
+            }
         }
 
     private:
