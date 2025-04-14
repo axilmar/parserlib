@@ -41,6 +41,4 @@ void test_ebnf_parser() {
     for (const auto& ast_node : result.ast_nodes) {
         ast_node->print(std::cout);
     }
-
-    printf("1");
 }
