@@ -68,6 +68,8 @@ namespace parserlib {
             switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
+                case parse_result::TRUE:
+                    break;
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
@@ -86,6 +88,8 @@ namespace parserlib {
             switch (result.value()) {
                 case parse_result::FALSE:
                     return true;
+                case parse_result::TRUE:
+                    break;
                 case parse_result::LEFT_RECURSION:
                     return result;
             }
@@ -240,7 +244,7 @@ namespace parserlib {
 
 
     /**
-     * A parse node that uses another parse node to parse, then restores the parse context state 
+     * A parse node that uses another parse node to parse, then restores the parse context state
      * to the one before the parsing, effectively allowing any parse node to work as a logical predicate.
      * @param Parser the parse node to use for testing.
      */
