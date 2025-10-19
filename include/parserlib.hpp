@@ -2,7 +2,6 @@
 #define PARSERLIB_HPP
 
 
-#include "parserlib/parse_context.hpp"
 #include "parserlib/symbol_parser_node.hpp"
 #include "parserlib/symbol_string_parser_node.hpp"
 #include "parserlib/symbol_set_parser_node.hpp"
@@ -14,6 +13,7 @@
 #include "parserlib/logical_not_parser_node.hpp"
 #include "parserlib/sequence_parser_node.hpp"
 #include "parserlib/choice_parser_node.hpp"
+#include "parserlib/rule.hpp"
 
 
 #endif // PARSERLIB_HPP

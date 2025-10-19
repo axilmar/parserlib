@@ -58,13 +58,13 @@ namespace parserlib {
                 ++string_it;
             }
             const size_t count = this_it - m_parse_position.iterator;
-            m_parse_position.increment_column(count);
+            m_parse_position.position.increment_column(count);
             m_parse_position.iterator = this_it;
             return true;
         }
 
         template <class T> bool parse_symbol_set(const T& string) {
-            assert(std::is_sorted(string));
+            assert(std::is_sorted(string.begin(), string.end()));
             if (valid()) {
                 const auto symbol = Traits::to_lower(*m_parse_position.iterator);
                 auto it = std::upper_bound(string.begin(), string.end(), symbol, [](const auto& a, const auto& b) {

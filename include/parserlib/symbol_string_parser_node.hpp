@@ -16,7 +16,7 @@ namespace parserlib {
         symbol_string_parser_node(const string_type& string) : m_string(string) {
         }
 
-        template <class ParseContext> bool parse(const ParseContext& pc) const {
+        template <class ParseContext> bool parse(ParseContext& pc) const {
             return pc.parse_symbol_string(m_string);
         }
 
