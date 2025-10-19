@@ -66,18 +66,18 @@ namespace parserlib {
          */
         rule& operator =(rule&&) = delete;
 
-        zero_or_more_parse_node<rule_ref_parse_node<ParseContext>> operator *() noexcept { return *this; }
-        one_or_more_parse_node<rule_ref_parse_node<ParseContext>> operator +() noexcept { return *this; }
-        optional_parse_node<rule_ref_parse_node<ParseContext>> operator -() noexcept { return *this; }
-        logical_and_parse_node<rule_ref_parse_node<ParseContext>> operator &() noexcept { return *this; }
-        logical_not_parse_node<rule_ref_parse_node<ParseContext>> operator !() noexcept { return *this; }
+        zero_or_more_parse_node<rule_ref_parse_node<ParseContext>> operator *() noexcept { return rule_ref_parse_node<ParseContext>(*this); }
+        one_or_more_parse_node<rule_ref_parse_node<ParseContext>> operator +() noexcept { return rule_ref_parse_node<ParseContext>(*this); }
+        optional_parse_node<rule_ref_parse_node<ParseContext>> operator -() noexcept { return rule_ref_parse_node<ParseContext>(*this); }
+        logical_and_parse_node<rule_ref_parse_node<ParseContext>> operator &() noexcept { return rule_ref_parse_node<ParseContext>(*this); }
+        logical_not_parse_node<rule_ref_parse_node<ParseContext>> operator !() noexcept { return rule_ref_parse_node<ParseContext>(*this); }
 
         template <class Callback> auto operator [](const Callback& callback) noexcept {
             return callback_parse_node(get_parse_node_wrapper(*this), callback);
         }
 
         /**
-         * If the rule is not left-recursive at the current position, 
+         * If the rule is not left-recursive at the current position,
          * then it invokes the internal grammar expression to parse,
          * otherwise it returns a left recursion parse result.
          * @param pc parse context to use for parsing.

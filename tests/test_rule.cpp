@@ -53,6 +53,19 @@ static void test_assignment_operator() {
 }
 
 
+static void test_unary_operators() {
+    {
+        using pc_type = parse_context<std::string, int, int, case_sensitive_comparator>;
+        rule<pc_type> rule1;
+        *rule1;
+        +rule1;
+        -rule1;
+        &rule1;
+        !rule1;
+    }
+}
+
+
 template <class ParseContext>
 struct calculator_grammar {
     enum match_id {
@@ -226,5 +239,6 @@ static void test_left_recursion() {
 void test_rule() {
     test_constructor();
     test_assignment_operator();
+    test_unary_operators();
     test_left_recursion();
 }
