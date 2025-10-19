@@ -12,6 +12,8 @@
 #include "parserlib/optional_parser_node.hpp"
 #include "parserlib/logical_and_parser_node.hpp"
 #include "parserlib/logical_not_parser_node.hpp"
+#include "parserlib/sequence_parser_node.hpp"
+#include "parserlib/choice_parser_node.hpp"
 
 
 #endif // PARSERLIB_HPP

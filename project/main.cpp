@@ -33,5 +33,21 @@ int main() {
     !set("ab");
     !range('a', 'z');
 
+    parser('a') >> 'b';
+    'a' >> parser('b');
+    parser('a') >> parser('b');
+    parser('a') >> 'b' >> 'c';
+    (parser('a') >> 'b') >> 'c';
+    'a' >> (parser('b') >> 'c');
+    (parser('a') >> 'b') >> (parser('c') >> 'd');
+
+    parser('a') | 'b';
+    'a' | parser('b');
+    parser('a') | parser('b');
+    parser('a') | 'b' | 'c';
+    (parser('a') | 'b') | 'c';
+    'a' | (parser('b') | 'c');
+    (parser('a') | 'b') | (parser('c') | 'd');
+
     return 0;
 }

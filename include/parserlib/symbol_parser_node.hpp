@@ -23,7 +23,7 @@ namespace parserlib {
     };
 
 
-    template <class Symbol, std::enable_if_t<!std::is_base_of_v<parser_node_base, Symbol>, bool> = true>
+    template <class Symbol, std::enable_if_t<!std::is_base_of_v<parser_node_tag, Symbol>, bool> = true>
     symbol_parser_node<Symbol> parser(const Symbol& symbol) {
         return symbol_parser_node<Symbol>(symbol);
     }
