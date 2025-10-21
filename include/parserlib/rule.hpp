@@ -74,7 +74,7 @@ namespace parserlib {
     private:
         std::shared_ptr<wrapper_parser_node_interface<ParseContext>> m_parser;
 
-        template <class Parser> static std::shared_ptr<wrapper_parser_node_interface<ParseContext>> make_parser(const Parser& p) {
+        template <class Parser> static auto make_parser(const Parser& p) {
             return std::make_shared<wrapper_parser_node_implementation<ParseContext, decltype(parser(p))>>(parser(p));
         }
     };

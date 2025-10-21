@@ -4,7 +4,7 @@
 using namespace parserlib;
 
 
-int main() {
+static void compile_test() {
     std::string str = "the quick brown fox";
     parse_context pc(str);
 
@@ -74,6 +74,9 @@ int main() {
     };
 
     parse_context<std::string, custom_parse_context_traits<std::string, test_match_id, position, to_lower>> pc1(str);
+}
+
+int main() {
 
     return 0;
 }
