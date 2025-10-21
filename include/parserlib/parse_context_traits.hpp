@@ -2,6 +2,9 @@
 #define PARSERLIB_PARSE_CONTEXT_TRAITS_HPP
 
 
+#include "void_position.hpp"
+
+
 namespace parserlib {
 
 
@@ -13,27 +16,9 @@ namespace parserlib {
 
         using iterator_type = typename String::const_iterator;
 
+        using position_type = void_position;
+
         using match_id_type = int;
-
-        class position {
-        public:
-            size_t line() const {
-                return 0;
-            }
-
-            size_t column() const {
-                return 0;
-            }
-
-            void increment_column() {
-            }
-
-            void increment_column(size_t count) {
-            }
-
-            void increment_line() {
-            }
-        };
 
         template <class T> static auto to_lower(const T& value) {
             return value;

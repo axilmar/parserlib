@@ -69,5 +69,11 @@ int main() {
 
     parser('a') ->* 1;
 
+    enum test_match_id {
+        Id1, Id2, Id3
+    };
+
+    parse_context<std::string, custom_parse_context_traits<std::string, test_match_id, position, to_lower>> pc1(str);
+
     return 0;
 }

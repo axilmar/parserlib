@@ -22,7 +22,7 @@ namespace parserlib {
 
         using iterator_type = typename Traits::iterator_type;
 
-        using position_type = typename Traits::position;
+        using position_type = typename Traits::position_type;
 
         using match_id_type = typename Traits::match_id_type;
 
