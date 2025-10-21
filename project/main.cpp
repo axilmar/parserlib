@@ -67,5 +67,7 @@ int main() {
     r7 = r2 | r3;
     r8 = r1;
 
+    parser('a') ->* 1;
+
     return 0;
 }

@@ -14,6 +14,7 @@
 #include "parserlib/sequence_parser_node.hpp"
 #include "parserlib/choice_parser_node.hpp"
 #include "parserlib/rule.hpp"
+#include "parserlib/match_parser_node.hpp"
 
 
 #endif // PARSERLIB_HPP

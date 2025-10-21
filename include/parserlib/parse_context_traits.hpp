@@ -13,6 +13,8 @@ namespace parserlib {
 
         using iterator_type = typename String::const_iterator;
 
+        using match_id_type = int;
+
         class position {
         public:
             size_t line() const {
