@@ -35,6 +35,16 @@ namespace parserlib {
     }
 
 
+    template <class Symbol> symbol_string_parser_node<Symbol> terminal(const Symbol* string) {
+        return symbol_string_parser_node<Symbol>(string);
+    }
+
+
+    template <class Symbol> symbol_string_parser_node<Symbol> terminal(const std::basic_string<Symbol>& string) {
+        return symbol_string_parser_node<Symbol>(string);
+    }
+
+
 } //namespace parserlib
 
 

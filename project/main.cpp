@@ -74,9 +74,12 @@ static void compile_test() {
     };
 
     parse_context<std::string, custom_parse_context_traits<std::string, test_match_id, position, to_lower>> pc1(str);
+
+    terminal('a');
+    terminal("abc");
 }
 
 int main() {
-
+    compile_test();
     return 0;
 }

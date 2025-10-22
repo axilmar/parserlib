@@ -29,6 +29,11 @@ namespace parserlib {
     }
 
 
+    template <class Symbol> symbol_parser_node<Symbol> terminal(const Symbol& symbol) {
+        return symbol_parser_node<Symbol>(symbol);
+    }
+
+
 } //namespace parserlib
 
 
