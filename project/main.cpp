@@ -67,6 +67,9 @@ static void compile_test() {
     r7 = r2 | r3;
     r8 = r1;
 
+    //const rule<> r10;
+    //parser(r10);
+
     parser('a') ->* 1;
 
     enum test_match_id {

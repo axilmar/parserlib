@@ -15,7 +15,11 @@ namespace parserlib {
     template <class Parser> class logical_not_parser_node;
 
 
-    class parser_node_tag {
+    struct parser_node_tag {
+    };
+
+
+    struct rule_tag {
     };
 
 
@@ -41,7 +45,7 @@ namespace parserlib {
     };
 
 
-    template <class Parser, std::enable_if_t<std::is_base_of_v<parser_node_tag, Parser>, bool> = true>
+    template <class Parser, std::enable_if_t<std::is_base_of_v<parser_node_tag, Parser> && !std::is_base_of_v<rule_tag, Parser>, bool> = true>
     const Parser& parser(const Parser& parser) {
         return parser;
     }
