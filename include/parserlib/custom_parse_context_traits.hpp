@@ -3,6 +3,7 @@
 
 
 #include <cctype>
+#include <algorithm>
 #include "void_text_position.hpp"
 
 
@@ -38,23 +39,70 @@ namespace parserlib {
     };
 
 
-    class void_to_lower {
+    class void_to_lower_converter {
     public:
-        template <class T> const T& operator ()(const T& v) const {
+        template <class T> static const T& to_lower(const T& v) {
             return v;
         }
     };
 
 
-    class to_lower {
+    class to_lower_converter {
     public:
-        template <class T> int operator ()(const T& v) const {
+        template <class T> static int to_lower(const T& v) {
             return std::tolower((int)v);
         }
     };
 
 
-    template <class String, class MatchId = int, class TextPosition = void_text_position, class ToLower = void_to_lower> class custom_parse_context_traits {
+    class void_new_line_parser {
+    public:
+        template <class Iterator, class TextPosition>
+        static void parse_new_line(Iterator& it, const Iterator& end, TextPosition& tpos) {
+            ++it;
+            tpos.increment_column();
+        }
+    };
+
+
+    class new_line_parser {
+    public:
+        template <class Iterator, class TextPosition>
+        static void parse_new_line(Iterator& it, const Iterator& end, TextPosition& tpos) {
+            const size_t newline_span = check_new_line(it, end);
+            if (newline_span) {
+                    it += newline_span;
+                    tpos.increment_line();
+            }
+            else {
+                ++it;
+                tpos.increment_column();
+            }
+        }
+
+    private:
+        template <class Iterator, class TextPosition>
+        size_t check_new_line(Iterator& it, const Iterator& end) {
+            const Iterator next = std::next(it);
+            if (*it == '\n') {
+                if (next == end || *next != '\r') {
+                    return 1;
+                }
+                return 2;
+
+            }
+            if (*it == '\r') {
+                if (next == end || *next != '\n') {
+                    return 1;
+                }
+                return 2;
+            }
+            return 0;
+        }
+    };
+
+
+    template <class String, class MatchId = int, class TextPosition = void_text_position, class ToLowerConverter = void_to_lower_converter, class NewLineParser = void_new_line_parser> class custom_parse_context_traits {
     public:
         using string_type = String;
 
@@ -66,10 +114,12 @@ namespace parserlib {
 
         using match_id_type = MatchId;
 
-        using to_lower_type = ToLower;
-
         template <class T> static auto to_lower(const T& value) {
-            return to_lower_type()(value);
+            return ToLowerConverter::to_lower(value);
+        }
+
+        static void increment_parse_position(iterator_type& it, const iterator_type& end, text_position_type& tpos) {
+            NewLineParser::parse_new_line(it, end, tpos);
         }
     };
 

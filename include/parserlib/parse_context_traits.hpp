@@ -23,6 +23,11 @@ namespace parserlib {
         template <class T> static auto to_lower(const T& value) {
             return value;
         }
+
+        static void increment_parse_position(iterator_type& it, const iterator_type& end, text_position_type& tpos) {
+            ++it;
+            tpos.increment_column();
+        }
     };
 
 

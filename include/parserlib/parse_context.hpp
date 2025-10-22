@@ -205,8 +205,7 @@ namespace parserlib {
         match_container_type m_matches;
 
         void increment_parse_position() {
-            ++m_parse_position.m_iterator;
-            m_parse_position.m_text_position.increment_column();
+            Traits::increment_parse_position(m_parse_position.m_iterator, m_string.end(), m_parse_position.m_text_position);
         }
 
         state get_state() const {
