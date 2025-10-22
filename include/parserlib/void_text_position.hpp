@@ -1,11 +1,11 @@
-#ifndef PARSERLIB_VOID_POSITION_HPP
-#define PARSERLIB_VOID_POSITION_HPP
+#ifndef PARSERLIB_VOID_TEXT_POSITION_HPP
+#define PARSERLIB_VOID_TEXT_POSITION_HPP
 
 
 namespace parserlib {
 
 
-    class void_position {
+    class void_text_position {
     public:
         size_t line() const {
             return 0;
@@ -29,4 +29,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif // PARSERLIB_VOID_POSITION_HPP
+#endif // PARSERLIB_VOID_TEXT_POSITION_HPP

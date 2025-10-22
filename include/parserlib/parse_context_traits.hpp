@@ -2,7 +2,7 @@
 #define PARSERLIB_PARSE_CONTEXT_TRAITS_HPP
 
 
-#include "void_position.hpp"
+#include "void_text_position.hpp"
 
 
 namespace parserlib {
@@ -16,7 +16,7 @@ namespace parserlib {
 
         using iterator_type = typename String::const_iterator;
 
-        using position_type = void_position;
+        using text_position_type = void_text_position;
 
         using match_id_type = int;
 

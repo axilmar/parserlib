@@ -76,7 +76,7 @@ static void compile_test() {
         Id1, Id2, Id3
     };
 
-    parse_context<std::string, custom_parse_context_traits<std::string, test_match_id, position, to_lower>> pc1(str);
+    parse_context<std::string, custom_parse_context_traits<std::string, test_match_id, text_position, to_lower>> pc1(str);
 
     terminal('a');
     terminal("abc");

@@ -3,13 +3,13 @@
 
 
 #include <cctype>
-#include "void_position.hpp"
+#include "void_text_position.hpp"
 
 
 namespace parserlib {
 
 
-    class position {
+    class text_position {
     public:
         size_t line() const {
             return m_line;
@@ -54,7 +54,7 @@ namespace parserlib {
     };
 
 
-    template <class String, class MatchId = int, class Position = void_position, class ToLower = void_to_lower> class custom_parse_context_traits {
+    template <class String, class MatchId = int, class TextPosition = void_text_position, class ToLower = void_to_lower> class custom_parse_context_traits {
     public:
         using string_type = String;
 
@@ -62,7 +62,7 @@ namespace parserlib {
 
         using iterator_type = typename String::const_iterator;
 
-        using position_type = Position;
+        using text_position_type = TextPosition;
 
         using match_id_type = MatchId;
 

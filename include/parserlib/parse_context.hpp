@@ -22,7 +22,7 @@ namespace parserlib {
 
         using iterator_type = typename Traits::iterator_type;
 
-        using position_type = typename Traits::position_type;
+        using text_position_type = typename Traits::text_position_type;
 
         using match_id_type = typename Traits::match_id_type;
 
@@ -35,15 +35,15 @@ namespace parserlib {
                 return m_iterator;
             }
 
-            const position_type& position() const {
-                return m_position;
+            const text_position_type& text_position() const {
+                return m_text_position;
             }
 
         private:
             iterator_type m_iterator;
-            position_type m_position;
+            text_position_type m_text_position;
 
-            parse_position(const iterator_type& it, const position_type& pos) : m_iterator(it), m_position(pos) {
+            parse_position(const iterator_type& it, const text_position_type& pos) : m_iterator(it), m_text_position(pos) {
             }
 
             friend class parse_context<String, Traits>;
@@ -84,7 +84,7 @@ namespace parserlib {
 
         parse_context(String& string)
             : m_string(string)
-            , m_parse_position(string.begin(), position_type())
+            , m_parse_position(string.begin(), text_position_type())
         {
         }
 
@@ -117,7 +117,7 @@ namespace parserlib {
                 ++string_it;
             }
             const size_t count = this_it - m_parse_position.m_iterator;
-            m_parse_position.m_position.increment_column(count);
+            m_parse_position.m_text_position.increment_column(count);
             m_parse_position.m_iterator = this_it;
             return true;
         }
@@ -206,7 +206,7 @@ namespace parserlib {
 
         void increment_parse_position() {
             ++m_parse_position.m_iterator;
-            m_parse_position.m_position.increment_column();
+            m_parse_position.m_text_position.increment_column();
         }
 
         state get_state() const {
