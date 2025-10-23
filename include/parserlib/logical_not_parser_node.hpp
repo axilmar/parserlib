@@ -14,7 +14,7 @@ namespace parserlib {
         }
 
         template <class ParseContext> bool parse(ParseContext& pc) const {
-            return pc.parse_not_restore_state([&](ParseContext& pc){ return !m_parser.parse(pc); });
+            return pc.parse_and_restore_state([&](ParseContext& pc){ return !m_parser.parse(pc); });
         }
 
     private:

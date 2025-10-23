@@ -6,26 +6,10 @@
 #include <utility>
 #include "wrapper_parser_node.hpp"
 #include "parse_context.hpp"
+#include "rule_reference_parser_node.hpp"
 
 
 namespace parserlib {
-
-
-    template <class ParseContext> class rule;
-
-
-    template <class ParseContext> class rule_reference_parser_node : public parser_node<rule_reference_parser_node<ParseContext>> {
-    public:
-        rule_reference_parser_node(rule<ParseContext>& r) : m_rule(r) {
-        }
-
-        bool parse(ParseContext& pc) const {
-            return m_rule.parse(pc);
-        }
-
-    private:
-        rule<ParseContext>& m_rule;
-    };
 
 
     template <class ParseContext = parse_context<>> class rule : public parser_node<rule<ParseContext>>, public rule_tag {
@@ -40,7 +24,7 @@ namespace parserlib {
         }
 
         template <class Parser> rule(Parser&& p)
-        : m_parser(make_parser(std::forward<Parser>(p)))
+            : m_parser(make_parser(std::forward<Parser>(p)))
         {
         }
 
@@ -63,11 +47,16 @@ namespace parserlib {
             return pc.parse_rule(*this);
         }
 
+        const std::shared_ptr<wrapper_parser_node_interface<ParseContext>>& parser() const {
+            return m_parser;
+        }
+
     private:
         std::shared_ptr<wrapper_parser_node_interface<ParseContext>> m_parser;
 
         template <class Parser> static auto make_parser(Parser&& p) {
-            return std::make_shared<wrapper_parser_node_implementation<ParseContext, decltype(parser(p))>>(parser(p));
+            using parser_wrapper_type = std::decay_t<decltype(parserlib::parser(p))>;
+            return std::make_shared<wrapper_parser_node_implementation<ParseContext, parser_wrapper_type>>(parserlib::parser(p));
         }
     };
 
