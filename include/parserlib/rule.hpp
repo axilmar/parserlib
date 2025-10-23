@@ -59,8 +59,8 @@ namespace parserlib {
             return *this;
         }
 
-        bool parse(ParseContext& pc) const {
-            return m_parser->parse(pc);
+        bool parse(ParseContext& pc) {
+            return pc.parse_rule(*this);
         }
 
     private:

@@ -35,12 +35,12 @@ namespace parserlib {
 
         logical_not_parser_node<Parser> operator !() const;
 
-        const parser_node<Parser>* this_() const {
-            return this;
+        const Parser* this_() const {
+            return static_cast<const Parser*>(this);
         }
 
-        parser_node<Parser>* this_() {
-            return this;
+        Parser* this_() {
+            return static_cast<Parser*>(this);
         }
     };
 
