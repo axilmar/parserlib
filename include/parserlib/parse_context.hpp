@@ -361,14 +361,6 @@ namespace parserlib {
             return m_debug_info;
         }
 
-        bool debug_info_enabled() const {
-            return m_debug_info_enabled;
-        }
-
-        void set_debug_info_enabled(bool enabled) {
-            m_debug_info_enabled = enabled;
-        }
-
         std::ostream* get_debug_stream() const {
             return m_debug_stream;
         }
@@ -407,7 +399,6 @@ namespace parserlib {
         std::map<const rule_type*, rule_state> m_rule_states;
         std::vector<std::string> m_debug_info;
         size_t m_debug_info_indentation_level = { 0 };
-        bool m_debug_info_enabled{false};
         std::ostream* m_debug_stream{&std::cout};
 
         void increment_parse_position() {
