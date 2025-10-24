@@ -17,12 +17,12 @@ namespace parserlib {
         }
 
         template <class ParseContext> bool parse(ParseContext& pc) const {
-            if constexpr (ParseContext::traits_type::debug_info_enabled) {
+            if constexpr (ParseContext::debug_info_enabled) {
                 pc.add_debug_info("Started parsing ", m_annotation, " at position = ", pc.parse_position().to_string(pc.end()));
                 pc.increase_debug_info_indentation_level();
             }
             const bool result = m_parser.parse(pc);
-            if constexpr (ParseContext::traits_type::debug_info_enabled) {
+            if constexpr (ParseContext::debug_info_enabled) {
                 pc.decrease_debug_info_indentation_level();
                 pc.add_debug_info("Ended parsing ", m_annotation, " with result = ", result ? "true" : "false");
             }

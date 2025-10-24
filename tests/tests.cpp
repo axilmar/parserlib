@@ -619,7 +619,7 @@ static void test_parse_rule() {
 #define TEST_CALC_WITH_DEBUG_INFO(V)\
 {\
     const std::string input = #V;\
-    parse_context<parse_context_traits<std::string, true>> pc(input);\
+    parse_context<parse_context_traits<>, true> pc(input);\
     const bool result = expr.parse(pc);\
     assert(result);\
     assert(pc.parse_position().iterator() == input.end());\
@@ -1005,7 +1005,7 @@ void run_tests() {
         DO_TEST(calc.test_parse_left_recursive_rule);
     }
     {
-        calculator<parse_context<parse_context_traits<std::string, true>>> calc;
+        calculator<parse_context<parse_context_traits<>, true>> calc;
         DO_TEST(calc.test_parse_annotation);
     }
 }

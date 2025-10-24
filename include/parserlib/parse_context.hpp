@@ -19,7 +19,7 @@ namespace parserlib {
     template <class ParseContext> class rule;
 
 
-    template <class Traits = parse_context_traits<>> class parse_context {
+    template <class Traits = parse_context_traits<>, bool DebugInfoEnabled = false> class parse_context {
     public:
         using traits_type = Traits;
 
@@ -32,6 +32,8 @@ namespace parserlib {
         using text_position_type = typename Traits::text_position_type;
 
         using match_id_type = typename Traits::match_id_type;
+
+        static constexpr bool debug_info_enabled = DebugInfoEnabled;
 
         class parse_position {
         public:
@@ -70,7 +72,7 @@ namespace parserlib {
             parse_position(const iterator_type& it, const text_position_type& pos) : m_iterator(it), m_text_position(pos) {
             }
 
-            friend class parse_context<Traits>;
+            friend class parse_context<Traits, DebugInfoEnabled>;
         };
 
         class match;
@@ -113,10 +115,10 @@ namespace parserlib {
             {
             }
 
-            friend class parse_context<Traits>;
+            friend class parse_context<Traits, DebugInfoEnabled>;
         };
 
-        using rule_type = rule<parse_context<Traits>>;
+        using rule_type = rule<parse_context<Traits, DebugInfoEnabled>>;
 
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_parse_position(begin, text_position_type())
@@ -333,7 +335,7 @@ namespace parserlib {
 
         template <class... T>
         void add_debug_info(T&&... args) {
-            if constexpr (Traits::debug_info_enabled) {
+            if constexpr (debug_info_enabled) {
                 std::stringstream stream;
                 stream << std::string(m_debug_info_indentation_level * 4, ' ');
                 (stream << ... << args);
@@ -346,13 +348,13 @@ namespace parserlib {
         }
 
         void increase_debug_info_indentation_level() {
-            if constexpr (Traits::debug_info_enabled) {
+            if constexpr (debug_info_enabled) {
                 ++m_debug_info_indentation_level;
             }
         }
 
         void decrease_debug_info_indentation_level() {
-            if constexpr (Traits::debug_info_enabled) {
+            if constexpr (debug_info_enabled) {
                 --m_debug_info_indentation_level;
             }
         }
