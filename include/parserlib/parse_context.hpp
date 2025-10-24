@@ -11,6 +11,7 @@
 #include <sstream>
 #include <ostream>
 #include <uchar.h>
+#include <type_traits>
 #include "parse_context_traits.hpp"
 
 
