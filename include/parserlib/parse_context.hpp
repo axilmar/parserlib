@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <ostream>
+#include <uchar.h>
 #include "parse_context_traits.hpp"
 
 
@@ -100,8 +101,24 @@ namespace parserlib {
                 return m_children;
             }
 
-            string_type source() const {
-                return string_type(m_start_position.iterator(), m_end_position.iterator());
+            auto source() const {
+                if constexpr (
+                    std::is_same_v<value_type, char> || 
+                    std::is_same_v<value_type, signed char> ||
+                    std::is_same_v<value_type, unsigned char> ||
+                    std::is_same_v<value_type, wchar_t> ||
+                    #ifdef char8_t
+                    std::is_same_v<value_type, char8_t> || 
+                    #endif
+                    std::is_same_v<value_type, char16_t> || 
+                    std::is_same_v<value_type, char32_t>
+                )
+                {
+                    return string_type(m_start_position.iterator(), m_end_position.iterator());
+                }
+                else {
+                    return std::vector<value_type>(m_start_position.iterator(), m_end_position.iterator());
+                }
             }
 
         private:
