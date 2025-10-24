@@ -4,6 +4,8 @@
 
 #include <cctype>
 #include <algorithm>
+#include <string>
+#include <sstream>
 #include "void_text_position.hpp"
 
 
@@ -31,6 +33,12 @@ namespace parserlib {
         void increment_line() {
             ++m_line;
             m_column = 1;
+        }
+
+        std::string to_string() const {
+            std::stringstream stream;
+            stream << '[' << m_line << ", " << m_column << ']';
+            return stream.str();
         }
 
     private:
@@ -102,7 +110,7 @@ namespace parserlib {
     };
 
 
-    template <class String, class MatchId = int, class TextPosition = void_text_position, class ToLowerConverter = void_to_lower_converter, class NewLineParser = void_new_line_parser> class custom_parse_context_traits {
+    template <class String, class MatchId = int, class TextPosition = void_text_position, class ToLowerConverter = void_to_lower_converter, class NewLineParser = void_new_line_parser, bool DebugInfoEnabled = false> class custom_parse_context_traits {
     public:
         using string_type = String;
 
@@ -113,6 +121,8 @@ namespace parserlib {
         using text_position_type = TextPosition;
 
         using match_id_type = MatchId;
+
+        static constexpr bool debug_info_enabled = DebugInfoEnabled;
 
         template <class T> static auto to_lower(const T& value) {
             return ToLowerConverter::to_lower(value);

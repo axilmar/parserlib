@@ -2,6 +2,9 @@
 #define PARSERLIB_VOID_TEXT_POSITION_HPP
 
 
+#include <string>
+
+
 namespace parserlib {
 
 
@@ -22,6 +25,10 @@ namespace parserlib {
         }
 
         void increment_line() {
+        }
+
+        std::string to_string() const {
+            return {};
         }
     };
 

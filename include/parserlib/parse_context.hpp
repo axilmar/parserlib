@@ -8,6 +8,8 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <sstream>
+#include <ostream>
 #include "parse_context_traits.hpp"
 
 
@@ -17,7 +19,7 @@ namespace parserlib {
     template <class ParseContext> class rule;
 
 
-    template <class String = std::string, class Traits = parse_context_traits<String>> class parse_context {
+    template <class Traits = parse_context_traits<>> class parse_context {
     public:
         using traits_type = Traits;
 
@@ -44,6 +46,23 @@ namespace parserlib {
                 return m_text_position;
             }
 
+            std::string to_string(const iterator_type& end) const {
+                std::stringstream stream;
+                const std::string pos_str = m_text_position.to_string();
+                if (pos_str.size() > 0) {
+                    stream << pos_str << ':';
+                }
+                using dist_type = decltype(std::distance(m_iterator, end));
+                const auto min_distance = std::min(std::distance(m_iterator, end), (dist_type)9);
+                const auto str_end = std::next(m_iterator, min_distance);
+                stream << '"' << std::string(m_iterator, str_end);
+                if (str_end != end) {
+                    stream << "...";
+                }
+                stream << '"';
+                return stream.str();
+            }
+
         private:
             iterator_type m_iterator;
             text_position_type m_text_position;
@@ -51,7 +70,7 @@ namespace parserlib {
             parse_position(const iterator_type& it, const text_position_type& pos) : m_iterator(it), m_text_position(pos) {
             }
 
-            friend class parse_context<String, Traits>;
+            friend class parse_context<Traits>;
         };
 
         class match;
@@ -79,8 +98,8 @@ namespace parserlib {
                 return m_children;
             }
 
-            String source() const {
-                return String(m_start_position.iterator(), m_end_position.iterator());
+            string_type source() const {
+                return string_type(m_start_position.iterator(), m_end_position.iterator());
             }
 
         private:
@@ -94,10 +113,10 @@ namespace parserlib {
             {
             }
 
-            friend class parse_context<String, Traits>;
+            friend class parse_context<Traits>;
         };
 
-        using rule_type = rule<parse_context<String, Traits>>;
+        using rule_type = rule<parse_context<Traits>>;
 
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_parse_position(begin, text_position_type())
@@ -105,13 +124,17 @@ namespace parserlib {
         {
         }
 
-        parse_context(const String& string)
+        parse_context(const string_type& string)
             : parse_context(string.begin(), string.end())
         {
         }
 
         bool valid() const {
             return m_parse_position.m_iterator != m_end;
+        }
+
+        const iterator_type& end() const {
+            return m_end;
         }
 
         template <class T> bool parse_symbol(const T& value) {
@@ -304,6 +327,56 @@ namespace parserlib {
             return m_parse_position;
         };
 
+        bool is_terminal_parsing_locked() const {
+            return m_terminal_parsing_locked;
+        }
+
+        template <class... T>
+        void add_debug_info(T&&... args) {
+            if constexpr (Traits::debug_info_enabled) {
+                std::stringstream stream;
+                stream << std::string(m_debug_info_indentation_level * 4, ' ');
+                (stream << ... << args);
+                const std::string str = stream.str();
+                m_debug_info.push_back(str);
+                if (m_debug_stream) {
+                    *m_debug_stream << str << std::endl;
+                }
+            }
+        }
+
+        void increase_debug_info_indentation_level() {
+            if constexpr (Traits::debug_info_enabled) {
+                ++m_debug_info_indentation_level;
+            }
+        }
+
+        void decrease_debug_info_indentation_level() {
+            if constexpr (Traits::debug_info_enabled) {
+                --m_debug_info_indentation_level;
+            }
+        }
+
+        const std::vector<std::string>& get_debug_info() {
+            return m_debug_info;
+        }
+
+        bool debug_info_enabled() const {
+            return m_debug_info_enabled;
+        }
+
+        void set_debug_info_enabled(bool enabled) {
+            m_debug_info_enabled = enabled;
+        }
+
+        std::ostream* get_debug_stream() const {
+            return m_debug_stream;
+        }
+
+        void set_debug_stream(const std::ostream* stream) {
+            m_debug_stream = stream;
+        }
+
     private:
         struct state {
             class parse_position parse_position;
@@ -332,6 +405,10 @@ namespace parserlib {
         bool m_terminal_parsing_locked{false};
         match_container_type m_matches;
         std::map<const rule_type*, rule_state> m_rule_states;
+        std::vector<std::string> m_debug_info;
+        size_t m_debug_info_indentation_level = { 0 };
+        bool m_debug_info_enabled{false};
+        std::ostream* m_debug_stream{&std::cout};
 
         void increment_parse_position() {
             Traits::increment_parse_position(m_parse_position.m_iterator, m_end, m_parse_position.m_text_position);

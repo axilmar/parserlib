@@ -13,6 +13,7 @@ namespace parserlib {
     template <class Parser> class optional_parser_node;
     template <class Parser> class logical_and_parser_node;
     template <class Parser> class logical_not_parser_node;
+    template <class Parser> class annotation_parser_node;
 
 
     struct parser_node_tag {
@@ -25,6 +26,14 @@ namespace parserlib {
 
     template <class Parser> class parser_node : public parser_node_tag {
     public:
+        const Parser* this_() const {
+            return static_cast<const Parser*>(this);
+        }
+
+        Parser* this_() {
+            return static_cast<Parser*>(this);
+        }
+
         loop_0_or_more_times_parser_node<Parser> operator *() const;
 
         loop_1_or_more_times_parser_node<Parser> operator +() const;
@@ -35,13 +44,7 @@ namespace parserlib {
 
         logical_not_parser_node<Parser> operator !() const;
 
-        const Parser* this_() const {
-            return static_cast<const Parser*>(this);
-        }
-
-        Parser* this_() {
-            return static_cast<Parser*>(this);
-        }
+        annotation_parser_node<Parser> operator [] (const std::string& annotation) const;
     };
 
 

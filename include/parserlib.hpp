@@ -16,6 +16,7 @@
 #include "parserlib/rule.hpp"
 #include "parserlib/match_parser_node.hpp"
 #include "parserlib/custom_parse_context_traits.hpp"
+#include "parserlib/annotation_parser_node.hpp"
 
 
 #endif // PARSERLIB_HPP

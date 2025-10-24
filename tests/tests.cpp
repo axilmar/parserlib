@@ -616,7 +616,25 @@ static void test_parse_rule() {
 }
 
 
+#define TEST_CALC_WITH_DEBUG_INFO(V)\
+{\
+    const std::string input = #V;\
+    parse_context<parse_context_traits<std::string, true>> pc(input);\
+    const bool result = expr.parse(pc);\
+    assert(result);\
+    assert(pc.parse_position().iterator() == input.end());\
+    const double v = eval_matches(pc.matches());\
+    assert(v == (V));\
+}
+
+
+template <class ParseContext = parse_context<>>
 class calculator {
+private:
+    rule<ParseContext> expr;
+    rule<ParseContext> mul;
+    rule<ParseContext> add;
+
 public:
     enum EXPR_ID {
         NUM,
@@ -625,6 +643,28 @@ public:
         MUL,
         DIV
     };
+
+    calculator() {
+        const auto digit
+            = range('0', '9');
+
+        const auto number
+            = ((+digit >> -('.' >> +digit))->*NUM)["num"];
+
+        const auto val
+            = number
+            | '(' >> expr >> ')';
+
+        mul = ((mul >> '*' >> val)->*MUL)["mul"]
+            | ((mul >> '/' >> val)->*DIV)["div"]
+            | val;
+
+        add = ((add >> '+' >> mul)->*ADD)["add"]
+            | ((add >> '-' >> mul)->*SUB)["sub"]
+            | mul;
+
+        expr = add;
+    }
 
     template <class T>
     static double eval_match(const T& match) {
@@ -664,31 +704,7 @@ public:
         return eval_match(matches[0]);
     }
 
-    static void test_parse_left_recursive_rule() {
-        rule<> expr;
-
-        const auto digit
-            = range('0', '9');
-
-        const auto number 
-            = (+digit >> -('.' >> +digit))->*NUM;
-
-        const auto val 
-            = number
-            | '(' >> expr >> ')';
-
-        const rule<> mul
-            = (mul >> '*' >> val)->*MUL
-            | (mul >> '/' >> val)->*DIV
-            | val;
-
-        const rule<> add
-            = (add >> '+' >> mul)->*ADD
-            | (add >> '-' >> mul)->*SUB
-            | mul;
-
-        expr = add;
-
+    void test_parse_left_recursive_rule() {
         TEST_CALC(1.0);
         TEST_CALC(1.0+2.0);
         TEST_CALC(1.0-2.0);
@@ -963,6 +979,10 @@ public:
         TEST_CALC((1.0+2.0+3.0*4.0*5.0));
 
     }
+
+    void test_parse_annotation() {
+        TEST_CALC_WITH_DEBUG_INFO(1.0+2.0-3.0*4.0/5.0);
+    }
 };
 
 
@@ -980,5 +1000,12 @@ void run_tests() {
     DO_TEST(test_parse_choice);
     DO_TEST(test_parse_match);
     DO_TEST(test_parse_rule);
-    DO_TEST(calculator::test_parse_left_recursive_rule);
+    {
+        calculator<> calc;
+        DO_TEST(calc.test_parse_left_recursive_rule);
+    }
+    {
+        calculator<parse_context<parse_context_traits<std::string, true>>> calc;
+        DO_TEST(calc.test_parse_annotation);
+    }
 }
