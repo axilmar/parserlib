@@ -79,6 +79,10 @@ namespace parserlib {
                 return m_children;
             }
 
+            String source() const {
+                return String(m_start_position.iterator(), m_end_position.iterator());
+            }
+
         private:
             match_id_type m_match_id;
             class parse_position m_start_position;
@@ -95,18 +99,23 @@ namespace parserlib {
 
         using rule_type = rule<parse_context<String, Traits>>;
 
-        parse_context(String& string)
-            : m_string(string)
-            , m_parse_position(string.begin(), text_position_type())
+        parse_context(const iterator_type& begin, const iterator_type& end)
+            : m_parse_position(begin, text_position_type())
+            , m_end(end)
+        {
+        }
+
+        parse_context(const String& string)
+            : parse_context(string.begin(), string.end())
         {
         }
 
         bool valid() const {
-            return m_parse_position.m_iterator != m_string.end();
+            return m_parse_position.m_iterator != m_end;
         }
 
         template <class T> bool parse_symbol(const T& value) {
-            if (m_parsing_locked) {
+            if (m_terminal_parsing_locked) {
                 return false;
             }
             if (valid() && Traits::to_lower(*m_parse_position.m_iterator) == Traits::to_lower(value)) {
@@ -117,7 +126,7 @@ namespace parserlib {
         }
 
         template <class T> bool parse_symbol_string(const T& string) {
-            if (m_parsing_locked) {
+            if (m_terminal_parsing_locked) {
                 return false;
             }
             iterator_type this_it = m_parse_position.m_iterator;
@@ -126,7 +135,7 @@ namespace parserlib {
                 if (string_it == string.end()) {
                     break;
                 }
-                if (this_it == m_string.end()) {
+                if (this_it == m_end) {
                     return false;
                 }
                 if (Traits::to_lower(*this_it) != Traits::to_lower(*string_it)) {
@@ -142,7 +151,7 @@ namespace parserlib {
         }
 
         template <class T> bool parse_symbol_set(const T& string) {
-            if (m_parsing_locked) {
+            if (m_terminal_parsing_locked) {
                 return false;
             }
             assert(std::is_sorted(string.begin(), string.end()));
@@ -163,7 +172,7 @@ namespace parserlib {
         }
 
         template <class T> bool parse_symbol_range(const T& min, const T& max) {
-            if (m_parsing_locked) {
+            if (m_terminal_parsing_locked) {
                 return false;
             }
             assert(min <= max);
@@ -210,7 +219,7 @@ namespace parserlib {
         }
 
         template <class Parser> bool parse_match(const Parser& parser, const match_id_type& match_id) {
-            const state start_state = m_parsing_locked ? m_left_recursion_start_state : get_state();
+            const state start_state = m_terminal_parsing_locked ? m_left_recursion_start_state : get_state();
             if (parser.parse(*this)) {
                 add_match(start_state, get_state(), match_id);
                 return true;
@@ -222,7 +231,7 @@ namespace parserlib {
             return m_matches;
         }
 
-        bool parse_rule(rule_type& rule) {
+        bool parse_rule(const rule_type& rule) {
             auto it = m_rule_states.find(rule.this_());
 
             //first time entering the rule
@@ -283,7 +292,7 @@ namespace parserlib {
                         return false;
 
                     case rule_left_recursion_state::accept:
-                        m_parsing_locked = false;
+                        m_terminal_parsing_locked = false;
                         return true;
                 }
             }
@@ -309,7 +318,7 @@ namespace parserlib {
         };
 
         struct left_recursion_exception {
-            rule_type* rule;
+            const rule_type* rule;
         };
 
         struct rule_state {
@@ -317,25 +326,25 @@ namespace parserlib {
             rule_left_recursion_state left_recursion_state;
         };
 
-        String& m_string;
         class parse_position m_parse_position;
+        iterator_type m_end;
         state m_left_recursion_start_state;
-        bool m_parsing_locked{false};
+        bool m_terminal_parsing_locked{false};
         match_container_type m_matches;
-        std::map<rule_type*, rule_state> m_rule_states;
+        std::map<const rule_type*, rule_state> m_rule_states;
 
         void increment_parse_position() {
-            Traits::increment_parse_position(m_parse_position.m_iterator, m_string.end(), m_parse_position.m_text_position);
+            Traits::increment_parse_position(m_parse_position.m_iterator, m_end, m_parse_position.m_text_position);
         }
 
         state get_state() const {
-            return state{ m_parse_position, m_matches.size(), m_parsing_locked };
+            return state{ m_parse_position, m_matches.size(), m_terminal_parsing_locked };
         }
 
         void set_state(const state& s)  {
             m_parse_position = s.parse_position;
             m_matches.resize(s.match_count);
-            m_parsing_locked = s.parsing_locked;
+            m_terminal_parsing_locked = s.parsing_locked;
         }
 
         void add_match(const state& start_state, const state& end_state, const match_id_type& match_id) {
@@ -344,8 +353,9 @@ namespace parserlib {
             m_matches.push_back(match(match_id, start_state.parse_position, end_state.parse_position, std::move(children)));
         }
 
-        bool handle_left_recursion(rule_type& rule, struct rule_state& rule_state) {
-            m_left_recursion_start_state = get_state();
+        bool handle_left_recursion(const rule_type& rule, struct rule_state& rule_state) {
+            const state left_recursion_start_state = get_state();
+            m_left_recursion_start_state = left_recursion_start_state;
 
             rule_state.left_recursion_state = rule_left_recursion_state::reject;
             if (!rule.parser()->parse(*this)) {
@@ -354,13 +364,15 @@ namespace parserlib {
 
             rule_state.left_recursion_state = rule_left_recursion_state::accept;
             while (true) {
-                m_parsing_locked = true;
+                m_left_recursion_start_state = left_recursion_start_state;
+                rule_state.parse_position = m_parse_position.iterator();
+                m_terminal_parsing_locked = true;
                 if (!rule.parser()->parse(*this)) {
                     break;
                 }
             }
 
-            m_parsing_locked = false;
+            m_terminal_parsing_locked = false;
             return true;
         }
     };

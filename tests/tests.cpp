@@ -55,7 +55,7 @@ static void test_parse_symbol() {
     const auto grammar = terminal('a');
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -63,7 +63,7 @@ static void test_parse_symbol() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -76,7 +76,7 @@ static void test_parse_string() {
     const auto grammar = terminal("abc");
 
     {
-        std::string input = "abc";
+        const std::string input = "abc";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -84,7 +84,7 @@ static void test_parse_string() {
     }
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -97,7 +97,7 @@ static void test_parse_symbol_set() {
     const auto grammar = set("0123456789");
 
     {
-        std::string input = "0";
+        const std::string input = "0";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -105,7 +105,7 @@ static void test_parse_symbol_set() {
     }
 
     {
-        std::string input = "5";
+        const std::string input = "5";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -113,7 +113,7 @@ static void test_parse_symbol_set() {
     }
 
     {
-        std::string input = "9";
+        const std::string input = "9";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -121,7 +121,7 @@ static void test_parse_symbol_set() {
     }
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -134,7 +134,7 @@ static void test_parse_symbol_range() {
     const auto grammar = range('0', '9');
 
     {
-        std::string input = "0";
+        const std::string input = "0";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -142,7 +142,7 @@ static void test_parse_symbol_range() {
     }
 
     {
-        std::string input = "5";
+        const std::string input = "5";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -150,7 +150,7 @@ static void test_parse_symbol_range() {
     }
 
     {
-        std::string input = "9";
+        const std::string input = "9";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -158,7 +158,7 @@ static void test_parse_symbol_range() {
     }
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -171,7 +171,7 @@ static void test_parse_0_or_more() {
     const auto grammar = *terminal('a');
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -179,7 +179,7 @@ static void test_parse_0_or_more() {
     }
 
     {
-        std::string input = "aa";
+        const std::string input = "aa";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -187,7 +187,7 @@ static void test_parse_0_or_more() {
     }
 
     {
-        std::string input = "aaa";
+        const std::string input = "aaa";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -195,7 +195,7 @@ static void test_parse_0_or_more() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -203,7 +203,7 @@ static void test_parse_0_or_more() {
     }
 
     {
-        std::string input = "ab";
+        const std::string input = "ab";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -211,7 +211,7 @@ static void test_parse_0_or_more() {
     }
 
     {
-        std::string input = "aab";
+        const std::string input = "aab";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -224,7 +224,7 @@ static void test_parse_1_or_more() {
     const auto grammar = +terminal('a');
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -232,7 +232,7 @@ static void test_parse_1_or_more() {
     }
 
     {
-        std::string input = "aa";
+        const std::string input = "aa";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -240,7 +240,7 @@ static void test_parse_1_or_more() {
     }
 
     {
-        std::string input = "aaa";
+        const std::string input = "aaa";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -248,7 +248,7 @@ static void test_parse_1_or_more() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -256,7 +256,7 @@ static void test_parse_1_or_more() {
     }
 
     {
-        std::string input = "ab";
+        const std::string input = "ab";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -264,7 +264,7 @@ static void test_parse_1_or_more() {
     }
 
     {
-        std::string input = "aab";
+        const std::string input = "aab";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -277,7 +277,7 @@ static void test_parse_optional() {
     const auto grammar = -terminal('a');
 
     {
-        std::string input = "";
+        const std::string input = "";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -285,7 +285,7 @@ static void test_parse_optional() {
     }
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -293,7 +293,7 @@ static void test_parse_optional() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -306,7 +306,7 @@ static void test_parse_logical_and() {
     const auto grammar = &terminal('a');
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -314,7 +314,7 @@ static void test_parse_logical_and() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -327,7 +327,7 @@ static void test_parse_logical_not() {
     const auto grammar = !terminal('a');
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -335,7 +335,7 @@ static void test_parse_logical_not() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -348,7 +348,7 @@ static void test_parse_sequence() {
     const auto grammar = terminal('a') >> 'b' >> 'c';
 
     {
-        std::string input = "abc";
+        const std::string input = "abc";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -356,7 +356,7 @@ static void test_parse_sequence() {
     }
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -364,7 +364,7 @@ static void test_parse_sequence() {
     }
 
     {
-        std::string input = "ab";
+        const std::string input = "ab";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -377,7 +377,7 @@ static void test_parse_choice() {
     const auto grammar = terminal('a') | 'b' | 'c';
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -385,7 +385,7 @@ static void test_parse_choice() {
     }
 
     {
-        std::string input = "b";
+        const std::string input = "b";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -393,7 +393,7 @@ static void test_parse_choice() {
     }
 
     {
-        std::string input = "c";
+        const std::string input = "c";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -401,7 +401,7 @@ static void test_parse_choice() {
     }
 
     {
-        std::string input = "1";
+        const std::string input = "1";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(!result);
@@ -423,7 +423,7 @@ static void test_parse_match() {
     const auto grammar = *(terminal('a')->*A | terminal('b')->*B | terminal('c')->*C | (terminal('d')->*D >> terminal('e')->*E)->*DE);
 
     {
-        std::string input = "a";
+        const std::string input = "a";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -433,7 +433,7 @@ static void test_parse_match() {
     }
 
     {
-        std::string input = "ca";
+        const std::string input = "ca";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -444,7 +444,7 @@ static void test_parse_match() {
     }
 
     {
-        std::string input = "cbdea";
+        const std::string input = "cbdea";
         parse_context<> pc(input);
         const bool result = grammar.parse(pc);
         assert(result);
@@ -466,7 +466,7 @@ static void test_parse_rule() {
         rule<> grammar = 'a';
 
         {
-            std::string input = "a";
+            const std::string input = "a";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(result);
@@ -474,7 +474,7 @@ static void test_parse_rule() {
         }
 
         {
-            std::string input = "b";
+            const std::string input = "b";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(!result);
@@ -486,7 +486,7 @@ static void test_parse_rule() {
         rule<> grammar = "abc";
 
         {
-            std::string input = "abc";
+            const std::string input = "abc";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(result);
@@ -494,7 +494,7 @@ static void test_parse_rule() {
         }
 
         {
-            std::string input = "a";
+            const std::string input = "a";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(!result);
@@ -506,7 +506,7 @@ static void test_parse_rule() {
         rule<> grammar = set("0123456789");
 
         {
-            std::string input = "0";
+            const std::string input = "0";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(result);
@@ -514,7 +514,7 @@ static void test_parse_rule() {
         }
 
         {
-            std::string input = "5";
+            const std::string input = "5";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(result);
@@ -522,7 +522,7 @@ static void test_parse_rule() {
         }
 
         {
-            std::string input = "9";
+            const std::string input = "9";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(result);
@@ -530,7 +530,71 @@ static void test_parse_rule() {
         }
 
         {
-            std::string input = "a";
+            const std::string input = "a";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(!result);
+            assert(pc.parse_position().iterator() == input.begin());
+        }
+    }
+
+    {
+        rule<> grammar = range('0', '9');
+
+        {
+            const std::string input = "0";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_position().iterator() == input.end());
+        }
+
+        {
+            const std::string input = "5";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_position().iterator() == input.end());
+        }
+
+        {
+            const std::string input = "9";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_position().iterator() == input.end());
+        }
+
+        {
+            const std::string input = "a";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(!result);
+            assert(pc.parse_position().iterator() == input.begin());
+        }
+    }
+
+    {
+        rule<> grammar = terminal('a') >> 'b' >> 'c';
+
+        {
+            const std::string input = "abc";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_position().iterator() == input.end());
+        }
+
+        {
+            const std::string input = "a";
+            parse_context<> pc(input);
+            const bool result = grammar.parse(pc);
+            assert(!result);
+            assert(pc.parse_position().iterator() == input.begin());
+        }
+
+        {
+            const std::string input = "ab";
             parse_context<> pc(input);
             const bool result = grammar.parse(pc);
             assert(!result);
@@ -538,6 +602,368 @@ static void test_parse_rule() {
         }
     }
 }
+
+
+#define TEST_CALC(V)\
+{\
+    const std::string input = #V;\
+    parse_context<> pc(input);\
+    const bool result = expr.parse(pc);\
+    assert(result);\
+    assert(pc.parse_position().iterator() == input.end());\
+    const double v = eval_matches(pc.matches());\
+    assert(v == (V));\
+}
+
+
+class calculator {
+public:
+    enum EXPR_ID {
+        NUM,
+        ADD,
+        SUB,
+        MUL,
+        DIV
+    };
+
+    template <class T>
+    static double eval_match(const T& match) {
+        switch (match.match_id()) {
+            case NUM: {
+                assert(match.matches().size() == 0);
+                std::stringstream stream;
+                stream << match.source();
+                double v;
+                stream >> v;
+                return v;
+            }
+
+            case ADD:
+                assert(match.matches().size() == 2);
+                return eval_match(match.matches()[0]) + eval_match(match.matches()[1]);
+
+            case SUB:
+                assert(match.matches().size() == 2);
+                return eval_match(match.matches()[0]) - eval_match(match.matches()[1]);
+
+            case MUL:
+                assert(match.matches().size() == 2);
+                return eval_match(match.matches()[0]) * eval_match(match.matches()[1]);
+
+            case DIV:
+                assert(match.matches().size() == 2);
+                return eval_match(match.matches()[0]) / eval_match(match.matches()[1]);
+        }
+
+        throw std::logic_error("invalid calculator state");
+    }
+
+    template <class T>
+    static double eval_matches(const T& matches) {
+        assert(matches.size() == 1);
+        return eval_match(matches[0]);
+    }
+
+    static void test_parse_left_recursive_rule() {
+        rule<> expr;
+
+        const auto digit
+            = range('0', '9');
+
+        const auto number 
+            = (+digit >> -('.' >> +digit))->*NUM;
+
+        const auto val 
+            = number
+            | '(' >> expr >> ')';
+
+        const rule<> mul
+            = (mul >> '*' >> val)->*MUL
+            | (mul >> '/' >> val)->*DIV
+            | val;
+
+        const rule<> add
+            = (add >> '+' >> mul)->*ADD
+            | (add >> '-' >> mul)->*SUB
+            | mul;
+
+        expr = add;
+
+        TEST_CALC(1.0);
+        TEST_CALC(1.0+2.0);
+        TEST_CALC(1.0-2.0);
+        TEST_CALC(1.0*2.0);
+        TEST_CALC(1.0/2.0);
+
+        TEST_CALC(1.0+2.0+3.0+4.0+5.0);
+        TEST_CALC(1.0+2.0+3.0+4.0-5.0);
+        TEST_CALC(1.0+2.0+3.0+4.0*5.0);
+        TEST_CALC(1.0+2.0+3.0+4.0/5.0);
+        TEST_CALC(1.0+2.0+3.0-4.0+5.0);
+        TEST_CALC(1.0+2.0+3.0-4.0-5.0);
+        TEST_CALC(1.0+2.0+3.0-4.0*5.0);
+        TEST_CALC(1.0+2.0+3.0-4.0/5.0);
+        TEST_CALC(1.0+2.0+3.0*4.0+5.0);
+        TEST_CALC(1.0+2.0+3.0*4.0-5.0);
+        TEST_CALC(1.0+2.0+3.0*4.0*5.0);
+        TEST_CALC(1.0+2.0+3.0*4.0/5.0);
+        TEST_CALC(1.0+2.0+3.0/4.0+5.0);
+        TEST_CALC(1.0+2.0+3.0/4.0-5.0);
+        TEST_CALC(1.0+2.0+3.0/4.0*5.0);
+        TEST_CALC(1.0+2.0+3.0/4.0/5.0);
+        TEST_CALC(1.0+2.0-3.0+4.0+5.0);
+        TEST_CALC(1.0+2.0-3.0+4.0-5.0);
+        TEST_CALC(1.0+2.0-3.0+4.0*5.0);
+        TEST_CALC(1.0+2.0-3.0+4.0/5.0);
+        TEST_CALC(1.0+2.0-3.0-4.0+5.0);
+        TEST_CALC(1.0+2.0-3.0-4.0-5.0);
+        TEST_CALC(1.0+2.0-3.0-4.0*5.0);
+        TEST_CALC(1.0+2.0-3.0-4.0/5.0);
+        TEST_CALC(1.0+2.0-3.0*4.0+5.0);
+        TEST_CALC(1.0+2.0-3.0*4.0-5.0);
+        TEST_CALC(1.0+2.0-3.0*4.0*5.0);
+        TEST_CALC(1.0+2.0-3.0*4.0/5.0);
+        TEST_CALC(1.0+2.0-3.0/4.0+5.0);
+        TEST_CALC(1.0+2.0-3.0/4.0-5.0);
+        TEST_CALC(1.0+2.0-3.0/4.0*5.0);
+        TEST_CALC(1.0+2.0-3.0/4.0/5.0);
+        TEST_CALC(1.0+2.0*3.0+4.0+5.0);
+        TEST_CALC(1.0+2.0*3.0+4.0-5.0);
+        TEST_CALC(1.0+2.0*3.0+4.0*5.0);
+        TEST_CALC(1.0+2.0*3.0+4.0/5.0);
+        TEST_CALC(1.0+2.0*3.0-4.0+5.0);
+        TEST_CALC(1.0+2.0*3.0-4.0-5.0);
+        TEST_CALC(1.0+2.0*3.0-4.0*5.0);
+        TEST_CALC(1.0+2.0*3.0-4.0/5.0);
+        TEST_CALC(1.0+2.0*3.0*4.0+5.0);
+        TEST_CALC(1.0+2.0*3.0*4.0-5.0);
+        TEST_CALC(1.0+2.0*3.0*4.0*5.0);
+        TEST_CALC(1.0+2.0*3.0*4.0/5.0);
+        TEST_CALC(1.0+2.0*3.0/4.0+5.0);
+        TEST_CALC(1.0+2.0*3.0/4.0-5.0);
+        TEST_CALC(1.0+2.0*3.0/4.0*5.0);
+        TEST_CALC(1.0+2.0*3.0/4.0/5.0);
+        TEST_CALC(1.0+2.0/3.0+4.0+5.0);
+        TEST_CALC(1.0+2.0/3.0+4.0-5.0);
+        TEST_CALC(1.0+2.0/3.0+4.0*5.0);
+        TEST_CALC(1.0+2.0/3.0+4.0/5.0);
+        TEST_CALC(1.0+2.0/3.0-4.0+5.0);
+        TEST_CALC(1.0+2.0/3.0-4.0-5.0);
+        TEST_CALC(1.0+2.0/3.0-4.0*5.0);
+        TEST_CALC(1.0+2.0/3.0-4.0/5.0);
+        TEST_CALC(1.0+2.0/3.0*4.0+5.0);
+        TEST_CALC(1.0+2.0/3.0*4.0-5.0);
+        TEST_CALC(1.0+2.0/3.0*4.0*5.0);
+        TEST_CALC(1.0+2.0/3.0*4.0/5.0);
+        TEST_CALC(1.0+2.0/3.0/4.0+5.0);
+        TEST_CALC(1.0+2.0/3.0/4.0-5.0);
+        TEST_CALC(1.0+2.0/3.0/4.0*5.0);
+        TEST_CALC(1.0+2.0/3.0/4.0/5.0);
+        TEST_CALC(1.0-2.0+3.0+4.0+5.0);
+        TEST_CALC(1.0-2.0+3.0+4.0-5.0);
+        TEST_CALC(1.0-2.0+3.0+4.0*5.0);
+        TEST_CALC(1.0-2.0+3.0+4.0/5.0);
+        TEST_CALC(1.0-2.0+3.0-4.0+5.0);
+        TEST_CALC(1.0-2.0+3.0-4.0-5.0);
+        TEST_CALC(1.0-2.0+3.0-4.0*5.0);
+        TEST_CALC(1.0-2.0+3.0-4.0/5.0);
+        TEST_CALC(1.0-2.0+3.0*4.0+5.0);
+        TEST_CALC(1.0-2.0+3.0*4.0-5.0);
+        TEST_CALC(1.0-2.0+3.0*4.0*5.0);
+        TEST_CALC(1.0-2.0+3.0*4.0/5.0);
+        TEST_CALC(1.0-2.0+3.0/4.0+5.0);
+        TEST_CALC(1.0-2.0+3.0/4.0-5.0);
+        TEST_CALC(1.0-2.0+3.0/4.0*5.0);
+        TEST_CALC(1.0-2.0+3.0/4.0/5.0);
+        TEST_CALC(1.0-2.0-3.0+4.0+5.0);
+        TEST_CALC(1.0-2.0-3.0+4.0-5.0);
+        TEST_CALC(1.0-2.0-3.0+4.0*5.0);
+        TEST_CALC(1.0-2.0-3.0+4.0/5.0);
+        TEST_CALC(1.0-2.0-3.0-4.0+5.0);
+        TEST_CALC(1.0-2.0-3.0-4.0-5.0);
+        TEST_CALC(1.0-2.0-3.0-4.0*5.0);
+        TEST_CALC(1.0-2.0-3.0-4.0/5.0);
+        TEST_CALC(1.0-2.0-3.0*4.0+5.0);
+        TEST_CALC(1.0-2.0-3.0*4.0-5.0);
+        TEST_CALC(1.0-2.0-3.0*4.0*5.0);
+        TEST_CALC(1.0-2.0-3.0*4.0/5.0);
+        TEST_CALC(1.0-2.0-3.0/4.0+5.0);
+        TEST_CALC(1.0-2.0-3.0/4.0-5.0);
+        TEST_CALC(1.0-2.0-3.0/4.0*5.0);
+        TEST_CALC(1.0-2.0-3.0/4.0/5.0);
+        TEST_CALC(1.0-2.0*3.0+4.0+5.0);
+        TEST_CALC(1.0-2.0*3.0+4.0-5.0);
+        TEST_CALC(1.0-2.0*3.0+4.0*5.0);
+        TEST_CALC(1.0-2.0*3.0+4.0/5.0);
+        TEST_CALC(1.0-2.0*3.0-4.0+5.0);
+        TEST_CALC(1.0-2.0*3.0-4.0-5.0);
+        TEST_CALC(1.0-2.0*3.0-4.0*5.0);
+        TEST_CALC(1.0-2.0*3.0-4.0/5.0);
+        TEST_CALC(1.0-2.0*3.0*4.0+5.0);
+        TEST_CALC(1.0-2.0*3.0*4.0-5.0);
+        TEST_CALC(1.0-2.0*3.0*4.0*5.0);
+        TEST_CALC(1.0-2.0*3.0*4.0/5.0);
+        TEST_CALC(1.0-2.0*3.0/4.0+5.0);
+        TEST_CALC(1.0-2.0*3.0/4.0-5.0);
+        TEST_CALC(1.0-2.0*3.0/4.0*5.0);
+        TEST_CALC(1.0-2.0*3.0/4.0/5.0);
+        TEST_CALC(1.0-2.0/3.0+4.0+5.0);
+        TEST_CALC(1.0-2.0/3.0+4.0-5.0);
+        TEST_CALC(1.0-2.0/3.0+4.0*5.0);
+        TEST_CALC(1.0-2.0/3.0+4.0/5.0);
+        TEST_CALC(1.0-2.0/3.0-4.0+5.0);
+        TEST_CALC(1.0-2.0/3.0-4.0-5.0);
+        TEST_CALC(1.0-2.0/3.0-4.0*5.0);
+        TEST_CALC(1.0-2.0/3.0-4.0/5.0);
+        TEST_CALC(1.0-2.0/3.0*4.0+5.0);
+        TEST_CALC(1.0-2.0/3.0*4.0-5.0);
+        TEST_CALC(1.0-2.0/3.0*4.0*5.0);
+        TEST_CALC(1.0-2.0/3.0*4.0/5.0);
+        TEST_CALC(1.0-2.0/3.0/4.0+5.0);
+        TEST_CALC(1.0-2.0/3.0/4.0-5.0);
+        TEST_CALC(1.0-2.0/3.0/4.0*5.0);
+        TEST_CALC(1.0-2.0/3.0/4.0/5.0);
+        TEST_CALC(1.0*2.0+3.0+4.0+5.0);
+        TEST_CALC(1.0*2.0+3.0+4.0-5.0);
+        TEST_CALC(1.0*2.0+3.0+4.0*5.0);
+        TEST_CALC(1.0*2.0+3.0+4.0/5.0);
+        TEST_CALC(1.0*2.0+3.0-4.0+5.0);
+        TEST_CALC(1.0*2.0+3.0-4.0-5.0);
+        TEST_CALC(1.0*2.0+3.0-4.0*5.0);
+        TEST_CALC(1.0*2.0+3.0-4.0/5.0);
+        TEST_CALC(1.0*2.0+3.0*4.0+5.0);
+        TEST_CALC(1.0*2.0+3.0*4.0-5.0);
+        TEST_CALC(1.0*2.0+3.0*4.0*5.0);
+        TEST_CALC(1.0*2.0+3.0*4.0/5.0);
+        TEST_CALC(1.0*2.0+3.0/4.0+5.0);
+        TEST_CALC(1.0*2.0+3.0/4.0-5.0);
+        TEST_CALC(1.0*2.0+3.0/4.0*5.0);
+        TEST_CALC(1.0*2.0+3.0/4.0/5.0);
+        TEST_CALC(1.0*2.0-3.0+4.0+5.0);
+        TEST_CALC(1.0*2.0-3.0+4.0-5.0);
+        TEST_CALC(1.0*2.0-3.0+4.0*5.0);
+        TEST_CALC(1.0*2.0-3.0+4.0/5.0);
+        TEST_CALC(1.0*2.0-3.0-4.0+5.0);
+        TEST_CALC(1.0*2.0-3.0-4.0-5.0);
+        TEST_CALC(1.0*2.0-3.0-4.0*5.0);
+        TEST_CALC(1.0*2.0-3.0-4.0/5.0);
+        TEST_CALC(1.0*2.0-3.0*4.0+5.0);
+        TEST_CALC(1.0*2.0-3.0*4.0-5.0);
+        TEST_CALC(1.0*2.0-3.0*4.0*5.0);
+        TEST_CALC(1.0*2.0-3.0*4.0/5.0);
+        TEST_CALC(1.0*2.0-3.0/4.0+5.0);
+        TEST_CALC(1.0*2.0-3.0/4.0-5.0);
+        TEST_CALC(1.0*2.0-3.0/4.0*5.0);
+        TEST_CALC(1.0*2.0-3.0/4.0/5.0);
+        TEST_CALC(1.0*2.0*3.0+4.0+5.0);
+        TEST_CALC(1.0*2.0*3.0+4.0-5.0);
+        TEST_CALC(1.0*2.0*3.0+4.0*5.0);
+        TEST_CALC(1.0*2.0*3.0+4.0/5.0);
+        TEST_CALC(1.0*2.0*3.0-4.0+5.0);
+        TEST_CALC(1.0*2.0*3.0-4.0-5.0);
+        TEST_CALC(1.0*2.0*3.0-4.0*5.0);
+        TEST_CALC(1.0*2.0*3.0-4.0/5.0);
+        TEST_CALC(1.0*2.0*3.0*4.0+5.0);
+        TEST_CALC(1.0*2.0*3.0*4.0-5.0);
+        TEST_CALC(1.0*2.0*3.0*4.0*5.0);
+        TEST_CALC(1.0*2.0*3.0*4.0/5.0);
+        TEST_CALC(1.0*2.0*3.0/4.0+5.0);
+        TEST_CALC(1.0*2.0*3.0/4.0-5.0);
+        TEST_CALC(1.0*2.0*3.0/4.0*5.0);
+        TEST_CALC(1.0*2.0*3.0/4.0/5.0);
+        TEST_CALC(1.0*2.0/3.0+4.0+5.0);
+        TEST_CALC(1.0*2.0/3.0+4.0-5.0);
+        TEST_CALC(1.0*2.0/3.0+4.0*5.0);
+        TEST_CALC(1.0*2.0/3.0+4.0/5.0);
+        TEST_CALC(1.0*2.0/3.0-4.0+5.0);
+        TEST_CALC(1.0*2.0/3.0-4.0-5.0);
+        TEST_CALC(1.0*2.0/3.0-4.0*5.0);
+        TEST_CALC(1.0*2.0/3.0-4.0/5.0);
+        TEST_CALC(1.0*2.0/3.0*4.0+5.0);
+        TEST_CALC(1.0*2.0/3.0*4.0-5.0);
+        TEST_CALC(1.0*2.0/3.0*4.0*5.0);
+        TEST_CALC(1.0*2.0/3.0*4.0/5.0);
+        TEST_CALC(1.0*2.0/3.0/4.0+5.0);
+        TEST_CALC(1.0*2.0/3.0/4.0-5.0);
+        TEST_CALC(1.0*2.0/3.0/4.0*5.0);
+        TEST_CALC(1.0*2.0/3.0/4.0/5.0);
+        TEST_CALC(1.0/2.0+3.0+4.0+5.0);
+        TEST_CALC(1.0/2.0+3.0+4.0-5.0);
+        TEST_CALC(1.0/2.0+3.0+4.0*5.0);
+        TEST_CALC(1.0/2.0+3.0+4.0/5.0);
+        TEST_CALC(1.0/2.0+3.0-4.0+5.0);
+        TEST_CALC(1.0/2.0+3.0-4.0-5.0);
+        TEST_CALC(1.0/2.0+3.0-4.0*5.0);
+        TEST_CALC(1.0/2.0+3.0-4.0/5.0);
+        TEST_CALC(1.0/2.0+3.0*4.0+5.0);
+        TEST_CALC(1.0/2.0+3.0*4.0-5.0);
+        TEST_CALC(1.0/2.0+3.0*4.0*5.0);
+        TEST_CALC(1.0/2.0+3.0*4.0/5.0);
+        TEST_CALC(1.0/2.0+3.0/4.0+5.0);
+        TEST_CALC(1.0/2.0+3.0/4.0-5.0);
+        TEST_CALC(1.0/2.0+3.0/4.0*5.0);
+        TEST_CALC(1.0/2.0+3.0/4.0/5.0);
+        TEST_CALC(1.0/2.0-3.0+4.0+5.0);
+        TEST_CALC(1.0/2.0-3.0+4.0-5.0);
+        TEST_CALC(1.0/2.0-3.0+4.0*5.0);
+        TEST_CALC(1.0/2.0-3.0+4.0/5.0);
+        TEST_CALC(1.0/2.0-3.0-4.0+5.0);
+        TEST_CALC(1.0/2.0-3.0-4.0-5.0);
+        TEST_CALC(1.0/2.0-3.0-4.0*5.0);
+        TEST_CALC(1.0/2.0-3.0-4.0/5.0);
+        TEST_CALC(1.0/2.0-3.0*4.0+5.0);
+        TEST_CALC(1.0/2.0-3.0*4.0-5.0);
+        TEST_CALC(1.0/2.0-3.0*4.0*5.0);
+        TEST_CALC(1.0/2.0-3.0*4.0/5.0);
+        TEST_CALC(1.0/2.0-3.0/4.0+5.0);
+        TEST_CALC(1.0/2.0-3.0/4.0-5.0);
+        TEST_CALC(1.0/2.0-3.0/4.0*5.0);
+        TEST_CALC(1.0/2.0-3.0/4.0/5.0);
+        TEST_CALC(1.0/2.0*3.0+4.0+5.0);
+        TEST_CALC(1.0/2.0*3.0+4.0-5.0);
+        TEST_CALC(1.0/2.0*3.0+4.0*5.0);
+        TEST_CALC(1.0/2.0*3.0+4.0/5.0);
+        TEST_CALC(1.0/2.0*3.0-4.0+5.0);
+        TEST_CALC(1.0/2.0*3.0-4.0-5.0);
+        TEST_CALC(1.0/2.0*3.0-4.0*5.0);
+        TEST_CALC(1.0/2.0*3.0-4.0/5.0);
+        TEST_CALC(1.0/2.0*3.0*4.0+5.0);
+        TEST_CALC(1.0/2.0*3.0*4.0-5.0);
+        TEST_CALC(1.0/2.0*3.0*4.0*5.0);
+        TEST_CALC(1.0/2.0*3.0*4.0/5.0);
+        TEST_CALC(1.0/2.0*3.0/4.0+5.0);
+        TEST_CALC(1.0/2.0*3.0/4.0-5.0);
+        TEST_CALC(1.0/2.0*3.0/4.0*5.0);
+        TEST_CALC(1.0/2.0*3.0/4.0/5.0);
+        TEST_CALC(1.0/2.0/3.0+4.0+5.0);
+        TEST_CALC(1.0/2.0/3.0+4.0-5.0);
+        TEST_CALC(1.0/2.0/3.0+4.0*5.0);
+        TEST_CALC(1.0/2.0/3.0+4.0/5.0);
+        TEST_CALC(1.0/2.0/3.0-4.0+5.0);
+        TEST_CALC(1.0/2.0/3.0-4.0-5.0);
+        TEST_CALC(1.0/2.0/3.0-4.0*5.0);
+        TEST_CALC(1.0/2.0/3.0-4.0/5.0);
+        TEST_CALC(1.0/2.0/3.0*4.0+5.0);
+        TEST_CALC(1.0/2.0/3.0*4.0-5.0);
+        TEST_CALC(1.0/2.0/3.0*4.0*5.0);
+        TEST_CALC(1.0/2.0/3.0*4.0/5.0);
+        TEST_CALC(1.0/2.0/3.0/4.0+5.0);
+        TEST_CALC(1.0/2.0/3.0/4.0-5.0);
+        TEST_CALC(1.0/2.0/3.0/4.0*5.0);
+        TEST_CALC((1.0+2.0)+3.0+4.0+5.0);
+        TEST_CALC(1.0+(2.0+3.0)+4.0-5.0);
+        TEST_CALC(1.0+2.0+(3.0+4.0)*5.0);
+        TEST_CALC(1.0+2.0+3.0+(4.0/5.0));
+        TEST_CALC((1.0+2.0+3.0)-4.0+5.0);
+        TEST_CALC(1.0+(2.0+3.0-4.0)-5.0);
+        TEST_CALC(1.0+2.0+(3.0-4.0*5.0));
+        TEST_CALC(1.0+2.0+(3.0-4.0)/5.0);
+        TEST_CALC(1.0+(2.0+3.0*4.0+5.0));
+        TEST_CALC((1.0+2.0+3.0*4.0)-5.0);
+        TEST_CALC((1.0+2.0+3.0*4.0*5.0));
+
+    }
+};
 
 
 void run_tests() {
@@ -554,4 +980,5 @@ void run_tests() {
     DO_TEST(test_parse_choice);
     DO_TEST(test_parse_match);
     DO_TEST(test_parse_rule);
+    DO_TEST(calculator::test_parse_left_recursive_rule);
 }

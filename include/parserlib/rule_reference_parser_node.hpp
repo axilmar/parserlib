@@ -13,7 +13,7 @@ namespace parserlib {
 
     template <class ParseContext> class rule_reference_parser_node : public parser_node<rule_reference_parser_node<ParseContext>> {
     public:
-        rule_reference_parser_node(rule<ParseContext>& r) : m_rule(r) {
+        rule_reference_parser_node(const rule<ParseContext>& r) : m_rule(r) {
         }
 
         bool parse(ParseContext& pc) const {
@@ -21,7 +21,7 @@ namespace parserlib {
         }
 
     private:
-        rule<ParseContext>& m_rule;
+        const rule<ParseContext>& m_rule;
     };
 
 
