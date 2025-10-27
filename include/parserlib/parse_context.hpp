@@ -447,7 +447,7 @@ namespace parserlib {
          * The text column is set to its initial value.
          */
         void increment_text_position_line() {
-            m_parse_position.increment_text_position_line(count);
+            m_parse_position.increment_text_position_line();
         }
 
         /**

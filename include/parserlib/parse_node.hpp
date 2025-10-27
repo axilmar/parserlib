@@ -2,9 +2,6 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
-#include <type_traits>
-
-
 namespace parserlib {
 
 
@@ -15,9 +12,6 @@ namespace parserlib {
      */
     template <class Derived> class parse_node {
     public:
-        //ensure Derived is actually derived from this.
-        static_assert(std::is_base_of_v<parse_node<Derived>, Derived>);
-
         /**
          * Returns pointer to derived class.
          * Used in cases a pointer to this is required,
