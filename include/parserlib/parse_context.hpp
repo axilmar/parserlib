@@ -3,470 +3,535 @@
 
 
 #include <string>
-#include <cassert>
+#include <cctype>
+#include <cstdint>
 #include <algorithm>
 #include <vector>
-#include <map>
-#include <stdexcept>
-#include <sstream>
-#include <ostream>
-#include <uchar.h>
-#include <type_traits>
-#include "parse_context_traits.hpp"
 
 
 namespace parserlib {
 
 
-    template <class ParseContext> class rule;
-
-
-    template <class Traits = parse_context_traits<>, bool DebugInfoEnabled = false> class parse_context {
+    /**
+     * The default text position is empty.
+     * It does not provide any line and column counting.
+     */
+    class default_text_position {
     public:
-        using traits_type = Traits;
+        /**
+         * Returns the line.
+         * @return always 0.
+         */
+        size_t line() const {
+            return 0;
+        }
 
-        using string_type = typename Traits::string_type;
+        /**
+         * Returns the column.
+         * @return always 0.
+         */
+        size_t column() const {
+            return 0;
+        }
 
-        using value_type = typename Traits::value_type;
+        /**
+         * Increments the column.
+         * Does nothing.
+         */
+        void increment_column() {
+        }
 
-        using iterator_type = typename Traits::iterator_type;
+        /**
+         * Increments the column by a specific amount of positions.
+         * Does nothing.
+         * @param count number of positions to increment the column.
+         */
+        void increment_column(size_t count) {
+        }
 
-        using text_position_type = typename Traits::text_position_type;
+        /**
+         * Increments the line and sets the column to its initial value.
+         * Does nothing.
+         */
+        void increment_line() {
+        }
+    };
 
-        using match_id_type = typename Traits::match_id_type;
 
-        static constexpr bool debug_info_enabled = DebugInfoEnabled;
+    /**
+     * A text position object that counts lines and columns.
+     * Both values start from 1, to match text editors.
+     */
+    class text_position {
+    public:
+        /**
+         * Returns the line.
+         * @return the line.
+         */
+        size_t line() const {
+            return m_line;
+        }
 
-        class parse_position {
+        /**
+         * Returns the column.
+         * @return the column.
+         */
+        size_t column() const {
+            return m_column;
+        }
+
+        /**
+         * Increments the column.
+         */
+        void increment_column() {
+            ++m_column;
+        }
+
+        /**
+         * Increments the column by a specific amount of positions.
+         * @param count number of positions to increment the column.
+         */
+        void increment_column(size_t count) {
+            m_column += count;
+        }
+
+        /**
+         * Increments the line and sets the column to its initial value.
+         */
+        void increment_line() {
+            ++m_line;
+            m_column = 1;
+        }
+
+    private:
+        size_t m_line{ 1 };
+        size_t m_column{ 1 };
+    };
+
+
+    /**
+     * The default symbol comparator returns the difference between two operands, 
+     * without any changes in the values.
+     */
+    class default_symbol_comparator {
+    public:
+        /**
+         * Returns a - b without any conversion.
+         * @param a the first operand.
+         * @param b the second operand.
+         * @return their difference.
+         */
+        int operator ()(int a, int b) const {
+            return a - b;
+        }
+    };
+
+
+    /**
+     * The case insensitive symbol comparator returns the difference between two operands,
+     * by converting both operands to lower case, using std::tolower.
+     */
+    class case_insensitive_symbol_comparator {
+    public:
+        /**
+         * Returns std::tolower(a) - std::tolower(b).
+         * @param a the first operand.
+         * @param b the second operand.
+         * @return their difference.
+         */
+        int operator ()(int a, int b) const {
+            return std::tolower(a) - std::tolower(b);
+        }
+    };
+
+
+    /**
+     * A parse position.
+     * It consists of an iterator and a text position (line and column).
+     * @param Source the source type.
+     * @param TextPositon text position type.
+     */
+    template <class Source, class TextPosition> 
+    class parse_position {
+    public:
+        /** The source type. */
+        using source_type = Source;
+
+        /** Iterator type. */
+        using iterator_type = typename Source::const_iterator;
+
+        /** The text position type. */
+        using text_position_type = TextPosition;
+
+        /**
+         * The constructor.
+         * @param it iterator.
+         * @param tpos the text position.
+         */
+        parse_position(const iterator_type& it = iterator_type(), const text_position_type& tpos = text_position_type())
+            : m_iterator(it)
+            , m_text_position(tpos)
+        {
+        }
+
+        /**
+         * Returns the iterator.
+         * @return the iterator.
+         */
+        const iterator_type& iterator() const {
+            return m_iterator;
+        }
+
+        /**
+         * Returns the text position.
+         * @return the text position.
+         */
+        const text_position_type& text_position() const {
+            return m_text_position;
+        }
+
+        /**
+         * Increments the iterator nd the column by one.
+         */
+        void increment_column() {
+            ++m_iterator;
+            m_text_position.increment_column();
+        }
+
+        /**
+         * Increments the iterator and the column by a specific count.
+         */
+        void increment_column(size_t count) {
+            m_iterator += count;
+            m_text_position.increment_column(count);
+        }
+
+        /**
+         * Increments the the text position line by one.
+         * The column is set to its initial value.
+         */
+        void increment_text_position_line() {
+            m_text_position.increment_line();
+        }
+
+    private:
+        iterator_type m_iterator;
+        text_position_type m_text_position;
+    };
+
+
+    /**
+     * A match represents a recognized portion of a source.
+     * @param Source the source type.
+     * @param MatchId match id type.
+     * @param TextPosition text position type.
+     */
+    template <class Source, class MatchId, class TextPosition>
+    class match {
+    public:
+        /** The source type. */
+        using source_type = Source;
+
+        /** Iterator type. */
+        using iterator_type = typename Source::const_iterator;
+
+        /** Match id type. */
+        using match_id_type = MatchId;
+
+        /** Text position type. */
+        using text_position_type = TextPosition;
+
+        /** Parse position type. */
+        using parse_position_type = parse_position<source_type, text_position_type>;
+
+        /** This class' type. */
+        using match_type = match<source_type, match_id_type, text_position_type>;
+
+        /** The match container type. */
+        using match_container_type = std::vector<match_type>;
+
+        /**
+         * The constructor.
+         * @param id match id.
+         * @param start_pos start position.
+         * @param end_it end_iterator.
+         */
+        match(const match_id_type& id = match_id_type(), const parse_position_type& start_pos = parse_position_type(), const iterator_type& end_it = iterator_type(), match_container_type&& children = match_container_type())
+            : m_id(id)
+            , m_start_position(start_pos)
+            , m_end_iterator(end_it)
+            , m_children(std::move(children))
+        {
+            assert(static_cast<intptr_t>(std::distance(m_start_position.iterator(), m_end_iterator)) >= 0);
+        }
+
+        /**
+         * Returns the match id.
+         * @return the match id.
+         */
+        const match_id_type& id() const {
+            return m_id;
+        }
+
+        /**
+         * Returns the start position.
+         * @return the start position.
+         */
+        const parse_position_type& start_position() const {
+            return m_start_position;
+        }
+
+        /**
+         * Returns the end iterator.
+         * @return the end iterator.
+         */
+        const iterator_type& end_iterator() const {
+            return m_end_iterator;
+        }
+
+        /**
+         * Returns the child matches.
+         * @return the child matches.
+         */
+        const match_container_type& children() const {
+            return m_children;
+        }
+
+    private:
+        match_id_type m_id;
+        parse_position_type m_start_position;
+        iterator_type m_end_iterator;
+        match_container_type m_children;
+    };
+
+
+    /**
+     * The `parse_context` class contains a parser's state.
+     * It is constructed from a range of symbols (i.e. a string, a set of tokens etc),
+     * which must be statically castable to int (for comparisons).
+     * It contains a parse position, which is manipulated by parser node classes.
+     * It contains a set of matches over the source.
+     * It contains state that allows rules to handle left recursion.
+     * 
+     * @param Source the source type; it can be any STL-like container.
+     * @param MatchId type of id for matches; it can be any custom enumeration.
+     * @param TextPosition position in text; it is optionally used for providing line and column information.
+     * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
+     */
+    template <
+        class Source = std::string,
+        class MatchId = int,
+        class TextPosition = default_text_position,
+        class SymbolComparator = default_symbol_comparator
+    >
+    class parse_context {
+    public:
+        /** The source type. */
+        using source_type = Source;
+
+        /** The iterator type. */
+        using iterator_type = typename Source::const_iterator;
+
+        /** The match id type. */
+        using match_id_type = MatchId;
+
+        /** The text position type. */
+        using text_position_type = TextPosition;
+
+        /** The symbol comparator type. */
+        using symbol_comparator_type = SymbolComparator;
+
+        /** The parse position type. */
+        using parse_position_type = parse_position<source_type, text_position_type>;
+
+        /** The match type. */
+        using match_type = match<source_type, match_id_type, text_position_type>;
+
+        /** The match container type. */
+        using match_container_type = std::vector<match_type>;
+
+        /** This class' type. */
+        using parse_context_type = parse_context<source_type, match_id_type, text_position_type, symbol_comparator_type>;
+
+        /**  
+         * Internal state type.
+         */
+        class state {
         public:
-            parse_position() {
-            }
-
-            const iterator_type& iterator() const {
-                return m_iterator;
-            }
-
-            const text_position_type& text_position() const {
-                return m_text_position;
-            }
-
-            std::string to_string(const iterator_type& end) const {
-                std::stringstream stream;
-                const std::string pos_str = m_text_position.to_string();
-                if (pos_str.size() > 0) {
-                    stream << pos_str << ':';
-                }
-                using dist_type = decltype(std::distance(m_iterator, end));
-                const auto min_distance = std::min(std::distance(m_iterator, end), (dist_type)9);
-                const auto str_end = std::next(m_iterator, min_distance);
-                stream << '"' << std::string(m_iterator, str_end);
-                if (str_end != end) {
-                    stream << "...";
-                }
-                stream << '"';
-                return stream.str();
-            }
 
         private:
-            iterator_type m_iterator;
-            text_position_type m_text_position;
+            parse_position_type m_parse_position;
+            size_t m_match_count;
+            bool m_terminal_parsing_allowed;
 
-            parse_position(const iterator_type& it, const text_position_type& pos) : m_iterator(it), m_text_position(pos) {
-            }
+            state(const parse_position_type& parse_pos, size_t match_count, bool tpa)
+                : m_parse_position(parse_pos)
+                , m_match_count(match_count)
+                , m_terminal_parsing_allowed(tpa)
 
-            friend class parse_context<Traits, DebugInfoEnabled>;
-        };
-
-        class match;
-
-        using match_container_type = std::vector<match>;
-
-        class match {
-        public:
-            match() {
-            }
-
-            const class parse_position& start_position() const {
-                return m_start_position;
-            }
-
-            const class parse_position& end_position() const {
-                return m_end_position;
-            }
-
-            const match_id_type& match_id() const {
-                return m_match_id;
-            }
-
-            const match_container_type& matches() const {
-                return m_children;
-            }
-
-            auto source() const {
-                if constexpr (
-                    std::is_same_v<value_type, char> || 
-                    std::is_same_v<value_type, signed char> ||
-                    std::is_same_v<value_type, unsigned char> ||
-                    std::is_same_v<value_type, wchar_t> ||
-                    #ifdef char8_t
-                    std::is_same_v<value_type, char8_t> || 
-                    #endif
-                    std::is_same_v<value_type, char16_t> || 
-                    std::is_same_v<value_type, char32_t>
-                )
-                {
-                    return string_type(m_start_position.iterator(), m_end_position.iterator());
-                }
-                else {
-                    return std::vector<value_type>(m_start_position.iterator(), m_end_position.iterator());
-                }
-            }
-
-        private:
-            match_id_type m_match_id;
-            class parse_position m_start_position;
-            class parse_position m_end_position;
-            match_container_type m_children;
-
-            match(const match_id_type& id, const class parse_position& start, const class parse_position& end, match_container_type&& children)
-                : m_match_id(id), m_start_position(start), m_end_position(end), m_children(std::move(children))
             {
             }
 
-            friend class parse_context<Traits, DebugInfoEnabled>;
+            friend parse_context_type;
         };
 
-        using rule_type = rule<parse_context<Traits, DebugInfoEnabled>>;
-
+        /**
+         * Constructor from source range.
+         * @param begin start of source.
+         * @param end end of source.
+         */
         parse_context(const iterator_type& begin, const iterator_type& end)
-            : m_parse_position(begin, text_position_type())
-            , m_end(end)
+            : m_parse_position(begin)
+            , m_end_iterator(end)
         {
         }
 
-        parse_context(const string_type& string)
-            : parse_context(string.begin(), string.end())
+        /**
+         * Constructor from source.
+         * @param source the source.
+         */
+        parse_context(source_type& source)
+            : parse_context(source.begin(), source.end())
         {
         }
 
-        bool valid() const {
-            return m_parse_position.m_iterator != m_end;
+        /**
+         * Returns the current parse position.
+         * @return the current parse position.
+         */
+        const parse_position_type& parse_position() const {
+            return m_parse_position;
         }
 
-        const iterator_type& end() const {
-            return m_end;
+        /**
+         * Returns the end iterator.
+         * @return the end iterator.
+         */
+        const iterator_type& end_iterator() const {
+            return m_end_iterator;
         }
 
-        template <class T> bool parse_symbol(const T& value) {
-            if (m_terminal_parsing_locked) {
-                return false;
-            }
-            if (valid() && Traits::to_lower(*m_parse_position.m_iterator) == Traits::to_lower(value)) {
-                increment_parse_position();
-                return true;
-            }
-            return false;
+        /**
+         * Checks if the end of the source is reached.
+         * @return true if the end of the source has not been reached, false otherwise.
+         */
+        bool parse_valid() const {
+            return m_parse_position.iterator() != m_end_iterator;
         }
 
-        template <class T> bool parse_symbol_string(const T& string) {
-            if (m_terminal_parsing_locked) {
-                return false;
-            }
-            iterator_type this_it = m_parse_position.m_iterator;
-            auto string_it = string.begin();
-            for(;;) {
-                if (string_it == string.end()) {
-                    break;
-                }
-                if (this_it == m_end) {
-                    return false;
-                }
-                if (Traits::to_lower(*this_it) != Traits::to_lower(*string_it)) {
-                    return false;
-                }
-                ++this_it;
-                ++string_it;
-            }
-            const size_t count = this_it - m_parse_position.m_iterator;
-            m_parse_position.m_text_position.increment_column(count);
-            m_parse_position.m_iterator = this_it;
-            return true;
+        /**
+         * Checks if the end of the source is reached.
+         * @return true if the end of the source has been reached, false otherwise.
+         */
+        bool parse_ended() const {
+            return m_parse_position.iterator() == m_end_iterator;
         }
 
-        template <class T> bool parse_symbol_set(const T& string) {
-            if (m_terminal_parsing_locked) {
-                return false;
-            }
-            assert(std::is_sorted(string.begin(), string.end()));
-            if (valid()) {
-                const auto symbol = Traits::to_lower(*m_parse_position.m_iterator);
-                auto it = std::upper_bound(string.begin(), string.end(), symbol, [](const auto& a, const auto& b) {
-                    return a < Traits::to_lower(b);
-                });
-                if (it != string.begin()) {
-                    const auto set_symbol = Traits::to_lower(*std::prev(it));
-                    if (symbol == set_symbol) {
-                        increment_parse_position();
-                        return true;
-                    }
-                }
-            }
-            return false;
+        /**
+         * Increments the parse position (iterator and text position) by one.
+         */
+        void increment_parse_position_column() {
+            m_parse_position.increment_column();
         }
 
-        template <class T> bool parse_symbol_range(const T& min, const T& max) {
-            if (m_terminal_parsing_locked) {
-                return false;
-            }
-            assert(min <= max);
-            if (valid()) {
-                const auto symbol = Traits::to_lower(*m_parse_position.m_iterator);
-                if (symbol >= Traits::to_lower(min) && symbol <= Traits::to_lower(max)) {
-                    increment_parse_position();
-                    return true;
-                }
-            }
-            return false;
+        /**
+         * Increments the parse position (iterator and text position column) by a specific count.
+         * @param count number of columns to add to the current parse position.
+         */
+        void increment_parse_position_column(size_t count) {
+            m_parse_position.increment_column(count);
         }
 
-        template <class F>
-        bool parse_and_restore_state(const F& func) {
-            state s = get_state();
-            bool r;
-            try {
-                r = func(*this);
-            }
-            catch (...) {
-                set_state(s);
-                throw;
-            }
-            set_state(s);
-            return r;
+        /**
+         * Increments the text position line.
+         * The text column is set to its initial value.
+         */
+        void increment_text_position_line() {
+            m_parse_position.increment_text_position_line(count);
         }
 
-        template <class F>
-        bool parse_and_restore_state_on_error(const F& func) {
-            state s = get_state();
-            bool r;
-            try {
-                r = func(*this);
-            }
-            catch (...) {
-                set_state(s);
-                throw;
-            }
-            if (!r) {
-                set_state(s);
-            }
-            return r;
-        }
-
-        template <class Parser> bool parse_match(const Parser& parser, const match_id_type& match_id) {
-            const state start_state = m_terminal_parsing_locked ? m_left_recursion_start_state : get_state();
-            if (parser.parse(*this)) {
-                add_match(start_state, get_state(), match_id);
-                return true;
-            }
-            return false;
-        }
-
+        /**
+         * Returns the matches currently available.
+         * @return the matches currently available.
+         */
         const match_container_type& matches() const {
             return m_matches;
         }
 
-        bool parse_rule(const rule_type& rule) {
-            auto it = m_rule_states.find(rule.this_());
-
-            //first time entering the rule
-            if (it == m_rule_states.end()) {
-                const auto [it1, ok] = m_rule_states.insert(std::make_pair(rule.this_(), rule_state{ m_parse_position.iterator(), rule_left_recursion_state::none }));
-                try {
-                    const bool result = rule.parser()->parse(*this);
-                    m_rule_states.erase(it1);
-                    return result;
-                }
-                catch (left_recursion_exception ex) {
-                    if (ex.rule == rule.this_()) {
-                        const bool result = handle_left_recursion(rule, it1->second);
-                        m_rule_states.erase(it1);
-                        return result;
-                    }
-                    m_rule_states.erase(it1);
-                    throw ex;
-                }
-                catch (...) {
-                    m_rule_states.erase(it1);
-                    throw;
-                }
-            }
-
-            //reentering the rule without left recursion
-            else if (m_parse_position.iterator() != it->second.parse_position) {
-                rule_state prior_rule_state = it->second;
-                it->second.parse_position = m_parse_position.iterator();
-                it->second.left_recursion_state = rule_left_recursion_state::none;
-                try {
-                    const bool result = rule.parser()->parse(*this);
-                    it->second = prior_rule_state;
-                    return result;
-                }
-                catch (left_recursion_exception ex) {
-                    if (ex.rule == rule.this_()) {
-                        const bool result = handle_left_recursion(rule, it->second);
-                        it->second = prior_rule_state;
-                        return result;
-                    }
-                    it->second = prior_rule_state;
-                    throw ex;
-                }
-                catch (...) {
-                    it->second = prior_rule_state;
-                    throw;
-                }
-            }
-
-            //else left recursion
-            else {
-                switch (it->second.left_recursion_state) {
-                    case rule_left_recursion_state::none:
-                        throw left_recursion_exception{rule.this_()};
-
-                    case rule_left_recursion_state::reject:
-                        return false;
-
-                    case rule_left_recursion_state::accept:
-                        m_terminal_parsing_locked = false;
-                        return true;
-                }
-            }
-
-            throw std::logic_error("parse_context::parse_rule: invalid state");
+        /**
+         * Adds a match.
+         * @param id match id.
+         * @param start_pos start position.
+         * @param end_it end_iterator.
+         * @param children_start_index index in the match vector of where the children of this match start.
+         */
+        void add_match(const match_id_type& id, const parse_position_type& start_pos, const iterator_type& end_it, size_t children_start_index) {
+            assert(children_start_index <= m_matches.size());
+            match_container_type children(std::next(m_matches.begin(), children_start_index), m_matches.end());
+            m_matches.resize(children_start_index);
+            m_matches.push_back(match_type(id, start_pos, end_it, std::move(children)));
         }
 
-        const class parse_position& parse_position() const {
-            return m_parse_position;
-        };
-
-        bool is_terminal_parsing_locked() const {
-            return m_terminal_parsing_locked;
+        /**
+         * Returns the current state of the parse context.
+         * The state can be used to rewind the parse context to a prior state.
+         * @return the current state of the parse context.
+         */
+        state get_state() const {
+            return state(m_parse_position, m_matches.size(), m_terminal_parsing_allowed);
         }
 
-        template <class... T>
-        void add_debug_info(T&&... args) {
-            if constexpr (debug_info_enabled) {
-                std::stringstream stream;
-                stream << std::string(m_debug_info_indentation_level * 4, ' ');
-                (stream << ... << args);
-                const std::string str = stream.str();
-                m_debug_info.push_back(str);
-                if (m_debug_stream) {
-                    *m_debug_stream << str << std::endl;
-                }
-            }
+        /**
+         * Sets the current state of the parse context.
+         * @param st the state to set.
+         */
+        void set_state(const state& st) {
+            m_parse_position = st.m_parse_position;
+            m_matches.resize(st.m_match_count);
+            m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
         }
 
-        void increase_debug_info_indentation_level() {
-            if constexpr (debug_info_enabled) {
-                ++m_debug_info_indentation_level;
-            }
+        /**
+         * Using the supplied symbol comparator type, it compares two symbols.
+         * @param a the first symbol.
+         * @param b the second symbol.
+         * @return -1, 0 or 1 depending on if the first symbol is less then, equal to or greater than the second symbol value.
+         */
+        int compare_symbols(int a, int b) const {
+            return m_symbol_comparator(a, b);
         }
 
-        void decrease_debug_info_indentation_level() {
-            if constexpr (debug_info_enabled) {
-                --m_debug_info_indentation_level;
-            }
+        /**
+         * Using the supplied symbol comparator type, it compares the current symbol
+         * with the given value.
+         * @param other the other value to compare the current symbol to.
+         * @return -1, 0 or 1 depending on if the current symbol is less then, equal to or greater than the other symbol value.
+         */
+        int compare_current_symbol(int other) const {
+            assert(parse_valid());
+            return compare_symbols(static_cast<int>(*m_parse_position.iterator()), other);
         }
 
-        const std::vector<std::string>& get_debug_info() {
-            return m_debug_info;
-        }
-
-        std::ostream* get_debug_stream() const {
-            return m_debug_stream;
-        }
-
-        void set_debug_stream(const std::ostream* stream) {
-            m_debug_stream = stream;
+        /**
+         * Checks if a terminal should or should not be parsed at the current parse context state.
+         * Used in support of left recursion parsing, in which there is a state where terminals
+         * shall not be parsed.
+         * @return true if a terminal parsing can be parsed at this state, false otherwise.
+         */
+        bool terminal_parsing_allowed() const {
+            return m_terminal_parsing_allowed;
         }
 
     private:
-        struct state {
-            class parse_position parse_position;
-            size_t match_count;
-            bool parsing_locked;
-        };
-
-        enum class rule_left_recursion_state {
-            none,
-            reject,
-            accept
-        };
-
-        struct left_recursion_exception {
-            const rule_type* rule;
-        };
-
-        struct rule_state {
-            iterator_type parse_position;
-            rule_left_recursion_state left_recursion_state;
-        };
-
-        class parse_position m_parse_position;
-        iterator_type m_end;
-        state m_left_recursion_start_state;
-        bool m_terminal_parsing_locked{false};
+        parse_position_type m_parse_position;
+        iterator_type m_end_iterator;
         match_container_type m_matches;
-        std::map<const rule_type*, rule_state> m_rule_states;
-        std::vector<std::string> m_debug_info;
-        size_t m_debug_info_indentation_level = { 0 };
-        std::ostream* m_debug_stream{&std::cout};
-
-        void increment_parse_position() {
-            Traits::increment_parse_position(m_parse_position.m_iterator, m_end, m_parse_position.m_text_position);
-        }
-
-        state get_state() const {
-            return state{ m_parse_position, m_matches.size(), m_terminal_parsing_locked };
-        }
-
-        void set_state(const state& s)  {
-            m_parse_position = s.parse_position;
-            m_matches.resize(s.match_count);
-            m_terminal_parsing_locked = s.parsing_locked;
-        }
-
-        void add_match(const state& start_state, const state& end_state, const match_id_type& match_id) {
-            match_container_type children(std::next(m_matches.begin(), start_state.match_count), std::next(m_matches.begin(), end_state.match_count));
-            m_matches.resize(start_state.match_count);
-            m_matches.push_back(match(match_id, start_state.parse_position, end_state.parse_position, std::move(children)));
-        }
-
-        bool handle_left_recursion(const rule_type& rule, struct rule_state& rule_state) {
-            const state left_recursion_start_state = get_state();
-            m_left_recursion_start_state = left_recursion_start_state;
-
-            rule_state.left_recursion_state = rule_left_recursion_state::reject;
-            if (!rule.parser()->parse(*this)) {
-                return false;
-            }
-
-            rule_state.left_recursion_state = rule_left_recursion_state::accept;
-            while (true) {
-                m_left_recursion_start_state = left_recursion_start_state;
-                rule_state.parse_position = m_parse_position.iterator();
-                m_terminal_parsing_locked = true;
-                if (!rule.parser()->parse(*this)) {
-                    break;
-                }
-            }
-
-            m_terminal_parsing_locked = false;
-            return true;
-        }
+        symbol_comparator_type m_symbol_comparator;
+        bool m_terminal_parsing_allowed{ true };
     };
 
 
 } //namespace parserlib
 
 
-#endif // PARSERLIB_PARSE_CONTEXT_HPP
+#endif //PARSERLIB_PARSE_CONTEXT_HPP
