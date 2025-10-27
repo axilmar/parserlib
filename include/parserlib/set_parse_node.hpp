@@ -41,7 +41,7 @@ namespace parserlib {
                 if (it != m_set.begin()) {
                     --it;
                     if (pc.compare_symbols(curr_symbol, static_cast<int>(*it)) == 0) {
-                        pc.increment_parse_position_column();
+                        pc.increment_parse_position();
                         return true;
                     }
                 }

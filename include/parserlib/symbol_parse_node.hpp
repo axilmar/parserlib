@@ -34,7 +34,7 @@ namespace parserlib {
         bool parse(ParseContext& pc) const {
             if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
                 if (pc.compare_current_symbol(static_cast<int>(m_symbol)) == 0) {
-                    pc.increment_parse_position_column();
+                    pc.increment_parse_position();
                     return true;
                 }
             }

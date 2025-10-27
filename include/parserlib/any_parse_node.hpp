@@ -21,7 +21,7 @@ namespace parserlib {
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
-                pc.increment_parse_position_column();
+                pc.increment_parse_position();
                 return true;
             }
             return false;

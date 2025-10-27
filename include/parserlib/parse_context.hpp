@@ -35,16 +35,16 @@ namespace parserlib {
         }
 
         /**
-         * Increments the column.
+         * Increments the column by one.
          * Does nothing.
          */
         void increment_column() {
         }
 
         /**
-         * Increments the column by a specific amount of positions.
+         * Increments the column by a specific amount.
          * Does nothing.
-         * @param count number of positions to increment the column.
+         * @param count count to increment the column by.
          */
         void increment_column(size_t count) {
         }
@@ -60,7 +60,7 @@ namespace parserlib {
 
     /**
      * A text position object that counts lines and columns.
-     * Both values start from 1, to match text editors.
+     * Both values start from 1, in order to match text editors.
      */
     class text_position {
     public:
@@ -147,7 +147,7 @@ namespace parserlib {
 
     /**
      * A parse position.
-     * It consists of an iterator and a text position (line and column).
+     * It combines an iterator and a text position.
      * @param Source the source type.
      * @param TextPositon text position type.
      */
@@ -191,26 +191,27 @@ namespace parserlib {
         }
 
         /**
-         * Increments the iterator nd the column by one.
+         * Increments the iterator and the text column by one.
          */
-        void increment_column() {
+        void increment() {
             ++m_iterator;
             m_text_position.increment_column();
         }
 
         /**
-         * Increments the iterator and the column by a specific count.
+         * Increments the iterator and the text column by a specific count.
          */
-        void increment_column(size_t count) {
+        void increment(size_t count) {
             m_iterator += count;
             m_text_position.increment_column(count);
         }
 
         /**
-         * Increments the the text position line by one.
+         * Increments the the text position line only by one.
+         * The iterator is not affected.
          * The column is set to its initial value.
          */
-        void increment_text_position_line() {
+        void increment_line() {
             m_text_position.increment_line();
         }
 
@@ -256,7 +257,12 @@ namespace parserlib {
          * @param start_pos start position.
          * @param end_it end_iterator.
          */
-        match(const match_id_type& id = match_id_type(), const parse_position_type& start_pos = parse_position_type(), const iterator_type& end_it = iterator_type(), match_container_type&& children = match_container_type())
+        match(
+            const match_id_type& id = match_id_type(), 
+            const parse_position_type& start_pos = parse_position_type(), 
+            const iterator_type& end_it = iterator_type(), 
+            match_container_type&& children = match_container_type()
+        )
             : m_id(id)
             , m_start_position(start_pos)
             , m_end_iterator(end_it)
@@ -314,7 +320,7 @@ namespace parserlib {
      * It contains state that allows rules to handle left recursion.
      * 
      * @param Source the source type; it can be any STL-like container.
-     * @param MatchId type of id for matches; it can be any custom enumeration.
+     * @param MatchId type of id for matches; it can be any custom enumeration or any other type.
      * @param TextPosition position in text; it is optionally used for providing line and column information.
      * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
      */
@@ -358,6 +364,21 @@ namespace parserlib {
          */
         class state {
         public:
+            /**
+             * Returns the parse position.
+             * @return the parse position.
+             */
+            const parse_position_type& parse_position() const {
+                return m_parse_position;
+            }
+
+            /**
+             * Returns the match count.
+             * @return the match count.
+             */
+            size_t match_count() const {
+                return m_match_count;
+            }
 
         private:
             parse_position_type m_parse_position;
@@ -430,24 +451,25 @@ namespace parserlib {
         /**
          * Increments the parse position (iterator and text position) by one.
          */
-        void increment_parse_position_column() {
-            m_parse_position.increment_column();
+        void increment_parse_position() {
+            m_parse_position.increment();
         }
 
         /**
          * Increments the parse position (iterator and text position column) by a specific count.
          * @param count number of columns to add to the current parse position.
          */
-        void increment_parse_position_column(size_t count) {
-            m_parse_position.increment_column(count);
+        void increment_parse_position(size_t count) {
+            m_parse_position.increment(count);
         }
 
         /**
          * Increments the text position line.
+         * It does not increment any iterators.
          * The text column is set to its initial value.
          */
-        void increment_text_position_line() {
-            m_parse_position.increment_text_position_line();
+        void increment_parse_position_line() {
+            m_parse_position.increment_line();
         }
 
         /**

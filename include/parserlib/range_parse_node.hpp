@@ -37,7 +37,7 @@ namespace parserlib {
             if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
                 const int curr_symbol = static_cast<int>(*pc.parse_position().iterator());
                 if (pc.compare_symbols(curr_symbol, static_cast<int>(m_min)) >= 0 && pc.compare_symbols(curr_symbol, static_cast<int>(m_max)) <= 0) {
-                    pc.increment_parse_position_column();
+                    pc.increment_parse_position();
                     return true;
                 }
             }

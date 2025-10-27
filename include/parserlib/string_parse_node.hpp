@@ -24,7 +24,7 @@ namespace parserlib {
                 auto parseIt = pc.parse_position().iterator();
                 for (;;) {
                     if (thisIt == m_string.end()) {
-                        pc.increment_parse_position_column(m_string.size());
+                        pc.increment_parse_position(m_string.size());
                         return true;
                     }
                     if (parseIt == pc.end_iterator()) {
