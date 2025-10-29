@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <vector>
+#include <cassert>
 
 
 namespace parserlib {
@@ -546,7 +547,7 @@ namespace parserlib {
 
     private:
         parse_position_type m_parse_position;
-        iterator_type m_end_iterator;
+        const iterator_type m_end_iterator;
         match_container_type m_matches;
         symbol_comparator_type m_symbol_comparator;
         bool m_terminal_parsing_allowed{ true };

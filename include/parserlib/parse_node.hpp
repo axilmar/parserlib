@@ -5,6 +5,13 @@
 namespace parserlib {
 
 
+    template <class ParseNode> class loop_0_parse_node;
+    template <class ParseNode> class loop_1_parse_node;
+    template <class ParseNode> class optional_parse_node;
+    template <class ParseNode> class logical_and_parse_node;
+    template <class ParseNode> class logical_not_parse_node;
+
+
     /**
      * Base class for parse nodes.
      * It provides the unary operators for parse nodes.
@@ -21,6 +28,36 @@ namespace parserlib {
         const Derived* derived() const {
             return static_cast<const Derived*>(this);
         }
+
+        /**
+         * Converts this parse node into a loop which is repeated 0 or more times.
+         * @return a loop which is repeated 0 or more times.
+         */
+        loop_0_parse_node<Derived> operator *() const;
+
+        /**
+         * Converts this parse node into a loop which is repeated 1 or more times.
+         * @return a loop which is repeated 1 or more times.
+         */
+        loop_1_parse_node<Derived> operator +() const;
+
+        /**
+         * Converts this parse node into an optional parse node.
+         * @return an optional parse node.
+         */
+        optional_parse_node<Derived> operator -() const;
+
+        /**
+         * Converts this parse node into a logical AND parse node.
+         * @return a logical AND parse node.
+         */
+        logical_and_parse_node<Derived> operator &() const;
+
+        /**
+         * Converts this parse node into a logical NOT parse node.
+         * @return a logical NOT parse node.
+         */
+        logical_not_parse_node<Derived> operator !() const;
     };
 
 
