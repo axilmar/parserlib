@@ -16,6 +16,8 @@
 #include "parserlib/set_parse_node.hpp"
 #include "parserlib/string_parse_node.hpp"
 #include "parserlib/symbol_parse_node.hpp"
+#include "parserlib/sequence_parse_node.hpp"
+#include "parserlib/choice_parse_node.hpp"
 
 
 #endif // PARSERLIB_HPP

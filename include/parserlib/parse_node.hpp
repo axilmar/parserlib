@@ -2,6 +2,9 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
+#include <type_traits>
+
+
 namespace parserlib {
 
 
@@ -12,12 +15,16 @@ namespace parserlib {
     template <class ParseNode> class logical_not_parse_node;
 
 
+    class parse_node_base {
+    };
+
+
     /**
      * Base class for parse nodes.
      * It provides the unary operators for parse nodes.
      * @param Derived the type that was derived from this class.
      */
-    template <class Derived> class parse_node {
+    template <class Derived> class parse_node : public parse_node_base {
     public:
         /**
          * Returns pointer to derived class.
@@ -67,14 +74,13 @@ namespace parserlib {
      * Used in globally defined operators which must convert their parameters
      * to parse nodes (for example, converting characters and strings to 
      * the relevant terminal parsers).
-     * This default implementation simply returns the given parse node,
-     * since it is already a parse node.
+     * This default implementation returns the derived type instance of the given parse node.
      * @param pn the parse node.
-     * @return pn the given parse node.
+     * @return the derived type instance of the given parse node.
      */
-    template <class Derived> 
-    const parse_node<Derived>& make_parse_node(const parse_node<Derived&> pn) {
-        return pn;
+    template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, ParseNode>, bool> = true> 
+    auto make_parse_node(const ParseNode& pn) {
+        return *pn.derived();
     }
 
 

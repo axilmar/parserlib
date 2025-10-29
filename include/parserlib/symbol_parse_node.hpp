@@ -2,6 +2,7 @@
 #define PARSERLIB_SYMBOL_PARSE_NODE_HPP
 
 
+#include <type_traits>
 #include "parse_node.hpp"
 
 
@@ -51,7 +52,7 @@ namespace parserlib {
      * @param symbol the parse node to create a symbol parse node from.
      * @return the symbol parse node.
      */
-    template <class Symbol>
+    template <class Symbol, std::enable_if_t<!std::is_base_of_v<parse_node_base, Symbol>, bool> = true>
     symbol_parse_node<Symbol> make_parse_node(const Symbol& symbol) {
         return symbol_parse_node<Symbol>(symbol);
     }

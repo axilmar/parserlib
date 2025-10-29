@@ -28,7 +28,7 @@ namespace parserlib {
 
         /**
          * It invokes the child parse node.
-         * @param pc the current parse context; on return, it is in the same state as on entry.
+         * @param pc the current parse context; on return, it is in the same state as on entrance.
          * @return the result of the child parse node.
          */
         template <class ParseContext>
