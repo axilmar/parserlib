@@ -18,6 +18,7 @@
 #include "parserlib/symbol_parse_node.hpp"
 #include "parserlib/sequence_parse_node.hpp"
 #include "parserlib/choice_parse_node.hpp"
+#include "parserlib/match_parse_node.hpp"
 
 
 #endif // PARSERLIB_HPP

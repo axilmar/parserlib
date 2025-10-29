@@ -482,17 +482,23 @@ namespace parserlib {
         }
 
         /**
+         * Returns the current state for a match start.
+         * @return the state for a match start.
+         */
+        state get_match_start_state() const {
+            //TODO left recursion
+            return get_state();
+        }
+
+        /**
          * Adds a match.
          * @param id match id.
-         * @param start_pos start position.
-         * @param end_it end_iterator.
-         * @param children_start_index index in the match vector of where the children of this match start.
+         * @param start_state start state.
          */
-        void add_match(const match_id_type& id, const parse_position_type& start_pos, const iterator_type& end_it, size_t children_start_index) {
-            assert(children_start_index <= m_matches.size());
-            match_container_type children(std::next(m_matches.begin(), children_start_index), m_matches.end());
-            m_matches.resize(children_start_index);
-            m_matches.push_back(match_type(id, start_pos, end_it, std::move(children)));
+        void add_match(const match_id_type& id, const state& start_state) {
+            match_container_type children(std::next(m_matches.begin(), start_state.match_count()), m_matches.end());
+            m_matches.resize(start_state.match_count());
+            m_matches.push_back(match_type(id, start_state.parse_position(), parse_position().iterator(), std::move(children)));
         }
 
         /**
