@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <vector>
 #include <cassert>
+#include <map>
 
 
 namespace parserlib {
@@ -558,7 +559,7 @@ namespace parserlib {
         const iterator_type m_end_iterator;
         match_container_type m_matches;
         symbol_comparator_type m_symbol_comparator;
-        bool m_terminal_parsing_allowed{ true };
+        bool m_terminal_parsing_allowed{ false };
     };
 
 
