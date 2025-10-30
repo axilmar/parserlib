@@ -259,31 +259,36 @@ namespace parserlib {
 
         //parse left recursion
         bool parse_left_recursion(ParseContext& pc, rule_data_type& rd) {
+            const auto prev_left_recursion_start_state = pc.m_left_recursion_start_state;
+            const auto prev_left_recursion_iterator = pc.m_left_recursion_iterator;
+
             //reject
             rd.state = ParseContext::rule_state::reject;
             if (!m_parse_node->parse(pc)) {
                 return false;
             }
 
-            const auto prev_lrpos = pc.m_left_recursion_parse_position;
+            pc.m_left_recursion_start_state = prev_left_recursion_start_state;
 
             //accept
             rd.state = ParseContext::rule_state::accept;
             for(;;) {
-                pc.m_left_recursion_parse_position = pc.parse_position();
+                pc.m_left_recursion_iterator = pc.m_parse_position.iterator();
                 try {
                     if (!m_parse_node->parse(pc)) {
                         break;
                     }
                 }
                 catch (...) {
-                    pc.m_left_recursion_parse_position = prev_lrpos;
+                    pc.m_left_recursion_start_state = prev_left_recursion_start_state;
+                    pc.m_left_recursion_iterator = prev_left_recursion_iterator;
                     throw;
                 }
             }
 
             //success
-            pc.m_left_recursion_parse_position = prev_lrpos;
+            pc.m_left_recursion_start_state = prev_left_recursion_start_state;
+            pc.m_left_recursion_iterator = prev_left_recursion_iterator;
             return true;
         }
     };
