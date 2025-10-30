@@ -174,27 +174,28 @@ namespace parserlib {
 
             //subsequent entrance; start new state if iterator has advanced from last time
             else if (it->second.iterator != pc.parse_position().iterator()) {
-                auto prev_state = it->second.state;
+                const auto prev_state = it->second;
+                it->second.iterator = pc.parse_position().iterator();
                 it->second.state = ParseContext::rule_state::none;
                 try {
                     const bool result = m_parse_node->parse(pc);
-                    it->second.state = prev_state;
+                    it->second = prev_state;
                     return result;
                 }
                 catch (left_recursion ex) {
                     if (ex.rule == this) {
                         try {
                             const bool result = parse_left_recursion(pc, it->second);
-                            it->second.state = prev_state;
+                            it->second = prev_state;
                             return result;
                         }
                         catch (...) {
-                            it->second.state = prev_state;
+                            it->second = prev_state;
                             throw;
                         }
                     }
                     else {
-                        it->second.state = prev_state;
+                        it->second = prev_state;
                         throw ex;
                     }
                 }
