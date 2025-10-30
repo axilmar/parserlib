@@ -2,6 +2,7 @@
 #define PARSERLIB_STRING_PARSE_NODE_HPP
 
 
+#include <type_traits>
 #include <string>
 #include "parse_node.hpp"
 
@@ -9,14 +10,27 @@
 namespace parserlib {
 
 
+    /**
+     * A string parse node.
+     * @param Symbol string element type.
+     */
     template <class Symbol>
     class string_parse_node : public parse_node<string_parse_node<Symbol>> {
     public:
+        /**
+         * The constructor.
+         * @param string the string to parse.
+         */
         string_parse_node(const std::basic_string<Symbol>& string)
             : m_string(string)
         {
         }
 
+        /**
+         * Parses the string against the current input.
+         * @param pc the current parse context.
+         * @return true if the whole string is parsed successfully, false otherwise.
+         */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
@@ -30,7 +44,7 @@ namespace parserlib {
                     if (parseIt == pc.end_iterator()) {
                         break;
                     }
-                    if (pc.compare_symbols(static_cast<int>(*thisIt), static_cast<int>(*parseIt)) != 0) {
+                    if (pc.compare_symbols(*thisIt, *parseIt) != 0) {
                         break;
                     }
                     ++thisIt;
@@ -50,7 +64,7 @@ namespace parserlib {
      * @param string the string to create a string parse node from.
      * @return a string parse node.
      */
-    template <class Symbol>
+    template <class Symbol, std::enable_if_t<!std::is_function_v<Symbol>, bool> = true>
     string_parse_node<Symbol> make_parse_node(const Symbol* string) {
         return string_parse_node<Symbol>(string);
     }

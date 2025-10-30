@@ -34,13 +34,13 @@ namespace parserlib {
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
-                const int curr_symbol = static_cast<int>(*pc.parse_position().iterator());
-                auto it = std::upper_bound(m_set.begin(), m_set.end(), curr_symbol, [&](int curr_symbol, const auto& set_symbol) {
-                    return pc.compare_symbols(curr_symbol, static_cast<int>(set_symbol)) < 0;
+                const auto curr_symbol = *pc.parse_position().iterator();
+                auto it = std::upper_bound(m_set.begin(), m_set.end(), curr_symbol, [&](const auto& curr_symbol, const auto& set_symbol) {
+                    return pc.compare_symbols(curr_symbol, set_symbol) < 0;
                 });
                 if (it != m_set.begin()) {
                     --it;
-                    if (pc.compare_symbols(curr_symbol, static_cast<int>(*it)) == 0) {
+                    if (pc.compare_symbols(curr_symbol, *it) == 0) {
                         pc.increment_parse_position();
                         return true;
                     }

@@ -4,6 +4,7 @@
 
 #include <type_traits>
 #include "parse_node.hpp"
+#include "is_parse_functor.hpp"
 
 
 namespace parserlib {
@@ -34,7 +35,7 @@ namespace parserlib {
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
-                if (pc.compare_current_symbol(static_cast<int>(m_symbol)) == 0) {
+                if (pc.compare_current_symbol(m_symbol) == 0) {
                     pc.increment_parse_position();
                     return true;
                 }
@@ -52,7 +53,7 @@ namespace parserlib {
      * @param symbol the parse node to create a symbol parse node from.
      * @return the symbol parse node.
      */
-    template <class Symbol, std::enable_if_t<!std::is_base_of_v<parse_node_base, Symbol>, bool> = true>
+    template <class Symbol, std::enable_if_t<!std::is_base_of_v<parse_node_base, Symbol> && !std::is_same_v<Symbol, bool> && !is_parse_functor_v<Symbol>, bool> = true>
     symbol_parse_node<Symbol> make_parse_node(const Symbol& symbol) {
         return symbol_parse_node<Symbol>(symbol);
     }

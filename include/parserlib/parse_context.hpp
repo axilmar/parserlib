@@ -526,7 +526,8 @@ namespace parserlib {
          * @param b the second symbol.
          * @return -1, 0 or 1 depending on if the first symbol is less then, equal to or greater than the second symbol value.
          */
-        int compare_symbols(int a, int b) const {
+        template <class A, class B>
+        int compare_symbols(const A& a, const B& b) const {
             return m_symbol_comparator(a, b);
         }
 
@@ -536,9 +537,10 @@ namespace parserlib {
          * @param other the other value to compare the current symbol to.
          * @return -1, 0 or 1 depending on if the current symbol is less then, equal to or greater than the other symbol value.
          */
-        int compare_current_symbol(int other) const {
+        template <class T>
+        int compare_current_symbol(const T& other) const {
             assert(parse_valid());
-            return compare_symbols(static_cast<int>(*m_parse_position.iterator()), other);
+            return compare_symbols(*m_parse_position.iterator(), other);
         }
 
         /**

@@ -2,9 +2,6 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
-#include <type_traits>
-
-
 namespace parserlib {
 
 
@@ -69,8 +66,8 @@ namespace parserlib {
 
 
     /**
-     * Global function that can be overriden in order to convert a parse node
-     * to another parse node type.
+     * Global function that can be overriden in order to convert a value
+     * to a parse node type.
      * Used in globally defined operators which must convert their parameters
      * to parse nodes (for example, converting characters and strings to 
      * the relevant terminal parsers).
@@ -78,8 +75,8 @@ namespace parserlib {
      * @param pn the parse node.
      * @return the derived type instance of the given parse node.
      */
-    template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, ParseNode>, bool> = true> 
-    auto make_parse_node(const ParseNode& pn) {
+    template <class Derived> 
+    auto make_parse_node(const parse_node<Derived>& pn) {
         return *pn.derived();
     }
 
