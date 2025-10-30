@@ -265,25 +265,25 @@ namespace parserlib {
                 return false;
             }
 
-            const auto prev_lrit = pc.m_left_recursion_iterator;
+            const auto prev_lrpos = pc.m_left_recursion_parse_position;
 
             //accept
             rd.state = ParseContext::rule_state::accept;
             for(;;) {
-                pc.m_left_recursion_iterator = pc.parse_position().iterator();
+                pc.m_left_recursion_parse_position = pc.parse_position();
                 try {
                     if (!m_parse_node->parse(pc)) {
                         break;
                     }
                 }
                 catch (...) {
-                    pc.m_left_recursion_iterator = prev_lrit;
+                    pc.m_left_recursion_parse_position = prev_lrpos;
                     throw;
                 }
             }
 
             //success
-            pc.m_left_recursion_iterator = prev_lrit;
+            pc.m_left_recursion_parse_position = prev_lrpos;
             return true;
         }
     };

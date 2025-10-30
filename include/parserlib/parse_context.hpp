@@ -391,16 +391,28 @@ namespace parserlib {
         private:
             parse_position_type m_parse_position;
             size_t m_match_count;
-            iterator_type m_left_recursion_iterator;
-
-            state(const parse_position_type& parse_pos, size_t match_count, const iterator_type& lrit)
+            parse_position_type m_left_recursion_parse_position;
+            state(const parse_position_type& parse_pos, size_t match_count, const parse_position_type& lrpos)
                 : m_parse_position(parse_pos)
                 , m_match_count(match_count)
-                , m_left_recursion_iterator(lrit)
+                , m_left_recursion_parse_position(lrpos)
 
             {
             }
+            friend parse_context_type;
+        };
 
+        /**
+         * State for a match start.
+         */
+        class match_start_state {
+        private:
+            parse_position_type m_parse_position;
+            size_t m_match_count;
+            match_start_state(const parse_position_type& parse_pos, size_t match_count)
+                : m_parse_position(parse_pos), m_match_count(match_count)
+            {
+            }
             friend parse_context_type;
         };
 
@@ -412,7 +424,7 @@ namespace parserlib {
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_parse_position(begin)
             , m_end_iterator(end)
-            , m_left_recursion_iterator(end)
+            , m_left_recursion_parse_position(end)
         {
         }
 
@@ -493,9 +505,8 @@ namespace parserlib {
          * Returns the current state for a match start.
          * @return the state for a match start.
          */
-        state get_match_start_state() const {
-            //TODO left recursion
-            return get_state();
+        match_start_state get_match_start_state() const {
+            return match_start_state(terminal_parsing_allowed() ? m_parse_position : m_left_recursion_parse_position, m_matches.size());
         }
 
         /**
@@ -503,10 +514,10 @@ namespace parserlib {
          * @param id match id.
          * @param start_state start state.
          */
-        void add_match(const match_id_type& id, const state& start_state) {
-            match_container_type children(std::next(m_matches.begin(), start_state.match_count()), m_matches.end());
-            m_matches.resize(start_state.match_count());
-            m_matches.push_back(match_type(id, start_state.parse_position(), parse_position().iterator(), std::move(children)));
+        void add_match(const match_id_type& id, const match_start_state& start_state) {
+            match_container_type children(std::next(m_matches.begin(), start_state.m_match_count), m_matches.end());
+            m_matches.resize(start_state.m_match_count);
+            m_matches.push_back(match_type(id, start_state.m_parse_position, parse_position().iterator(), std::move(children)));
         }
 
         /**
@@ -515,7 +526,7 @@ namespace parserlib {
          * @return the current state of the parse context.
          */
         state get_state() const {
-            return state(m_parse_position, m_matches.size(), m_left_recursion_iterator);
+            return state(m_parse_position, m_matches.size(), m_left_recursion_parse_position);
         }
 
         /**
@@ -525,7 +536,7 @@ namespace parserlib {
         void set_state(const state& st) {
             m_parse_position = st.m_parse_position;
             m_matches.resize(st.m_match_count);
-            m_left_recursion_iterator = st.m_left_recursion_iterator;
+            m_left_recursion_parse_position = st.m_left_recursion_parse_position;
         }
 
         /**
@@ -558,7 +569,7 @@ namespace parserlib {
          * @return true if a terminal parsing can be parsed at this state, false otherwise.
          */
         bool terminal_parsing_allowed() const {
-            return m_parse_position.iterator() != m_left_recursion_iterator;
+            return m_parse_position.iterator() != m_left_recursion_parse_position.iterator();
         }
 
     private:
@@ -577,7 +588,7 @@ namespace parserlib {
         const iterator_type m_end_iterator;
         match_container_type m_matches;
         symbol_comparator_type m_symbol_comparator;
-        iterator_type m_left_recursion_iterator;
+        parse_position_type m_left_recursion_parse_position;
         std::map<rule_type*, rule_data> m_rule_data;
 
         friend rule_type;
