@@ -27,6 +27,9 @@ namespace parserlib {
         /** Type of rule reference parse node. */
         using rule_ref_type = rule_ref_parse_node<ParseContext>;
 
+        /** This class' type. */
+        using rule_type = rule<ParseContext>;
+
         /**
          * Constructs an empty rule.
          */
@@ -141,7 +144,7 @@ namespace parserlib {
          * Returns a pointer to this rule, since operator & is taken for `logical AND operator`.
          * @return a pointer to this rule.
          */
-        rule* this_() {
+        rule* this_ptr() {
             return this;
         }
 
@@ -151,7 +154,67 @@ namespace parserlib {
          * @return true on success, false on failure.
          */
         bool parse(ParseContext& pc) {
-            return m_parse_node->parse(pc);
+            const auto it = pc.m_rule_data.find(this);
+
+            //initial entrance
+            if (it == pc.m_rule_data.end()) {
+                auto [it1, ok] = pc.m_rule_data.insert(std::make_pair(this, rule_data_type{ pc.parse_position().iterator(), ParseContext::rule_state::none }));
+                try {
+                    return m_parse_node->parse(pc);
+                }
+                catch (left_recursion ex) {
+                    if (ex.rule == this) {
+                        return parse_left_recursion(pc, it1->second);
+                    }
+                    else {
+                        throw ex;
+                    }
+                }
+            }
+
+            //subsequent entrance; start new state if iterator has advanced from last time
+            else if (it->second.iterator != pc.parse_position().iterator()) {
+                auto prev_state = it->second.state;
+                it->second.state = ParseContext::rule_state::none;
+                try {
+                    const bool result = m_parse_node->parse(pc);
+                    it->second.state = prev_state;
+                    return result;
+                }
+                catch (left_recursion ex) {
+                    if (ex.rule == this) {
+                        try {
+                            const bool result = parse_left_recursion(pc, it->second);
+                            it->second.state = prev_state;
+                            return result;
+                        }
+                        catch (...) {
+                            it->second.state = prev_state;
+                            throw;
+                        }
+                    }
+                    else {
+                        it->second.state = prev_state;
+                        throw ex;
+                    }
+                }
+            }
+
+            //left recursion found
+            else {
+                switch (it->second.state) {
+                    case ParseContext::rule_state::none:
+                        throw left_recursion{ this };
+
+                    case ParseContext::rule_state::reject:
+                        return false;
+
+                    case ParseContext::rule_state::accept:
+                        return true;
+                }
+            }
+
+            throw std::logic_error("rule: parse: invalid state");
         }
 
     private:
@@ -183,6 +246,44 @@ namespace parserlib {
         //create a wrapper for a rule
         static std::unique_ptr<_inter> create_wrapper(rule& r) {
             return std::make_unique<_impl<decltype(make_parse_node(r))>>(make_parse_node(r));
+        }
+
+        //rule data type
+        using rule_data_type = typename ParseContext::rule_data;
+
+        //used for initiating a left recursion parsing
+        struct left_recursion {
+            rule_type* rule;
+        };
+
+        //parse left recursion
+        bool parse_left_recursion(ParseContext& pc, rule_data_type& rd) {
+            //reject
+            rd.state = ParseContext::rule_state::reject;
+            if (!m_parse_node->parse(pc)) {
+                return false;
+            }
+
+            const auto prev_lrit = pc.m_left_recursion_iterator;
+
+            //accept
+            rd.state = ParseContext::rule_state::accept;
+            for(;;) {
+                pc.m_left_recursion_iterator = pc.parse_position().iterator();
+                try {
+                    if (!m_parse_node->parse(pc)) {
+                        break;
+                    }
+                }
+                catch (...) {
+                    pc.m_left_recursion_iterator = prev_lrit;
+                    throw;
+                }
+            }
+
+            //success
+            pc.m_left_recursion_iterator = prev_lrit;
+            return true;
         }
     };
 

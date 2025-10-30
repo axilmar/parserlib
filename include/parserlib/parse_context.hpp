@@ -313,6 +313,9 @@ namespace parserlib {
     };
 
 
+    template <class ParseContext> class rule;
+
+
     /**
      * The `parse_context` class contains a parser's state.
      * It is constructed from a range of symbols (i.e. a string, a set of tokens etc),
@@ -361,6 +364,9 @@ namespace parserlib {
         /** This class' type. */
         using parse_context_type = parse_context<source_type, match_id_type, text_position_type, symbol_comparator_type>;
 
+        /** Rule type. */
+        using rule_type = rule<parse_context_type>;
+
         /**  
          * Internal state type.
          */
@@ -385,12 +391,12 @@ namespace parserlib {
         private:
             parse_position_type m_parse_position;
             size_t m_match_count;
-            bool m_terminal_parsing_allowed;
+            iterator_type m_left_recursion_iterator;
 
-            state(const parse_position_type& parse_pos, size_t match_count, bool tpa)
+            state(const parse_position_type& parse_pos, size_t match_count, const iterator_type& lrit)
                 : m_parse_position(parse_pos)
                 , m_match_count(match_count)
-                , m_terminal_parsing_allowed(tpa)
+                , m_left_recursion_iterator(lrit)
 
             {
             }
@@ -406,6 +412,7 @@ namespace parserlib {
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_parse_position(begin)
             , m_end_iterator(end)
+            , m_left_recursion_iterator(end)
         {
         }
 
@@ -508,7 +515,7 @@ namespace parserlib {
          * @return the current state of the parse context.
          */
         state get_state() const {
-            return state(m_parse_position, m_matches.size(), m_terminal_parsing_allowed);
+            return state(m_parse_position, m_matches.size(), m_left_recursion_iterator);
         }
 
         /**
@@ -518,7 +525,7 @@ namespace parserlib {
         void set_state(const state& st) {
             m_parse_position = st.m_parse_position;
             m_matches.resize(st.m_match_count);
-            m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
+            m_left_recursion_iterator = st.m_left_recursion_iterator;
         }
 
         /**
@@ -551,15 +558,29 @@ namespace parserlib {
          * @return true if a terminal parsing can be parsed at this state, false otherwise.
          */
         bool terminal_parsing_allowed() const {
-            return m_terminal_parsing_allowed;
+            return m_parse_position.iterator() != m_left_recursion_iterator;
         }
 
     private:
+        enum class rule_state {
+            none,
+            reject,
+            accept
+        };
+
+        struct rule_data {
+            iterator_type iterator;
+            rule_state state;
+        };
+
         parse_position_type m_parse_position;
         const iterator_type m_end_iterator;
         match_container_type m_matches;
         symbol_comparator_type m_symbol_comparator;
-        bool m_terminal_parsing_allowed{ false };
+        iterator_type m_left_recursion_iterator;
+        std::map<rule_type*, rule_data> m_rule_data;
+
+        friend rule_type;
     };
 
 
