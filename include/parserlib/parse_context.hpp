@@ -9,6 +9,7 @@
 #include <vector>
 #include <cassert>
 #include <map>
+#include <sstream>
 #include "is_char.hpp"
 
 
@@ -58,6 +59,15 @@ namespace parserlib {
          */
         void increment_line() {
         }
+
+        /**
+         * Returns an empty string,
+         * since the default text position does not keep line and column.
+         * @return an empty string.
+         */
+        std::string to_string() const {
+            return {};
+        }
     };
 
 
@@ -104,6 +114,16 @@ namespace parserlib {
         void increment_line() {
             ++m_line;
             m_column = 1;
+        }
+
+        /**
+         * Returns the string "line L, column C"
+         * @return a string.
+         */
+        std::string to_string() const {
+            std::stringstream stream;
+            stream << "line " << m_line << ", column " << m_column;
+            return stream.str();
         }
 
     private:
@@ -216,6 +236,23 @@ namespace parserlib {
          */
         void increment_line() {
             m_text_position.increment_line();
+        }
+
+        /**
+         * Converts the parse position to a string.
+         * @param begin begin iterator; used in deriving the index of the parse position iterator,
+         *  if the text position returns an empty string.
+         * @return a string for this parse position.
+         */
+        std::string to_string(const iterator_type& begin) const {
+            std::string result = m_text_position.to_string();
+            if (result.empty()) {
+                std::stringstream stream;
+                const auto index = std::distance(begin, m_iterator);
+                stream << "index " << index;
+                result = stream.str();
+            }
+            return result;
         }
 
     private:
@@ -428,6 +465,7 @@ namespace parserlib {
             : m_parse_position(begin)
             , m_end_iterator(end)
             , m_left_recursion_start_state(begin)
+            , m_begin_iterator(begin)
         {
         }
 
@@ -446,6 +484,14 @@ namespace parserlib {
          */
         const parse_position_type& parse_position() const {
             return m_parse_position;
+        }
+
+        /**
+         * Returns the begin iterator.
+         * @return the begin iterator.
+         */
+        const iterator_type& begin_iterator() const {
+            return m_begin_iterator;
         }
 
         /**
@@ -575,6 +621,18 @@ namespace parserlib {
             return m_terminal_parsing_allowed;
         }
 
+        /**
+         * Parses an annotation.
+         * The default implementation only invokes the given parse node for parsing.
+         * @param parse_node the parse node to invoke for parsing.
+         * @param annotation the annotation object.
+         * @return true on success, false on failure.
+         */
+        template <class ParseNode, class Annotation>
+        bool parse_annotation(const ParseNode& parse_node, const Annotation& annotation) {
+            return parse_node.parse(*this);
+        }
+
     private:
         enum class rule_state {
             none,
@@ -593,7 +651,8 @@ namespace parserlib {
         symbol_comparator_type m_symbol_comparator;
         state m_left_recursion_start_state;
         bool m_terminal_parsing_allowed{ true };
-        std::map<rule_type*, rule_data> m_rule_data;
+        std::map<const rule_type*, rule_data> m_rule_data;
+        const iterator_type m_begin_iterator;
 
         friend rule_type;
     };

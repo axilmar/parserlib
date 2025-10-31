@@ -33,11 +33,11 @@ namespace parserlib {
     };
 
 
-#ifdef char8_t
+    #ifdef char8_t
     template <> struct is_char<char8_t> {
         static constexpr bool value = true;
     };
-#endif
+    #endif
 
 
     template <> struct is_char<char16_t> {

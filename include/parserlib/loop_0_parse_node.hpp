@@ -33,7 +33,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            for(;;) {
+            while (pc.parse_valid()) {
                 const auto start_iterator = pc.parse_position().iterator();
                 if (!m_child.parse(pc) || pc.parse_position().iterator() == start_iterator) {
                     break;

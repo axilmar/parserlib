@@ -11,6 +11,7 @@
 #include "logical_and_parse_node.hpp"
 #include "logical_not_parse_node.hpp"
 #include "rule_ref_parse_node.hpp"
+#include "annotation_parse_node.hpp"
 
 
 namespace parserlib {
@@ -141,6 +142,16 @@ namespace parserlib {
         }
 
         /**
+         * Returns a node that adds an annotation to this rule.
+         * @param annotation the annotation object.
+         * @return an annotation parse node for this rule.
+         */
+        template <class Annotation>
+        annotation_parse_node<rule_ref_parse_node<ParseContext>, Annotation> operator [](const Annotation& annotation) {
+            return make_annotation_parse_node(*this, annotation);
+        }
+
+        /**
          * Returns a pointer to this rule, since operator & is taken for `logical AND operator`.
          * @return a pointer to this rule.
          */
@@ -153,7 +164,7 @@ namespace parserlib {
          * @param pc the current parse context.
          * @return true on success, false on failure.
          */
-        bool parse(ParseContext& pc) {
+        bool parse(ParseContext& pc) const {
             const auto it = pc.m_rule_data.find(this);
 
             //initial entrance
@@ -242,11 +253,11 @@ namespace parserlib {
 
         //used for initiating a left recursion parsing
         struct left_recursion {
-            rule_type* rule;
+            const rule_type* rule;
         };
 
         //parse rule; on exception, restore rule data
-        bool _parse(ParseContext& pc, rule_data_type& rd, const rule_data_type& prev_rd) {
+        bool _parse(ParseContext& pc, rule_data_type& rd, const rule_data_type& prev_rd) const {
             try {
                 const bool result = m_parse_node->parse(pc);
                 rd = prev_rd;
@@ -272,7 +283,7 @@ namespace parserlib {
         }
 
         //parse left recursion
-        bool parse_left_recursion(ParseContext& pc, rule_data_type& rd) {
+        bool parse_left_recursion(ParseContext& pc, rule_data_type& rd) const {
             const auto prev_left_recursion_start_state = pc.m_left_recursion_start_state;
             const bool prev_terminal_parsing_allowed = pc.m_terminal_parsing_allowed;
 

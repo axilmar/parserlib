@@ -10,6 +10,7 @@ namespace parserlib {
     template <class ParseNode> class optional_parse_node;
     template <class ParseNode> class logical_and_parse_node;
     template <class ParseNode> class logical_not_parse_node;
+    template <class ParseNode, class Annotation> class annotation_parse_node;
 
 
     class parse_node_base {
@@ -62,6 +63,16 @@ namespace parserlib {
          * @return a logical NOT parse node.
          */
         logical_not_parse_node<Derived> operator !() const;
+
+        /**
+         * Returns a node that adds an annotation to another node.
+         * @param annotation the annotation object.
+         * @return an annotation parse node.
+         */
+        template <class Annotation>
+        auto operator [](const Annotation& annotation) const {
+            return make_annotation_parse_node(*this->derived(), annotation);
+        }
     };
 
 

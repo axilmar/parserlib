@@ -1,5 +1,6 @@
 #include <cassert>
 #include <sstream>
+#include <iostream>
 #include "parserlib.hpp"
 
 
@@ -1023,6 +1024,33 @@ static void test_non_character_parsing() {
 }
 
 
+static void test_debug_parse_context() {
+
+    const auto nl = newline('\n');
+    const auto a = terminal('a')["A"];
+    const auto b = terminal('b')["B"];
+    const auto c = terminal('c')["C"];
+    const auto d = terminal('d')["D"];
+    const auto e = terminal('e')["E"];
+    const auto de = (d | e)["DE"];
+    const auto grammar = *((nl | a | b | c | de)["term"]);
+
+    {
+        std::string str = "a\nbde\nc";
+
+        debug_parse_context<std::string, int, text_position> pc(str);
+        std::stringstream stream;
+        pc.set_output_stream(&stream);
+
+        const bool result = grammar.parse(pc);
+        assert(result);
+
+        const std::string result_str = stream.str();
+        std::cout << result_str;
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_string_parsing();
@@ -1045,4 +1073,7 @@ void run_tests() {
     calculator().test_rule_left_recursion_parsing();
     test_case_insensitive_parsing();
     test_non_character_parsing();
+    #ifndef NDEBUG
+    test_debug_parse_context();
+    #endif
 }
