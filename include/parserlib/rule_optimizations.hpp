@@ -59,12 +59,6 @@ namespace parserlib {
     };
 
 
-    template <class ParseContext, class... ParseNodes> 
-    bool is_left_recursive(rule<ParseContext>& r, const choice_parse_node<ParseNodes...>& node) {
-
-    }
-
-
     template <class ParseContext, class ParseNode>
     auto optimize_rule_parse_node(rule<ParseContext>& r, ParseNode&& parse_node) {
         return make_unique_parse_node_wrapper<ParseContext>(parse_node);
