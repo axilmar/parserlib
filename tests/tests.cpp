@@ -1051,6 +1051,466 @@ static void test_debug_parse_context() {
 }
 
 
+static void test_rule_optimizations() {
+    {
+        rule<> grammar = 'a';
+        std::string src = "a";
+        parse_context<> pc(src);
+        const bool result = grammar.parse(pc);
+        assert(result);
+    }
+
+    {
+        rule<> grammar 
+            = grammar >> 'b'
+            | 'a'
+            | 'x';
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "x";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "xb";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+    }
+
+    {
+        rule<> grammar
+            = grammar >> 'b'
+            | grammar >> 'c'
+            | 'a'
+            | 'x';
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "ac";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "x";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "xb";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "xc";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+    }
+
+    {
+        rule<> grammar
+            = grammar >> 'b'
+            | grammar >> 'c'
+            | grammar >> 'd'
+            | 'a'
+            | 'x';
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "ac";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "ad";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "x";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "xb";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "xc";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "xd";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+        }
+    }
+
+    {
+        enum { A, B, X };
+
+        rule<> grammar
+            = (grammar >> 'b')->*B
+            | terminal('a')->*A
+            | terminal('x')->*X;
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == A);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == B);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == A);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "x";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == X);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+        }
+
+        {
+            std::string src = "xb";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == B);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == X);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+    }
+
+    {
+        enum { A, B, C, X };
+
+        rule<> grammar
+            = (grammar >> 'b')->*B
+            | (grammar >> 'c')->*C
+            | terminal('a')->*A
+            | terminal('x')->*X;
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == A);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == B);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == A);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "ac";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == C);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == A);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "x";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == X);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+        }
+
+        {
+            std::string src = "xb";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == B);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == X);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "xc";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches()[0].id() == C);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == X);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+    }
+
+    {
+        enum { A, B, C, D, X };
+
+        rule<> grammar
+            = (grammar >> 'b')->*B
+            | (grammar >> 'c')->*C
+            | (grammar >> 'd')->*D
+            | terminal('a')->*A
+            | terminal('x')->*X;
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == A);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == B);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == A);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "ac";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == C);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == A);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "ad";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == D);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == A);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "x";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == X);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+        }
+
+        {
+            std::string src = "xb";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == B);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == X);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "xc";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == C);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == X);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+
+        {
+            std::string src = "xd";
+            parse_context<> pc(src);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.parse_ended());
+            assert(pc.matches().size() == 1);
+            assert(pc.matches()[0].id() == D);
+            assert(pc.matches()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].end_iterator() == src.end());
+            assert(pc.matches()[0].children()[0].id() == X);
+            assert(pc.matches()[0].children()[0].start_position().iterator() == src.begin());
+            assert(pc.matches()[0].children()[0].end_iterator() == std::next(src.begin()));
+        }
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_string_parsing();
@@ -1076,4 +1536,5 @@ void run_tests() {
     #ifndef NDEBUG
     test_debug_parse_context();
     #endif
+    test_rule_optimizations();
 }

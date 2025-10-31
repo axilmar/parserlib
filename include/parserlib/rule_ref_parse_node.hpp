@@ -18,11 +18,14 @@ namespace parserlib {
     template <class ParseContext>
     class rule_ref_parse_node : public parse_node<rule_ref_parse_node<ParseContext>> {
     public:
+        /** The rule type. */
+        using rule_type = rule<ParseContext>;
+
         /**
          * The constructor.
          * @param r reference to rule.
          */
-        rule_ref_parse_node(rule<ParseContext>& r) : m_rule(r) {
+        rule_ref_parse_node(rule_type& r) : m_rule(r) {
         }
 
         /**
@@ -34,8 +37,16 @@ namespace parserlib {
             return m_rule.parse(pc);
         }
 
+        /**
+         * Returns the rule.
+         * @return the rule.
+         */
+        rule_type& rule() const {
+            return m_rule;
+        }
+
     private:
-        rule<ParseContext>& m_rule;
+        rule_type& m_rule;
     };
 
 

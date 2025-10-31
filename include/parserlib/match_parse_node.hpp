@@ -43,6 +43,14 @@ namespace parserlib {
             return false;
         }
 
+        const MatchId& id() const {
+            return m_id;
+        }
+
+        const ParseNode& child() const {
+            return m_child;
+        }
+
     private:
         const MatchId m_id;
         const ParseNode m_child;

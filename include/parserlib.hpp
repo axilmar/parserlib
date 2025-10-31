@@ -15,13 +15,13 @@
 #include "parserlib/optional_parse_node.hpp"
 #include "parserlib/parse_context.hpp"
 #include "parserlib/range_parse_node.hpp"
-#include "parserlib/rule.hpp"
 #include "parserlib/set_parse_node.hpp"
 #include "parserlib/string_parse_node.hpp"
 #include "parserlib/symbol_parse_node.hpp"
 #include "parserlib/choice_parse_node.hpp"
 #include "parserlib/sequence_parse_node.hpp"
 #include "parserlib/debug_parse_context.hpp"
+#include "parserlib/rule.hpp"
 
 
 #endif // PARSERLIB_HPP

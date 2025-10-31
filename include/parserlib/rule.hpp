@@ -12,6 +12,7 @@
 #include "logical_not_parse_node.hpp"
 #include "rule_ref_parse_node.hpp"
 #include "annotation_parse_node.hpp"
+#include "rule_optimizations.hpp"
 
 
 namespace parserlib {
@@ -155,6 +156,14 @@ namespace parserlib {
          * Returns a pointer to this rule, since operator & is taken for `logical AND operator`.
          * @return a pointer to this rule.
          */
+        const rule* this_ptr() const {
+            return this;
+        }
+
+        /**
+         * Returns a pointer to this rule, since operator & is taken for `logical AND operator`.
+         * @return a pointer to this rule.
+         */
         rule* this_ptr() {
             return this;
         }
@@ -216,36 +225,31 @@ namespace parserlib {
             m_name = name;
         }
 
+        /**
+         * Checks if this rule is the same rule as the given rule.
+         * Using pointer checks like this: `this == &r` does not work 
+         * due to `operator &` being overloaded.
+         * @param r the other rule to check.
+         * @return true if this and given rule are the same rules, false otherwise.
+         */
+        bool is_same(const rule<ParseContext>& r) const {
+            return this == r.this_ptr();
+        }
+
     private:
-        //interface
-        class _inter {
-        public:
-            virtual ~_inter() {}
-            virtual bool parse(ParseContext&) const = 0;
-        };
-
-        //implementation
-        template <class T> class _impl : public _inter {
-        public:
-            _impl(const T& parse_node) : m_parse_node(parse_node) {}
-            bool parse(ParseContext& pc) const override { return m_parse_node.parse(pc); }
-        private:
-            const T m_parse_node;
-        };
-
         //state
-        std::unique_ptr<_inter> m_parse_node;
+        std::unique_ptr<parse_node_wrapper<ParseContext>> m_parse_node;
         std::string m_name;
 
         //create a wrapper for a parse node
         template <class ParseNode>
-        static std::unique_ptr<_inter> create_wrapper(const ParseNode& parse_node) {
-            return std::make_unique<_impl<decltype(make_parse_node(parse_node))>>(make_parse_node(parse_node));
+        auto create_wrapper(const ParseNode& parse_node) {
+            return optimize_rule_parse_node<ParseContext>(*this, parse_node);
         }
 
         //create a wrapper for a rule
-        static std::unique_ptr<_inter> create_wrapper(rule& r) {
-            return std::make_unique<_impl<decltype(make_parse_node(r))>>(make_parse_node(r));
+        auto create_wrapper(rule& r) {
+            return make_unique_parse_node_wrapper<ParseContext>(make_parse_node(r));
         }
 
         //rule data type

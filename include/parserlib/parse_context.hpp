@@ -347,6 +347,14 @@ namespace parserlib {
         }
 
         /**
+         * Returns the child matches.
+         * @return the child matches.
+         */
+        const match_container_type& matches() const {
+            return m_children;
+        }
+
+        /**
          * Returns the part of the source that corresponds to this match.
          * @return either an instance of std::basic_string, if the source element is a character,
          *  or an instance of std::vector.
@@ -631,6 +639,22 @@ namespace parserlib {
         template <class ParseNode, class Annotation>
         bool parse_annotation(const ParseNode& parse_node, const Annotation& annotation) {
             return parse_node.parse(*this);
+        }
+
+        /**
+         * Returns the current left recursion start state.
+         * @return the current left recursion start state.
+         */
+        const state& left_recursion_start_state() const {
+            return m_left_recursion_start_state;
+        }
+
+        /**
+         * Sets the left recursion start state.
+         * @param st the new left recursion start state.
+         */
+        void set_left_recursion_start_state(const state& st) {
+            m_left_recursion_start_state = st;
         }
 
     private:
