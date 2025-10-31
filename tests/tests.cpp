@@ -929,6 +929,100 @@ public:
 };
 
 
+static void test_case_insensitive_parsing() {
+    const auto grammar = terminal("abc");
+
+    using parse_context = parserlib::parse_context<std::string, int, text_position, case_insensitive_symbol_comparator>;
+
+    {
+        std::string src = "ABC";
+        parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "abC";
+        parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "Abc";
+        parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "ABc";
+        parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "A";
+        parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.parse_position().iterator() == src.begin());
+    }
+
+    {
+        std::string src = "a";
+        parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.parse_position().iterator() == src.begin());
+    }
+}
+
+
+static void test_non_character_parsing() {
+    enum TOKEN_ID { TOKEN_A, TOKEN_B, TOKEN_C };
+
+    struct token {
+        TOKEN_ID id;
+        operator TOKEN_ID () const { return id; }
+    };
+
+    enum ID { A, B, C };
+
+    const auto a = terminal(TOKEN_A)->*A;
+    const auto b = terminal(TOKEN_B)->*B;
+    const auto c = terminal(TOKEN_C)->*C;
+    const auto grammar = *(a | b | c);
+
+    {
+        std::vector<token> src;
+        src.push_back(token{ TOKEN_A });
+        src.push_back(token{ TOKEN_B });
+        src.push_back(token{ TOKEN_C });
+
+        parse_context<std::vector<token>, ID> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+        assert(pc.matches().size() == 3);
+        assert(pc.matches()[0].id() == A);
+        assert(pc.matches()[0].start_position().iterator() == src.begin());
+        assert(pc.matches()[0].end_iterator() == std::next(src.begin()));
+        assert(pc.matches()[1].id() == B);
+        assert(pc.matches()[1].start_position().iterator() == std::next(src.begin()));
+        assert(pc.matches()[1].end_iterator() == std::next(src.begin(), 2));
+        assert(pc.matches()[2].id() == C);
+        assert(pc.matches()[2].start_position().iterator() == std::next(src.begin(), 2));
+        assert(pc.matches()[2].end_iterator() == std::next(src.begin(), 3));
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_string_parsing();
@@ -949,4 +1043,6 @@ void run_tests() {
     test_match_parsing();
     test_rule_parsing();
     calculator().test_rule_left_recursion_parsing();
+    test_case_insensitive_parsing();
+    test_non_character_parsing();
 }
