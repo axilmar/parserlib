@@ -22,7 +22,7 @@ namespace parserlib {
      * @param ParseContext the parse context to use for this rule.
      */
     template <class ParseContext = parse_context<>>
-    class rule {
+    class rule : public parse_node_base {
     public:
         /** Type of rule reference parse node. */
         using rule_ref_type = rule_ref_parse_node<ParseContext>;
@@ -158,18 +158,9 @@ namespace parserlib {
 
             //initial entrance
             if (it == pc.m_rule_data.end()) {
-                auto [it1, ok] = pc.m_rule_data.insert(std::make_pair(this, rule_data_type{ pc.parse_position().iterator(), ParseContext::rule_state::none }));
-                try {
-                    return m_parse_node->parse(pc);
-                }
-                catch (left_recursion ex) {
-                    if (ex.rule == this) {
-                        return parse_left_recursion(pc, it1->second);
-                    }
-                    else {
-                        throw ex;
-                    }
-                }
+                const rule_data_type initial_state = { pc.parse_position().iterator(), ParseContext::rule_state::none };
+                auto [it1, ok] = pc.m_rule_data.insert(std::make_pair(this, initial_state));
+                return _parse(pc, it1->second, initial_state);
             }
 
             //subsequent entrance; start new state if iterator has advanced from last time
@@ -177,28 +168,7 @@ namespace parserlib {
                 const auto prev_state = it->second;
                 it->second.iterator = pc.parse_position().iterator();
                 it->second.state = ParseContext::rule_state::none;
-                try {
-                    const bool result = m_parse_node->parse(pc);
-                    it->second = prev_state;
-                    return result;
-                }
-                catch (left_recursion ex) {
-                    if (ex.rule == this) {
-                        try {
-                            const bool result = parse_left_recursion(pc, it->second);
-                            it->second = prev_state;
-                            return result;
-                        }
-                        catch (...) {
-                            it->second = prev_state;
-                            throw;
-                        }
-                    }
-                    else {
-                        it->second = prev_state;
-                        throw ex;
-                    }
-                }
+                return _parse(pc, it->second, prev_state);
             }
 
             //left recursion found
@@ -211,11 +181,28 @@ namespace parserlib {
                         return false;
 
                     case ParseContext::rule_state::accept:
+                        pc.m_terminal_parsing_allowed = true;
                         return true;
                 }
             }
 
             throw std::logic_error("rule: parse: invalid state");
+        }
+
+        /**
+         * Returns the name of this rule.
+         * @return the name of this rule.
+         */
+        const std::string& name() const {
+            return m_name;
+        }
+
+        /**
+         * Sets the name of this rule.
+         * @param rule the name of this rule.
+         */
+        void set_name(const std::string& name) {
+            m_name = name;
         }
 
     private:
@@ -235,8 +222,9 @@ namespace parserlib {
             const T m_parse_node;
         };
 
-        //the parse node ptr
+        //state
         std::unique_ptr<_inter> m_parse_node;
+        std::string m_name;
 
         //create a wrapper for a parse node
         template <class ParseNode>
@@ -257,10 +245,38 @@ namespace parserlib {
             rule_type* rule;
         };
 
+        //parse rule; on exception, restore rule data
+        bool _parse(ParseContext& pc, rule_data_type& rd, const rule_data_type& prev_rd) {
+            try {
+                const bool result = m_parse_node->parse(pc);
+                rd = prev_rd;
+                return result;
+            }
+            catch (left_recursion ex) {
+                if (ex.rule == this) {
+                    try {
+                        const bool result = parse_left_recursion(pc, rd);
+                        rd = prev_rd;
+                        return result;
+                    }
+                    catch (...) {
+                        rd = prev_rd;
+                        throw;
+                    }
+                }
+                else {
+                    rd = prev_rd;
+                    throw ex;
+                }
+            }
+        }
+
         //parse left recursion
         bool parse_left_recursion(ParseContext& pc, rule_data_type& rd) {
             const auto prev_left_recursion_start_state = pc.m_left_recursion_start_state;
-            const auto prev_left_recursion_iterator = pc.m_left_recursion_iterator;
+            const bool prev_terminal_parsing_allowed = pc.m_terminal_parsing_allowed;
+
+            pc.m_left_recursion_start_state = pc.get_state();
 
             //reject
             rd.state = ParseContext::rule_state::reject;
@@ -268,12 +284,11 @@ namespace parserlib {
                 return false;
             }
 
-            pc.m_left_recursion_start_state = prev_left_recursion_start_state;
-
             //accept
             rd.state = ParseContext::rule_state::accept;
             for(;;) {
-                pc.m_left_recursion_iterator = pc.m_parse_position.iterator();
+                rd.iterator = pc.m_parse_position.iterator();
+                pc.m_terminal_parsing_allowed = false;
                 try {
                     if (!m_parse_node->parse(pc)) {
                         break;
@@ -281,14 +296,14 @@ namespace parserlib {
                 }
                 catch (...) {
                     pc.m_left_recursion_start_state = prev_left_recursion_start_state;
-                    pc.m_left_recursion_iterator = prev_left_recursion_iterator;
+                    pc.m_terminal_parsing_allowed = prev_terminal_parsing_allowed;
                     throw;
                 }
             }
 
             //success
             pc.m_left_recursion_start_state = prev_left_recursion_start_state;
-            pc.m_left_recursion_iterator = prev_left_recursion_iterator;
+            pc.m_terminal_parsing_allowed = prev_terminal_parsing_allowed;
             return true;
         }
     };

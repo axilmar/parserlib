@@ -34,7 +34,7 @@ namespace parserlib {
          * @return true on parsing success, false otherwise.
          */
         template <class ParseContext>
-        bool parse(const ParseContext& pc) const {
+        bool parse(ParseContext& pc) const {
             if (m_parse_node.parse(pc)) {
                 pc.increment_parse_position_line();
                 return true;

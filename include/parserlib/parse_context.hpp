@@ -9,6 +9,7 @@
 #include <vector>
 #include <cassert>
 #include <map>
+#include "is_char.hpp"
 
 
 namespace parserlib {
@@ -232,8 +233,11 @@ namespace parserlib {
     template <class Source, class MatchId, class TextPosition>
     class match {
     public:
-        /** The source type. */
+        /** Source type. */
         using source_type = Source;
+
+        /** Symbol type. */
+        using symbol_type = typename Source::value_type;
 
         /** Iterator type. */
         using iterator_type = typename Source::const_iterator;
@@ -303,6 +307,20 @@ namespace parserlib {
          */
         const match_container_type& children() const {
             return m_children;
+        }
+
+        /**
+         * Returns the part of the source that corresponds to this match.
+         * @return either an instance of std::basic_string, if the source element is a character,
+         *  or an instance of std::vector.
+         */
+        auto source() const {
+            if constexpr (is_char_v<symbol_type>) {
+                return std::basic_string<symbol_type>(m_start_position.iterator(), m_end_iterator);
+            }
+            else {
+                return std::vector<symbol_type>(m_start_position.iterator(), m_end_iterator);
+            }
         }
 
     private:
@@ -391,9 +409,11 @@ namespace parserlib {
         private:
             parse_position_type m_parse_position;
             size_t m_match_count;
-            state(const parse_position_type& parse_pos, size_t match_count)
+            bool m_terminal_parsing_allowed;
+            state(const parse_position_type& parse_pos, size_t match_count = 0, bool tpa = false)
                 : m_parse_position(parse_pos)
                 , m_match_count(match_count)
+                , m_terminal_parsing_allowed(tpa)
             {
             }
             friend parse_context_type;
@@ -407,8 +427,7 @@ namespace parserlib {
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_parse_position(begin)
             , m_end_iterator(end)
-            , m_left_recursion_start_state(end, 0)
-            , m_left_recursion_iterator(end)
+            , m_left_recursion_start_state(begin)
         {
         }
 
@@ -510,7 +529,7 @@ namespace parserlib {
          * @return the current state of the parse context.
          */
         state get_state() const {
-            return state(m_parse_position, m_matches.size());
+            return state(m_parse_position, m_matches.size(), m_terminal_parsing_allowed);
         }
 
         /**
@@ -520,6 +539,7 @@ namespace parserlib {
         void set_state(const state& st) {
             m_parse_position = st.m_parse_position;
             m_matches.resize(st.m_match_count);
+            m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
         }
 
         /**
@@ -552,7 +572,7 @@ namespace parserlib {
          * @return true if a terminal parsing can be parsed at this state, false otherwise.
          */
         bool terminal_parsing_allowed() const {
-            return m_parse_position.iterator() != m_left_recursion_iterator;
+            return m_terminal_parsing_allowed;
         }
 
     private:
@@ -572,7 +592,7 @@ namespace parserlib {
         match_container_type m_matches;
         symbol_comparator_type m_symbol_comparator;
         state m_left_recursion_start_state;
-        iterator_type m_left_recursion_iterator;
+        bool m_terminal_parsing_allowed{ true };
         std::map<rule_type*, rule_data> m_rule_data;
 
         friend rule_type;
