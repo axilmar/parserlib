@@ -262,13 +262,13 @@ namespace parserlib {
 
 
     /**
-     * A match represents a recognized portion of a source.
+     * A partition of a source.
      * @param Source the source type.
-     * @param MatchId match id type.
+     * @param Id error id type.
      * @param TextPosition text position type.
      */
-    template <class Source, class MatchId, class TextPosition>
-    class match {
+    template <class Source, class Id, class TextPosition>
+    class source_partition {
     public:
         /** Source type. */
         using source_type = Source;
@@ -279,8 +279,8 @@ namespace parserlib {
         /** Iterator type. */
         using iterator_type = typename Source::const_iterator;
 
-        /** Match id type. */
-        using match_id_type = MatchId;
+        /** id type. */
+        using id_type = Id;
 
         /** Text position type. */
         using text_position_type = TextPosition;
@@ -288,37 +288,29 @@ namespace parserlib {
         /** Parse position type. */
         using parse_position_type = parse_position<source_type, text_position_type>;
 
-        /** This class' type. */
-        using match_type = match<source_type, match_id_type, text_position_type>;
-
-        /** The match container type. */
-        using match_container_type = std::vector<match_type>;
-
         /**
          * The constructor.
          * @param id match id.
          * @param start_pos start position.
          * @param end_it end_iterator.
          */
-        match(
-            const match_id_type& id = match_id_type(), 
-            const parse_position_type& start_pos = parse_position_type(), 
-            const iterator_type& end_it = iterator_type(), 
-            match_container_type&& children = match_container_type()
+        source_partition(
+            const id_type& id = id_type(),
+            const parse_position_type& start_pos = parse_position_type(),
+            const iterator_type& end_it = iterator_type()
         )
             : m_id(id)
             , m_start_position(start_pos)
             , m_end_iterator(end_it)
-            , m_children(std::move(children))
         {
             assert(static_cast<intptr_t>(std::distance(m_start_position.iterator(), m_end_iterator)) >= 0);
         }
 
         /**
-         * Returns the match id.
-         * @return the match id.
+         * Returns the id.
+         * @return the id.
          */
-        const match_id_type& id() const {
+        const id_type& id() const {
             return m_id;
         }
 
@@ -339,6 +331,63 @@ namespace parserlib {
         }
 
         /**
+         * Returns the part of the source that corresponds to this match.
+         * @return either an instance of std::basic_string, if the source element is a character,
+         *  or an instance of std::vector.
+         */
+        auto source() const {
+            if constexpr (is_char_v<symbol_type>) {
+                return std::basic_string<symbol_type>(m_start_position.iterator(), m_end_iterator);
+            }
+            else {
+                return std::vector<symbol_type>(m_start_position.iterator(), m_end_iterator);
+            }
+        }
+
+    private:
+        id_type m_id;
+        parse_position_type m_start_position;
+        iterator_type m_end_iterator;
+    };
+
+
+    /**
+     * A match represents a recognized portion of a source.
+     * @param Source the source type.
+     * @param MatchId match id type.
+     * @param TextPosition text position type.
+     */
+    template <class Source, class MatchId, class TextPosition>
+    class match : public source_partition<Source, MatchId, TextPosition> {
+    public:
+        /** The source partition type. */
+        using source_partition_type = source_partition<Source, MatchId, TextPosition>;
+
+        /** This class' type. */
+        using match_type = match<Source, MatchId, TextPosition>;
+
+        /** The match container type. */
+        using match_container_type = std::vector<match_type>;
+
+        /**
+         * The constructor.
+         * @param id match id.
+         * @param start_pos start position.
+         * @param end_it end_iterator.
+         * @param children children matches.
+         */
+        match(
+            const MatchId& id = MatchId(),
+            const typename source_partition_type::parse_position_type& start_pos = typename source_partition_type::parse_position_type(),
+            const typename source_partition_type::iterator_type& end_it = typename source_partition_type::iterator_type(),
+            match_container_type&& children = match_container_type()
+        )
+            : source_partition_type(id, start_pos, end_it)
+            , m_children(std::move(children))
+        {
+        }
+
+        /**
          * Returns the child matches.
          * @return the child matches.
          */
@@ -354,25 +403,43 @@ namespace parserlib {
             return m_children;
         }
 
-        /**
-         * Returns the part of the source that corresponds to this match.
-         * @return either an instance of std::basic_string, if the source element is a character,
-         *  or an instance of std::vector.
-         */
-        auto source() const {
-            if constexpr (is_char_v<symbol_type>) {
-                return std::basic_string<symbol_type>(m_start_position.iterator(), m_end_iterator);
-            }
-            else {
-                return std::vector<symbol_type>(m_start_position.iterator(), m_end_iterator);
-            }
-        }
-
     private:
-        match_id_type m_id;
-        parse_position_type m_start_position;
-        iterator_type m_end_iterator;
         match_container_type m_children;
+    };
+
+
+    /**
+     * An error.
+     * @param Source the source type.
+     * @param ErrorId error id type.
+     * @param TextPosition text position type.
+     */
+    template <class Source, class ErrorId, class TextPosition>
+    class error : public source_partition<Source, ErrorId, TextPosition> {
+    public:
+        /** The source partition type. */
+        using source_partition_type = source_partition<Source, ErrorId, TextPosition>;
+
+        /** This class' type. */
+        using error_type = error<Source, ErrorId, TextPosition>;
+
+        /** The error container type. */
+        using error_container_type = std::vector<error_type>;
+
+        /**
+         * The constructor.
+         * @param id match id.
+         * @param start_pos start position.
+         * @param end_it end_iterator.
+         */
+        error(
+            const ErrorId& id = ErrorId(),
+            const typename source_partition_type::parse_position_type& start_pos = typename source_partition_type::parse_position_type(),
+            const typename source_partition_type::iterator_type& end_it = typename source_partition_type::iterator_type()
+        )
+            : source_partition_type(id, start_pos, end_it)
+        {
+        }
     };
 
 
@@ -389,12 +456,14 @@ namespace parserlib {
      * 
      * @param Source the source type; it can be any STL-like container.
      * @param MatchId type of id for matches; it can be any custom enumeration or any other type.
+     * @param ErrorId type of id for errors; it can be any custom enumeration or any other type.
      * @param TextPosition position in text; it is optionally used for providing line and column information.
      * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
      */
     template <
         class Source = std::string,
         class MatchId = int,
+        class ErrorId = int,
         class TextPosition = default_text_position,
         class SymbolComparator = default_symbol_comparator
     >
@@ -408,6 +477,9 @@ namespace parserlib {
 
         /** The match id type. */
         using match_id_type = MatchId;
+
+        /** The error id type. */
+        using error_id_type = ErrorId;
 
         /** The text position type. */
         using text_position_type = TextPosition;
@@ -424,8 +496,14 @@ namespace parserlib {
         /** The match container type. */
         using match_container_type = std::vector<match_type>;
 
+        /** The error type. */
+        using error_type = error<source_type, match_id_type, text_position_type>;
+
+        /** The error container type. */
+        using error_container_type = std::vector<error_type>;
+
         /** This class' type. */
-        using parse_context_type = parse_context<source_type, match_id_type, text_position_type, symbol_comparator_type>;
+        using parse_context_type = parse_context<source_type, match_id_type, error_id_type, text_position_type, symbol_comparator_type>;
 
         /** Rule type. */
         using rule_type = rule<parse_context_type>;
@@ -451,13 +529,24 @@ namespace parserlib {
                 return m_match_count;
             }
 
+            /**
+             * Returns the error count.
+             * @return the error count.
+             */
+            size_t error_count() const {
+                return m_error_count;
+            }
+
         private:
             parse_position_type m_parse_position;
             size_t m_match_count;
+            size_t m_error_count;
             bool m_terminal_parsing_allowed;
-            state(const parse_position_type& parse_pos, size_t match_count = 0, bool tpa = false)
+
+            state(const parse_position_type& parse_pos, size_t match_count = 0, size_t error_count = 0, bool tpa = false)
                 : m_parse_position(parse_pos)
                 , m_match_count(match_count)
+                , m_error_count(error_count)
                 , m_terminal_parsing_allowed(tpa)
             {
             }
@@ -578,12 +667,30 @@ namespace parserlib {
         }
 
         /**
+         * Returns the errors currently available.
+         * @return the errors currently available.
+         */
+        const match_container_type& errors() const {
+            return m_errors;
+        }
+
+        /**
+         * Adds an error.
+         * @param id error id.
+         * @param start_state start state.
+         * @param end_iterator end iterator.
+         */
+        void add_error(const error_id_type& id, const state& start_state, const iterator_type& end_iterator) {
+            m_errors.push_back(error_type(id, start_state.m_parse_position, end_iterator));
+        }
+
+        /**
          * Returns the current state of the parse context.
          * The state can be used to rewind the parse context to a prior state.
          * @return the current state of the parse context.
          */
         state get_state() const {
-            return state(m_parse_position, m_matches.size(), m_terminal_parsing_allowed);
+            return state(m_parse_position, m_matches.size(), m_errors.size(), m_terminal_parsing_allowed);
         }
 
         /**
@@ -593,6 +700,7 @@ namespace parserlib {
         void set_state(const state& st) {
             m_parse_position = st.m_parse_position;
             m_matches.resize(st.m_match_count);
+            m_errors.resize(st.m_error_count);
             m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
         }
 
@@ -677,6 +785,7 @@ namespace parserlib {
         bool m_terminal_parsing_allowed{ true };
         std::map<const rule_type*, rule_data> m_rule_data;
         const iterator_type m_begin_iterator;
+        error_container_type m_errors;
 
         friend rule_type;
     };

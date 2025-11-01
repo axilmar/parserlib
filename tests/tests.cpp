@@ -250,7 +250,7 @@ static void test_function_parsing() {
 
 
 static void test_newline_parsing() {
-    using parse_context = parserlib::parse_context<std::string, int, text_position>;
+    using parse_context = parserlib::parse_context<std::string, int, int, text_position>;
     const auto grammar = newline('\n');
 
     {
@@ -933,7 +933,7 @@ public:
 static void test_case_insensitive_parsing() {
     const auto grammar = terminal("abc");
 
-    using parse_context = parserlib::parse_context<std::string, int, text_position, case_insensitive_symbol_comparator>;
+    using parse_context = parserlib::parse_context<std::string, int, int, text_position, case_insensitive_symbol_comparator>;
 
     {
         std::string src = "ABC";
@@ -1038,7 +1038,7 @@ static void test_debug_parse_context() {
     {
         std::string str = "a\nbde\nc";
 
-        debug_parse_context<std::string, int, text_position> pc(str);
+        debug_parse_context<std::string, int, int, text_position> pc(str);
         std::stringstream stream;
         pc.set_output_stream(&stream);
 

@@ -16,22 +16,24 @@ namespace parserlib {
      *
      * @param Source the source type; it can be any STL-like container.
      * @param MatchId type of id for matches; it can be any custom enumeration or any other type.
+     * @param ErrorId type of id for errors; it can be any custom enumeration or any other type.
      * @param TextPosition position in text; it is optionally used for providing line and column information.
      * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
      */
     template <
         class Source = std::string,
         class MatchId = int,
+        class ErrorId = int,
         class TextPosition = default_text_position,
         class SymbolComparator = default_symbol_comparator
     >
-    class debug_parse_context : public parse_context<Source, MatchId, TextPosition, SymbolComparator> {
+    class debug_parse_context : public parse_context<Source, MatchId, ErrorId, TextPosition, SymbolComparator> {
     public:
         /** Base parse context type. */
-        using base_parse_context_type = parse_context<Source, MatchId, TextPosition, SymbolComparator>;
+        using parse_context_type = parse_context<Source, MatchId, ErrorId, TextPosition, SymbolComparator>;
 
         /** Reusing constructors from base class. */
-        using base_parse_context_type::parse_context;
+        using parse_context_type::parse_context;
 
         /** 
          * Returns the output stream associated with this context.

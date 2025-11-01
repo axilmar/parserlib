@@ -37,7 +37,7 @@ namespace parserlib {
     };
 
 
-    template <class Source, class MatchId, class TextPosition, class SymbolComparator> class parse_context;
+    template <class Source, class MatchId, class ErrorId, class TextPosition, class SymbolComparator> class parse_context;
 
 
     /**
