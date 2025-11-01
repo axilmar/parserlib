@@ -55,6 +55,12 @@ namespace parserlib {
     }
 
 
+    template <class T>
+    auto make_annotation_parse_node(T&& object, nullptr_t np) {
+        return make_parse_node(object);
+    }
+
+
 } //namespace parserlib
 
 
