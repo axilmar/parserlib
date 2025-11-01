@@ -3,6 +3,7 @@
 
 
 #include "parserlib/any_parse_node.hpp"
+#include "parserlib/ast.hpp"
 #include "parserlib/bool_parse_node.hpp"
 #include "parserlib/end_parse_node.hpp"
 #include "parserlib/error_parse_node.hpp"
