@@ -415,13 +415,13 @@ namespace parserlib {
      * @param TextPosition text position type.
      */
     template <class Source, class ErrorId, class TextPosition>
-    class error : public source_partition<Source, ErrorId, TextPosition> {
+    class parse_error : public source_partition<Source, ErrorId, TextPosition> {
     public:
         /** The source partition type. */
         using source_partition_type = source_partition<Source, ErrorId, TextPosition>;
 
         /** This class' type. */
-        using error_type = error<Source, ErrorId, TextPosition>;
+        using error_type = parse_error<Source, ErrorId, TextPosition>;
 
         /** The error container type. */
         using error_container_type = std::vector<error_type>;
@@ -432,7 +432,7 @@ namespace parserlib {
          * @param start_pos start position.
          * @param end_it end_iterator.
          */
-        error(
+        parse_error(
             const ErrorId& id = ErrorId(),
             const typename source_partition_type::parse_position_type& start_pos = typename source_partition_type::parse_position_type(),
             const typename source_partition_type::iterator_type& end_it = typename source_partition_type::iterator_type()
@@ -497,7 +497,7 @@ namespace parserlib {
         using match_container_type = std::vector<match_type>;
 
         /** The error type. */
-        using error_type = error<source_type, match_id_type, text_position_type>;
+        using error_type = parse_error<source_type, match_id_type, text_position_type>;
 
         /** The error container type. */
         using error_container_type = std::vector<error_type>;
@@ -519,6 +519,22 @@ namespace parserlib {
              */
             const parse_position_type& parse_position() const {
                 return m_parse_position;
+            }
+
+            /**
+             * Returns the iterator.
+             * @return the iterator.
+             */
+            const iterator_type& iterator() const {
+                return m_parse_position.iterator();
+            }
+
+            /**
+             * Returns the text position.
+             * @return the text position.
+             */
+            const text_position_type& text_position() const {
+                return m_parse_position.text_position();
             }
 
             /**
@@ -584,11 +600,27 @@ namespace parserlib {
         }
 
         /**
+         * Returns the current text position.
+         * @return the current text position.
+         */
+        const text_position_type& text_position() const {
+            return m_parse_position.text_position();
+        }
+
+        /**
          * Returns the begin iterator.
          * @return the begin iterator.
          */
         const iterator_type& begin_iterator() const {
             return m_begin_iterator;
+        }
+
+        /**
+         * Returns the current iterator.
+         * @return the current iterator.
+         */
+        const iterator_type& iterator() const {
+            return m_parse_position.iterator();
         }
 
         /**
@@ -657,31 +689,34 @@ namespace parserlib {
 
         /**
          * Adds a match.
+         * The range is from the given start state's position, up to the current iterator.
          * @param id match id.
          * @param start_state start state.
+         * @param end_iterator end iterator.
          */
-        void add_match(const match_id_type& id, const state& start_state) {
+        void add_match(const match_id_type& id, const state& start_state, const iterator_type& end_iterator) {
             match_container_type children(std::next(m_matches.begin(), start_state.m_match_count), m_matches.end());
             m_matches.resize(start_state.m_match_count);
-            m_matches.push_back(match_type(id, start_state.m_parse_position, parse_position().iterator(), std::move(children)));
+            m_matches.push_back(match_type(id, start_state.m_parse_position, end_iterator, std::move(children)));
         }
 
         /**
          * Returns the errors currently available.
          * @return the errors currently available.
          */
-        const match_container_type& errors() const {
+        const error_container_type& errors() const {
             return m_errors;
         }
 
         /**
          * Adds an error.
+         * The error will be cancelled if a higher node restores the parse context to a previous state.
          * @param id error id.
-         * @param start_state start state.
+         * @param start_pos start position.
          * @param end_iterator end iterator.
          */
-        void add_error(const error_id_type& id, const state& start_state, const iterator_type& end_iterator) {
-            m_errors.push_back(error_type(id, start_state.m_parse_position, end_iterator));
+        void add_error(const error_id_type& id, const parse_position_type& start_pos, const iterator_type& end_iterator) {
+            m_errors.push_back(error_type(id, start_pos, end_iterator));
         }
 
         /**

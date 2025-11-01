@@ -1511,6 +1511,54 @@ static void test_rule_optimizations() {
 }
 
 
+static void test_errors() {
+    enum match_id { INTEGER = 1 };
+    enum error_id { SYNTAX_ERROR = 2 };
+
+    const auto digit = range('0', '9');
+    const auto integer = (+digit)->*INTEGER | error(SYNTAX_ERROR, digit);
+    const auto grammar = *integer;
+
+    {
+        std::string src = "123+456-789";
+        parse_context<> pc(src);
+        const bool result = grammar.parse(pc);
+        assert(result);
+
+        assert(pc.parse_ended());
+        
+        assert(pc.matches().size() == 3);
+
+        assert(pc.matches()[0].id() == INTEGER);
+        assert(pc.matches()[0].start_position().iterator() == src.begin());
+        assert(pc.matches()[0].end_iterator() == std::next(src.begin(), 3));
+        assert(pc.matches()[0].source() == "123");
+
+        assert(pc.matches()[1].id() == INTEGER);
+        assert(pc.matches()[1].start_position().iterator() == std::next(src.begin(), 4));
+        assert(pc.matches()[1].end_iterator() == std::next(src.begin(), 7));
+        assert(pc.matches()[1].source() == "456");
+
+        assert(pc.matches()[2].id() == INTEGER);
+        assert(pc.matches()[2].start_position().iterator() == std::next(src.begin(), 8));
+        assert(pc.matches()[2].end_iterator() == std::next(src.begin(), 11));
+        assert(pc.matches()[2].source() == "789");
+
+        assert(pc.errors().size() == 2);
+
+        assert(pc.errors()[0].id() == SYNTAX_ERROR);
+        assert(pc.errors()[0].start_position().iterator() == std::next(src.begin(), 3));
+        assert(pc.errors()[0].end_iterator() == std::next(src.begin(), 4));
+        assert(pc.errors()[0].source() == "+");
+
+        assert(pc.errors()[1].id() == SYNTAX_ERROR);
+        assert(pc.errors()[1].start_position().iterator() == std::next(src.begin(), 7));
+        assert(pc.errors()[1].end_iterator() == std::next(src.begin(), 8));
+        assert(pc.errors()[1].source() == "-");
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_string_parsing();
@@ -1537,4 +1585,5 @@ void run_tests() {
     test_debug_parse_context();
     #endif
     test_rule_optimizations();
+    test_errors();
 }

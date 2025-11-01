@@ -37,7 +37,7 @@ namespace parserlib {
         bool parse(ParseContext& pc) const {
             const auto match_start_state = pc.get_match_start_state();
             if (m_child.parse(pc)) {
-                pc.add_match(m_id, match_start_state);
+                pc.add_match(m_id, match_start_state, pc.iterator());
                 return true;
             }
             return false;

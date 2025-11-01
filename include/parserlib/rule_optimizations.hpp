@@ -50,7 +50,7 @@ namespace parserlib {
 
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            pc.add_match(m_id, pc.left_recursion_start_state());
+            pc.add_match(m_id, pc.left_recursion_start_state(), pc.iterator());
             return true;
         }
 
