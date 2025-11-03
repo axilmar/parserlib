@@ -393,6 +393,18 @@ namespace parserlib {
             m_left_recursion_start_state = st;
         }
 
+        /**
+         * Returns a parse context for the matches found while using this parse context.
+         * Provided so as that it can be used in multi-stage parsing.
+         * @param MatchId match id type.
+         * @param ErrorId error id type.
+         * @param Extensions parse context extensions.
+         */
+        template <class MatchId, class ErrorId, class... Extensions>
+        auto get_derived_parse_context() {
+            return parse_context<match_container_type, MatchId, ErrorId, default_text_position, default_symbol_comparator, Extensions...>(m_matches);
+        }
+
     private:
         enum class rule_state {
             none,

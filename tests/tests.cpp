@@ -1603,6 +1603,43 @@ static void test_ast() {
 }
 
 
+static void test_multistage_parsing() {
+    //the lexer
+    enum lexer_match_id { INTEGER = 1, TERMINATOR };
+    const auto space = terminal(' ');
+    const auto digit = range('0', '9');
+    const auto integer = (+digit)->*INTEGER;
+    const auto terminator = terminal(';')->*TERMINATOR;
+    const auto lexer_grammar = *(space | integer | terminator);
+
+    //the parser
+    enum parser_match_id { THREE_NUMBERS = 1, TWO_NUMBERS, ONE_NUMBER };
+    const auto three_numbers = (terminal(INTEGER) >> terminal(INTEGER) >> terminal(INTEGER) >> terminal(TERMINATOR))->*THREE_NUMBERS;
+    const auto two_numbers = (terminal(INTEGER) >> terminal(INTEGER) >> terminal(TERMINATOR))->*TWO_NUMBERS;
+    const auto one_number = (terminal(INTEGER) >> terminal(TERMINATOR))->*ONE_NUMBER;
+    const auto parser_grammar = *(three_numbers | two_numbers | one_number);
+
+    {
+        std::string src = "123 456 789; 123 456; 123;";
+
+        //tokenize
+        parse_context<> tokenizer_pc(src);
+        const bool tokenizer_result = lexer_grammar.parse(tokenizer_pc);
+        assert(tokenizer_result);
+
+        //parse
+        auto parser_pc = tokenizer_pc.get_derived_parse_context<parser_match_id, default_error_id_type>();
+        const bool parser_result = parser_grammar.parse(parser_pc);
+        assert(parser_result);
+
+        assert(parser_pc.matches().size() == 3);
+        assert(parser_pc.matches()[0].id() == THREE_NUMBERS);
+        assert(parser_pc.matches()[1].id() == TWO_NUMBERS);
+        assert(parser_pc.matches()[2].id() == ONE_NUMBER);
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_string_parsing();
@@ -1631,4 +1668,5 @@ void run_tests() {
     test_rule_optimizations();
     test_errors();
     test_ast();
+    test_multistage_parsing();
 }
