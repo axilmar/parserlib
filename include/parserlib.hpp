@@ -25,6 +25,7 @@
 #include "parserlib/choice_parse_node.hpp"
 #include "parserlib/sequence_parse_node.hpp"
 #include "parserlib/rule.hpp"
+#include "parserlib/utilities.hpp"
 
 
 #endif // PARSERLIB_HPP

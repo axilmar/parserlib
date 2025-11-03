@@ -1640,6 +1640,12 @@ static void test_multistage_parsing() {
 }
 
 
+static void test_load_file() {
+    std::string data = load_file("test.txt");
+    assert(data == "The quick brown fox jumps over the lazy dog.");
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_string_parsing();
@@ -1669,4 +1675,5 @@ void run_tests() {
     test_errors();
     test_ast();
     test_multistage_parsing();
+    test_load_file();
 }
