@@ -181,6 +181,37 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a container of AST nodes from the given array of matches and its children.
+     * @param matches array of matches to create AST nodes for.
+     * @param factory the AST node factory.
+     * @return array of AST nodes.
+     */
+    template <class Source, class MatchId, class TextPosition, class Factory>
+    std::vector<std::shared_ptr<ast_node<Source, MatchId, TextPosition>>>
+        make_ast(const std::vector<match<Source, MatchId, TextPosition>>& matches, const Factory& factory)
+    {
+        std::vector<std::shared_ptr<ast_node<Source, MatchId, TextPosition>>> result;
+        for (const match<Source, MatchId, TextPosition>& m : matches) {
+            result.push_back(make_ast(m, factory));
+        }
+        return result;
+    }
+
+
+    /**
+     * Creates a container of AST nodes from the given array of matches and its children, using the default AST factory.
+     * @param matches array of matches to create AST nodes for.
+     * @return shared pointer to the allocated ast node instance.
+     */
+    template <class Source, class MatchId, class TextPosition>
+    std::vector<std::shared_ptr<ast_node<Source, MatchId, TextPosition>>>
+        make_ast(const std::vector<match<Source, MatchId, TextPosition>>& matches)
+    {
+        return make_ast(matches, default_ast_factory<Source, MatchId, TextPosition>());
+    }
+
+
 } //namespace parserlib
 
 

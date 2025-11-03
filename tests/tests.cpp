@@ -1587,18 +1587,36 @@ static void test_ast() {
         assert(result);
         
         assert(pc.matches().size() == 1);
-        auto ast = make_ast(pc.matches()[0]);
 
-        assert(ast->id() == PRG);
-        assert(ast->children().size() == 4);
+        {
+            auto ast = make_ast(pc.matches()[0]);
 
-        assert(ast->children()[0]->id() == A);
-        assert(ast->children()[1]->id() == B);
-        assert(ast->children()[2]->id() == DE);
-        assert(ast->children()[3]->id() == C);
+            assert(ast->id() == PRG);
+            assert(ast->children().size() == 4);
 
-        assert(ast->children()[2]->children()[0]->id() == D);
-        assert(ast->children()[2]->children()[1]->id() == E);
+            assert(ast->children()[0]->id() == A);
+            assert(ast->children()[1]->id() == B);
+            assert(ast->children()[2]->id() == DE);
+            assert(ast->children()[3]->id() == C);
+
+            assert(ast->children()[2]->children()[0]->id() == D);
+            assert(ast->children()[2]->children()[1]->id() == E);
+        }
+
+        {
+            auto ast = make_ast(pc.matches());
+
+            assert(ast[0]->id() == PRG);
+            assert(ast[0]->children().size() == 4);
+
+            assert(ast[0]->children()[0]->id() == A);
+            assert(ast[0]->children()[1]->id() == B);
+            assert(ast[0]->children()[2]->id() == DE);
+            assert(ast[0]->children()[3]->id() == C);
+
+            assert(ast[0]->children()[2]->children()[0]->id() == D);
+            assert(ast[0]->children()[2]->children()[1]->id() == E);
+        }
     }
 }
 
