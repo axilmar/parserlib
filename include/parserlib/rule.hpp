@@ -144,9 +144,7 @@ namespace parserlib {
 
         /**
          * Returns a node that adds an annotation to this rule.
-         * @param annotation the annotation object; if it is a nullptr_t instance,
-         *  then an annotation is not added, and the parse node is instead returned,
-         *  allowing optional cancellation of the annotation.
+         * @param annotation the annotation object.
          * @return an annotation parse node for this rule.
          */
         template <class Annotation>

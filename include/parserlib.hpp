@@ -16,6 +16,7 @@
 #include "parserlib/newline_parse_node.hpp"
 #include "parserlib/optional_parse_node.hpp"
 #include "parserlib/parse_context.hpp"
+#include "parserlib/parse_context_options.hpp"
 #include "parserlib/range_parse_node.hpp"
 #include "parserlib/set_parse_node.hpp"
 #include "parserlib/string_parse_node.hpp"

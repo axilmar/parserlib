@@ -5,7 +5,8 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
-#include "parse_context.hpp"
+#include "parse_context_data.hpp"
+#include "parse_context_default_options.hpp"
 
 
 namespace parserlib {
