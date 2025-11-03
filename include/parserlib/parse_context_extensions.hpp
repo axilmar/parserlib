@@ -1,46 +1,63 @@
-#ifndef PARSERLIB_DEBUG_PARSE_CONTEXT_HPP
-#define PARSERLIB_DEBUG_PARSE_CONTEXT_HPP
+#ifndef PARSERLIB_PARSE_CONTEXT_EXTENSIONS_HPP
+#define PARSERLIB_PARSE_CONTEXT_EXTENSIONS_HPP
 
 
 #include <ostream>
 #include <iostream>
-#include "parse_context.hpp"
 
 
 namespace parserlib {
 
 
     /**
-     * An enhanced parse context class that allows printing of annotations.
-     * Provided for debugging purposes.
-     *
-     * @param Source the source type; it can be any STL-like container.
-     * @param MatchId type of id for matches; it can be any custom enumeration or any other type.
-     * @param ErrorId type of id for errors; it can be any custom enumeration or any other type.
-     * @param TextPosition position in text; it is optionally used for providing line and column information.
-     * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
+     * Trait class for obtaining the default output stream for the given output stream type.
+     * @param OutputStream output stream to get the default value of.
      */
-    template <
-        class Source = std::string,
-        class MatchId = int,
-        class ErrorId = int,
-        class TextPosition = default_text_position,
-        class SymbolComparator = default_symbol_comparator
-    >
-    class debug_parse_context : public parse_context<Source, MatchId, ErrorId, TextPosition, SymbolComparator> {
+    template <class OutputStream> struct default_output_stream;
+
+
+    /**
+     * Specialization for std::ostream.
+     * It returns std::cout as the default value.
+     */
+    template <> struct default_output_stream<std::ostream> {
+        static std::ostream& get() {
+            return std::cout;
+        }
+    };
+
+
+    /**
+     * Specialization for std::wostream.
+     * It returns std::wcout as the default value.
+     */
+    template <> struct default_output_stream<std::wostream> {
+        static std::wostream& get() {
+            return std::wcout;
+        }
+    };
+
+
+    /**
+     * A parse context extension that allows 
+     * printing of annotations to an output stream,
+     * while parsing.
+     * 
+     * @param OutputStream type of output stream to put the information on;
+     *  by default, it is std::cout, for std::ostream, and std::wcout for std::wostream.
+     */
+    template <class OutputStream = std::ostream>
+    class debug_parse_context_extension {
     public:
-        /** Base parse context type. */
-        using parse_context_type = parse_context<Source, MatchId, ErrorId, TextPosition, SymbolComparator>;
+        /** Output stream type. */
+        using output_stream_type = std::ostream;
 
-        /** Reusing constructors from base class. */
-        using parse_context_type::parse_context;
-
-        /** 
+        /**
          * Returns the output stream associated with this context.
          * By default, debug information is written to std::cout.
          * @return the output stream associated with this context.
          */
-        std::ostream* output_stream() const {
+        output_stream_type* output_stream() const {
             return m_output_stream;
         }
 
@@ -48,7 +65,7 @@ namespace parserlib {
          * Sets the output stream associated with this context.
          * @param stream the stream to set.
          */
-        void set_output_stream(std::ostream* stream) {
+        void set_output_stream(output_stream_type* stream) {
             m_output_stream = stream;
         }
 
@@ -73,17 +90,18 @@ namespace parserlib {
          * Parses an annotation.
          * If an output stream is specified, then it outputs parsing information
          * before and after calling the given parse node to parse.
+         * @param pc the current parse context.
          * @param parse_node the parse node to invoke for parsing.
          * @param annotation the annotation to write to the output stream.
          * @return the parsing result.
          */
-        template <class ParseNode, class Annotation>
-        bool parse_annotation(const ParseNode& parse_node, const Annotation& annotation) {
+        template <class ParseContext, class ParseNode, class Annotation>
+        bool parse_annotation(ParseContext& pc, const ParseNode& parse_node, const Annotation& annotation) {
             if (m_output_stream) {
-                *m_output_stream << std::string(m_indentation_level * m_indentation_size, ' ') << "Parsing " << annotation << " at " << this->parse_position().to_string(this->begin_iterator()) << std::endl;
+                *m_output_stream << std::string(m_indentation_level * m_indentation_size, ' ') << "Parsing " << annotation << " at " << pc.parse_position().to_string(pc.begin_iterator()) << std::endl;
                 ++m_indentation_level;
             }
-            const bool result = parse_node.parse(*this);
+            const bool result = parse_node.parse(pc);
             if (m_output_stream) {
                 --m_indentation_level;
                 if (result) {
@@ -97,7 +115,7 @@ namespace parserlib {
         }
 
     private:
-        std::ostream* m_output_stream{ &std::cout };
+        output_stream_type* m_output_stream{ &default_output_stream<output_stream_type>::get() };
         size_t m_indentation_level{ 0 };
         size_t m_indentation_size{ 4 };
     };
@@ -106,4 +124,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif //PARSERLIB_DEBUG_PARSE_CONTEXT_HPP
+#endif //PARSERLIB_PARSE_CONTEXT_EXTENSIONS_HPP

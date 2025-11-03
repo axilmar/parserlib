@@ -34,7 +34,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return pc.parse_annotation(m_parse_node, m_annotation);
+            return pc.parse_annotation(pc, m_parse_node, m_annotation);
         }
 
     private:

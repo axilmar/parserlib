@@ -1024,7 +1024,7 @@ static void test_non_character_parsing() {
 }
 
 
-static void test_debug_parse_context() {
+static void test_debug_annotations() {
 
     const auto nl = newline('\n');
     const auto a = terminal('a')["A"];
@@ -1038,7 +1038,15 @@ static void test_debug_parse_context() {
     {
         std::string str = "a\nbde\nc";
 
-        debug_parse_context<std::string, int, int, text_position> pc(str);
+        parse_context<
+            default_source_type,
+            default_match_id_type,
+            default_error_id_type,
+            default_text_position_type,
+            default_symbol_comparator_type,
+            debug_parse_context_extension<>
+        > pc(str);
+
         std::stringstream stream;
         pc.set_output_stream(&stream);
 
@@ -1617,7 +1625,7 @@ void run_tests() {
     test_case_insensitive_parsing();
     test_non_character_parsing();
     #ifndef NDEBUG
-    test_debug_parse_context();
+    test_debug_annotations();
     #endif
     test_rule_optimizations();
     test_errors();

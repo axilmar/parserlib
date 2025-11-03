@@ -62,15 +62,17 @@ namespace parserlib {
      * @param ErrorId type of id for errors; it can be any custom enumeration or any other type.
      * @param TextPosition position in text; it is optionally used for providing line and column information.
      * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
+     * @param Extensions the list of parse context extensions.
      */
     template <
-        class Source = std::string,
-        class MatchId = int,
-        class ErrorId = int,
-        class TextPosition = default_text_position,
-        class SymbolComparator = default_symbol_comparator
+        class Source = default_source_type,
+        class MatchId = default_match_id_type,
+        class ErrorId = default_error_id_type,
+        class TextPosition = default_text_position_type,
+        class SymbolComparator = default_symbol_comparator_type,
+        class... Extensions
     >
-    class parse_context {
+    class parse_context : public Extensions... {
     public:
         /** The source type. */
         using source_type = Source;
@@ -106,7 +108,7 @@ namespace parserlib {
         using error_container_type = std::vector<error_type>;
 
         /** This class' type. */
-        using parse_context_type = parse_context<source_type, match_id_type, error_id_type, text_position_type, symbol_comparator_type>;
+        using parse_context_type = parse_context<source_type, match_id_type, error_id_type, text_position_type, symbol_comparator_type, Extensions...>;
 
         /** Rule type. */
         using rule_type = rule<parse_context_type>;
@@ -373,18 +375,6 @@ namespace parserlib {
          */
         bool terminal_parsing_allowed() const {
             return m_terminal_parsing_allowed;
-        }
-
-        /**
-         * Parses an annotation.
-         * The default implementation only invokes the given parse node for parsing.
-         * @param parse_node the parse node to invoke for parsing.
-         * @param annotation the annotation object.
-         * @return true on success, false on failure.
-         */
-        template <class ParseNode, class Annotation>
-        bool parse_annotation(const ParseNode& parse_node, const Annotation& annotation) {
-            return parse_node.parse(*this);
         }
 
         /**

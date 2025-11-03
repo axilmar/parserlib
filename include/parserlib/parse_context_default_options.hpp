@@ -9,6 +9,24 @@ namespace parserlib {
 
 
     /**
+     * The default source type.
+     */
+    using default_source_type = std::string;
+
+
+    /**
+     * The default match id type.
+     */
+    using default_match_id_type = int;
+
+
+    /**
+     * The default error id type.
+     */
+    using default_error_id_type = int;
+
+
+    /**
      * The default text position is empty.
      * It does not provide any line and column counting.
      */
@@ -64,6 +82,12 @@ namespace parserlib {
 
 
     /**
+     * The default text position type.
+     */
+    using default_text_position_type = default_text_position;
+
+
+    /**
      * The default symbol comparator returns the difference between two operands,
      * without any changes in the values.
      */
@@ -79,6 +103,12 @@ namespace parserlib {
             return a - b;
         }
     };
+
+
+    /**
+     * The default symbol comparator type.
+     */
+    using default_symbol_comparator_type = default_symbol_comparator;
 
 
 } //namespace parserlib

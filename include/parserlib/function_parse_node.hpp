@@ -37,7 +37,7 @@ namespace parserlib {
     };
 
 
-    template <class Source, class MatchId, class ErrorId, class TextPosition, class SymbolComparator> class parse_context;
+    template <class Source, class MatchId, class ErrorId, class TextPosition, class SymbolComparator, class... Extensions> class parse_context;
 
 
     /**
@@ -45,8 +45,8 @@ namespace parserlib {
      * @param f the function.
      * @return the function parse node.
      */
-    template <class Source, class MatchId, class TextPosition, class SymbolComparator>
-    auto make_parse_node(bool (*f)(parse_context<Source, MatchId, TextPosition, SymbolComparator>&)) {
+    template <class Source, class MatchId, class TextPosition, class SymbolComparator, class... Extensions>
+    auto make_parse_node(bool (*f)(parse_context<Source, MatchId, TextPosition, SymbolComparator, Extensions...>&)) {
         return function_parse_node(f);
     }
 
