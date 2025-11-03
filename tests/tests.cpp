@@ -1646,7 +1646,7 @@ static void test_multistage_parsing() {
         assert(tokenizer_result);
 
         //parse
-        auto parser_pc = tokenizer_pc.get_derived_parse_context<parser_match_id, default_error_id_type>();
+        auto parser_pc = tokenizer_pc.derive_parse_context<parser_match_id, default_error_id_type>();
         const bool parser_result = parser_grammar.parse(parser_pc);
         assert(parser_result);
 
