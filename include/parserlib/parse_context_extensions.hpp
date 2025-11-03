@@ -39,6 +39,59 @@ namespace parserlib {
 
 
     /**
+     * A parse annotations extension that is empty.
+     */
+    class empty_parse_annotations_extension {
+    public:
+        /**
+         * Returns the output stream associated with this context.
+         * @return nullptr.
+         */
+        void* output_stream() const {
+            return nullptr;
+        }
+
+        /**
+         * Sets the output stream associated with this context.
+         * Does nothing.
+         * @param stream the stream to set.
+         */
+        void set_output_stream(void* stream) {
+        }
+
+        /**
+         * Returns the indentation size.
+         * It returns 0.
+         * @return the indentation size.
+         */
+        size_t indentation_size() const {
+            return 0;
+        }
+
+        /**
+         * Sets the indentation size.
+         * Does nothing.
+         * @param size number of characters for indentation.
+         */
+        void set_indentation_size(size_t size) {
+        }
+
+        /**
+         * Parses an annotation.
+         * It only calls the `parse(pc)` method of the given parse node.
+         * @param pc the current parse context.
+         * @param parse_node the parse node to invoke for parsing.
+         * @param annotation the annotation to write to the output stream.
+         * @return the parsing result.
+         */
+        template <class ParseContext, class ParseNode, class Annotation>
+        bool parse_annotation(ParseContext& pc, const ParseNode& parse_node, const Annotation& annotation) {
+            return parse_node.parse(pc);
+        }
+    };
+
+
+    /**
      * A parse context extension that allows 
      * printing of annotations to an output stream,
      * while parsing.
@@ -47,7 +100,7 @@ namespace parserlib {
      *  by default, it is std::cout, for std::ostream, and std::wcout for std::wostream.
      */
     template <class OutputStream = std::ostream>
-    class debug_parse_context_extension {
+    class parse_annotations_extension {
     public:
         /** Output stream type. */
         using output_stream_type = std::ostream;

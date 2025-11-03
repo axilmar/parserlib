@@ -1044,7 +1044,8 @@ static void test_debug_annotations() {
             default_error_id_type,
             default_text_position_type,
             default_symbol_comparator_type,
-            debug_parse_context_extension<>
+            parse_annotations_extension<>
+            //empty_parse_annotations_extension
         > pc(str);
 
         std::stringstream stream;
