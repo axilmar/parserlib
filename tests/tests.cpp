@@ -1070,7 +1070,7 @@ static void test_rule_optimizations() {
     }
 
     {
-        rule<> grammar 
+        rule<> grammar
             = grammar >> 'b'
             | 'a'
             | 'x';
@@ -1535,7 +1535,7 @@ static void test_errors() {
         assert(result);
 
         assert(pc.parse_ended());
-        
+
         assert(pc.matches().size() == 3);
 
         assert(pc.matches()[0].id() == INTEGER);
@@ -1585,7 +1585,7 @@ static void test_ast() {
         parse_context<> pc(src);
         const bool result = grammar.parse(pc);
         assert(result);
-        
+
         assert(pc.matches().size() == 1);
 
         {
@@ -1659,7 +1659,7 @@ static void test_multistage_parsing() {
 
 
 static void test_load_file() {
-    std::string data = load_file("test.txt");
+    const std::string data = load_file("./../test.txt");
     assert(data == "The quick brown fox jumps over the lazy dog.");
 }
 

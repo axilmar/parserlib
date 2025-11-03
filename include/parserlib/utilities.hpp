@@ -16,22 +16,25 @@ namespace parserlib {
         //declare the filestream
         std::ifstream filestream(filename, std::ios::binary | std::ios::ate);
 
-        //get its size, in bytes
-        const std::streamsize byte_size = filestream.tellg();
+        //if file is open
+        if (filestream.is_open()) {
+            //get its size, in bytes
+            const std::streamsize byte_size = filestream.tellg();
 
-        //reset the file pointer to the beginning of the file.
-        filestream.seekg(0, std::ios::beg);
+            //reset the file pointer to the beginning of the file.
+            filestream.seekg(0, std::ios::beg);
 
-        //compute character size
-        const std::streamsize char_size = byte_size / sizeof(Char);
+            //compute character size
+            const std::streamsize char_size = (byte_size + sizeof(Char) - 1) / sizeof(Char);
 
-        //allocate memory for the result
-        std::basic_string<Char> result;
-        result.resize(byte_size);
+            //allocate memory for the result
+            std::basic_string<Char> result;
+            result.resize(char_size);
 
-        //read the data
-        if (filestream.read(reinterpret_cast<char*>(result.data()), byte_size)) {
-            return result;
+            //read the data
+            if (filestream.read(reinterpret_cast<char*>(result.data()), byte_size)) {
+                return result;
+            }
         }
 
         //error

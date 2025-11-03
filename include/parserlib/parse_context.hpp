@@ -56,7 +56,7 @@ namespace parserlib {
      * It contains a parse position, which is manipulated by parser node classes.
      * It contains a set of matches over the source.
      * It contains state that allows rules to handle left recursion.
-     * 
+     *
      * @param Source the source type; it can be any STL-like container.
      * @param MatchId type of id for matches; it can be any custom enumeration or any other type.
      * @param ErrorId type of id for errors; it can be any custom enumeration or any other type.
@@ -113,7 +113,7 @@ namespace parserlib {
         /** Rule type. */
         using rule_type = rule<parse_context_type>;
 
-        /**  
+        /**
          * Internal state type.
          */
         class state {
@@ -400,9 +400,9 @@ namespace parserlib {
          * @param ErrorId error id type.
          * @param Extensions parse context extensions.
          */
-        template <class MatchId, class ErrorId, class... Extensions>
+        template <class DerivedMatchId, class DerivedErrorId, class... DerivedExtensions>
         auto derive_parse_context() {
-            return parse_context<match_container_type, MatchId, ErrorId, default_text_position, default_symbol_comparator, Extensions...>(m_matches);
+            return parse_context<match_container_type, DerivedMatchId, DerivedErrorId, default_text_position, default_symbol_comparator, DerivedExtensions...>(m_matches);
         }
 
     private:
