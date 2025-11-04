@@ -203,6 +203,8 @@ The error parse node loops over the input, using the skip parse node, until the 
 
 This feature allows parsers to handle errors, then continue parsing.
 
+Any parse node can be a skip parse node; side effects of parse nodes are cancelled if used as skip parse nodes; the current parse context is not affected by them.
+
 For example:
 ```cpp
 const auto symbol
@@ -371,4 +373,58 @@ Example:
 ```cpp
 //when an identifier is recognized, push the relevant match to the match stack
 const auto identifier = (letter >> *(letter | digit))->*TOKEN_ID::IDENTIFIER;
+```
+
+### Using a parser
+
+In order to use a parser, a parse context must be initialized from an input (or an input range), then passed to the parser.
+
+Examples:
+
+```cpp
+std::string input = "123";
+parse_context pc{ input };
+//alternatively
+//parse_context pc{ input.begin(), input.end() };
+const bool result = parser.parse(pc);
+```
+
+#### The parse_context class
+
+The class `parse_context` plays the most important role in this library, as it is used to keep the parsing state, which includes:
+
+* current parse position
+* match stack
+* error stack
+* rule state (used in left recursion)
+
+The class `parse_context` provides an API for manipulating and testing the above state, and that API is used by the parse nodes.
+
+##### Customizing a parse context
+
+The `parse_context` class has the following signature:
+
+```cpp
+template <
+    class Source = default_source_type,
+    class MatchId = default_match_id_type,
+    class ErrorId = default_error_id_type,
+    class TextPosition = default_text_position_type,
+    class SymbolComparator = default_symbol_comparator_type,
+    class... Extensions
+>
+class parse_context : public Extensions...;
+```
+
+###### Parameter 'Source'
+
+The `Source` parameter of a `parse_context` class represents the type of input to parse.
+
+It can be any STL-like container.
+
+Example:
+
+```cpp
+std::vector<point> points;
+parse_context pc{ points; };
 ```
