@@ -179,7 +179,7 @@ namespace parserlib {
          * @param begin start of source.
          * @param end end of source.
          */
-        parse_context(const iterator_type& begin, const iterator_type& end)
+        parse_context(const iterator_type& begin, const iterator_type& end)            
             : m_parse_position(begin)
             , m_end_iterator(end)
             , m_left_recursion_start_state(begin)
@@ -193,6 +193,33 @@ namespace parserlib {
          */
         parse_context(source_type& source)
             : parse_context(source.begin(), source.end())
+        {
+        }
+
+        /**
+         * Constructor from source range and extension args.
+         * @param begin start of source.
+         * @param end end of source.
+         * @param extensionArgs arguments for the extensions.
+         */
+        template <class... ExtensionArgs>
+        parse_context(const iterator_type& begin, const iterator_type& end, ExtensionArgs&&... extensionArgs)
+            : Extensions(std::forward<ExtensionArgs>(extensionArgs))...
+            , m_parse_position(begin)
+            , m_end_iterator(end)
+            , m_left_recursion_start_state(begin)
+            , m_begin_iterator(begin)
+        {
+        }
+
+        /**
+         * Constructor from source and extension args.
+         * @param source the source.
+         * @param extensionArgs arguments for the extensions.
+         */
+        template <class... ExtensionArgs>
+        parse_context(source_type& source, ExtensionArgs&&... extensionArgs)
+            : parse_context(source.begin(), source.end(), std::forward<ExtensionArgs>(extensionArgs)...)
         {
         }
 
