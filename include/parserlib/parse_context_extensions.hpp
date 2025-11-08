@@ -39,9 +39,9 @@ namespace parserlib {
 
 
     /**
-     * A parse annotations extension that is empty.
+     * A debug annotations extension that is empty.
      */
-    class empty_parse_annotations_extension {
+    class default_debug_annotations_extension {
     public:
         /**
          * Returns the output stream associated with this context.
@@ -92,6 +92,12 @@ namespace parserlib {
 
 
     /**
+     * The default debug annotations extension type.
+     */
+    using default_debug_annotations_extension_type = default_debug_annotations_extension;
+
+
+    /**
      * A parse context extension that allows 
      * printing of annotations to an output stream,
      * while parsing.
@@ -100,7 +106,7 @@ namespace parserlib {
      *  by default, it is std::cout, for std::ostream, and std::wcout for std::wostream.
      */
     template <class OutputStream = std::ostream>
-    class parse_annotations_extension {
+    class debug_annotations_extension {
     public:
         /** Output stream type. */
         using output_stream_type = std::ostream;

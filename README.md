@@ -92,7 +92,7 @@ In order to build such a parse tree, the user might use:
 
 #### Functions
 
-##### Function "terminal"
+##### Function 'terminal'
 
 The function `terminal` can be used to create symbol and symbol string parse nodes.
 
@@ -106,7 +106,7 @@ terminal(50);
 terminal(TOKEN_ID::INTEGER);
 ```
 
-##### Function "set"
+##### Function 'set'
 
 The function `set` can be used to create a parse node for a symbol that belongs in a set. 
 
@@ -117,7 +117,7 @@ set("0123456789ABCDEFabcdef");
 set("+-");
 ```
 
-##### Function "range"
+##### Function 'range'
 
 The function `range` can be used to create a parse node for a symbol within a specific range.
 
@@ -129,7 +129,7 @@ range('a', 'z');
 range('A', 'Z');
 ```
 
-##### Function "any"
+##### Function 'any'
 
 The function `any` can be used to create a parse node that parses any single symbol.
 
@@ -138,7 +138,7 @@ Example:
 any();
 ```
 
-##### Function "end"
+##### Function 'end'
 
 The function `end` can be used to create a parse node that recognizes the end of input.
 
@@ -147,7 +147,7 @@ Example:
 end();
 ```
 
-##### Function "function"
+##### Function 'function'
 
 The function `function` can be used to create a parse node for a function, a functor or a lambda.
 
@@ -177,7 +177,7 @@ function(functor1);
 function([](auto& pc){ ...; return true; });
 ```
 
-##### Function "newline"
+##### Function 'newline'
 
 The function `newline` can be used to create a parse node that increments a parse context's current line, when another parse node parses the given input successfully.
 
@@ -187,7 +187,7 @@ Example:
 newline('\n');
 ```
 
-##### Function "error"
+##### Function 'error'
 
 The function `error` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input.
 
@@ -258,6 +258,11 @@ rule<> e = a;
 ```
 
 Rules can handle parsing left-recursive grammars.
+
+Rules also have two helper methods for debuggging:
+
+* `name()`: returns the rule name; initially empty.
+* `set_name(string)`: sets the rule name.
 
 #### Operators
 
@@ -375,11 +380,48 @@ Example:
 const auto identifier = (letter >> *(letter | digit))->*TOKEN_ID::IDENTIFIER;
 ```
 
+#### Custom parser classes
+
+A parser class must have the following interface:
+
+```cpp
+class my_parser_class : public parserlib::parse_node<my_parser_class> {
+public:
+	template <class ParseContext> bool parse(ParseContext& pc) const;
+};
+```
+
+Inheritance from `parserlib::parse_node` is desirable, in order to allow a parser class to get the unary operators that allow it to be converted to loops, optionals, etc.
+
+If a parser class does not want to inherit `parse_node`, then it may inherit `parse_node_base`, in order to be part of sequences and choices.
+
+#### Conversion of types to parse nodes
+
+The function `make_parse_node` can be used to create a converter of a type to a parse node.
+
+This allows a type to participate in parserlib DSL.
+
+For example:
+
+```cpp
+struct MyCustomType;
+
+class MyCustomTypeParser : public parse_node<MyCustomTypeParser> {
+public:
+	MyCustomTypeParser(MyCustomType v);
+    template <class ParseContext>bool parse(ParseContext& pc) const;
+};
+
+MyCustomTypeParse make_parse_node(MyCustomType v) { return v; }
+
+const auto grammar = terminal('a') >> MyCustomType('a') >> MyCustomType('b');
+```
+
 ### Using a parser
 
 In order to use a parser, a parse context must be initialized from an input (or an input range), then passed to the parser.
 
-Examples:
+Example:
 
 ```cpp
 std::string input = "123";
@@ -397,8 +439,9 @@ The class `parse_context` plays the most important role in this library, as it i
 * match stack
 * error stack
 * rule state (used in left recursion)
+* methods to test and modify its state
 
-The class `parse_context` provides an API for manipulating and testing the above state, and that API is used by the parse nodes.
+The class `parse_context` provides an API for retrieving and setting the above state, and that API is used by parse nodes.
 
 ##### Customizing a parse context
 
@@ -422,9 +465,464 @@ The `Source` parameter of a `parse_context` class represents the type of input t
 
 It can be any STL-like container.
 
+By default, the type `default_source_type` is `std::string`.
+
 Example:
 
 ```cpp
 std::vector<point> points;
 parse_context pc{ points; };
 ```
+
+###### Parameter 'MatchId'
+
+The `MatchId` parameter of a `parse_context` class represents the id type of a match.
+
+It can be anything, including class enumerations.
+
+By default, the type `default_match_id_type` is `int`.
+
+Example:
+
+```cpp
+enum class my_match_id { ID1, ID2, ID3 };
+parse_context<std::string, my_match_id> pc{ src; };
+```
+
+###### Parameter 'ErrorId'
+
+The `ErrorId` parameter of a `parse_context` class represents the id type of an error.
+
+It can be anything, including class enumerations.
+
+By default, the type `default_error_id_type` is `int`.
+
+Example:
+
+```cpp
+enum class my_error_id { ERROR1, ERROR2, ERROR3 };
+parse_context<std::string, int, my_error_id> pc{ src; };
+```
+
+###### Parameter 'TextPosition'
+
+The `TextPosition` parameter of a `parse_context` class represents the type of the position within the text.
+
+A text position type must have the following interface:
+
+```cpp
+struct a_text_position {
+    size_t line() const;
+    size_t column() const;
+    void increment_column();
+    void increment_column(size_t count)
+    void increment_line();
+    std::string to_string() const;
+};
+```
+
+By default, the type `default_text_position_type` is `default_text_position`, which implements an empty text position.
+
+The class `text_position` implements the above interface by maintaining line and column counters, and therefore can be used to report line and column for character parsers.
+
+Example:
+
+```cpp
+parse_context<std::string, int, int, text_position> pc{ src; };
+```
+
+###### Parameter 'SymbolComparator'
+
+The `SymbolComparator` parameter of a `parse_context` class represents the type of the comparator for symbols.
+
+A symbol comparator must have the following interface:
+
+```cpp
+struct symbol_comparator {
+    int operator ()(int a, int b) const;
+}
+```
+
+The `operator ()` of the comparator must return the difference between the given values:
+
+* if A < B, a negative value
+* if A == B, zero
+* if A > B, a positive value
+
+By default, the type `default_symbol_comparator_type` is `default_symbol_comparator`, which has the following implementation:
+
+```cpp
+class default_symbol_comparator {
+public:
+    int operator ()(int a, int b) const {
+        return a - b;
+    }
+};
+```
+
+Which means the symbols parsed must be convertible to `int`.
+
+The class `case_sensitive_symbol_comparator` can be used for case-insensitive comparisons. Its implementation is:
+
+```cpp
+class case_insensitive_symbol_comparator {
+public:
+    int operator ()(int a, int b) const {
+        return std::tolower(a) - std::tolower(b);
+    }
+}
+```
+
+i.e. it uses the function `std::tolower` to convert both symbols to lower case in order to compare them.
+
+Example:
+
+```cpp
+parse_context<std::string, int, int, default_text_position_type, case_sensitive_symbol_comparator> pc{ src; };
+```
+
+###### Parameter 'Extensions'
+
+The `Extensions` parameter of a `parse_context` class is a list of classes that `parse_context` inherits from, allowing extending the parse context with new capabilities.
+
+For example, one could implement a symbol lookup table extension:
+
+```cpp
+class symbol_lookup_extension {
+public:
+	std::string get_symbol(int symbol_id) const;
+    void add_symbol(int symbol_id, const std::string& value);
+};
+
+parse_context<std::string, int, int, default_text_position_type, default_symbol_comparator_type, symbol_lookup_extension> pc{ src; };
+```
+
+##### Using a parse context
+
+The following sections describe the parse context API.
+
+###### The constructor
+
+A parse context can be constructed in two ways:
+
+1. from an iterator range of an STL container.
+2. from an STL container.
+
+Both constructors optionally can receive arguments for the extensions.
+
+Examples:
+
+```cpp
+	//without arguments for extension constructors.
+	parse_context<> pc1(str);
+	parse_context<> pc1(str.begin(), str.end());
+    
+    //with arguments to extension constructors.
+	parse_context<> pc1(str, val1);
+	parse_context<> pc1(str.begin(), str.end(), val1);
+```
+
+###### Method 'parse_position()`
+
+The method `parse_position()` returns the current parse position.
+
+A parse position has the following interface:
+
+```cpp
+struct parse_position {
+	iterator() const;
+    text_position() const;
+    increment();
+    increment(count);
+    increment_line();
+    to_string(source begin_iterator) const;
+};
+```
+
+###### Method 'iterator()'
+
+The method `iterator()` returns the iterator of the parse position:
+
+```cpp
+//get symbol to parse
+*pc.iterator();
+```
+
+###### Method `text_position()`
+
+The method `text_position()` returns the current text position:
+
+```cpp
+std::cout << "current text position is: " << pc.text_position().to_string();
+```
+
+###### Method 'begin_iterator()'
+
+The method `begin_iterator()` returns the iterator from which parsing started:
+
+```cpp
+pc.begin_iterator();
+```
+
+###### Method 'end_iterator()'
+
+The method `end_iterator()` returns the iterator that is the end of the parse input:
+
+```cpp
+pc.end_iterator();
+```
+
+###### Method 'parse_valid()'
+
+The method `parse_valid()` checks if the end is reached; it returns:
+
+* `true` if the end is not reached yet.
+* `false` if the end is reached.
+
+```cpp
+if (pc.parse_valid()) {
+	...
+}
+```
+
+###### Method 'parse_ended()'
+
+The method `parse_ended()` checks if the end is reached; it returns:
+
+* `true` if the end is reached.
+* `false` if the end is not reached yet.
+
+```cpp
+if (!pc.parse_ended()) {
+	...
+}
+```
+
+###### Method 'increment_parse_position()'
+
+The method `increment_parse_position()` increments the current parse position by one.
+
+It increments the current iterator by one, and the text position by one column.
+
+It does not check if end has been reached in release mode, for performance reasons.
+
+Incrementing the parse position beyond the end of the source is an undefined operation.
+
+```cpp
+pc.increment_parse_position();
+```
+
+###### Method 'increment_parse_position(count)'
+
+The method `increment_parse_position(count)` increments the current parse position by the given count.
+
+It increments the current iterator by the given count, and the text position by the given amount of columns.
+
+It does not check if end is reached in release mode, for performance reasons.
+
+Incrementing the parse position beyond the end of the source is an undefined operation.
+
+```cpp
+pc.increment_parse_position(10);
+```
+
+###### Method 'increment_parse_position_line()'
+
+The method `increment_parse_position_line()` increments the current text position line by one.
+
+It does not increment the current iterator.
+
+```cpp
+pc.increment_parse_position_line();
+```
+
+###### Method 'match_count()'
+
+The method `match_count()` returns the number of matches in the match stack.
+
+```cpp
+pc.match_count();
+```
+
+###### Method 'matches()'
+
+The method `matches()` returns the stack of matches.
+
+```cpp
+pc.matches();
+```
+
+###### Method 'get_match_start_state()'
+
+The method `get_match_start_state()` returns the state of the parse context for the current match start.
+
+The match start state differs from the current state, for left recursion parsing.
+
+This function returns the appropriate start state for matches for both cases (left and non-left recursion).
+
+```cpp
+pc.get_match_start_state();
+```
+
+###### Method 'add_match(id, start_state, end_iterator)'
+
+the method `add_match(id, start_state, end_iterator)` adds a match to the match stack of a parse context.
+
+```cpp
+pc.add_match(IDENTIFIER, match_start_state, pc.iterator());
+```
+
+###### Method 'error_count()'
+
+The method `error_count()` returns the number of errors in the error stack.
+
+```cpp
+pc.error_count();
+```
+
+###### Method 'errors()'
+
+The method `errors()` returns the stack of errors.
+
+```cpp
+pc.errors();
+```
+
+###### Method 'add_error(id, start_pos, end_iterator)'
+
+The method `add_error(id, start_pos, end_iterator)` adds an error to the error stack of a parse context.
+
+```cpp
+pc.add_error(SYNTAX_ERROR, start_pos, end_it);
+```
+
+###### Method 'get_state()'
+
+The method `get_state()` returns the current state of a parse context.
+
+A state has the following methods:
+
+* parse_position()
+* iterator()
+* text_position()
+* match_count()
+* error_count()
+
+These methods are the same as the relevant methods of the parse context.
+
+A state value can only be created by a parse context, via `get_state()`.
+
+```cpp
+pc.get_state();
+```
+
+###### Method 'set_state(state)'
+
+The method `set_state(state)` sets the state of a parse context.
+
+It is used to restore a parse context to a previous state.
+
+```cpp
+pc.set_state(prev_state);
+```
+
+###### Method 'int compare_symbols(A, B)'
+
+The method `int compare_symbols(A, B)` compares two symbols and returns their numeric difference. The result can be:
+
+* result < 0, i.e. A is less than B
+* result > 0, i.e. A is greater than B
+* result == 0, i.e. A is equal to B
+
+A and B must be convertible to `int`, since the parse context will do a `static_cast<int>(a)` and `static_cast<int>(b)` to them respectively.
+
+```cpp
+int result = pc.compare(symbol1, symbol2);
+```
+
+###### Method 'int compare_current_symbol(T)'
+
+The method `int compare_current_symbol(T)` compares the given symbol to the current symbol to parse, using the method `compare_symbols()`.
+
+```cpp
+int result = pc.compare_current_symbol(symbol1);
+```
+
+###### Method 'terminal_parsing_allowed()'
+
+The method `terminal_parsing_allowed()` checks if a terminal can be parsed at the current parse context state.
+
+It must be invoked for terminal parsers in order to not allow them to parse while expecting to accept a rule for left recursion.
+
+```cpp
+bool result = pc.terminal_parsing_allowed();
+```
+
+###### Method 'left_recursion_start_state()'
+
+The method `left_recursion_start_state()` returns the start state for the current left recursion.
+
+The start state of a left recursion is always the point in the source that the left recursion started, while the current parse state can be furher ahead than the left recursion start state.
+
+This allows for maintaining left-associativity, when parsing left recursions.
+
+```cpp
+auto state = pc.left_recursion_start_state();
+```
+
+###### Method 'set_left_recursion_start_state(state)'
+
+The method `set_left_recursion_start_state(state)` sets the left recursion start state.
+
+```cpp
+pc.set_left_recursion_start_state(state);
+```
+
+###### Method 'derive_parse_context < DerivedMatchId, DerivedErrorId >()'
+
+The method `derive_parse_context < DerivedMatchId, DerivedErrorId >()` creates and returns a new parse context, that can parse the matches of the source parse context.
+
+This allows the result of one parsing stage (usually, the tokenizing stage) to be parsed immediately.
+
+Example:
+
+```cpp
+auto parser_parse_context = pc.derive_parse_context<PARSE_MATCH_ID, PARSE_ERROR_ID>();
+parser_grammar.parse(parser_parse_context);
+```
+
+For a full example of this, [see the test function `test_multistage_parsing()`](./tests/tests.cpp#test_multistage_parsing).
+
+### Debugging a parser
+
+#### Debugging via rule names
+
+A `rule<>` instance can have a name. By using the `set_name(string)` method of a rule, and using breakpoints, the rule that causes the problem can be identified.
+
+#### Debugging via `debug`
+
+The `debug` function wraps a parse node into an instance of `debug_parse_node`, which can be used to set a breakpoint into.
+
+For example:
+
+```cpp
+const auto c = ...;
+const auto expression = a >> b >> debug(c) >> d >> e;
+```
+
+By wrapping `c` into a `debug` parser, and setting up a breakpoint here:
+
+```cpp
+template <class ParseContext>
+bool parse(ParseContext& pc) const {
+    //put breakpoint here
+    const bool result = m_child.parse(pc);
+    return result;
+}
+
+```
+
+one can debug a particular part of a grammar (`c` in the above example).
+
+#### Debugging via annotations
+

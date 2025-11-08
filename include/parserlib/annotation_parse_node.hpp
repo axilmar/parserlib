@@ -2,10 +2,30 @@
 #define PARSERLIB_ANNOTATION_PARSE_NODE_HPP
 
 
+#include <type_traits>
 #include "parse_node.hpp"
 
 
 namespace parserlib {
+
+
+    template <class, class, class, class = void> 
+    struct has_method_parse_annotation
+        : std::false_type
+    {
+    };
+
+
+    template <class ParseContext, class ParseNode, class Annotation>
+    struct has_method_parse_annotation<
+        ParseContext,
+        ParseNode,
+        Annotation,
+        std::void_t<decltype(std::declval<ParseContext>().parse_annotation(std::declval<ParseContext&>(), std::declval<ParseNode>(), std::declval<Annotation>()))>
+    >
+        : std::true_type
+    {
+    };
 
 
     /**
@@ -34,7 +54,12 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return pc.parse_annotation(pc, m_parse_node, m_annotation);
+            if constexpr (has_method_parse_annotation<ParseContext, ParseNode, Annotation>::value) {
+                return pc.parse_annotation(pc, m_parse_node, m_annotation);
+            }
+            else {
+                return m_parse_node.parse(pc);
+            }
         }
 
     private:

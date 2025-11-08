@@ -2,48 +2,14 @@
 #define PARSERLIB_PARSE_CONTEXT_HPP
 
 
-//#include <cstdint>
+#include <cassert>
 #include <map>
+#include <algorithm>
 #include "parse_context_data.hpp"
 #include "parse_context_default_options.hpp"
 
 
 namespace parserlib {
-
-
-    /**
-     * An error.
-     * @param Source the source type.
-     * @param ErrorId error id type.
-     * @param TextPosition text position type.
-     */
-    template <class Source, class ErrorId, class TextPosition>
-    class parse_error : public source_partition<Source, ErrorId, TextPosition> {
-    public:
-        /** The source partition type. */
-        using source_partition_type = source_partition<Source, ErrorId, TextPosition>;
-
-        /** This class' type. */
-        using error_type = parse_error<Source, ErrorId, TextPosition>;
-
-        /** The error container type. */
-        using error_container_type = std::vector<error_type>;
-
-        /**
-         * The constructor.
-         * @param id match id.
-         * @param start_pos start position.
-         * @param end_it end_iterator.
-         */
-        parse_error(
-            const ErrorId& id = ErrorId(),
-            const typename source_partition_type::parse_position_type& start_pos = typename source_partition_type::parse_position_type(),
-            const typename source_partition_type::iterator_type& end_it = typename source_partition_type::iterator_type()
-        )
-            : source_partition_type(id, start_pos, end_it)
-        {
-        }
-    };
 
 
     template <class ParseContext> class rule;
@@ -232,6 +198,14 @@ namespace parserlib {
         }
 
         /**
+         * Returns the iterator.
+         * @return the iterator.
+         */
+        const iterator_type& iterator() const {
+            return m_parse_position.iterator();
+        }
+
+        /**
          * Returns the current text position.
          * @return the current text position.
          */
@@ -245,14 +219,6 @@ namespace parserlib {
          */
         const iterator_type& begin_iterator() const {
             return m_begin_iterator;
-        }
-
-        /**
-         * Returns the current iterator.
-         * @return the current iterator.
-         */
-        const iterator_type& iterator() const {
-            return m_parse_position.iterator();
         }
 
         /**
@@ -283,6 +249,7 @@ namespace parserlib {
          * Increments the parse position (iterator and text position) by one.
          */
         void increment_parse_position() {
+            assert(parse_valid());
             m_parse_position.increment();
         }
 
@@ -291,6 +258,8 @@ namespace parserlib {
          * @param count number of columns to add to the current parse position.
          */
         void increment_parse_position(size_t count) {
+            assert(parse_valid());
+            assert(std::next(m_parse_position.iterator(), count) <= m_end_iterator);
             m_parse_position.increment(count);
         }
 
@@ -301,6 +270,14 @@ namespace parserlib {
          */
         void increment_parse_position_line() {
             m_parse_position.increment_line();
+        }
+
+        /**
+         * Returns the match count.
+         * @return the match count.
+         */
+        size_t match_count() const {
+            return m_matches.size();
         }
 
         /**
@@ -330,6 +307,14 @@ namespace parserlib {
             match_container_type children(std::next(m_matches.begin(), start_state.m_match_count), m_matches.end());
             m_matches.resize(start_state.m_match_count);
             m_matches.push_back(match_type(id, start_state.m_parse_position, end_iterator, std::move(children)));
+        }
+
+        /**
+         * Returns the error count.
+         * @return the error count.
+         */
+        size_t error_count() const {
+            return m_errors.size();
         }
 
         /**
@@ -379,7 +364,7 @@ namespace parserlib {
          */
         template <class A, class B>
         int compare_symbols(const A& a, const B& b) const {
-            return m_symbol_comparator(a, b);
+            return m_symbol_comparator(static_cast<int>(a), static_cast<int>(b));
         }
 
         /**

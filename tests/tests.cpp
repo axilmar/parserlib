@@ -511,27 +511,27 @@ static void test_choice_parsing() {
 
 
 static void test_match_parsing() {
-    enum { A, B, C };
+    enum class ID { A, B, C };
 
-    const auto a = terminal('a')->*A;
-    const auto b = terminal('b')->*B;
-    const auto c = terminal('c')->*C;
+    const auto a = terminal('a')->*ID::A;
+    const auto b = terminal('b')->*ID::B;
+    const auto c = terminal('c')->*ID::C;
     const auto grammar = *(a | b | c);
 
     {
         std::string src = "abc";
-        parse_context<> pc(src);
+        parse_context<std::string, ID> pc(src);
         const bool ok = grammar.parse(pc);
         assert(ok);
         assert(pc.parse_ended());
         assert(pc.matches().size() == 3);
-        assert(pc.matches()[0].id() == A);
+        assert(pc.matches()[0].id() == ID::A);
         assert(pc.matches()[0].start_position().iterator() == src.begin());
         assert(pc.matches()[0].end_iterator() == std::next(src.begin()));
-        assert(pc.matches()[1].id() == B);
+        assert(pc.matches()[1].id() == ID::B);
         assert(pc.matches()[1].start_position().iterator() == std::next(src.begin()));
         assert(pc.matches()[1].end_iterator() == std::next(src.begin(), 2));
-        assert(pc.matches()[2].id() == C);
+        assert(pc.matches()[2].id() == ID::C);
         assert(pc.matches()[2].start_position().iterator() == std::next(src.begin(), 2));
         assert(pc.matches()[2].end_iterator() == std::next(src.begin(), 3));
     }
@@ -1038,24 +1038,61 @@ static void test_debug_annotations() {
     {
         std::string str = "a\nbde\nc";
 
-        parse_context<
-            default_source_type,
-            default_match_id_type,
-            default_error_id_type,
-            default_text_position_type,
-            default_symbol_comparator_type,
-            parse_annotations_extension<>
-            //empty_parse_annotations_extension
-        > pc(str);
+        //without debug annotations
+        {
+            parse_context<
+                default_source_type,
+                default_match_id_type,
+                default_error_id_type,
+                default_text_position_type,
+                default_symbol_comparator_type
+            > pc(str);
 
-        std::stringstream stream;
-        pc.set_output_stream(&stream);
+            const bool result = grammar.parse(pc);
+            assert(result);
+        }
 
-        const bool result = grammar.parse(pc);
-        assert(result);
+        //with default debug annotations
+        {
+            parse_context<
+                default_source_type,
+                default_match_id_type,
+                default_error_id_type,
+                default_text_position_type,
+                default_symbol_comparator_type,
+                default_debug_annotations_extension_type
+            > pc(str);
 
-        const std::string result_str = stream.str();
-        std::cout << result_str;
+            std::stringstream stream;
+            pc.set_output_stream(&stream);
+
+            const bool result = grammar.parse(pc);
+            assert(result);
+
+            const std::string result_str = stream.str();
+            std::cout << result_str;
+        }
+
+        //with debug annotations
+        {
+            parse_context<
+                default_source_type,
+                default_match_id_type,
+                default_error_id_type,
+                default_text_position_type,
+                default_symbol_comparator_type,
+                debug_annotations_extension<>
+            > pc(str);
+
+            std::stringstream stream;
+            pc.set_output_stream(&stream);
+
+            const bool result = grammar.parse(pc);
+            assert(result);
+
+            const std::string result_str = stream.str();
+            std::cout << result_str;
+        }
     }
 }
 
@@ -1524,7 +1561,7 @@ static void test_errors() {
     enum match_id { INTEGER = 1 };
     enum error_id { SYNTAX_ERROR = 2 };
 
-    const auto digit = range('0', '9');
+    const auto digit = debug(range('0', '9'));
     const auto integer = (+digit)->*INTEGER | error(SYNTAX_ERROR, digit);
     const auto grammar = *integer;
 
@@ -1623,25 +1660,25 @@ static void test_ast() {
 
 static void test_multistage_parsing() {
     //the lexer
-    enum lexer_match_id { INTEGER = 1, TERMINATOR };
+    enum class lexer_match_id { INTEGER = 1, TERMINATOR };
     const auto space = terminal(' ');
     const auto digit = range('0', '9');
-    const auto integer = (+digit)->*INTEGER;
-    const auto terminator = terminal(';')->*TERMINATOR;
+    const auto integer = (+digit)->*lexer_match_id::INTEGER;
+    const auto terminator = terminal(';')->*lexer_match_id::TERMINATOR;
     const auto lexer_grammar = *(space | integer | terminator);
 
     //the parser
-    enum parser_match_id { THREE_NUMBERS = 1, TWO_NUMBERS, ONE_NUMBER };
-    const auto three_numbers = (terminal(INTEGER) >> terminal(INTEGER) >> terminal(INTEGER) >> terminal(TERMINATOR))->*THREE_NUMBERS;
-    const auto two_numbers = (terminal(INTEGER) >> terminal(INTEGER) >> terminal(TERMINATOR))->*TWO_NUMBERS;
-    const auto one_number = (terminal(INTEGER) >> terminal(TERMINATOR))->*ONE_NUMBER;
+    enum class parser_match_id { THREE_NUMBERS = 1, TWO_NUMBERS, ONE_NUMBER };
+    const auto three_numbers = (terminal(lexer_match_id::INTEGER) >> terminal(lexer_match_id::INTEGER) >> terminal(lexer_match_id::INTEGER) >> terminal(lexer_match_id::TERMINATOR))->*parser_match_id::THREE_NUMBERS;
+    const auto two_numbers = (terminal(lexer_match_id::INTEGER) >> terminal(lexer_match_id::INTEGER) >> terminal(lexer_match_id::TERMINATOR))->*parser_match_id::TWO_NUMBERS;
+    const auto one_number = (terminal(lexer_match_id::INTEGER) >> terminal(lexer_match_id::TERMINATOR))->*parser_match_id::ONE_NUMBER;
     const auto parser_grammar = *(three_numbers | two_numbers | one_number);
 
     {
         std::string src = "123 456 789; 123 456; 123;";
 
         //tokenize
-        parse_context<> tokenizer_pc(src);
+        parse_context<std::string, lexer_match_id> tokenizer_pc(src);
         const bool tokenizer_result = lexer_grammar.parse(tokenizer_pc);
         assert(tokenizer_result);
 
@@ -1651,9 +1688,9 @@ static void test_multistage_parsing() {
         assert(parser_result);
 
         assert(parser_pc.matches().size() == 3);
-        assert(parser_pc.matches()[0].id() == THREE_NUMBERS);
-        assert(parser_pc.matches()[1].id() == TWO_NUMBERS);
-        assert(parser_pc.matches()[2].id() == ONE_NUMBER);
+        assert(parser_pc.matches()[0].id() == parser_match_id::THREE_NUMBERS);
+        assert(parser_pc.matches()[1].id() == parser_match_id::TWO_NUMBERS);
+        assert(parser_pc.matches()[2].id() == parser_match_id::ONE_NUMBER);
     }
 }
 
@@ -1686,9 +1723,7 @@ void run_tests() {
     calculator().test_rule_left_recursion_parsing();
     test_case_insensitive_parsing();
     test_non_character_parsing();
-    #ifndef NDEBUG
     test_debug_annotations();
-    #endif
     test_rule_optimizations();
     test_errors();
     test_ast();

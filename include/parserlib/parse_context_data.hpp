@@ -191,10 +191,10 @@ namespace parserlib {
 
         /**
          * Allows for using the source partition as input to parsing.
-         * @return the id of this source partition.
+         * @return the id of this source partition as an int.
          */
-        operator id_type () const {
-            return m_id;
+        operator int () const {
+            return static_cast<int>(m_id);
         }
 
     private:
@@ -258,6 +258,41 @@ namespace parserlib {
 
     private:
         match_container_type m_children;
+    };
+
+
+    /**
+     * An error.
+     * @param Source the source type.
+     * @param ErrorId error id type.
+     * @param TextPosition text position type.
+     */
+    template <class Source, class ErrorId, class TextPosition>
+    class parse_error : public source_partition<Source, ErrorId, TextPosition> {
+    public:
+        /** The source partition type. */
+        using source_partition_type = source_partition<Source, ErrorId, TextPosition>;
+
+        /** This class' type. */
+        using error_type = parse_error<Source, ErrorId, TextPosition>;
+
+        /** The error container type. */
+        using error_container_type = std::vector<error_type>;
+
+        /**
+         * The constructor.
+         * @param id match id.
+         * @param start_pos start position.
+         * @param end_it end_iterator.
+         */
+        parse_error(
+            const ErrorId& id = ErrorId(),
+            const typename source_partition_type::parse_position_type& start_pos = typename source_partition_type::parse_position_type(),
+            const typename source_partition_type::iterator_type& end_it = typename source_partition_type::iterator_type()
+        )
+            : source_partition_type(id, start_pos, end_it)
+        {
+        }
     };
 
 

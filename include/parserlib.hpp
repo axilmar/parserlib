@@ -8,6 +8,7 @@
 #include "parserlib/end_parse_node.hpp"
 #include "parserlib/error_parse_node.hpp"
 #include "parserlib/function_parse_node.hpp"
+#include "parserlib/debug_parse_node.hpp"
 #include "parserlib/logical_and_parse_node.hpp"
 #include "parserlib/logical_not_parse_node.hpp"
 #include "parserlib/loop_0_parse_node.hpp"
