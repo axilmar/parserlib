@@ -449,7 +449,7 @@ parse_context pc{ input };
 const bool result = parser.parse(pc);
 ```
 
-#### The parse_context class
+#### The `parse_context` class
 
 The class `parse_context` plays the most important role in this library, as it is used to keep the parsing state, which includes:
 
@@ -911,6 +911,112 @@ parser_grammar.parse(parser_parse_context);
 ```
 
 For a full example of this, [see the test function `test_multistage_parsing()`](./tests/tests.cpp#test_multistage_parsing).
+
+#### Using the parsing results
+
+The member function `parse(parse_context)` of a parse node returns a bool which indicates if the parsing was successful.
+
+Besides checking that result, there are some other items that a parse context provides in order to check if parsing was successful:
+
+1. checking if the whole input was parsed, by using the parse context function `parse_ended()`.
+2. checking the matches, by using the parse context function `matches()`.
+3. checking the errors, by using the parse context function `errors()`.
+
+##### Using matches
+
+The `matches()` function of a parse context returns the matches found during parsing. It returns an `std::vector` of `match` objects.
+
+Each match object has the following interface:
+
+* method `id()`: returns the id of the match.
+* method `parse_position()`: returns the start parse position of the match.
+* method `end_iterator()`: returns the end iterator of the match.
+* method `children()` or `matches()`: returns the children matches.
+* method `source()`: returns the source portion of the input that corresponds to the match; it is either a string, for character-based input, or a vector, for non-character-based input.
+
+**NOTE**: *The end position of parsing is not a parse position, because it may not be a parse position, it may be the end of the input.*
+
+Example:
+
+```cpp
+bool result = grammar.parse(pc);
+assert(result);
+assert(pc.parse_ended());
+for(const auto& match : pc.matches()) {
+	switch (m.id()) {
+    	case ...: std::cout << m.source() << std::endl;
+        ....
+    }
+}
+```
+
+##### Using errors
+
+The `errors()` function of a parse context returns the errors found during parsing. It returns an `std::vector` of `parse_error` objects.
+
+Each error object has the following interface:
+
+* method `id()`: returns the id of the error.
+* method `parse_position()`: returns the start parse position of the error.
+* method `end_iterator()`: returns the end iterator of the error.
+* method `source()`: returns the source portion of the input that corresponds to the error; it is either a string, for character-based input, or a vector, for non-character-based input.
+
+Example:
+
+```cpp
+bool result = grammar.parse(pc);
+assert(result);
+assert(pc.parse_ended());
+for(const auto& error : pc.errors()) {
+	std::cout << "error: " << error.id() << " at position " << error.parse_position().to_string(input.begin());
+}
+```
+
+**NOTE**: *`input.begin()` is passed to the `parse_position().to_string()` function in order to get the index of the iterator, if the text position is empty; the index is written to the string, instead of the text position.*
+
+#### Abstract Syntax Trees (ASTs)
+
+While matches can be processed 'as-is', it is often desirable to convert the match tree to an abstract syntax tree.
+
+The following functions can be used to convert matches to ASTs:
+
+* function `make_ast(match, ast_node_factory)`: creates one ast node from one match, including their children, using the given ast node factory.
+* function `make_ast(match)`: creates one ast node from one match, including their children, using the default ast node factory.
+* function `make_ast(matches, ast_node_factory)`: creates a vector of ast nodes from a vector of matches, including their children, using the given ast node factory.
+* function `make_ast(matches)`: creates a vector of ast nodes from a vector of matches, including their children, using the default ast node factory.
+
+An `ast node factory` shall have the method `make_node(match)` which returns a shared pointer to the created ast node from a match.
+
+##### The `ast_node` class
+
+The `ast_node` class has the following signature:
+
+```cpp
+template <class Source = std::string, class MatchId = int, class TextPosition = default_text_position> class ast_node;
+```
+
+And the following interface:
+
+* method `id()`: returns the id of the ast node.
+* method `parse_position()`: returns the start parse position of the part of the source the ast node represents.
+* method `end_iterator()`: returns the end iterator of the part of the source the ast node represents.
+* method `source()`: returns the source portion of the input the ast node represents; it is either a string, for character-based input, or a vector, for non-character-based input.
+* method `parent()`: returns a pointer to the parent ast node.
+* method `children()`: returns a vector of children.
+* method `add_child(child, index = -1)`: adds a child at the specified index; -1 means 'last child'.
+* method `remove_child(child)`: removes a child.
+* method `remove_all_children()`: removes all children.
+
+**NOTE**: *AST nodes are managed via shared pointers.*
+
+Example:
+
+```cpp
+const auto ast_nodes = make_ast(pc.matches());
+for(const auto &ast_node : ast_nodes) {
+	std::cout << ast_node->id() << std::endl;
+}
+```
 
 ### Debugging a parser
 
