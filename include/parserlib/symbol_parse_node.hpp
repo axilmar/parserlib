@@ -12,7 +12,7 @@ namespace parserlib {
 
     /**
      * A parse node that parses a specific symbol.
-     * @param Symbol type of symbol to parse; must be castable to `int`.
+     * @param Symbol type of symbol to parse.
      */
     template <class Symbol>
     class symbol_parse_node : public parse_node<symbol_parse_node<Symbol>> {

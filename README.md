@@ -95,7 +95,11 @@ In order to build such a parse tree, the user might use:
 
 ##### Function 'terminal'
 
-The function `terminal` can be used to create symbol and symbol string parse nodes.
+The function `terminal` can be used to create symbol and symbol string parse nodes. The following overloads exist:
+
+* `terminal(symbol)`: creates a parse node for the given symbol.
+* `terminal(string)`: creates a parse node for the given string (null-terminated string or `std::basic_string`).
+* `terminal(string, comparator)`: creates a parse node for the given string (null-terminated string or `std::basic_string`) with the specific comparator.
 
 Examples:
 
@@ -105,6 +109,19 @@ terminal("hello world");
 terminal(L"hello world");
 terminal(50);
 terminal(TOKEN_ID::INTEGER);
+terminal("xml", case_insensitive_symbol_comparator());
+```
+
+##### Function 'case_insensitive_terminal'
+
+The function `case_insensitive_terminal` can be used to create symbol and symbol string parse nodes that parse a symbol or string using the `case_insensitive_symbol_comparator` comparator.
+
+Examples:
+
+```cpp
+case_insensitive_terminal('a');
+case_insensitive_terminal("hello world");
+case_insensitive_terminal(L"hello world");
 ```
 
 ##### Function 'set'
@@ -540,7 +557,8 @@ A symbol comparator must have the following interface:
 
 ```cpp
 struct symbol_comparator {
-    int operator ()(int a, int b) const;
+	template <class A, class B>
+    int operator ()(A, B) const;
 }
 ```
 
@@ -555,21 +573,21 @@ By default, the type `default_symbol_comparator_type` is `default_symbol_compara
 ```cpp
 class default_symbol_comparator {
 public:
-    int operator ()(int a, int b) const {
-        return a - b;
+    template <class A, class B>
+    int operator ()(const A& a, const B& b) const {
+        return static_cast<int>(a) - static_cast<int>(b);
     }
 };
 ```
-
-Which means the symbols parsed must be convertible to `int`.
 
 The class `case_sensitive_symbol_comparator` can be used for case-insensitive comparisons. Its implementation is:
 
 ```cpp
 class case_insensitive_symbol_comparator {
 public:
+    template <class A, class B>
     int operator ()(int a, int b) const {
-        return std::tolower(a) - std::tolower(b);
+        return std::tolower(static_cast<int>(a) - std::tolower(static_cast<int>(b));
     }
 }
 ```
@@ -929,7 +947,7 @@ one can debug a particular part of a grammar (`c` in the above example).
 
 The `operator []` can be used on parse nodes to add an annotation to them.
 
-An annotation is any object the user wants; for debugging, it usually is the name/role of an expression.
+An annotation is any value the user wants; for debugging, it usually is the name/role of an expression.
 
 By default, annotations are not processed; an extension is required that provides the function `parse_annotation(parse_context&, parse_node, annotation)`.
 
@@ -1004,3 +1022,79 @@ parse_context<
     debug_annotations_extension<std::wostream> 
     pc1(source);
 ```
+
+## Parsing left recursive grammars
+
+`Parserlib` can handle left recursion grammars.
+
+The way this is achieved is the following:
+
+* a parse context keeps the last parse position used by a rule, and therefore can recognize when left recursion exists dynamically: when the new parse position for a rule is the same as the previous one, then there is a left recursion on that rule.
+* upon recognizing left recursion, the parse context is rewinded to the last non-left recursive position for that rule. Then left recursion parsing starts, and it is executed in two phases:
+	1. the `reject` phase, in which left recursive rules reject parsing in order to allow non-left recursive rules to parse.
+	2. the `accept` phase, in which left recursive rules accept parsing without calling the parser, allowing the parts after the left recursive rules to be parsed.
+
+The `accept` phase loops until no more parsing can be done.
+
+The algorithm keeps the left-associativity of the grammar, by forcing matches to start from where the left recursion starts.
+
+Let's see an example. Here is a left-recursive calculator grammar:
+
+```cpp
+const auto digit = range('0', '9');
+
+const auto num = +digit >> -('.' >> +digit);
+
+rule<> val = num
+           | '(' >> add >> ')';
+
+rule<> mul = mul >> '*' >> val
+           | mul >> '/' >> val
+           | val;
+
+rule<> add = add >> '+' >> mul
+           | add >> '-' >> mul
+           | mul;
+```
+
+In the `reject` phase, the above grammar looks like this:
+
+```cpp
+const auto digit = range('0', '9');
+
+const auto num = +digit >> -('.' >> +digit);
+
+rule<> val = num
+           | '(' >> add >> ')';
+
+rule<> mul = REJECT >> '*' >> val
+           | REJECT >> '/' >> val
+           | val;
+
+rule<> add = REJECT >> '+' >> mul
+           | REJECT >> '-' >> mul
+           | mul;
+```
+
+This allows the non-left recursive parts to be parsed first.
+
+Then, in the `accept` phase, the grammar looks like this:
+
+```cpp
+const auto digit = range('0', '9');
+
+const auto num = +digit >> -('.' >> +digit);
+
+rule<> val = num
+           | '(' >> add >> ')';
+
+rule<> mul = *(ACCEPT >> '*' >> val
+           | ACCEPT >> '/' >> val
+           | REJECT);
+
+rule<> add = *(ACCEPT >> '+' >> mul
+           | ACCEPT >> '-' >> mul
+           | REJECT);
+```
+
+The above algorithm allows for left-recursive grammars to be parsed.

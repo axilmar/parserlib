@@ -5,6 +5,8 @@
 #include "parserlib/any_parse_node.hpp"
 #include "parserlib/ast.hpp"
 #include "parserlib/bool_parse_node.hpp"
+#include "parserlib/custom_comparator_string_parse_node.hpp"
+#include "parserlib/custom_comparator_symbol_parse_node.hpp"
 #include "parserlib/end_parse_node.hpp"
 #include "parserlib/error_parse_node.hpp"
 #include "parserlib/function_parse_node.hpp"

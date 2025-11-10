@@ -28,11 +28,101 @@ static void test_symbol_parsing() {
 }
 
 
+static void test_case_insensitive_symbol_parsing() {
+    const auto grammar = case_insensitive_terminal('a');
+
+    {
+        std::string src = "a";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "A";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "b";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.parse_position().iterator() == src.begin());
+    }
+}
+
+
 static void test_string_parsing() {
     const auto grammar = terminal("abc");
 
     {
         std::string src = "abc";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "bca";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.parse_position().iterator() == src.begin());
+    }
+}
+
+
+static void test_case_insensitive_string_parsing() {
+    const auto grammar = case_insensitive_terminal("abc");
+
+    {
+        std::string src = "abc";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "Abc";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "aBc";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "abC";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "ABc";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "aBC";
         parse_context<> pc(src);
         const bool ok = grammar.parse(pc);
         assert(ok);
@@ -1703,7 +1793,9 @@ static void test_load_file() {
 
 void run_tests() {
     test_symbol_parsing();
+    test_case_insensitive_symbol_parsing();
     test_string_parsing();
+    test_case_insensitive_string_parsing();
     test_set_parsing();
     test_range_parsing();
     test_any_parsing();

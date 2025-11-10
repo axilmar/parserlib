@@ -364,7 +364,7 @@ namespace parserlib {
          */
         template <class A, class B>
         int compare_symbols(const A& a, const B& b) const {
-            return m_symbol_comparator(static_cast<int>(a), static_cast<int>(b));
+            return m_symbol_comparator(a, b);
         }
 
         /**

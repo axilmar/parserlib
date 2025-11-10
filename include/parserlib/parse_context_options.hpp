@@ -82,8 +82,9 @@ namespace parserlib {
          * @param b the second operand.
          * @return their difference.
          */
-        int operator ()(int a, int b) const {
-            return std::tolower(a) - std::tolower(b);
+        template <class A, class B>
+        int operator ()(const A& a, const B& b) const {
+            return std::tolower(static_cast<int>(a)) - std::tolower(static_cast<int>(b));
         }
     };
 
