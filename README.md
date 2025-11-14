@@ -281,35 +281,6 @@ const auto token
 const tokenizer = *token;
 ```
 
-##### Function 'expect'
-
-The function `expect(parser, id, skip_parser)` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input, if another parser fails to parse.
-
-The `skip_parse_node` parameter represents a parse node (or a value convertible to a parse node) that is used to identify where the error stops in the input.
-
-This feature allows parsers to handle errors, then continue parsing.
-
-Any parse node can be a skip parse node; side effects of parse nodes are cancelled if used as skip parse nodes; the current parse context is not affected by them.
-
-For example:
-```cpp
-const auto symbol
-	= terminal(' ')
-    | newline('\n')
-    | number
-    | plus
-    | minus
-    | star
-    | div
-    | left_parenthesis
-    | right_parenthesis;
-
-//if a valid symbol is not recognized, add an error and proceed to the next symbol
-const auto token = expect(symbol, ERROR_ID::INVALID_CHARACTERS, skip_before(symbol));
-
-const tokenizer = *token;
-```
-
 #### Rules
 
 Rules are special parse node objects that are used for recursive parser declarations.

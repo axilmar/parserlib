@@ -309,7 +309,7 @@ namespace parserlib {
                     object = (
                         TOKEN_ID::LEFT_CURLY_BRACKET >> 
                         -list(object_member, TOKEN_ID::COMMA, object_member) >>
-                        TOKEN_ID::RIGHT_CURLY_BRACKET)
+                        TOKEN_ID::RIGHT_CURLY_BRACKET
                     )->*AST_ID::OBJECT;
 
                     //this grammar
