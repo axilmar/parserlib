@@ -250,11 +250,11 @@ error(SYNTAX_ERROR, skip_after(TOKEN_SEMICOLON));
 
 ##### Function 'error'
 
-The function `error(id, skip_parser)` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input.
+The function `error(id, [skip_parser])` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input.
 
 The function `error` has the following signature:
 
-The `skip_parse_node` parameter represents a parse node (or a value convertible to a parse node) that is used to identify where the error stops in the input.
+The `skip_parse_node` parameter represents a parse node (or a value convertible to a parse node) that is used to identify where the error stops in the input; it is optional.
 
 This feature allows parsers to handle errors, then continue parsing.
 

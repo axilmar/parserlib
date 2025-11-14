@@ -113,6 +113,12 @@ namespace parserlib {
          */
         enum class ERROR_ID {
             INVALID_CHARACTERS,
+            EXPECTED_COMMA,
+            EXPECTED_COLON,
+            EXPECTED_VALUE,
+            EXPECTED_MEMBER,
+            EXPECTED_RIGHT_SQUARE_BRACKET,
+            EXPECTED_RIGHT_CURLY_BRACKET
         };
 
         /**
@@ -123,6 +129,12 @@ namespace parserlib {
         static const char* error_id_name(ERROR_ID id) {
             static const char* names[] = {
                 "INVALID_CHARACTERS",
+                "EXPECTED_COMMA",
+                "EXPECTED_COLON",
+                "EXPECTED_VALUE",
+                "EXPECTED_MEMBER",
+                "EXPECTED_RIGHT_SQUARE_BRACKET",
+                "EXPECTED_RIGHT_CURLY_BRACKET"
             };
             return names[static_cast<int>(id)];
         }
@@ -272,11 +284,17 @@ namespace parserlib {
                     //number terminal
                     const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
+                    //array member list
+                    const auto array_member_list = list(
+                        value, 
+                        TOKEN_ID::COMMA, 
+                        (value | error(ERROR_ID::EXPECTED_VALUE)));
+
                     //array
                     const auto array = (
                         TOKEN_ID::LEFT_SQUARE_BRACKET >> 
-                        list(value, TOKEN_ID::COMMA, value) >> 
-                        TOKEN_ID::RIGHT_SQUARE_BRACKET
+                        -array_member_list >> 
+                        (TOKEN_ID::RIGHT_SQUARE_BRACKET | error(ERROR_ID::EXPECTED_RIGHT_SQUARE_BRACKET))
                         )->*AST_ID::ARRAY;
 
                     //true terminal
@@ -300,16 +318,22 @@ namespace parserlib {
 
                     //the object member
                     const auto object_member = (
-                        string >> 
-                        TOKEN_ID::COLON >> 
-                        value
+                        string >>
+                        (TOKEN_ID::COLON | error(ERROR_ID::EXPECTED_COLON)) >> 
+                        (value | error(ERROR_ID::EXPECTED_VALUE))
                     )->*AST_ID::MEMBER;
+
+                    //the object member list
+                    const auto object_member_list = list(
+                        object_member,
+                        TOKEN_ID::COMMA,
+                        (object_member | error(ERROR_ID::EXPECTED_MEMBER)));
 
                     //the object
                     object = (
                         TOKEN_ID::LEFT_CURLY_BRACKET >> 
-                        -list(object_member, TOKEN_ID::COMMA, object_member) >>
-                        TOKEN_ID::RIGHT_CURLY_BRACKET
+                        -object_member_list >>
+                        (TOKEN_ID::RIGHT_CURLY_BRACKET | error(ERROR_ID::EXPECTED_RIGHT_CURLY_BRACKET))
                     )->*AST_ID::OBJECT;
 
                     //this grammar

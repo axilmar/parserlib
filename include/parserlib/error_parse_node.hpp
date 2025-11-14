@@ -2,7 +2,7 @@
 #define PARSERLIB_ERROR_PARSE_NODE_HPP
 
 
-#include "parse_node.hpp"
+#include "bool_parse_node.hpp"
 
 
 namespace parserlib {
@@ -51,7 +51,7 @@ namespace parserlib {
 
 
     /**
-     * Creates an error parse node.
+     * Creates an error parse node with a specific skip parse node.
      * @param id error id.
      * @param skip_parse_node parse node to use for skipping the erroneous input.
      * @return an error parse node.
@@ -59,6 +59,18 @@ namespace parserlib {
     template <class ErrorId, class SkipParseNode>
     auto error(const ErrorId& id, SkipParseNode&& skip_parse_node) {
         return error_parse_node(id, make_parse_node(skip_parse_node));
+    }
+
+
+    /**
+     * Creates an error parse node with no parse node; after the error, the parse 
+     * context remains as is.
+     * @param id error id.
+     * @return an error parse node.
+     */
+    template <class ErrorId>
+    auto error(const ErrorId& id) {
+        return error(id, true);
     }
 
 
