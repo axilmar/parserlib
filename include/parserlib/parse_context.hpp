@@ -68,7 +68,7 @@ namespace parserlib {
         using match_container_type = std::vector<match_type>;
 
         /** The error type. */
-        using error_type = parse_error<source_type, match_id_type, text_position_type>;
+        using error_type = parse_error<source_type, error_id_type, text_position_type>;
 
         /** The error container type. */
         using error_container_type = std::vector<error_type>;
@@ -130,6 +130,9 @@ namespace parserlib {
             size_t m_error_count;
             bool m_terminal_parsing_allowed;
 
+            state() {
+            }
+
             state(const parse_position_type& parse_pos, size_t match_count = 0, size_t error_count = 0, bool tpa = false)
                 : m_parse_position(parse_pos)
                 , m_match_count(match_count)
@@ -141,15 +144,22 @@ namespace parserlib {
         };
 
         /**
+         * The default constructor.
+         */
+        parse_context()
+        {
+        }
+
+        /**
          * Constructor from source range.
          * @param begin start of source.
          * @param end end of source.
          */
         parse_context(const iterator_type& begin, const iterator_type& end)            
             : m_parse_position(begin)
+            , m_begin_iterator(begin)
             , m_end_iterator(end)
             , m_left_recursion_start_state(begin)
-            , m_begin_iterator(begin)
         {
         }
 
@@ -172,9 +182,9 @@ namespace parserlib {
         parse_context(const iterator_type& begin, const iterator_type& end, ExtensionArgs&&... extensionArgs)
             : Extensions(std::forward<ExtensionArgs>(extensionArgs))...
             , m_parse_position(begin)
+            , m_begin_iterator(begin)
             , m_end_iterator(end)
             , m_left_recursion_start_state(begin)
-            , m_begin_iterator(begin)
         {
         }
 
@@ -226,6 +236,22 @@ namespace parserlib {
          * @return the end iterator.
          */
         const iterator_type& end_iterator() const {
+            return m_end_iterator;
+        }
+
+        /**
+         * Returns the begin iterator.
+         * @return the begin iterator.
+         */
+        const iterator_type& begin() const {
+            return m_begin_iterator;
+        }
+
+        /**
+         * Returns the end iterator.
+         * @return the end iterator.
+         */
+        const iterator_type& end() const {
             return m_end_iterator;
         }
 
@@ -429,15 +455,15 @@ namespace parserlib {
             rule_state state;
         };
 
-        parse_position_type m_parse_position;
-        const iterator_type m_end_iterator;
-        match_container_type m_matches;
         symbol_comparator_type m_symbol_comparator;
+        parse_position_type m_parse_position;
+        iterator_type m_begin_iterator;
+        iterator_type m_end_iterator;
+        match_container_type m_matches;
+        error_container_type m_errors;
         state m_left_recursion_start_state;
         bool m_terminal_parsing_allowed{ true };
         std::map<const rule_type*, rule_data> m_rule_data;
-        const iterator_type m_begin_iterator;
-        error_container_type m_errors;
 
         friend rule_type;
     };

@@ -28,26 +28,20 @@ namespace parserlib {
         }
 
         /**
-         * Skips the error input by invoking the skip parse node in a loop, 
-         * incrementing the parse position at each iteration,
-         * until the skip parse node returns true or the input ends.
+         * Invokes the skip parse node to skip the erroneous input, 
+         * and if the skip parse node returns true,
+         * then adds an error to the parse context.
          * @param pc the current parse context.
-         * @return always true, in order to avoid backtracking (which will cancel the error if it happens).
+         * @return true if the skip parse node returned true, false otherwise.
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             const auto start_pos = pc.parse_position();
-            while (pc.parse_valid()) {
-                const auto state = pc.get_state();
-                const bool result = m_skip_parse_node.parse(pc);
-                pc.set_state(state);
-                if (result) {
-                    break;
-                }
-                pc.increment_parse_position();
+            if (m_skip_parse_node.parse(pc)) {
+                pc.add_error(m_id, start_pos, pc.iterator());
+                return true;
             }
-            pc.add_error(m_id, start_pos, pc.iterator());
-            return true;
+            return false;
         }
 
     private:

@@ -119,6 +119,18 @@ namespace parserlib {
             m_children.clear();
         }
 
+        /**
+         * Visits this node and its children.
+         * @param visitor the visitor function; must have the signature `(const T& object, size_t depth)`.
+         * @param depth current tree depth.
+         */
+        template <class Visitor> void visit(const Visitor& visitor, size_t depth = 0) const {
+            visitor(*this, depth);
+            for (const auto& child : m_children) {
+                child->visit(visitor, depth + 1);
+            }
+        }
+
     private:
         ast_node* m_parent{nullptr};
         ast_node_container_type m_children;

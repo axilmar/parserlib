@@ -96,6 +96,36 @@ namespace parserlib {
     }
 
 
+    /**
+     * The exclusion operator.
+     * Converts an expression of type "L - R" to "!R >> L".
+     * @param left left operand.
+     * @param right right operand.
+     * @return a sequence of not R followed by L.
+     */
+    template <
+        class L,
+        class R,
+        std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true
+    >
+    auto operator - (L&& left, R&& right) {
+        return !make_parse_node(right) >> make_parse_node(left);
+    }
+
+
+    /**
+     * Helper function for creating a list of items with a separator in between them.
+     * @param initial_expression to start the list.
+     * @param separator the separator to put in-between the expressions.
+     * @param subsequent_expression to continue the list.
+     * @return a sequence of the expression and a 0-or-more-times loop of separator followed by the expression.
+     */
+    template <class InitialExpression, class Separator, class SubsequentExpression>
+    auto list(InitialExpression&& initial_expression, Separator&& separator, SubsequentExpression&& subsequent_expression) {
+        return make_parse_node(initial_expression) >> *(make_parse_node(separator) >> make_parse_node(subsequent_expression));
+    }
+
+
 } //namespace parserlib
 
 

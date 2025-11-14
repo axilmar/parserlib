@@ -81,6 +81,17 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a symbol set parse node from a string.
+     * @param the null-terminated string to create a set parse node from.
+     * @return a set parse node.
+     */
+    template <class Symbol0, class... Symbol, std::enable_if_t<(std::is_same_v<Symbol0, Symbol> && ...), bool> = true>
+    set_parse_node<Symbol0> set(const Symbol0& symbol0, const Symbol&... symbols) {
+        return set_parse_node<Symbol0>(std::basic_string<Symbol0>({symbol0, symbols...}));
+    }
+
+
 } //namespace parserlib
 
 

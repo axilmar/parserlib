@@ -1652,7 +1652,7 @@ static void test_errors() {
     enum error_id { SYNTAX_ERROR = 2 };
 
     const auto digit = debug(range('0', '9'));
-    const auto integer = (+digit)->*INTEGER | error(SYNTAX_ERROR, digit);
+    const auto integer = (+digit)->*INTEGER | error(SYNTAX_ERROR, skip_before(digit));
     const auto grammar = *integer;
 
     {

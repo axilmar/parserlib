@@ -133,6 +133,7 @@ Examples:
 ```cpp
 set("0123456789ABCDEFabcdef");
 set("+-");
+set('0', '1', '2', '3');
 ```
 
 ##### Function 'range'
@@ -205,19 +206,55 @@ Example:
 newline('\n');
 ```
 
+##### Function 'list'
+
+The function `list(initial-expression, separator, subsequent-expression)` can be used to create a repeating loop of the given subsequent expression, separated by the given separator and starting with the initial expression.
+
+Example:
+
+```cpp
+list(value, ',', value);
+```
+
+##### Function 'skip_before'
+
+The function `skip_before(expression)` can be used to create a repeating loop of the given expression.
+
+The loop stops when the given expression parses successfully.
+
+This allows an error parser to skip input until the parsing state is not erroneous.
+
+The state of parsing is set to the state just before the given expression parses successfully.
+
+Example:
+
+```cpp
+error(SYNTAX_ERROR, skip_before(token));
+```
+
+##### Function 'skip_after'
+
+The function `skip_after(expression)` can be used to create a repeating loop of the given expression.
+
+The loop stops when the given expression parses successfully.
+
+This allows an error parser to skip input until the parsing state is not erroneous.
+
+The state of parsing is set to the state just after the given expression parses successfully.
+
+Example:
+
+```cpp
+error(SYNTAX_ERROR, skip_after(TOKEN_SEMICOLON));
+```
+
 ##### Function 'error'
 
-The function `error` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input.
+The function `error(id, skip_parser)` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input.
 
 The function `error` has the following signature:
 
-```cpp
-template <class ErrorId, class SkipParseNode> auto error(const ErrorId& id, SkipParseNode&& skip_parse_node);
-```
-
 The `skip_parse_node` parameter represents a parse node (or a value convertible to a parse node) that is used to identify where the error stops in the input.
-
-The error parse node loops over the input, using the skip parse node, until the skip parse node parses succcesfully, then an error is added to the current parse context.
 
 This feature allows parsers to handle errors, then continue parsing.
 
@@ -239,7 +276,36 @@ const auto symbol
 //if a valid symbol is not recognized, add an error and proceed to the next symbol
 const auto token
     = symbol
-    | error(ERROR_ID::INVALID_CHARACTERS, symbol);
+    | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol));
+
+const tokenizer = *token;
+```
+
+##### Function 'expect'
+
+The function `expect(parser, id, skip_parser)` can be used to add an error to a parse context's error stack, and then allow parsing to continue from a specific point in the input, if another parser fails to parse.
+
+The `skip_parse_node` parameter represents a parse node (or a value convertible to a parse node) that is used to identify where the error stops in the input.
+
+This feature allows parsers to handle errors, then continue parsing.
+
+Any parse node can be a skip parse node; side effects of parse nodes are cancelled if used as skip parse nodes; the current parse context is not affected by them.
+
+For example:
+```cpp
+const auto symbol
+	= terminal(' ')
+    | newline('\n')
+    | number
+    | plus
+    | minus
+    | star
+    | div
+    | left_parenthesis
+    | right_parenthesis;
+
+//if a valid symbol is not recognized, add an error and proceed to the next symbol
+const auto token = expect(symbol, ERROR_ID::INVALID_CHARACTERS, skip_before(symbol));
 
 const tokenizer = *token;
 ```
@@ -277,7 +343,7 @@ rule<> e = a;
 
 Rules can handle parsing left-recursive grammars.
 
-Rules also have two helper methods for debuggging:
+Rules also have two helper methods for debugging:
 
 * `name()`: returns the rule name; initially empty.
 * `set_name(string)`: sets the rule name.
@@ -691,6 +757,22 @@ The method `end_iterator()` returns the iterator that is the end of the parse in
 pc.end_iterator();
 ```
 
+###### Method 'begin()'
+
+The method `begin()` returns the iterator from which parsing started:
+
+```cpp
+pc.begin();
+```
+
+###### Method 'end()'
+
+The method `end()` returns the iterator that is the end of the parse input:
+
+```cpp
+pc.end();
+```
+
 ###### Method 'parse_valid()'
 
 The method `parse_valid()` checks if the end is reached; it returns:
@@ -931,8 +1013,11 @@ Each match object has the following interface:
 * method `id()`: returns the id of the match.
 * method `parse_position()`: returns the start parse position of the match.
 * method `end_iterator()`: returns the end iterator of the match.
+* method `begin()`: returns the start parse position of the match, which also can be used as a const iterator.
+* method `end()`: returns the end iterator of the match.
 * method `children()` or `matches()`: returns the children matches.
 * method `source()`: returns the source portion of the input that corresponds to the match; it is either a string, for character-based input, or a vector, for non-character-based input.
+* method `visit(const auto& visitor, size_t depth = 0)`: can be used to visit the match and its children.
 
 **NOTE**: *The end position of parsing is not a parse position, because it may not be a parse position, it may be the end of the input.*
 
@@ -959,6 +1044,8 @@ Each error object has the following interface:
 * method `id()`: returns the id of the error.
 * method `parse_position()`: returns the start parse position of the error.
 * method `end_iterator()`: returns the end iterator of the error.
+* method `begin()`: returns the start parse position of the error, which also can be used as a const iterator.
+* method `end()`: returns the end iterator of the error.
 * method `source()`: returns the source portion of the input that corresponds to the error; it is either a string, for character-based input, or a vector, for non-character-based input.
 
 Example:
@@ -1000,12 +1087,15 @@ And the following interface:
 * method `id()`: returns the id of the ast node.
 * method `parse_position()`: returns the start parse position of the part of the source the ast node represents.
 * method `end_iterator()`: returns the end iterator of the part of the source the ast node represents.
+* method `begin()`: returns the start parse position of the part of the source that the ast node represents, which also can be used as a const iterator.
+* method `end()`: returns the end iterator of the part of the source the ast node represents.
 * method `source()`: returns the source portion of the input the ast node represents; it is either a string, for character-based input, or a vector, for non-character-based input.
 * method `parent()`: returns a pointer to the parent ast node.
 * method `children()`: returns a vector of children.
 * method `add_child(child, index = -1)`: adds a child at the specified index; -1 means 'last child'.
 * method `remove_child(child)`: removes a child.
 * method `remove_all_children()`: removes all children.
+* method `visit(const auto& visitor, size_t depth = 0)`: can be used to visit the AST node and its children.
 
 **NOTE**: *AST nodes are managed via shared pointers.*
 
@@ -1204,3 +1294,8 @@ rule<> add = *(ACCEPT >> '+' >> mul
 ```
 
 The above algorithm allows for left-recursive grammars to be parsed.
+
+## Examples
+
+In this section, fully realized parser examples will be shown, together with discussing the reasons behind the implementation.
+

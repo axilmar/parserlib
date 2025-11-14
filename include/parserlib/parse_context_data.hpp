@@ -14,6 +14,56 @@ namespace parserlib {
 
 
     /**
+     * Trait for getting the part of a content from a content type.
+     * It must be overloaded for custom source types in order to retrieve
+     * the content from them.
+     * @param Source type of source.
+     */
+    template <class Source> struct content_type {
+        /** The source type. */
+        using source_type = Source;
+
+        /** The iterator type. */
+        using iterator_type = typename source_type::const_iterator;
+
+        /**
+         * Returns a copy of the given range.
+         * @param begin begin of range.
+         * @param end end of range.
+         * @return a copy of the given range.
+         */
+        static Source get(const iterator_type& begin, const iterator_type& end) {
+            return { begin, end };
+        }
+    };
+
+
+    template <class Source, class MatchId, class TextPosition> class match;
+
+
+    /**
+     * Overload for vector of matches.
+     */
+    template <class Source, class MatchId, class TextPosition, class Alloc> struct content_type<std::vector<match<Source, MatchId, TextPosition>, Alloc>> {
+        /** The source type is the vector of matches. */
+        using source_type = std::vector<match<Source, MatchId, TextPosition>, Alloc>;
+
+        /** The iterator type. */
+        using iterator_type = typename source_type::const_iterator;
+
+        /**
+         * Returns a copy of the source of the given range.
+         * @param begin begin of range.
+         * @param end end of range.
+         * @return a copy of the source of the given range.
+         */
+        static auto get(const iterator_type& begin, const iterator_type& end) {
+            return content_type<Source>::get(begin->begin(), end->begin());
+        }
+    };
+
+
+    /**
      * A parse position.
      * It combines an iterator and a text position.
      * @param Source the source type.
@@ -40,6 +90,14 @@ namespace parserlib {
             : m_iterator(it)
             , m_text_position(tpos)
         {
+        }
+
+        /**
+         * Allows the use of this parse position as a const iterator.
+         * @return the iterator for this parse position.
+         */
+        operator const iterator_type& () const {
+            return m_iterator;
         }
 
         /**
@@ -98,6 +156,14 @@ namespace parserlib {
                 result = stream.str();
             }
             return result;
+        }
+
+        /**
+         * Converts the parse position to a string.
+         * @return a string for this parse position.
+         */
+        std::string to_string() const {
+            return m_text_position.to_string();
         }
 
     private:
@@ -176,9 +242,24 @@ namespace parserlib {
         }
 
         /**
-         * Returns the part of the source that corresponds to this match.
-         * @return either an instance of std::basic_string, if the source element is a character,
-         *  or an instance of std::vector.
+         * Returns the start iterator.
+         * @return the start iterator.
+         */
+        const iterator_type& begin() const {
+            return m_start_position.iterator();
+        }
+
+        /**
+         * Returns the end iterator.
+         * @return the end iterator.
+         */
+        const iterator_type& end() const {
+            return m_end_iterator;
+        }
+
+        /**
+         * Returns the part of the source that corresponds to this partition.
+         * @return the part of the source that corresponds to this partition.
          */
         auto source() const {
             if constexpr (is_char_v<symbol_type>) {
@@ -187,6 +268,15 @@ namespace parserlib {
             else {
                 return std::vector<symbol_type>(m_start_position.iterator(), m_end_iterator);
             }
+        }
+
+        /**
+         * Returns the part of the content that corresponds to this partition.
+         * The content is the initial text that was parsed.
+         * @return the part of the content that corresponds to this partition.
+         */
+        auto content() const {
+            return parserlib::content_type<Source>::get(m_start_position.iterator(), m_end_iterator);
         }
 
         /**
@@ -254,6 +344,18 @@ namespace parserlib {
          */
         const match_container_type& matches() const {
             return m_children;
+        }
+
+        /**
+         * Visits this node and its children.
+         * @param visitor the visitor function; must have the signature `(const T& object, size_t depth)`.
+         * @param depth current tree depth.
+         */
+        template <class Visitor> void visit(const Visitor& visitor, size_t depth = 0) const {
+            visitor(*this, depth);
+            for (const auto& child : m_children) {
+                child.visit(visitor, depth + 1);
+            }
         }
 
     private:
