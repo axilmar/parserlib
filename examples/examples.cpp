@@ -9,9 +9,9 @@ static void run_example_json() {
     std::string src = 
 R"({
     "v1": null,
-    "v2": ,
+    "v2": false,
     "v3": true,
-    "v4": [null, false, true, [1, 2, 3], {"x":5, "y":6}, 15, "aaa"],
+    "v4": [false, true, [1, 2, 3], {"x":5, "y":6}, 15, "aaa", null],
     "v5": { "a" : 32 },
     "v6": 17,
     "v7": "abc"
@@ -22,34 +22,41 @@ R"({
 
     const auto result = json_parser::parse(src);
 
-    std::cout << "\nJSON parsed:\n";
+    std::cout << "JSON parser success = " << result->success << std::endl;
 
-    result->ast[0]->visit([&](const auto& node, size_t depth) {
-        std::cout << std::string(depth * 4, ' ') << json<>::ast_id_name(node.id());
+    if (!result->ast.empty()) {
+        std::cout << "\nJSON parsed:\n";
 
-        switch (node.id()) {
-        case json_parser::AST_ID::STRING:
-            std::cout << ": " << node.begin()->start_position().to_string() << ": " << node.content();
-            break;
+        result->ast[0]->visit([&](const auto& node, size_t depth) {
+            std::cout << std::string(depth * 4, ' ') << json<>::ast_id_name(node.id());
 
-        case json_parser::AST_ID::NUMBER:
-            std::cout << ": " << node.begin()->start_position().to_string() << ": \"" << node.content() << '"';
-            break;
+            switch (node.id()) {
+            case json_parser::AST_ID::STRING:
+                std::cout << ": " << node.begin()->start_position().to_string() << ": " << node.content();
+                break;
 
-        default:
-            break;
+            case json_parser::AST_ID::NUMBER:
+                std::cout << ": " << node.begin()->start_position().to_string() << ": \"" << node.content() << '"';
+                break;
+
+            default:
+                break;
+            }
+
+            std::cout << std::endl;
+        });
+    }
+
+    if (!result->errors.empty()) {
+        std::cout << "\nJSON parse errors: " << std::endl;
+        for (const auto& error : result->errors) {
+            std::cout << "    ERROR: " << error.start_position().to_string() << ": " << json_parser::error_id_name(error.id()) << std::endl;
         }
-
-        std::cout << std::endl;
-    });
-
-    std::cout << "\nJSON errors: " << std::endl;
-    for (const auto& error : result->parser.parse_context.errors()) {
-        std::cout << "    ERROR: " << error.begin()->start_position().to_string() << ": " << json_parser::error_id_name(error.id()) << std::endl;
     }
 }
 
 
 void run_examples() {
+    std::cout << std::boolalpha;
     run_example_json();
 }

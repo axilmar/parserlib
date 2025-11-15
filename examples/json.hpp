@@ -116,8 +116,11 @@ namespace parserlib {
             EXPECTED_COMMA,
             EXPECTED_COLON,
             EXPECTED_VALUE,
+            EXPECTED_STRING,
             EXPECTED_MEMBER,
+            EXPECTED_LEFT_SQUARE_BRACKET,
             EXPECTED_RIGHT_SQUARE_BRACKET,
+            EXPECTED_LEFT_CURLY_BRACKET,
             EXPECTED_RIGHT_CURLY_BRACKET
         };
 
@@ -132,8 +135,11 @@ namespace parserlib {
                 "EXPECTED_COMMA",
                 "EXPECTED_COLON",
                 "EXPECTED_VALUE",
+                "EXPECTED_STRING",
                 "EXPECTED_MEMBER",
+                "EXPECTED_LEFT_SQUARE_BRACKET",
                 "EXPECTED_RIGHT_SQUARE_BRACKET",
+                "EXPECTED_LEFT_CURLY_BRACKET",
                 "EXPECTED_RIGHT_CURLY_BRACKET"
             };
             return names[static_cast<int>(id)];
@@ -245,7 +251,10 @@ namespace parserlib {
                         | token;
 
                     //on error, proceed to the next symbol
-                    *this = *(symbol | error(ERROR_ID::INVALID_CHARACTERS, symbol)) >> end();
+                    *this = *(symbol | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol))) >> end();
+
+                    //also set name for easier debugging
+                    this->set_name("tokenizer grammar");                    
                 }
             };
 
@@ -286,15 +295,15 @@ namespace parserlib {
 
                     //array member list
                     const auto array_member_list = list(
-                        value, 
-                        TOKEN_ID::COMMA, 
-                        (value | error(ERROR_ID::EXPECTED_VALUE)));
+                        value,
+                        TOKEN_ID::COMMA,
+                        value);
 
                     //array
                     const auto array = (
-                        TOKEN_ID::LEFT_SQUARE_BRACKET >> 
+                        TOKEN_ID::LEFT_SQUARE_BRACKET >>
                         -array_member_list >> 
-                        (TOKEN_ID::RIGHT_SQUARE_BRACKET | error(ERROR_ID::EXPECTED_RIGHT_SQUARE_BRACKET))
+                        TOKEN_ID::RIGHT_SQUARE_BRACKET
                         )->*AST_ID::ARRAY;
 
                     //true terminal
@@ -319,25 +328,37 @@ namespace parserlib {
                     //the object member
                     const auto object_member = (
                         string >>
-                        (TOKEN_ID::COLON | error(ERROR_ID::EXPECTED_COLON)) >> 
-                        (value | error(ERROR_ID::EXPECTED_VALUE))
+                        TOKEN_ID::COLON >> 
+                        value
                     )->*AST_ID::MEMBER;
 
                     //the object member list
                     const auto object_member_list = list(
                         object_member,
                         TOKEN_ID::COMMA,
-                        (object_member | error(ERROR_ID::EXPECTED_MEMBER)));
+                        object_member);
 
                     //the object
                     object = (
                         TOKEN_ID::LEFT_CURLY_BRACKET >> 
                         -object_member_list >>
-                        (TOKEN_ID::RIGHT_CURLY_BRACKET | error(ERROR_ID::EXPECTED_RIGHT_CURLY_BRACKET))
+                        TOKEN_ID::RIGHT_CURLY_BRACKET
+                    )->*AST_ID::OBJECT;
+
+                    //the root object
+                    const auto root_object = (
+                        TOKEN_ID::LEFT_CURLY_BRACKET >> 
+                        -object_member_list >>
+                        TOKEN_ID::RIGHT_CURLY_BRACKET
                     )->*AST_ID::OBJECT;
 
                     //this grammar
-                    *this = object >> end();
+                    *this = root_object >> end();
+
+                    //also set names for easier debugging
+                    value.set_name("value");
+                    object.set_name("object");
+                    this->set_name("parser grammar");
                 }
             };
         };

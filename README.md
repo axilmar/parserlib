@@ -256,6 +256,8 @@ The function `error` has the following signature:
 
 The `skip_parse_node` parameter represents a parse node (or a value convertible to a parse node) that is used to identify where the error stops in the input; it is optional.
 
+IF no skip parser is provided, then the parse position is not advanced.
+
 This feature allows parsers to handle errors, then continue parsing.
 
 Any parse node can be a skip parse node; side effects of parse nodes are cancelled if used as skip parse nodes; the current parse context is not affected by them.
