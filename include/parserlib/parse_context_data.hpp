@@ -234,6 +234,14 @@ namespace parserlib {
         }
 
         /**
+         * Returns the start iterator.
+         * @return the start iterator.
+         */
+        const iterator_type& begin_iterator() const {
+            return m_start_position.iterator();
+        }
+
+        /**
          * Returns the end iterator.
          * @return the end iterator.
          */

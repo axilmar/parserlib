@@ -31,7 +31,11 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            m_child.parse(pc);
+            const auto initial_state = pc.get_state();
+            if (m_child.parse(pc)) {
+                return true;
+            }
+            pc.set_state(initial_state);
             return true;
         }
 

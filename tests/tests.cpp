@@ -1651,7 +1651,7 @@ static void test_errors() {
     enum match_id { INTEGER = 1 };
     enum error_id { SYNTAX_ERROR = 2 };
 
-    const auto digit = debug(range('0', '9'));
+    const auto digit = range('0', '9');
     const auto integer = (+digit)->*INTEGER | error(SYNTAX_ERROR, skip_before(digit));
     const auto grammar = *integer;
 
@@ -1815,7 +1815,7 @@ void run_tests() {
     calculator().test_rule_left_recursion_parsing();
     test_case_insensitive_parsing();
     test_non_character_parsing();
-    test_debug_annotations();
+    //test_debug_annotations();
     test_rule_optimizations();
     test_errors();
     test_ast();

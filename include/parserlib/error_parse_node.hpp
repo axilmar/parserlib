@@ -36,10 +36,12 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            const auto start_pos = pc.parse_position();
-            if (m_skip_parse_node.parse(pc)) {
-                pc.add_error(m_id, start_pos, pc.iterator());
-                return true;
+            if (pc.parse_valid()) {
+                const auto start_pos = pc.parse_position();
+                if (m_skip_parse_node.parse(pc)) {
+                    pc.add_error(m_id, start_pos, pc.iterator());
+                    return true;
+                }
             }
             return false;
         }

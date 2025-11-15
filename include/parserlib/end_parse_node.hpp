@@ -21,7 +21,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return pc.parse_position().iterator() == pc.end_iterator();
+            return pc.parse_ended();
         }
     };
 
