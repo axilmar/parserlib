@@ -26,7 +26,12 @@ namespace parserlib {
          * The constructor.
          * @param r reference to rule.
          */
-        rule_ref_parse_node(rule_type& r) : m_rule(r) {
+        rule_ref_parse_node(rule_type& r) 
+            : m_rule(r)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
+        {
         }
 
         /**
@@ -47,7 +52,19 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
+    private:
+        rule_type& m_rule;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
             std::stringstream stream;
             if (m_rule.name().empty()) {
                 stream << m_rule.this_ptr();
@@ -57,12 +74,8 @@ namespace parserlib {
             }
             return stream.str();
         }
-        #endif NDEBUG
-
-    private:
-        rule_type& m_rule;
+        #endif
     };
-
 
 } //namespace parserlib
 

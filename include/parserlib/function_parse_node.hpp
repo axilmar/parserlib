@@ -19,7 +19,12 @@ namespace parserlib {
          * The constructor.
          * @param f the function/functor to invoke.
          */
-        function_parse_node(const F& f) : m_function(f) {
+        function_parse_node(const F& f) 
+            : m_function(f)
+            #ifndef NDEBUG
+            , m_text("function")
+            #endif
+        {
         }
 
         /**
@@ -33,13 +38,16 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
-            return "function";
+        const std::string& text() const {
+            return m_text;
         }
         #endif
 
     private:
         const F m_function;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

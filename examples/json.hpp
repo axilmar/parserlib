@@ -18,9 +18,8 @@ namespace parserlib {
 
     /**
      * Example JSON parser.
-     * @param Source type of input to parse.
      */
-    template <class Source = std::string> class json {
+    class json {
     public:
         /**
          * Token ID.
@@ -89,25 +88,6 @@ namespace parserlib {
             NULL
         };
 
-        /** 
-         * Returns the name of an AST node id.
-         * @param id id of AST node to get the name of.
-         * @return the name of the given AST id.
-         */
-        static const char* ast_id_name(AST_ID id) {
-            static const char* names[] = {
-                "STRING",
-                "NUMBER",
-                "OBJECT",
-                "MEMBER",
-                "ARRAY",
-                "TRUE",
-                "FALSE",
-                "NULL"
-            };
-            return names[static_cast<int>(id)];
-        }
-
         /**
          * Error ID.
          */
@@ -124,250 +104,307 @@ namespace parserlib {
             EXPECTED_RIGHT_CURLY_BRACKET
         };
 
-        /**
-         * Returns the name of an error id.
-         * @param id id of the error to get the name of.
-         * @return the name of the given error id.
-         */
-        static const char* error_id_name(ERROR_ID id) {
-            static const char* names[] = {
-                "INVALID_CHARACTERS",
-                "EXPECTED_COMMA",
-                "EXPECTED_COLON",
-                "EXPECTED_VALUE",
-                "EXPECTED_STRING",
-                "EXPECTED_MEMBER",
-                "EXPECTED_LEFT_SQUARE_BRACKET",
-                "EXPECTED_RIGHT_SQUARE_BRACKET",
-                "EXPECTED_LEFT_CURLY_BRACKET",
-                "EXPECTED_RIGHT_CURLY_BRACKET"
-            };
-            return names[static_cast<int>(id)];
-        }
-
-        /**
-         * The tokenizer.
-         */
-        class tokenizer {
+        template <class Source = std::string> class impl {
         public:
             /**
-             * The parse context for the tokenizer.
-             * The text position contains line and column.
+             * The tokenizer.
              */
-            using parse_context_type = parse_context<std::string, TOKEN_ID, ERROR_ID, text_position>;
-
-            /**
-             * The rule type for the tokenizer.
-             */
-            using rule_type = rule<parse_context_type>;
-
-            /**
-             * The grammar.
-             */
-            class grammar : public rule_type {
+            class tokenizer {
             public:
-                using rule_type::operator =;
+                /**
+                 * The parse context for the tokenizer.
+                 * The text position contains line and column.
+                 */
+                using parse_context_type = parse_context<std::string, TOKEN_ID, ERROR_ID, text_position>;
 
-                grammar() {
-                    //whitespace
-                    const auto ws = set(0x09, 0x0d, 0x0a, 0x20);
+                /**
+                 * The rule type for the tokenizer.
+                 */
+                using rule_type = rule<parse_context_type>;
 
-                    //null terminal
-                    const auto null_ = terminal("null")->*TOKEN_ID::NULL;
+                /**
+                 * The grammar.
+                 */
+                class grammar : public rule_type {
+                public:
+                    using rule_type::operator =;
 
-                    //false terminal
-                    const auto false_ = terminal("false")->*TOKEN_ID::FALSE;
+                    grammar() {
+                        //set names
+                        this->set_name("tokenizer");
 
-                    //true terminal
-                    const auto true_ = terminal("true")->*TOKEN_ID::TRUE;
+                        //whitespace
+                        const auto ws = set(0x09, 0x0d, 0x0a, 0x20);
 
-                    //comma
-                    const auto comma = terminal(',')->*TOKEN_ID::COMMA;
+                        //null terminal
+                        const auto null_ = terminal("null")->*TOKEN_ID::NULL;
 
-                    //colon
-                    const auto colon = terminal(':')->*TOKEN_ID::COLON;
+                        //false terminal
+                        const auto false_ = terminal("false")->*TOKEN_ID::FALSE;
 
-                    //left curly bracket used for opening an object definition
-                    const auto left_curly_bracket = terminal('{')->*TOKEN_ID::LEFT_CURLY_BRACKET;
+                        //true terminal
+                        const auto true_ = terminal("true")->*TOKEN_ID::TRUE;
 
-                    //right curly bracket used for closing an object definition
-                    const auto right_curly_bracket = terminal('}')->*TOKEN_ID::RIGHT_CURLY_BRACKET;
+                        //comma
+                        const auto comma = terminal(',')->*TOKEN_ID::COMMA;
 
-                    //left square bracket used for opening an array definition
-                    const auto left_square_bracket = terminal('[')->*TOKEN_ID::LEFT_SQUARE_BRACKET;
+                        //colon
+                        const auto colon = terminal(':')->*TOKEN_ID::COLON;
 
-                    //right square bracket used for closing an array definition
-                    const auto right_square_bracket = terminal(']')->*TOKEN_ID::RIGHT_SQUARE_BRACKET;
+                        //left curly bracket used for opening an object definition
+                        const auto left_curly_bracket = terminal('{')->*TOKEN_ID::LEFT_CURLY_BRACKET;
 
-                    //a digit
-                    const auto digit = range('0', '9');
+                        //right curly bracket used for closing an object definition
+                        const auto right_curly_bracket = terminal('}')->*TOKEN_ID::RIGHT_CURLY_BRACKET;
 
-                    //a number (also accepts numbers like -3.5e+10)
-                    const auto number = (-terminal('-') >> +digit >> -('.' >> +digit) >> -(-set("+-") >> +digit))->*TOKEN_ID::NUMBER;
+                        //left square bracket used for opening an array definition
+                        const auto left_square_bracket = terminal('[')->*TOKEN_ID::LEFT_SQUARE_BRACKET;
 
-                    //hex
-                    const auto hex = range('0', '9') | range('a', 'f') | range('A', 'F');
+                        //right square bracket used for closing an array definition
+                        const auto right_square_bracket = terminal(']')->*TOKEN_ID::RIGHT_SQUARE_BRACKET;
 
-                    //escape character
-                    const auto escape_character
-                        = terminal("\\\"")
-                        | terminal("\\\\")
-                        | terminal("\\/")
-                        | terminal("\\b")
-                        | terminal("\\f")
-                        | terminal("\\n")
-                        | terminal("\\r")
-                        | terminal("\\t")
-                        | "\\u" >> hex >> hex >> hex >> hex;
+                        //a digit
+                        const auto digit = range('0', '9');
+
+                        //a number (also accepts numbers like -3.5e+10)
+                        const auto number = (-terminal('-') >> +digit >> -('.' >> +digit) >> -(-set("+-") >> +digit))->*TOKEN_ID::NUMBER;
+
+                        //hex
+                        const auto hex = range('0', '9') | range('a', 'f') | range('A', 'F');
+
+                        //escape character
+                        const auto escape_character
+                            = terminal("\\\"")
+                            | terminal("\\\\")
+                            | terminal("\\/")
+                            | terminal("\\b")
+                            | terminal("\\f")
+                            | terminal("\\n")
+                            | terminal("\\r")
+                            | terminal("\\t")
+                            | "\\u" >> hex >> hex >> hex >> hex;
                         ;
 
-                    //string character
-                    const auto string_character
-                        = range(0x20, 0x10ffff) - '"' - '\\'
-                        | escape_character;
+                        //string character
+                        const auto string_character
+                            = range(0x20, 0x10ffff) - '"' - '\\'
+                            | escape_character;
 
-                    //string
-                    const auto string = ('"' >> *string_character >> '"')->*TOKEN_ID::STRING;
+                        //string
+                        const auto string = ('"' >> *string_character >> '"')->*TOKEN_ID::STRING;
 
-                    //token
-                    const auto token
-                        = null_
-                        | false_
-                        | true_
-                        | comma
-                        | colon
-                        | left_curly_bracket
-                        | right_curly_bracket
-                        | left_square_bracket
-                        | right_square_bracket
-                        | number
-                        | string
-                        ;
+                        //token
+                        const auto token
+                            = null_
+                            | false_
+                            | true_
+                            | comma
+                            | colon
+                            | left_curly_bracket
+                            | right_curly_bracket
+                            | left_square_bracket
+                            | right_square_bracket
+                            | number
+                            | string
+                            ;
 
-                    //symbol
-                    const auto symbol
-                        = newline('\n')
-                        | ws
-                        | token;
+                        //symbol
+                        const auto symbol
+                            = newline('\n')
+                            | ws
+                            | token;
 
-                    //on error, proceed to the next symbol
-                    *this = *(symbol | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol))) >> end();
-
-                    //also set name for easier debugging
-                    this->set_name("tokenizer grammar");                    
-                }
+                        //on error, proceed to the next symbol
+                        *this = *(symbol | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol))) >> end();
+                    }
+                };
             };
 
-        };
-
-        /**
-         * The parser.
-         */
-        class parser {
-        public:
             /**
-             * The parse context type uses the tokenizer output as source.
+             * The parser.
              */
-            using parse_context_type = parse_context<typename tokenizer::parse_context_type::match_container_type, AST_ID, ERROR_ID>;
-
-            /**
-             * The rule type.
-             */
-            using rule_type = rule<parse_context_type>;
-
-            /**
-             * The grammar.
-             */
-            class grammar : public rule_type {
-            private:
-                //Recursive rules.
-                rule_type object, value;
-
+            class parser {
             public:
-                using rule_type::operator =;
+                /**
+                 * The parse context type uses the tokenizer output as source.
+                 */
+                using parse_context_type = parse_context<typename tokenizer::parse_context_type::match_container_type, AST_ID, ERROR_ID>;
 
-                grammar() {
-                    //string terminal
-                    const auto string = terminal(TOKEN_ID::STRING)->*AST_ID::STRING;
+                /**
+                 * The rule type.
+                 */
+                using rule_type = rule<parse_context_type>;
 
-                    //number terminal
-                    const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
+                /**
+                 * The grammar.
+                 */
+                class grammar : public rule_type {
+                private:
+                    //Recursive rules.
+                    rule_type object, value;
 
-                    //array member list
-                    const auto array_member_list = value >> *(TOKEN_ID::COMMA >> (value | error(ERROR_ID::EXPECTED_VALUE)));
+                public:
+                    using rule_type::operator =;
 
-                    //array
-                    const auto array = (
-                        TOKEN_ID::LEFT_SQUARE_BRACKET >>
-                        -array_member_list >> 
-                        (TOKEN_ID::RIGHT_SQUARE_BRACKET)
-                        )->*AST_ID::ARRAY;
+                    grammar() {
+                        //set names
+                        value.set_name("value");
+                        object.set_name("object");
+                        this->set_name("parser");
 
-                    //true terminal
-                    const auto true_ = terminal(TOKEN_ID::TRUE)->*AST_ID::TRUE;
+                        //string terminal
+                        const auto string = terminal(TOKEN_ID::STRING)->*AST_ID::STRING;
 
-                    //false terminal
-                    const auto false_ = terminal(TOKEN_ID::FALSE)->*AST_ID::FALSE;
+                        //number terminal
+                        const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
-                    //null terminal
-                    const auto null_ = terminal(TOKEN_ID::NULL)->*AST_ID::NULL;
+                        //array member list
+                        const auto array_member_list = value >> *(TOKEN_ID::COMMA >> (value | debug(error(ERROR_ID::EXPECTED_VALUE))));
 
-                    //the value
-                    value
-                        = string
-                        | number
-                        | object
-                        | array
-                        | true_
-                        | false_
-                        | null_;
+                        //array
+                        const auto array = (
+                            TOKEN_ID::LEFT_SQUARE_BRACKET >>
+                            -array_member_list >>
+                            (TOKEN_ID::RIGHT_SQUARE_BRACKET)
+                            )->*AST_ID::ARRAY;
 
-                    //the object member
-                    const auto object_member = (
-                        string >>
-                        TOKEN_ID::COLON >>
+                        //true terminal
+                        const auto true_ = terminal(TOKEN_ID::TRUE)->*AST_ID::TRUE;
+
+                        //false terminal
+                        const auto false_ = terminal(TOKEN_ID::FALSE)->*AST_ID::FALSE;
+
+                        //null terminal
+                        const auto null_ = terminal(TOKEN_ID::NULL)->*AST_ID::NULL;
+
+                        //the value
                         value
-                    )->*AST_ID::MEMBER;
+                            = string
+                            | number
+                            | object
+                            | array
+                            | true_
+                            | false_
+                            | null_;
 
-                    //the object member list
-                    const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
+                        //the object member
+                        const auto object_member = (
+                            string >>
+                            TOKEN_ID::COLON >>
+                            value
+                            )->*AST_ID::MEMBER;
 
-                    //the object
-                    object = (
-                        TOKEN_ID::LEFT_CURLY_BRACKET >> 
-                        -object_member_list >>
-                        TOKEN_ID::RIGHT_CURLY_BRACKET
-                    )->*AST_ID::OBJECT;
+                        //the object member list
+                        const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
 
-                    //this grammar
-                    *this = object >> end();
+                        //the object
+                        object = (
+                            TOKEN_ID::LEFT_CURLY_BRACKET >>
+                            -object_member_list >>
+                            TOKEN_ID::RIGHT_CURLY_BRACKET
+                            )->*AST_ID::OBJECT;
 
-                    //also set names for easier debugging
-                    value.set_name("value");
-                    object.set_name("object");
-                    this->set_name("parser grammar");
-                }
+                        //this grammar
+                        *this = object >> end();
+                    }
+                };
             };
-        };
 
-        /**
-         * The default ast factory type.
-         */
-        using default_ast_factory_type = default_ast_factory<typename parser::parse_context_type::source_type, typename parser::parse_context_type::match_id_type, typename parser::parse_context_type::text_position_type>;
+            /**
+             * The default ast factory type.
+             */
+            using default_ast_factory_type = default_ast_factory<typename parser::parse_context_type::source_type, typename parser::parse_context_type::match_id_type, typename parser::parse_context_type::text_position_type>;
+        }; //class impl
 
         /**
          * The parse function.
          * @param source the source.
-         * @parm astFactory the ast factory to use; if not given, the default is used.
+         * @parm astFactory the ast factory to use.
          * @return a `tokenize_and_parse_result` structure with the results of the parsing.
          */
-        template <class ASTFactory = default_ast_factory_type>
-        static auto parse(Source& source, const ASTFactory& astFactory = ASTFactory()) {
-            typename tokenizer::grammar tokenizer_grammar;
-            typename parser::grammar parser_grammar;
+        template <class Source, class ASTFactory>
+        static auto parse(Source& source, const ASTFactory& astFactory) {
+            using impl_type = json::impl<Source>;
+            typename impl_type::tokenizer::grammar tokenizer_grammar;
+            typename impl_type::parser::grammar parser_grammar;
             return tokenize_and_parse(source, tokenizer_grammar, parser_grammar, astFactory);
         }
+
+        /**
+         * The parse function with a default AST factory.
+         * @param source the source.
+         * @return a `tokenize_and_parse_result` structure with the results of the parsing.
+         */
+        template <class Source>
+        static auto parse(Source& source) {
+            return parse(source, typename impl<Source>::default_ast_factory_type());
+        }
     };
+
+
+    /**
+     * Returns the name of a token id.
+     * @param id id of token to get the name of.
+     * @return the name of the given token id.
+     */
+    static const char* get_id_name(typename json::TOKEN_ID id) {
+        static const char* names[] = {
+            "NULL",
+            "FALSE",
+            "TRUE",
+            "STRING",
+            "NUMBER",
+            "COMMA",
+            "COLON",
+            "LEFT_CURLY_BRACKET",
+            "RIGHT_CURLY_BRACKET",
+            "LEFT_SQUARE_BRACKET",
+            "RIGHT_SQUARE_BRACKET"
+        };
+        return names[static_cast<int>(id)];
+    }
+
+
+    /**
+     * Returns the name of an AST node id.
+     * @param id id of AST node to get the name of.
+     * @return the name of the given AST id.
+     */
+    static const char* get_id_name(typename json::AST_ID id) {
+        static const char* names[] = {
+            "STRING",
+            "NUMBER",
+            "OBJECT",
+            "MEMBER",
+            "ARRAY",
+            "TRUE",
+            "FALSE",
+            "NULL"
+        };
+        return names[static_cast<int>(id)];
+    }
+
+
+    /**
+     * Returns the name of an error id.
+     * @param id id of the error to get the name of.
+     * @return the name of the given error id.
+     */
+    static const char* get_id_name(typename json::ERROR_ID id) {
+        static const char* names[] = {
+            "INVALID_CHARACTERS",
+            "EXPECTED_COMMA",
+            "EXPECTED_COLON",
+            "EXPECTED_VALUE",
+            "EXPECTED_STRING",
+            "EXPECTED_MEMBER",
+            "EXPECTED_LEFT_SQUARE_BRACKET",
+            "EXPECTED_RIGHT_SQUARE_BRACKET",
+            "EXPECTED_LEFT_CURLY_BRACKET",
+            "EXPECTED_RIGHT_CURLY_BRACKET"
+        };
+        return names[static_cast<int>(id)];
+    }
 
 
 } //namespace parserlib

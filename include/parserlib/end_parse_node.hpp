@@ -14,6 +14,14 @@ namespace parserlib {
      */
     class end_parse_node : public parse_node<end_parse_node> {
     public:
+        end_parse_node()
+            #ifndef NDEBUG
+            : m_text("end")
+            #endif
+        {
+
+        }
+
         /**
          * Checks for end of input.
          * @param pc the current parse context.
@@ -25,9 +33,14 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
-            return "end";
+        const std::string& text() const {
+            return m_text;
         }
+        #endif
+
+    private:
+        #ifndef NDEBUG
+        const std::string m_text;
         #endif
     };
 

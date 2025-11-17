@@ -1197,6 +1197,12 @@ parse_context<
     pc1(source);
 ```
 
+#### Debugging via member 'm_text'
+
+Parse nodes that are composite (i.e. they contain children parse nodes) contain a member `m_text` which allows viewing a parse node's grammar as text.
+
+This member can be helpful in examining the grammar the parse node during debugging.
+
 ## Parsing left recursive grammars
 
 `Parserlib` can handle left recursion grammars.

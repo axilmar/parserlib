@@ -5,6 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include "parse_node.hpp"
+#include "symbol_functions.hpp"
 
 
 namespace parserlib {
@@ -23,7 +24,11 @@ namespace parserlib {
          * @param max the max value of the range.
          */
         range_parse_node(const Symbol& min, const Symbol& max)
-            : m_min(min), m_max(max)
+            : m_min(min)
+            , m_max(max)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
             assert(min <= max);
         }
@@ -46,16 +51,25 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
-            std::stringstream stream;
-            stream << "range(" << m_min << ", " << m_max << ")";
-            return stream.str();
+        const std::string& text() const {
+            return m_text;
         }
-        #endif NDEBUG
+        #endif
 
     private:
         const Symbol m_min;
         const Symbol m_max;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << symbol_text(m_min) << ".." << symbol_text(m_max);
+            return stream.str();
+        }
+        #endif
     };
 
 

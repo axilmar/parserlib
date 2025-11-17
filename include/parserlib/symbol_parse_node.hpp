@@ -5,8 +5,7 @@
 #include <type_traits>
 #include "parse_node.hpp"
 #include "is_parse_functor.hpp"
-#include "is_char.hpp"
-#include "id_name.hpp"
+#include "symbol_functions.hpp"
 
 
 namespace parserlib {
@@ -25,6 +24,9 @@ namespace parserlib {
          */
         symbol_parse_node(const Symbol& symbol)
             : m_symbol(symbol)
+            #ifndef NDEBUG
+            , m_text(symbol_text(symbol))
+            #endif
         {
         }
 
@@ -46,20 +48,16 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
-            std::stringstream stream;
-            if constexpr (is_char_v<Symbol>) {
-                stream << "terminal('" << m_symbol << "')";
-            }
-            else {
-                stream << "terminal(" << id_name<Symbol>::get(m_symbol) << ")";
-            }
-            return stream.str();
+        const std::string& text() const {
+            return m_text;
         }
-        #endif NDEBUG
+        #endif
 
     private:
         const Symbol m_symbol;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

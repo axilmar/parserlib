@@ -19,7 +19,12 @@ namespace parserlib {
          * The constructor.
          * @param value the value to return from the `parse()` function.
          */
-        bool_parse_node(bool value) : m_value(value) {
+        bool_parse_node(bool value) 
+            : m_value(value)
+            #ifndef NDEBUG
+            , m_text(m_value ? "true" : "false")
+            #endif            
+        {
         }
 
         /**
@@ -35,12 +40,15 @@ namespace parserlib {
 
         #ifndef NDEBUG
         std::string text() const {
-            return m_value ? "true" : "false";
+            return m_text;
         }
         #endif
 
     private:
         const bool m_value;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

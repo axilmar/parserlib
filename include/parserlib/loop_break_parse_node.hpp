@@ -30,7 +30,12 @@ namespace parserlib {
          * The constructor.
          * @param levels levels of loops to break.
          */
-        loop_break_parse_node(size_t levels) : m_levels(levels) {
+        loop_break_parse_node(size_t levels) 
+            : m_levels(levels)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
+        {
         }
 
         /**
@@ -44,15 +49,24 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
-            std::stringstream stream;
-            stream << "loop_break(" << m_levels << ')';
-            return stream.str();
+        const std::string& text() const {
+            return m_text;
         }
         #endif
 
     private:
         const size_t m_levels;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << "loop_break(" << m_levels << ')';
+            return stream.str();
+        }
+        #endif
     };
 
 

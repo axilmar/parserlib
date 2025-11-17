@@ -6,6 +6,7 @@
 #include "parse_node.hpp"
 #include "is_parse_functor.hpp"
 #include "parse_context_options.hpp"
+#include "symbol_functions.hpp"
 
 
 namespace parserlib {
@@ -27,6 +28,9 @@ namespace parserlib {
         custom_comparator_symbol_parse_node(const Symbol& symbol, const SymbolComparator& symbol_comparator)
             : m_symbol(symbol)
             , m_symbol_comparator(symbol_comparator)
+            #ifndef NDEBUG
+            , m_text("custom_comparator(" + symbol_text(m_symbol) + ")")
+            #endif                        
         {
         }
 
@@ -49,13 +53,16 @@ namespace parserlib {
 
         #ifndef NDEBUG
         std::string text() const {
-            return "custom_comparator('" + std::basic_string<Symbol>(m_symbol) + "')";
+            return m_text;
         }
         #endif
 
     private:
         const Symbol m_symbol;
         const SymbolComparator m_symbol_comparator;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

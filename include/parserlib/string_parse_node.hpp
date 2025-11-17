@@ -23,6 +23,9 @@ namespace parserlib {
          */
         string_parse_node(const std::basic_string<Symbol>& string)
             : m_string(string)
+            #ifndef NDEBUG
+            , m_text('"' + m_string + '"')
+            #endif
         {
         }
 
@@ -55,15 +58,16 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
-            std::stringstream stream;
-            stream << "terminal(\"" << m_string << "\")";
-            return stream.str();
+        const std::string& text() const {
+            return m_text;
         }
-        #endif NDEBUG
+        #endif
 
     private:
         const std::basic_string<Symbol> m_string;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

@@ -24,6 +24,9 @@ namespace parserlib {
          */
         set_parse_node(const std::basic_string<Symbol>& set) 
             : m_set(sort_set(set))
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
         }
 
@@ -51,11 +54,28 @@ namespace parserlib {
         }
 
         #ifndef NDEBUG
-        std::string text() const {
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
+    private:
+        const std::basic_string<Symbol> m_set;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        static std::basic_string<Symbol> sort_set(std::basic_string<Symbol> set) {
+            std::sort(set.begin(), set.end());
+            return set;
+        }
+
+        #ifndef NDEBUG
+        std::string create_text() const {
             std::stringstream stream;
             stream << "set(";
             if constexpr (is_char_v<Symbol>) {
-                stream << m_set;
+                stream << '"' << m_set << '"';
             }
             else {
                 for (auto it = m_set.begin(); it != m_set.end(); ++it) {
@@ -68,15 +88,7 @@ namespace parserlib {
             stream << ")";
             return stream.str();
         }
-        #endif NDEBUG
-
-    private:
-        const std::basic_string<Symbol> m_set;
-
-        static std::basic_string<Symbol> sort_set(std::basic_string<Symbol> set) {
-            std::sort(set.begin(), set.end());
-            return set;
-        }
+        #endif
     };
 
 
