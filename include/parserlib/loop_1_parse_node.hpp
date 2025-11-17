@@ -2,7 +2,7 @@
 #define PARSERLIB_LOOP_1_PARSE_NODE_HPP
 
 
-#include "parse_node.hpp"
+#include "loop_functions.hpp"
 
 
 namespace parserlib {
@@ -21,6 +21,9 @@ namespace parserlib {
          */
         loop_1_parse_node(const ParseNode& child)
             : m_child(child)
+            #ifndef NDEBUG
+            , m_text("+(" + m_child.text() + ")")
+            #endif
         {
         }
 
@@ -36,17 +39,20 @@ namespace parserlib {
             if (!m_child.parse(pc)) {
                 return false;
             }
-            while (pc.parse_valid()) {
-                const auto start_iterator = pc.parse_position().iterator();
-                if (!m_child.parse(pc) || pc.parse_position().iterator() == start_iterator) {
-                    break;
-                }
-            }
-            return true;
+            return loop_parse(pc, m_child);
         }
+
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
 
     private:
         const ParseNode m_child;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

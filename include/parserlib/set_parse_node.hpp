@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include "parse_node.hpp"
+#include "is_char.hpp"
 
 
 namespace parserlib {
@@ -48,6 +49,26 @@ namespace parserlib {
             }
             return false;
         }
+
+        #ifndef NDEBUG
+        std::string text() const {
+            std::stringstream stream;
+            stream << "set(";
+            if constexpr (is_char_v<Symbol>) {
+                stream << m_set;
+            }
+            else {
+                for (auto it = m_set.begin(); it != m_set.end(); ++it) {
+                    if (it == m_set.begin()) {
+                        stream << ", ";
+                    }
+                    stream << id_name<Symbol>::get(*it);
+                }
+            }
+            stream << ")";
+            return stream.str();
+        }
+        #endif NDEBUG
 
     private:
         const std::basic_string<Symbol> m_set;

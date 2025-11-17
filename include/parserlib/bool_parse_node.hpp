@@ -33,6 +33,12 @@ namespace parserlib {
             return m_value;
         }
 
+        #ifndef NDEBUG
+        std::string text() const {
+            return m_value ? "true" : "false";
+        }
+        #endif
+
     private:
         const bool m_value;
     };

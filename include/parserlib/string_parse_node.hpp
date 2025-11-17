@@ -54,6 +54,14 @@ namespace parserlib {
             return false;
         }
 
+        #ifndef NDEBUG
+        std::string text() const {
+            std::stringstream stream;
+            stream << "terminal(\"" << m_string << "\")";
+            return stream.str();
+        }
+        #endif NDEBUG
+
     private:
         const std::basic_string<Symbol> m_string;
     };

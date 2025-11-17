@@ -26,6 +26,12 @@ namespace parserlib {
             }
             return false;
         }
+
+        #ifndef NDEBUG
+        std::string text() const {
+            return "any";
+        }
+        #endif
     };
 
 

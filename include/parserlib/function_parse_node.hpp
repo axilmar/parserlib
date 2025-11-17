@@ -32,6 +32,12 @@ namespace parserlib {
             return m_function(pc);
         }
 
+        #ifndef NDEBUG
+        std::string text() const {
+            return "function";
+        }
+        #endif
+
     private:
         const F m_function;
     };

@@ -22,6 +22,9 @@ namespace parserlib {
          */
         debug_parse_node(const ParseNode& child)
             : m_child(child)
+            #ifndef NDEBUG
+            , m_text("debug(" + m_child.text() + ")")
+            #endif
         {
         }
 
@@ -37,8 +40,17 @@ namespace parserlib {
             return result;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const ParseNode m_child;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

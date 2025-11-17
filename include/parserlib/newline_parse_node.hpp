@@ -23,6 +23,9 @@ namespace parserlib {
          */
         newline_parse_node(const ParseNode& parse_node)
             : m_parse_node(parse_node)
+            #ifndef NDEBUG
+            , m_text("newline(" + m_parse_node.text() + ")")
+            #endif
         {
         }
 
@@ -42,8 +45,17 @@ namespace parserlib {
             return false;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const ParseNode m_parse_node;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 

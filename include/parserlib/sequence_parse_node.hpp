@@ -5,6 +5,9 @@
 #include <tuple>
 #include <type_traits>
 #include "parse_node.hpp"
+#ifndef NDEBUG
+#include "tuple.hpp"
+#endif
 
 
 namespace parserlib {
@@ -26,7 +29,12 @@ namespace parserlib {
          * The constructor.
          * @param children the children parse nodes.
          */
-        sequence_parse_node(const std::tuple<ParseNodes...>& children) : m_children(children) {
+        sequence_parse_node(const std::tuple<ParseNodes...>& children) 
+            : m_children(children)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
+        {
         }
 
         /**
@@ -49,8 +57,17 @@ namespace parserlib {
             return m_children;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const std::tuple<ParseNodes...> m_children;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
 
         template <size_t Index, class ParseContext>
         bool _parse(ParseContext& pc) const {
@@ -65,6 +82,23 @@ namespace parserlib {
                 return true;
             }
         }
+
+        #ifndef NDEBUG
+        std::string create_text() {
+            std::stringstream stream;
+            size_t count = 0;
+            stream << '(';
+            tuple_for_each(m_children, [&](const auto& child) {
+                if (count) {
+                    stream << " >> ";
+                }
+                stream << child.text();
+                ++count;
+            });
+            stream << ')';
+            return stream.str();
+        }
+        #endif
     };
 
 
@@ -110,19 +144,6 @@ namespace parserlib {
     >
     auto operator - (L&& left, R&& right) {
         return !make_parse_node(right) >> make_parse_node(left);
-    }
-
-
-    /**
-     * Helper function for creating a list of items with a separator in between them.
-     * @param initial_expression to start the list.
-     * @param separator the separator to put in-between the expressions.
-     * @param subsequent_expression to continue the list.
-     * @return a sequence of the expression and a 0-or-more-times loop of separator followed by the expression.
-     */
-    template <class InitialExpression, class Separator, class SubsequentExpression>
-    auto list(InitialExpression&& initial_expression, Separator&& separator, SubsequentExpression&& subsequent_expression) {
-        return make_parse_node(initial_expression) >> *(make_parse_node(separator) >> make_parse_node(subsequent_expression));
     }
 
 

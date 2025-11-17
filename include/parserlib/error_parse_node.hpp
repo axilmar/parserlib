@@ -24,6 +24,9 @@ namespace parserlib {
         error_parse_node(const ErrorId& id, const SkipParseNode& skip_parse_node)
             : m_id(id)
             , m_skip_parse_node(skip_parse_node)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
         }
 
@@ -46,9 +49,26 @@ namespace parserlib {
             return false;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const ErrorId m_id;
         const SkipParseNode m_skip_parse_node;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << "error(" << id_name<ErrorId>::get(m_id) << ", " << m_skip_parse_node.text() << ")";
+            return stream.str();
+        }
+        #endif
     };
 
 

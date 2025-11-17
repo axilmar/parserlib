@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <sstream>
 #include "parse_context.hpp"
 #include "loop_0_parse_node.hpp"
 #include "loop_1_parse_node.hpp"
@@ -57,6 +58,9 @@ namespace parserlib {
         template <class ParseNode> 
         rule(const ParseNode& parse_node)
             : m_parse_node(create_wrapper(parse_node))
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
         }
 
@@ -66,6 +70,9 @@ namespace parserlib {
          */
         rule(rule& r)
             : m_parse_node(create_wrapper(r))
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
         }
 
@@ -89,6 +96,9 @@ namespace parserlib {
         template <class ParseNode>
         rule& operator = (const ParseNode& parse_node) {
             m_parse_node = create_wrapper(parse_node);
+            #ifndef NDEBUG
+            m_text = create_text();
+            #endif
             return *this;
         }
 
@@ -99,6 +109,9 @@ namespace parserlib {
          */
         rule& operator = (rule& r) {
             m_parse_node = create_wrapper(r);
+            #ifndef NDEBUG
+            m_text = create_text();
+            #endif
             return *this;
         }
 
@@ -236,10 +249,19 @@ namespace parserlib {
             return this == r.this_ptr();
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         //state
         std::unique_ptr<parse_node_wrapper<ParseContext>> m_parse_node;
         std::string m_name;
+        #ifndef NDEBUG
+        std::string m_text;
+        #endif
 
         //create a wrapper for a parse node
         template <class ParseNode>
@@ -321,6 +343,20 @@ namespace parserlib {
             pc.m_terminal_parsing_allowed = prev_terminal_parsing_allowed;
             return true;
         }
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            if (m_name.empty()) {
+                stream << this_ptr();
+            }
+            else {
+                stream << m_name;
+            }
+            stream << "(" << m_parse_node->text() << ")";
+            return stream.str();
+        }
+        #endif
     };
 
 

@@ -2,6 +2,10 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
+#include <string>
+#include "id_name.hpp"
+
+
 namespace parserlib {
 
 

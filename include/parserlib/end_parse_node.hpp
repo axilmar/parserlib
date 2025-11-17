@@ -23,6 +23,12 @@ namespace parserlib {
         bool parse(ParseContext& pc) const {
             return pc.parse_ended();
         }
+
+        #ifndef NDEBUG
+        std::string text() const {
+            return "end";
+        }
+        #endif
     };
 
 

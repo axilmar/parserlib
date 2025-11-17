@@ -4,8 +4,11 @@
 
 #include <tuple>
 #include <type_traits>
+#include <sstream>
 #include "parse_node.hpp"
-
+#ifndef NDEBUG
+#include "tuple.hpp"
+#endif
 
 namespace parserlib {
 
@@ -26,7 +29,12 @@ namespace parserlib {
          * The constructor.
          * @param children the children parse nodes.
          */
-        choice_parse_node(const std::tuple<ParseNodes...>& children) : m_children(children) {
+        choice_parse_node(const std::tuple<ParseNodes...>& children)
+            : m_children(children)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
+        {
         }
 
         /**
@@ -44,8 +52,17 @@ namespace parserlib {
             return m_children;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const std::tuple<ParseNodes...> m_children;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
 
         template <class ParseNode, class ParseContext> 
         bool invoke_child(const ParseNode& child, ParseContext& pc) const {
@@ -70,6 +87,23 @@ namespace parserlib {
                 return false;
             }
         }
+
+        #ifndef NDEBUG
+        std::string create_text() {
+            std::stringstream stream;
+            size_t count = 0;
+            stream << '(';
+            tuple_for_each(m_children, [&](const auto& child) {
+                if (count) {
+                    stream << " | ";
+                }
+                stream << child.text();
+                ++count;
+            });
+            stream << ')';
+            return stream.str();
+        }
+        #endif
     };
 
 

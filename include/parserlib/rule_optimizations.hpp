@@ -19,6 +19,9 @@ namespace parserlib {
     public:
         left_recursive_match_parse_node(const ParseNode& parse_node) 
             : m_parse_node(parse_node)
+            #ifndef NDEBUG
+            , m_text("(" + m_parse_node.text())
+            #endif
         {
         }
 
@@ -37,15 +40,29 @@ namespace parserlib {
             }
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const ParseNode m_parse_node;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
     };
 
 
     template <class MatchId> 
     class match_end_parse_node : public parse_node<match_end_parse_node<MatchId>> {
     public:
-        match_end_parse_node(const MatchId& id) : m_id(id) {
+        match_end_parse_node(const MatchId& id) 
+            : m_id(id)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
+        {
         }
 
         template <class ParseContext>
@@ -54,8 +71,25 @@ namespace parserlib {
             return true;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const MatchId m_id;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << ") ->* " << id_name<MatchId>::get(m_id);
+            return stream.str();
+        }
+        #endif
     };
 
 

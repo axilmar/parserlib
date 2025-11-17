@@ -44,6 +44,9 @@ namespace parserlib {
         annotation_parse_node(const ParseNode& parse_node, const Annotation& annotation)
             : m_parse_node(parse_node)
             , m_annotation(annotation)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
         }
 
@@ -62,9 +65,26 @@ namespace parserlib {
             }
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const ParseNode m_parse_node;
         const Annotation m_annotation;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << "annotation(" << m_parse_node.text() << ", " << m_annotation << ")";
+            return stream.str();
+        }
+        #endif
     };
 
 

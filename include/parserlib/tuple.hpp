@@ -31,6 +31,15 @@ namespace parserlib {
     }
 
 
+    template <class Tpl, class F, size_t Index = 0> 
+    void tuple_for_each(const Tpl& tpl, const F& f) {
+        if constexpr (Index < std::tuple_size_v<Tpl>) {
+            f(std::get<Index>(tpl));
+            return tuple_for_each<Tpl, F, Index + 1>(tpl, f);
+        }
+    }
+
+
 } //namespace parserlib
 
 

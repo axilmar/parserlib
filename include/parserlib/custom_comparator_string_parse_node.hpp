@@ -59,6 +59,12 @@ namespace parserlib {
             return false;
         }
 
+        #ifndef NDEBUG
+        std::string text() const {
+            return "custom_comparator(\"" + m_string + "\")";
+        }
+        #endif
+
     private:
         const std::basic_string<Symbol> m_string;
         const SymbolComparator m_symbol_comparator;

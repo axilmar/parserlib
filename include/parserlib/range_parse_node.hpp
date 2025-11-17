@@ -3,6 +3,7 @@
 
 
 #include <cassert>
+#include <sstream>
 #include "parse_node.hpp"
 
 
@@ -43,6 +44,14 @@ namespace parserlib {
             }
             return false;
         }
+
+        #ifndef NDEBUG
+        std::string text() const {
+            std::stringstream stream;
+            stream << "range(" << m_min << ", " << m_max << ")";
+            return stream.str();
+        }
+        #endif NDEBUG
 
     private:
         const Symbol m_min;

@@ -23,7 +23,11 @@ namespace parserlib {
          * @param child the child node to use for parsing.
          */
         match_parse_node(const MatchId& id, const ParseNode& child) 
-            : m_id(id), m_child(child)
+            : m_id(id)
+            , m_child(child)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
         {
         }
 
@@ -51,9 +55,26 @@ namespace parserlib {
             return m_child;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const MatchId m_id;
         const ParseNode m_child;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << m_child.text() << " ->* " << id_name<MatchId>::get(m_id);
+            return stream.str();
+        }
+        #endif
     };
 
 

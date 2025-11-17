@@ -2,6 +2,7 @@
 #define PARSERLIB_ERROR_MATCH_PARSE_NODE_HPP
 
 
+#include <sstream>
 #include "parse_node.hpp"
 
 
@@ -20,7 +21,12 @@ namespace parserlib {
          * The constructor.
          * @param id the match id.
          */
-        error_match_parse_node(const MatchId& id) : m_id(id) {
+        error_match_parse_node(const MatchId& id) 
+            : m_id(id)
+            #ifndef NDEBUG
+            , m_text(create_text())
+            #endif
+        {
         }
 
         /**
@@ -34,8 +40,25 @@ namespace parserlib {
             return true;
         }
 
+        #ifndef NDEBUG
+        const std::string& text() const {
+            return m_text;
+        }
+        #endif
+
     private:
         const MatchId m_id;
+        #ifndef NDEBUG
+        const std::string m_text;
+        #endif
+
+        #ifndef NDEBUG
+        std::string create_text() const {
+            std::stringstream stream;
+            stream << "error_match(" << id_name<MatchId>::get(m_id) << ")";
+            return stream.str();
+        }
+        #endif
     };
 
 

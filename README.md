@@ -206,16 +206,6 @@ Example:
 newline('\n');
 ```
 
-##### Function 'list'
-
-The function `list(initial-expression, separator, subsequent-expression)` can be used to create a repeating loop of the given subsequent expression, separated by the given separator and starting with the initial expression.
-
-Example:
-
-```cpp
-list(value, ',', value);
-```
-
 ##### Function 'skip_before'
 
 The function `skip_before(expression)` can be used to create a repeating loop of the given expression.
@@ -281,6 +271,21 @@ const auto token
     | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol));
 
 const tokenizer = *token;
+```
+
+#### Function 'loop_break'
+
+The function `loop_break([levels = 1])` can be used to break one or more loops (depending on the `levels` parameter).
+
+It is useful when an error is detected within a loop.
+
+It works by throwing a `loop_break_exception`, which is cought by the loop parsers and handled accordingly.
+
+Example:
+
+```cpp
+//loop over 'a'; if 'b' is met, stop the loop.
+const auto loop = *((&terminal('b') >> error(ERROR_ID::INVALID_CHARACTER) >> loop_break()) | 'a');
 ```
 
 #### Rules

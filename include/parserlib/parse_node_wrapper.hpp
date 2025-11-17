@@ -27,6 +27,10 @@ namespace parserlib {
          * @return true on success, false otherwise.
          */
         virtual bool parse(ParseContext& pc) const = 0;
+
+        #ifndef NDEBUG
+        virtual std::string text() const = 0;
+        #endif
     };
 
 
@@ -56,6 +60,12 @@ namespace parserlib {
         bool parse(ParseContext& pc) const override {
             return m_parse_node.parse(pc);
         }
+
+        #ifndef NDEBUG
+        std::string text() const override {
+            return m_parse_node.text();
+        }
+        #endif
 
     private:
         const ParseNode m_parse_node;

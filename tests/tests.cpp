@@ -366,107 +366,135 @@ static void test_newline_parsing() {
 
 
 static void test_loop_0_parsing() {
-    const auto grammar = *terminal('a');
-
     {
-        std::string src = "a";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_ended());
+        const auto grammar = *terminal('a');
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "aa";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "aaa";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "b";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == src.begin());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == std::next(src.begin(), 1));
+        }
+
+        {
+            std::string src = "aab";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
+        }
     }
 
     {
-        std::string src = "aa";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_ended());
-    }
+        const auto grammar = *((&terminal('b') >> loop_break()) | terminal('a'));
 
-    {
-        std::string src = "aaa";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_ended());
-    }
-
-    {
-        std::string src = "b";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_position().iterator() == src.begin());
-    }
-
-    {
-        std::string src = "ab";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_position().iterator() == std::next(src.begin(), 1));
-    }
-
-    {
-        std::string src = "aab";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
+        {
+            std::string src = "aaba";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
+        }
     }
 }
 
 
 static void test_loop_1_parsing() {
-    const auto grammar = +terminal('a');
-
     {
-        std::string src = "a";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_ended());
+        const auto grammar = +terminal('a');
+
+        {
+            std::string src = "a";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "aa";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "aaa";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_ended());
+        }
+
+        {
+            std::string src = "b";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.parse_position().iterator() == src.begin());
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == std::next(src.begin(), 1));
+        }
+
+        {
+            std::string src = "aab";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
+        }
     }
 
     {
-        std::string src = "aa";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_ended());
-    }
+        const auto grammar = +((&terminal('b') >> loop_break()) | terminal('a'));
 
-    {
-        std::string src = "aaa";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_ended());
-    }
-
-    {
-        std::string src = "b";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(!ok);
-        assert(pc.parse_position().iterator() == src.begin());
-    }
-
-    {
-        std::string src = "ab";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_position().iterator() == std::next(src.begin(), 1));
-    }
-
-    {
-        std::string src = "aab";
-        parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
-        assert(ok);
-        assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
+        {
+            std::string src = "aaba";
+            parse_context<> pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
+        }
     }
 }
 
@@ -1791,6 +1819,81 @@ static void test_load_file() {
 }
 
 
+enum X1 {
+    A,
+    B,
+    C
+};
+
+
+static const char* get_id_name(X1 v) {
+    switch (v) {
+        case X1::A: return "X1::A";
+        case X1::B: return "X1::B";
+        case X1::C: return "X1::C";
+    }
+    return "-";
+}
+
+
+enum class X2 {
+    A,
+    B,
+    C
+};
+
+
+static const char* get_id_name(X2 v) {
+    switch (v) {
+        case X2::A: return "X2::A";
+        case X2::B: return "X2::B";
+        case X2::C: return "X2::C";
+    }
+    return "-";
+}
+
+
+enum Y1 {
+    D,
+    E,
+    F
+};
+
+
+enum class Y2 {
+    D,
+    E,
+    F
+};
+
+
+static void test_id_name() {
+    {
+        std::stringstream stream;
+        stream << id_name<X1>::get(X1::A);
+        assert(stream.str() == "X1::A");
+    }
+
+    {
+        std::stringstream stream;
+        stream << id_name<X2>::get(X2::A);
+        assert(stream.str() == "X2::A");
+    }
+
+    {
+        std::stringstream stream;
+        stream << id_name<Y1>::get(Y1::D);
+        assert(stream.str() == "0");
+    }
+
+    {
+        std::stringstream stream;
+        stream << id_name<Y2>::get(Y2::D);
+        assert(stream.str() == "0");
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_case_insensitive_symbol_parsing();
@@ -1821,4 +1924,5 @@ void run_tests() {
     test_ast();
     test_multistage_parsing();
     test_load_file();
+    test_id_name();
 }

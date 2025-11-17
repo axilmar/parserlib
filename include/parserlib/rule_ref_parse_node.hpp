@@ -2,6 +2,7 @@
 #define PARSERLIB_RULE_REF_PARSE_NODE_HPP
 
 
+#include <sstream>
 #include "parse_node.hpp"
 
 
@@ -44,6 +45,19 @@ namespace parserlib {
         rule_type& rule() const {
             return m_rule;
         }
+
+        #ifndef NDEBUG
+        std::string text() const {
+            std::stringstream stream;
+            if (m_rule.name().empty()) {
+                stream << m_rule.this_ptr();
+            }
+            else {
+                stream << m_rule.name();
+            }
+            return stream.str();
+        }
+        #endif NDEBUG
 
     private:
         rule_type& m_rule;

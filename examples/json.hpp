@@ -294,16 +294,13 @@ namespace parserlib {
                     const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
                     //array member list
-                    const auto array_member_list = list(
-                        value,
-                        TOKEN_ID::COMMA,
-                        value);
+                    const auto array_member_list = value >> *(TOKEN_ID::COMMA >> (value | error(ERROR_ID::EXPECTED_VALUE)));
 
                     //array
                     const auto array = (
                         TOKEN_ID::LEFT_SQUARE_BRACKET >>
                         -array_member_list >> 
-                        TOKEN_ID::RIGHT_SQUARE_BRACKET
+                        (TOKEN_ID::RIGHT_SQUARE_BRACKET)
                         )->*AST_ID::ARRAY;
 
                     //true terminal
@@ -328,15 +325,12 @@ namespace parserlib {
                     //the object member
                     const auto object_member = (
                         string >>
-                        TOKEN_ID::COLON >> 
+                        TOKEN_ID::COLON >>
                         value
                     )->*AST_ID::MEMBER;
 
                     //the object member list
-                    const auto object_member_list = list(
-                        object_member,
-                        TOKEN_ID::COMMA,
-                        object_member);
+                    const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
 
                     //the object
                     object = (
@@ -345,15 +339,8 @@ namespace parserlib {
                         TOKEN_ID::RIGHT_CURLY_BRACKET
                     )->*AST_ID::OBJECT;
 
-                    //the root object
-                    const auto root_object = (
-                        TOKEN_ID::LEFT_CURLY_BRACKET >> 
-                        -object_member_list >>
-                        TOKEN_ID::RIGHT_CURLY_BRACKET
-                    )->*AST_ID::OBJECT;
-
                     //this grammar
-                    *this = root_object >> end();
+                    *this = object >> end();
 
                     //also set names for easier debugging
                     value.set_name("value");
