@@ -101,7 +101,8 @@ namespace parserlib {
             EXPECTED_LEFT_SQUARE_BRACKET,
             EXPECTED_RIGHT_SQUARE_BRACKET,
             EXPECTED_LEFT_CURLY_BRACKET,
-            EXPECTED_RIGHT_CURLY_BRACKET
+            EXPECTED_RIGHT_CURLY_BRACKET,
+            EXPECTED_ARRAY
         };
 
         template <class Source = std::string> class impl {
@@ -259,14 +260,10 @@ namespace parserlib {
                         const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
                         //array member list
-                        const auto array_member_list = value >> *(TOKEN_ID::COMMA >> (value | debug(error(ERROR_ID::EXPECTED_VALUE))));
+                        const auto array_member_list = value >> *(TOKEN_ID::COMMA >> value);
 
                         //array
-                        const auto array = (
-                            TOKEN_ID::LEFT_SQUARE_BRACKET >>
-                            -array_member_list >>
-                            (TOKEN_ID::RIGHT_SQUARE_BRACKET)
-                            )->*AST_ID::ARRAY;
+                        const auto array = (TOKEN_ID::LEFT_SQUARE_BRACKET >> -array_member_list >> TOKEN_ID::RIGHT_SQUARE_BRACKET)->*AST_ID::ARRAY;
 
                         //true terminal
                         const auto true_ = terminal(TOKEN_ID::TRUE)->*AST_ID::TRUE;
@@ -285,7 +282,8 @@ namespace parserlib {
                             | array
                             | true_
                             | false_
-                            | null_;
+                            | null_
+                            ;
 
                         //the object member
                         const auto object_member = (
@@ -401,7 +399,8 @@ namespace parserlib {
             "EXPECTED_LEFT_SQUARE_BRACKET",
             "EXPECTED_RIGHT_SQUARE_BRACKET",
             "EXPECTED_LEFT_CURLY_BRACKET",
-            "EXPECTED_RIGHT_CURLY_BRACKET"
+            "EXPECTED_RIGHT_CURLY_BRACKET",
+            "EXPECTED_ARRAY"
         };
         return names[static_cast<int>(id)];
     }

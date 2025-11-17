@@ -1203,6 +1203,8 @@ Parse nodes that are composite (i.e. they contain children parse nodes) contain 
 
 This member can be helpful in examining the grammar the parse node during debugging.
 
+In release mode, the member `m_text` and the relevant member functions are not available.
+
 ## Parsing left recursive grammars
 
 `Parserlib` can handle left recursion grammars.

@@ -8,7 +8,7 @@ using namespace parserlib;
 static void run_example_json() {
     std::string src = 
 R"({
-    "v4": [false, true, [1, 2, 3], {"x":5, "y":6}, 15, "aaa", null,]
+    "v4": [false, true, [1, 2, 3], {"x":5, "y":6}, 15, "aaa", null: 3],
     "v1": null,
     "v2": false,
     "v3": true,
