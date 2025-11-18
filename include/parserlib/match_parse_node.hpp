@@ -25,9 +25,6 @@ namespace parserlib {
         match_parse_node(const MatchId& id, const ParseNode& child) 
             : m_id(id)
             , m_child(child)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -40,41 +37,42 @@ namespace parserlib {
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             const auto match_start_state = pc.get_match_start_state();
-            if (m_child.parse(pc)) {
+            if (pc.parse(m_child)) {
                 pc.add_match(m_id, match_start_state, pc.iterator());
                 return true;
             }
             return false;
         }
 
+        /**
+         * Returns the id of the match.
+         * @return the id of the match.
+         */
         const MatchId& id() const {
             return m_id;
         }
 
+        /**
+         * Returns the child node.
+         * @return the child node.
+         */
         const ParseNode& child() const {
             return m_child;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            std::stringstream stream;
+            stream << '(' << m_child.text() << " ->* " << id_name<MatchId>::get(m_id) << ')';
+            return stream.str();
         }
-        #endif
 
     private:
         const MatchId m_id;
         const ParseNode m_child;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
-            std::stringstream stream;
-            stream << m_child.text() << " ->* " << id_name<MatchId>::get(m_id);
-            return stream.str();
-        }
-        #endif
     };
 
 

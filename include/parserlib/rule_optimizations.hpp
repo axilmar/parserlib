@@ -19,9 +19,6 @@ namespace parserlib {
     public:
         left_recursive_match_parse_node(const ParseNode& parse_node) 
             : m_parse_node(parse_node)
-            #ifndef NDEBUG
-            , m_text("(" + m_parse_node.text())
-            #endif
         {
         }
 
@@ -30,7 +27,7 @@ namespace parserlib {
             const auto prev_lr_start_state = pc.left_recursion_start_state();
             pc.set_left_recursion_start_state(pc.get_state());
             try {
-                const bool result = m_parse_node.parse(pc);
+                const bool result = pc.parse(m_parse_node);
                 pc.set_left_recursion_start_state(prev_lr_start_state);
                 return result;
             }
@@ -40,17 +37,12 @@ namespace parserlib {
             }
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        std::string text() const override {
+            return "(" + m_parse_node.text();
         }
-        #endif
 
     private:
         const ParseNode m_parse_node;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 
@@ -59,9 +51,6 @@ namespace parserlib {
     public:
         match_end_parse_node(const MatchId& id) 
             : m_id(id)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -71,25 +60,14 @@ namespace parserlib {
             return true;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const MatchId m_id;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
+        std::string text() const override {
             std::stringstream stream;
             stream << ") ->* " << id_name<MatchId>::get(m_id);
             return stream.str();
         }
-        #endif
+
+    private:
+        const MatchId m_id;
     };
 
 

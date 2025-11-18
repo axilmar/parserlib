@@ -13,7 +13,7 @@ static void test_symbol_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -21,7 +21,7 @@ static void test_symbol_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -34,7 +34,7 @@ static void test_case_insensitive_symbol_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -42,7 +42,7 @@ static void test_case_insensitive_symbol_parsing() {
     {
         std::string src = "A";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -50,7 +50,7 @@ static void test_case_insensitive_symbol_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -63,7 +63,7 @@ static void test_string_parsing() {
     {
         std::string src = "abc";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -71,7 +71,7 @@ static void test_string_parsing() {
     {
         std::string src = "bca";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -84,7 +84,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "abc";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -92,7 +92,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "Abc";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -100,7 +100,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "aBc";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -108,7 +108,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "abC";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -116,7 +116,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "ABc";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -124,7 +124,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "aBC";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -132,7 +132,7 @@ static void test_case_insensitive_string_parsing() {
     {
         std::string src = "bca";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -145,7 +145,7 @@ static void test_set_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -153,7 +153,7 @@ static void test_set_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -161,7 +161,7 @@ static void test_set_parsing() {
     {
         std::string src = "c";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -169,7 +169,7 @@ static void test_set_parsing() {
     {
         std::string src = "1";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -182,7 +182,7 @@ static void test_range_parsing() {
     {
         std::string src = "0";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -190,7 +190,7 @@ static void test_range_parsing() {
     {
         std::string src = "5";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -198,7 +198,7 @@ static void test_range_parsing() {
     {
         std::string src = "9";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -206,7 +206,7 @@ static void test_range_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -219,7 +219,7 @@ static void test_any_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -227,7 +227,7 @@ static void test_any_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -235,7 +235,7 @@ static void test_any_parsing() {
     {
         std::string src = "";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -248,7 +248,7 @@ static void test_bool_parsing() {
         const auto grammar = make_parse_node(true);
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -257,7 +257,7 @@ static void test_bool_parsing() {
         const auto grammar = make_parse_node(false);
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -270,7 +270,7 @@ static void test_end_parsing() {
     {
         std::string src = "";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -278,7 +278,7 @@ static void test_end_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -301,7 +301,7 @@ static void test_function_parsing() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -309,7 +309,7 @@ static void test_function_parsing() {
         {
             std::string src = "b";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(!ok);
             assert(pc.parse_position().iterator() == src.begin());
         }
@@ -323,7 +323,7 @@ static void test_function_parsing() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -331,7 +331,7 @@ static void test_function_parsing() {
         {
             std::string src = "b";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(!ok);
             assert(pc.parse_position().iterator() == src.begin());
         }
@@ -346,7 +346,7 @@ static void test_newline_parsing() {
     {
         std::string src = "\n";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
         assert(pc.parse_position().text_position().line() == 2);
@@ -356,7 +356,7 @@ static void test_newline_parsing() {
     {
         std::string src = "a";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
         assert(pc.parse_position().text_position().line() == 1);
@@ -372,7 +372,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -380,7 +380,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "aa";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -388,7 +388,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "aaa";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -396,7 +396,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "b";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == src.begin());
         }
@@ -404,7 +404,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == std::next(src.begin(), 1));
         }
@@ -412,7 +412,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "aab";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
         }
@@ -424,7 +424,7 @@ static void test_loop_0_parsing() {
         {
             std::string src = "aaba";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
         }
@@ -439,7 +439,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -447,7 +447,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "aa";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -455,7 +455,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "aaa";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
         }
@@ -463,7 +463,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "b";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(!ok);
             assert(pc.parse_position().iterator() == src.begin());
         }
@@ -471,7 +471,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == std::next(src.begin(), 1));
         }
@@ -479,7 +479,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "aab";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
         }
@@ -491,7 +491,7 @@ static void test_loop_1_parsing() {
         {
             std::string src = "aaba";
             parse_context<> pc(src);
-            const bool ok = grammar.parse(pc);
+            const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_position().iterator() == std::next(src.begin(), 2));
         }
@@ -505,7 +505,7 @@ static void test_optional_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -513,7 +513,7 @@ static void test_optional_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -521,7 +521,7 @@ static void test_optional_parsing() {
     {
         std::string src = "";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -534,7 +534,7 @@ static void test_logical_and_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -542,7 +542,7 @@ static void test_logical_and_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -555,7 +555,7 @@ static void test_logical_not_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -563,7 +563,7 @@ static void test_logical_not_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -576,7 +576,7 @@ static void test_sequence_parsing() {
     {
         std::string src = "abc";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -584,7 +584,7 @@ static void test_sequence_parsing() {
     {
         std::string src = "bca";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -597,7 +597,7 @@ static void test_choice_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -605,7 +605,7 @@ static void test_choice_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -613,7 +613,7 @@ static void test_choice_parsing() {
     {
         std::string src = "c";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -621,7 +621,7 @@ static void test_choice_parsing() {
     {
         std::string src = "1";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -639,7 +639,7 @@ static void test_match_parsing() {
     {
         std::string src = "abc";
         parse_context<std::string, ID> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
         assert(pc.matches().size() == 3);
@@ -662,7 +662,7 @@ static void test_rule_parsing() {
     {
         std::string src = "a";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -670,7 +670,7 @@ static void test_rule_parsing() {
     {
         std::string src = "b";
         parse_context<> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -681,7 +681,7 @@ static void test_rule_parsing() {
 {\
     std::string input = #V;\
     parse_context pc(input);\
-    const bool result = expr.parse(pc);\
+    const bool result = pc.parse(expr);\
     assert(result);\
     assert(pc.parse_ended());\
     const double v = eval_matches(pc.matches());\
@@ -726,10 +726,6 @@ public:
             | mul;
 
         expr = add;
-
-        expr.set_name("expr");
-        add.set_name("add");
-        mul.set_name("mul");
     }
 
 private:
@@ -1056,7 +1052,7 @@ static void test_case_insensitive_parsing() {
     {
         std::string src = "ABC";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -1064,7 +1060,7 @@ static void test_case_insensitive_parsing() {
     {
         std::string src = "abC";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -1072,7 +1068,7 @@ static void test_case_insensitive_parsing() {
     {
         std::string src = "Abc";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -1080,7 +1076,7 @@ static void test_case_insensitive_parsing() {
     {
         std::string src = "ABc";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
     }
@@ -1088,7 +1084,7 @@ static void test_case_insensitive_parsing() {
     {
         std::string src = "A";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -1096,7 +1092,7 @@ static void test_case_insensitive_parsing() {
     {
         std::string src = "a";
         parse_context pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(!ok);
         assert(pc.parse_position().iterator() == src.begin());
     }
@@ -1125,7 +1121,7 @@ static void test_non_character_parsing() {
         src.push_back(token{ TOKEN_C });
 
         parse_context<std::vector<token>, ID> pc(src);
-        const bool ok = grammar.parse(pc);
+        const bool ok = pc.parse(grammar);
         assert(ok);
         assert(pc.parse_ended());
         assert(pc.matches().size() == 3);
@@ -1166,7 +1162,7 @@ static void test_debug_annotations() {
                 default_symbol_comparator_type
             > pc(str);
 
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
         }
 
@@ -1184,7 +1180,7 @@ static void test_debug_annotations() {
             std::stringstream stream;
             pc.set_output_stream(&stream);
 
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
 
             const std::string result_str = stream.str();
@@ -1205,7 +1201,7 @@ static void test_debug_annotations() {
             std::stringstream stream;
             pc.set_output_stream(&stream);
 
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
 
             const std::string result_str = stream.str();
@@ -1220,7 +1216,7 @@ static void test_rule_optimizations() {
         rule<> grammar = 'a';
         std::string src = "a";
         parse_context<> pc(src);
-        const bool result = grammar.parse(pc);
+        const bool result = pc.parse(grammar);
         assert(result);
     }
 
@@ -1233,7 +1229,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1241,7 +1237,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1249,7 +1245,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "x";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1257,7 +1253,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xb";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1273,7 +1269,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1281,7 +1277,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1289,7 +1285,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ac";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1297,7 +1293,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "x";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1305,7 +1301,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xb";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1313,7 +1309,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xc";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1330,7 +1326,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1338,7 +1334,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1346,7 +1342,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ac";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1354,7 +1350,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ad";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1362,7 +1358,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "x";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1370,7 +1366,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xb";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1378,7 +1374,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xc";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1386,7 +1382,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xd";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
         }
@@ -1403,7 +1399,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1415,7 +1411,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1430,7 +1426,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "x";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1442,7 +1438,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xb";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1467,7 +1463,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1479,7 +1475,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1494,7 +1490,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ac";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1509,7 +1505,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "x";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1521,7 +1517,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xb";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1536,7 +1532,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xc";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches()[0].id() == C);
@@ -1561,7 +1557,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "a";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1573,7 +1569,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ab";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1588,7 +1584,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ac";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1603,7 +1599,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "ad";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1618,7 +1614,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "x";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1630,7 +1626,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xb";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1645,7 +1641,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xc";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1660,7 +1656,7 @@ static void test_rule_optimizations() {
         {
             std::string src = "xd";
             parse_context<> pc(src);
-            const bool result = grammar.parse(pc);
+            const bool result = pc.parse(grammar);
             assert(result);
             assert(pc.parse_ended());
             assert(pc.matches().size() == 1);
@@ -1686,7 +1682,7 @@ static void test_errors() {
     {
         std::string src = "123+456-789";
         parse_context<> pc(src);
-        const bool result = grammar.parse(pc);
+        const bool result = pc.parse(grammar);
         assert(result);
 
         assert(pc.parse_ended());
@@ -1738,7 +1734,7 @@ static void test_ast() {
     {
         std::string src = "abdec";
         parse_context<> pc(src);
-        const bool result = grammar.parse(pc);
+        const bool result = pc.parse(grammar);
         assert(result);
 
         assert(pc.matches().size() == 1);

@@ -23,9 +23,6 @@ namespace parserlib {
          */
         newline_parse_node(const ParseNode& parse_node)
             : m_parse_node(parse_node)
-            #ifndef NDEBUG
-            , m_text("newline(" + m_parse_node.text() + ")")
-            #endif
         {
         }
 
@@ -38,24 +35,23 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            if (m_parse_node.parse(pc)) {
+            if (pc.parse(m_parse_node)) {
                 pc.increment_parse_position_line();
                 return true;
             }
             return false;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return "newline(" + m_parse_node.text() + ")";
         }
-        #endif
 
     private:
         const ParseNode m_parse_node;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

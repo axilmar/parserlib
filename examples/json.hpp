@@ -121,9 +121,6 @@ namespace parserlib {
                     using rule_type::operator =;
 
                     grammar() {
-                        //set names
-                        this->set_name("tokenizer");
-
                         //whitespace
                         const auto ws = set(0x09, 0x0d, 0x0a, 0x20);
 
@@ -206,7 +203,7 @@ namespace parserlib {
                             | token;
 
                         //on error, proceed to the next symbol
-                        *this = *(symbol | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol))) >> end();
+                        *this = "tokenizer" >>= *(symbol | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol))) >> end();
                     }
                 };
             };
@@ -238,35 +235,31 @@ namespace parserlib {
                     using rule_type::operator =;
 
                     grammar() {
-                        //set names
-                        value.set_name("value");
-                        object.set_name("object");
-                        this->set_name("parser");
 
                         //string terminal
-                        const auto string = terminal(TOKEN_ID::STRING)->*AST_ID::STRING;
+                        const auto string = "string" >>= terminal(TOKEN_ID::STRING)->*AST_ID::STRING;
 
                         //number terminal
-                        const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
+                        const auto number = "number" >>= terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
                         //array member list
                         const auto array_member_list = value >> *(TOKEN_ID::COMMA >> value);
 
                         //array
-                        const auto array = (TOKEN_ID::LEFT_SQUARE_BRACKET >> -array_member_list >> TOKEN_ID::RIGHT_SQUARE_BRACKET)->*AST_ID::ARRAY;
+                        const auto array = "array" >>= (TOKEN_ID::LEFT_SQUARE_BRACKET >> -array_member_list >> TOKEN_ID::RIGHT_SQUARE_BRACKET)->*AST_ID::ARRAY;
 
                         //true terminal
-                        const auto true_ = terminal(TOKEN_ID::TRUE)->*AST_ID::TRUE;
+                        const auto true_ = "true" >>= terminal(TOKEN_ID::TRUE)->*AST_ID::TRUE;
 
                         //false terminal
-                        const auto false_ = terminal(TOKEN_ID::FALSE)->*AST_ID::FALSE;
+                        const auto false_ = "false" >>= terminal(TOKEN_ID::FALSE)->*AST_ID::FALSE;
 
                         //null terminal
-                        const auto null_ = terminal(TOKEN_ID::NULL)->*AST_ID::NULL;
+                        const auto null_ = "null" >>= terminal(TOKEN_ID::NULL)->*AST_ID::NULL;
 
                         //the value
-                        value
-                            = string
+                        value = "value"
+                          >>= string
                             | number
                             | object
                             | array
@@ -276,16 +269,16 @@ namespace parserlib {
                             ;
 
                         //the object member
-                        const auto object_member = (string >> TOKEN_ID::COLON >> value)->*AST_ID::MEMBER;
+                        const auto object_member = "object_member" >>= (string >> TOKEN_ID::COLON >> value)->*AST_ID::MEMBER;
 
                         //the object member list
                         const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
 
                         //the object
-                        object = (TOKEN_ID::LEFT_CURLY_BRACKET >> -object_member_list >> TOKEN_ID::RIGHT_CURLY_BRACKET)->*AST_ID::OBJECT;
+                        object = "object" >>= (TOKEN_ID::LEFT_CURLY_BRACKET >> -object_member_list >> TOKEN_ID::RIGHT_CURLY_BRACKET)->*AST_ID::OBJECT;
 
                         //the parser grammar
-                        *this = object >> end();
+                        *this = "parser" >>= object >> end();
                     }
                 };
             };
@@ -323,9 +316,9 @@ namespace parserlib {
 
 
     /**
-     * Returns the name of a token id.
-     * @param id id of token to get the name of.
-     * @return the name of the given token id.
+     * Returns the named of a token id.
+     * @param id id of token to get the named of.
+     * @return the named of the given token id.
      */
     static const char* get_id_name(typename json::TOKEN_ID id) {
         static const char* names[] = {
@@ -346,9 +339,9 @@ namespace parserlib {
 
 
     /**
-     * Returns the name of an AST node id.
-     * @param id id of AST node to get the name of.
-     * @return the name of the given AST id.
+     * Returns the named of an AST node id.
+     * @param id id of AST node to get the named of.
+     * @return the named of the given AST id.
      */
     static const char* get_id_name(typename json::AST_ID id) {
         static const char* names[] = {
@@ -366,9 +359,9 @@ namespace parserlib {
 
 
     /**
-     * Returns the name of an error id.
-     * @param id id of the error to get the name of.
-     * @return the name of the given error id.
+     * Returns the named of an error id.
+     * @param id id of the error to get the named of.
+     * @return the named of the given error id.
      */
     static const char* get_id_name(typename json::ERROR_ID id) {
         static const char* names[] = {

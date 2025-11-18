@@ -3,6 +3,8 @@
 
 
 #include <string>
+#include <type_traits>
+#include <mutex>
 #include "id_name.hpp"
 
 
@@ -16,8 +18,75 @@ namespace parserlib {
     template <class ParseNode> class logical_not_parse_node;
     template <class ParseNode, class Annotation> class annotation_parse_node;
 
-
+    /**
+     * Base class for parse nodes.
+     */
     class parse_node_base {
+    public:
+        /**
+         * Virtual destructor due to polymorphism.
+         */
+        virtual ~parse_node_base() {
+        }
+
+        /**
+         * Does dynamic initialization of the parse node.
+         * It debug mode, it sets the `m_text` member of the parse node, if not set yet.
+         * Setting the text dynamically is required due to rules being recursive.
+         * The operation is thread-safe (protected by a mutex).
+         * In release mode, it does nothing.
+         * This function will be invoked automatically from `parse_context::parse(parse_node)`.
+         */
+        void init() const {
+            #ifndef NDEBUG
+            std::lock_guard lock(m_mutex);
+            if (m_text.empty()) {
+                m_text = text();
+            }
+            #endif
+        }
+
+        /**
+         * Interface for returning the text description of the node.
+         * @return the text description of the node.
+         */
+        virtual std::string text() const = 0;
+
+    protected:
+        /**
+         * The default constructor.
+         */
+        parse_node_base() {
+        }
+
+        #ifndef NDEBUG
+        /**
+         * The copy constructor.
+         * @param src the source object.
+         */
+        parse_node_base(const parse_node_base& src)
+            : m_text(src.m_text)
+        {
+        }
+        #endif
+
+        #ifndef NDEBUG
+        /**
+         * The copy assignment operator.
+         * @param src the source object.
+         * @return reference to this.
+         */
+        parse_node_base& operator = (const parse_node_base& src) {
+            m_text = src.m_text;
+            return *this;
+        }
+        #endif
+
+    private:
+        #ifndef NDEBUG
+        mutable std::string m_text;
+        mutable std::mutex m_mutex;
+        #endif
     };
 
 

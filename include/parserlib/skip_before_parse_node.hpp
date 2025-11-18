@@ -24,9 +24,6 @@ namespace parserlib {
          */
         skip_before_parse_node(const ParseNode& parse_node)
             : m_parse_node(parse_node)
-            #ifndef NDEBUG
-            , m_text("skip_before(" + m_parse_node.text() + ")")
-            #endif
         {
         }
 
@@ -44,7 +41,7 @@ namespace parserlib {
             while (pc.parse_valid()) {
                 const auto state = pc.get_state();
                 try {
-                    const bool result = m_parse_node.parse(pc);
+                    const bool result = pc.parse(m_parse_node);
                     pc.set_state(state);
                     if (result) {
                         return true;
@@ -60,17 +57,16 @@ namespace parserlib {
             return false;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return "skip_before(" + m_parse_node.text() + ")";
         }
-        #endif
 
     private:
         const ParseNode m_parse_node;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

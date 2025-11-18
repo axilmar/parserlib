@@ -14,7 +14,7 @@ namespace parserlib {
      */
     struct loop_break_exception {
         /**
-         * Number of loops to break.
+         * Number of nested loops to break.
          */
         const size_t levels;
     };
@@ -28,13 +28,10 @@ namespace parserlib {
     public:
         /**
          * The constructor.
-         * @param levels levels of loops to break.
+         * @param levels levels of nested loops to break.
          */
         loop_break_parse_node(size_t levels) 
             : m_levels(levels)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -48,25 +45,18 @@ namespace parserlib {
             throw loop_break_exception{ m_levels };
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const size_t m_levels;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
             std::stringstream stream;
             stream << "loop_break(" << m_levels << ')';
             return stream.str();
         }
-        #endif
+
+    private:
+        const size_t m_levels;
     };
 
 

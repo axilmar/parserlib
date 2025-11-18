@@ -23,9 +23,6 @@ namespace parserlib {
          */
         string_parse_node(const std::basic_string<Symbol>& string)
             : m_string(string)
-            #ifndef NDEBUG
-            , m_text('"' + m_string + '"')
-            #endif
         {
         }
 
@@ -57,17 +54,16 @@ namespace parserlib {
             return false;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return '"' + m_string + '"';
         }
-        #endif
 
     private:
         const std::basic_string<Symbol> m_string;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

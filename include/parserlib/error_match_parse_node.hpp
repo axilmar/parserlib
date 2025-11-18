@@ -23,9 +23,6 @@ namespace parserlib {
          */
         error_match_parse_node(const MatchId& id) 
             : m_id(id)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -40,25 +37,18 @@ namespace parserlib {
             return true;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const MatchId m_id;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
             std::stringstream stream;
             stream << "error_match(" << id_name<MatchId>::get(m_id) << ")";
             return stream.str();
         }
-        #endif
+
+    private:
+        const MatchId m_id;
     };
 
 

@@ -321,16 +321,11 @@ rule<> e = a;
 
 Rules can handle parsing left-recursive grammars.
 
-Rules also have two helper methods for debugging:
-
-* `name()`: returns the rule name; initially empty.
-* `set_name(string)`: sets the rule name.
-
 #### Operators
 
 ##### Unary operator '*'
 
-The unary operator '*', when applied on a parse node, puts the parse node in a loop that allows for an input to be repeated zero or more times.
+The unary `operator *`, when applied on a parse node, puts the parse node in a loop that allows for an input to be repeated zero or more times.
 
 Example:
 
@@ -340,7 +335,7 @@ Example:
 
 ##### Unary operator '+'
 
-The unary operator '+', when applied on a parse node, puts the parse node in a loop that allows for an input to be repeated one or more times.
+The unary `operator +`, when applied on a parse node, puts the parse node in a loop that allows for an input to be repeated one or more times.
 
 Example:
 
@@ -350,7 +345,7 @@ Example:
 
 ##### Unary operator '-'
 
-The unary operator '-', when applied on a parse node, makes a parse node optional, i.e. if the parse node fails to parse then parsing continues as if the parse node suceeded.
+The unary `operator -`, when applied on a parse node, makes a parse node optional, i.e. if the parse node fails to parse then parsing continues as if the parse node suceeded.
 
 Example:
 
@@ -360,7 +355,7 @@ Example:
 
 ##### Unary operator '&'
 
-The unary operator '&', when applied on a parse node, makes a `logical and` parse node, i.e. a parse node that tests positively for a specific input.
+The unary `operator &`, when applied on a parse node, makes a `logical and` parse node, i.e. a parse node that tests positively for a specific input.
 
 A `logical and` parse node does not consume any input: the state of a parse context after the node returns is always the same as the state of the parse context before the parse node parses anything.
 
@@ -372,7 +367,7 @@ Example:
 
 ##### Unary operator '!'
 
-The unary operator '!', when applied on a parse node, makes a `logical not` parse node, i.e. a parse node that tests negatively for a specific input.
+The unary `operator !`, when applied on a parse node, makes a `logical not` parse node, i.e. a parse node that tests negatively for a specific input.
 
 A `logical not` parse node does not consume any input: the state of a parse context after the node returns is always the same as the state of the parse context before the parse node parses anything.
 
@@ -384,7 +379,7 @@ Example:
 
 ##### Binary operator '>>'
 
-The binary operator '>>' creates a sequence of parse nodes.
+The binary `operator >>` creates a sequence of parse nodes.
 
 If a parse node in a sequence fails to parse, then the whole sequence fails, and the state of the parse context is restored to the state before the sequence is entered.
 
@@ -396,7 +391,7 @@ terminal('a') >> 'b' >> 'c';
 
 ##### Binary operator '|'
 
-The binary operator '|' creates a choice of parse nodes.
+The binary `operator |` creates a choice of parse nodes.
 
 If a parse node in a choice fails to parse, then the next parse node of the choice is selected to parse, until all parse nods of a choice have been used.
 
@@ -412,7 +407,7 @@ terminal('a') | 'b' | 'c';
 
 ##### Binary operator '-'
 
-The binary operator '-' creates an exclusion pattern.
+The binary `operator -` creates an exclusion pattern.
 
 An expression of the form `A - B` is converted to `!B >> A`, allowing A to be entered only if B fails to parse.
 
@@ -425,7 +420,7 @@ any() - '#';
 
 ##### Binary operator '->*'
 
-The binary operator '->*' creates a match parse node.
+The binary `operator ->*` creates a match parse node.
 
 A match is an identified portion of the input with a specific match id value.
 
@@ -440,6 +435,16 @@ Example:
 ```cpp
 //when an identifier is recognized, push the relevant match to the match stack
 const auto identifier = (letter >> *(letter | digit))->*TOKEN_ID::IDENTIFIER;
+```
+
+##### Binary operator '>>='
+
+The binary `operator >>=` can be used to add a name to an expression.
+
+Example:
+
+```cpp
+const auto integer = "integer" >>= +digit;
 ```
 
 #### Custom parser classes
@@ -1088,10 +1093,6 @@ for(const auto &ast_node : ast_nodes) {
 
 ### Debugging a parser
 
-#### Debugging via rule names
-
-A `rule<>` instance can have a name. By using the `set_name(string)` method of a rule, and using breakpoints, the rule that causes the problem can be identified.
-
 #### Debugging via `debug`
 
 The `debug` function wraps a parse node into an instance of `debug_parse_node`, which can be used to set a breakpoint into.
@@ -1197,13 +1198,21 @@ parse_context<
     pc1(source);
 ```
 
-#### Debugging via member 'm_text'
+#### Inspecting the field 'm_text'.
 
-Parse nodes that are composite (i.e. they contain children parse nodes) contain a member `m_text` which allows viewing a parse node's grammar as text.
+Each parse node has a field `m_text` which is set to the textual description of the parse node.
 
-This member can be helpful in examining the grammar the parse node during debugging.
+This is valid only in debug mode.
 
-In release mode, the member `m_text` and the relevant member functions are not available.
+For example, the JSON parser produces the following texts:
+
+```
+//text for 'object' expression
+((LEFT_CURLY_BRACKET >> -(object_member >> *(COMMA >> object_member)) >> RIGHT_CURLY_BRACKET) ->* OBJECT)
+
+//text for 'value' expression
+(string | number | object | array | true | false | null)
+```
 
 ## Parsing left recursive grammars
 

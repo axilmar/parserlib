@@ -21,9 +21,6 @@ namespace parserlib {
          */
         loop_0_parse_node(const ParseNode& child)
             : m_child(child)
-            #ifndef NDEBUG
-            , m_text("*" + m_child.text())
-            #endif
         {
         }
 
@@ -39,17 +36,16 @@ namespace parserlib {
             return loop_parse(pc, m_child);
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return "*" + m_child.text();
         }
-        #endif
 
     private:
         const ParseNode m_child;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

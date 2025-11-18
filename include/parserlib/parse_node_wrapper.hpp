@@ -28,9 +28,11 @@ namespace parserlib {
          */
         virtual bool parse(ParseContext& pc) const = 0;
 
-        #ifndef NDEBUG
+        /**
+         * Interface for retrieving the text representation of the wrapped parse node.
+         * @return the text representation of the wrapped parse node.
+         */
         virtual std::string text() const = 0;
-        #endif
     };
 
 
@@ -58,14 +60,16 @@ namespace parserlib {
          * @return true on success, false otherwise.
          */
         bool parse(ParseContext& pc) const override {
-            return m_parse_node.parse(pc);
+            return pc.parse(m_parse_node);
         }
 
-        #ifndef NDEBUG
+        /**
+         * Implementation of interface for retrieving the text representation of the wrapped parse node.
+         * @return the text representation of the wrapped parse node.
+         */
         std::string text() const override {
             return m_parse_node.text();
         }
-        #endif
 
     private:
         const ParseNode m_parse_node;

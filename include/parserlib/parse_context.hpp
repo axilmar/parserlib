@@ -443,6 +443,19 @@ namespace parserlib {
             return parse_context<match_container_type, DerivedMatchId, DerivedErrorId, default_text_position, default_symbol_comparator, DerivedExtensions...>(m_matches);
         }
 
+        /**
+         * Invokes the parse function on the given parse node.
+         * It invokes the function `init()` on the parse node, allowing it to make 
+         * dynamic initialization.
+         * @param parse_node parse node to invoke.
+         * @return the parse result.
+         */
+        template <class ParseNode>
+        bool parse(const ParseNode& parse_node) {
+            parse_node.init();
+            return parse_node.parse(*this);
+        }
+
     private:
         enum class rule_state {
             none,

@@ -14,9 +14,7 @@ namespace parserlib {
      * @param T type of functor to check.
      */
     template <class T, class P = void> 
-    struct is_parse_functor 
-        : std::false_type
-    {
+    struct is_parse_functor : std::false_type {
     };
 
 
@@ -25,9 +23,7 @@ namespace parserlib {
      * @param T type of functor to check.
      */
     template <class T> 
-    struct is_parse_functor<T, std::void_t<decltype(std::declval<T>()(std::declval<parse_context<>&>()))>>
-        : std::true_type
-    {
+    struct is_parse_functor<T, std::void_t<decltype(std::declval<T>()(std::declval<parse_context<>&>()))>> : std::true_type {
     };
 
 

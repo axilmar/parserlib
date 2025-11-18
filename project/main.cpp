@@ -10,7 +10,7 @@ using namespace parserlib;
 
 
 int main() {
-    //run_tests();
+    run_tests();
     run_examples();
     return 0;
 }

@@ -13,7 +13,8 @@ namespace parserlib {
      * A parse node that allows a function to participate in the parsing process.
      * @param F type of function/functor to invoke.
      */
-    template <class F> class function_parse_node : public parse_node<function_parse_node<F>> {
+    template <class F> 
+    class function_parse_node : public parse_node<function_parse_node<F>> {
     public:
         /**
          * The constructor.
@@ -21,9 +22,6 @@ namespace parserlib {
          */
         function_parse_node(const F& f) 
             : m_function(f)
-            #ifndef NDEBUG
-            , m_text("function")
-            #endif
         {
         }
 
@@ -37,17 +35,16 @@ namespace parserlib {
             return m_function(pc);
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return "function";
         }
-        #endif
 
     private:
         const F m_function;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

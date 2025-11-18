@@ -28,9 +28,6 @@ namespace parserlib {
          */
         rule_ref_parse_node(rule_type& r) 
             : m_rule(r)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -40,7 +37,7 @@ namespace parserlib {
          * @return true on success, false on failure.
          */
         bool parse(ParseContext& pc) const {
-            return m_rule.parse(pc);
+            return pc.parse(m_rule);
         }
 
         /**
@@ -51,30 +48,16 @@ namespace parserlib {
             return m_rule;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Returns the name of the rule.
+         * @return the name of the rule.
+         */
+        std::string text() const override {
+            return m_rule.name();
         }
-        #endif
 
     private:
         rule_type& m_rule;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
-            std::stringstream stream;
-            if (m_rule.name().empty()) {
-                stream << m_rule.this_ptr();
-            }
-            else {
-                stream << m_rule.name();
-            }
-            return stream.str();
-        }
-        #endif
     };
 
 } //namespace parserlib

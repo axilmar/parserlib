@@ -21,9 +21,6 @@ namespace parserlib {
          */
         bool_parse_node(bool value) 
             : m_value(value)
-            #ifndef NDEBUG
-            , m_text(m_value ? "true" : "false")
-            #endif            
         {
         }
 
@@ -38,17 +35,16 @@ namespace parserlib {
             return m_value;
         }
 
-        #ifndef NDEBUG
-        std::string text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return m_value ? "true" : "false";
         }
-        #endif
 
     private:
         const bool m_value;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

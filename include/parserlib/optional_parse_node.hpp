@@ -21,9 +21,6 @@ namespace parserlib {
          */
         optional_parse_node(const ParseNode& child)
             : m_child(child)
-            #ifndef NDEBUG
-            , m_text("-" + m_child.text() + "")
-            #endif
         {
         }
 
@@ -35,24 +32,23 @@ namespace parserlib {
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             const auto initial_state = pc.get_state();
-            if (m_child.parse(pc)) {
+            if (pc.parse(m_child)) {
                 return true;
             }
             pc.set_state(initial_state);
             return true;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return "-" + m_child.text() + "";
         }
-        #endif
 
     private:
         const ParseNode m_child;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

@@ -13,6 +13,9 @@
 namespace parserlib {
 
 
+    /**
+     * Base class for sequence parse nodes.
+     */
     class sequence_parse_node_base {
     };
 
@@ -31,9 +34,6 @@ namespace parserlib {
          */
         sequence_parse_node(const std::tuple<ParseNodes...>& children) 
             : m_children(children)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -53,38 +53,19 @@ namespace parserlib {
             return false;
         }
 
+        /**
+         * Returns the children nodes.
+         * @return the children nodes.
+         */
         const std::tuple<ParseNodes...>& children() const {
             return m_children;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const std::tuple<ParseNodes...> m_children;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        template <size_t Index, class ParseContext>
-        bool _parse(ParseContext& pc) const {
-            if constexpr (Index < std::tuple_size_v<std::tuple<ParseNodes...>>) {
-                const auto& child = std::get<Index>(m_children);
-                if (child.parse(pc)) {
-                    return _parse<Index + 1>(pc);
-                }
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-
-        #ifndef NDEBUG
-        std::string create_text() {
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
             std::stringstream stream;
             size_t count = 0;
             stream << '(';
@@ -96,9 +77,25 @@ namespace parserlib {
                 ++count;
             });
             stream << ')';
-            return stream.str();
+            return (stream.str());
         }
-        #endif
+
+    private:
+        const std::tuple<ParseNodes...> m_children;
+
+        template <size_t Index, class ParseContext>
+        bool _parse(ParseContext& pc) const {
+            if constexpr (Index < std::tuple_size_v<std::tuple<ParseNodes...>>) {
+                const auto& child = std::get<Index>(m_children);
+                if (pc.parse(child)) {
+                    return _parse<Index + 1>(pc);
+                }
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
     };
 
 

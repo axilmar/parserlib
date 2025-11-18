@@ -13,6 +13,9 @@
 namespace parserlib {
 
 
+    /**
+     * Base class for choice parse nodes.
+     */
     class choice_parse_node_base {
     };
 
@@ -31,9 +34,6 @@ namespace parserlib {
          */
         choice_parse_node(const std::tuple<ParseNodes...>& children)
             : m_children(children)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -48,26 +48,40 @@ namespace parserlib {
             return _parse<0>(pc);
         }
 
+        /**
+         * Returns the children nodes.
+         * @return the children nodes.
+         */
         const std::tuple<ParseNodes...>& children() const {
             return m_children;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            std::stringstream stream;
+            size_t count = 0;
+            stream << '(';
+            tuple_for_each(m_children, [&](const auto& child) {
+                if (count) {
+                    stream << " | ";
+                }
+                stream << child.text();
+                ++count;
+            });
+            stream << ')';
+            return stream.str();
         }
-        #endif
 
     private:
         const std::tuple<ParseNodes...> m_children;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
 
         template <class ParseNode, class ParseContext> 
         bool invoke_child(const ParseNode& child, ParseContext& pc) const {
             const auto state = pc.get_state();
-            if (child.parse(pc)) {
+            if (pc.parse(child)) {
                 return true;
             }
             pc.set_state(state);
@@ -87,23 +101,6 @@ namespace parserlib {
                 return false;
             }
         }
-
-        #ifndef NDEBUG
-        std::string create_text() {
-            std::stringstream stream;
-            size_t count = 0;
-            stream << '(';
-            tuple_for_each(m_children, [&](const auto& child) {
-                if (count) {
-                    stream << " | ";
-                }
-                stream << child.text();
-                ++count;
-            });
-            stream << ')';
-            return stream.str();
-        }
-        #endif
     };
 
 

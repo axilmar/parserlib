@@ -24,9 +24,6 @@ namespace parserlib {
          */
         symbol_parse_node(const Symbol& symbol)
             : m_symbol(symbol)
-            #ifndef NDEBUG
-            , m_text(symbol_text(symbol))
-            #endif
         {
         }
 
@@ -47,17 +44,16 @@ namespace parserlib {
             return false;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return symbol_text(m_symbol);
         }
-        #endif
 
     private:
         const Symbol m_symbol;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

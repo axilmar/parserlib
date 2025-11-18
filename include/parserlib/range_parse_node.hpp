@@ -26,9 +26,6 @@ namespace parserlib {
         range_parse_node(const Symbol& min, const Symbol& max)
             : m_min(min)
             , m_max(max)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
             assert(min <= max);
         }
@@ -50,26 +47,19 @@ namespace parserlib {
             return false;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const Symbol m_min;
-        const Symbol m_max;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
             std::stringstream stream;
             stream << symbol_text(m_min) << ".." << symbol_text(m_max);
             return stream.str();
         }
-        #endif
+
+    private:
+        const Symbol m_min;
+        const Symbol m_max;
     };
 
 

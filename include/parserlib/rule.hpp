@@ -13,6 +13,7 @@
 #include "logical_not_parse_node.hpp"
 #include "rule_ref_parse_node.hpp"
 #include "annotation_parse_node.hpp"
+#include "named_parse_node.hpp"
 #include "rule_optimizations.hpp"
 
 
@@ -58,11 +59,21 @@ namespace parserlib {
         template <class ParseNode> 
         rule(const ParseNode& parse_node)
             : m_parse_node(create_wrapper(parse_node))
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
+
+        /**
+         * Constructor from a named parse ode.
+         * @param parse_node the parse node or expression to store internally.
+         */
+        #ifndef NDEBUG
+        template <class ParseNode> 
+        rule(const named_parse_node<ParseNode>& parse_node)
+            : m_parse_node(create_wrapper(parse_node.parse_node()))
+            , m_name(parse_node.name())
+        {
+        }
+        #endif
 
         /**
          * Constructor from rule reference.
@@ -70,9 +81,6 @@ namespace parserlib {
          */
         rule(rule& r)
             : m_parse_node(create_wrapper(r))
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -96,11 +104,22 @@ namespace parserlib {
         template <class ParseNode>
         rule& operator = (const ParseNode& parse_node) {
             m_parse_node = create_wrapper(parse_node);
-            #ifndef NDEBUG
-            m_text = create_text();
-            #endif
             return *this;
         }
+
+        /**
+         * Assignment from named parse node.
+         * @param parse_node the parse node or expression to store internally.
+         * @return reference to this.
+         */
+        #ifndef NDEBUG
+        template <class ParseNode>
+        rule& operator = (const named_parse_node<ParseNode>& parse_node) {
+            m_parse_node = create_wrapper(parse_node.parse_node());
+            m_name = parse_node.name();
+            return *this;
+        }
+        #endif
 
         /**
          * Assignment from rule; it creates a rule reference to the given rule.
@@ -109,9 +128,6 @@ namespace parserlib {
          */
         rule& operator = (rule& r) {
             m_parse_node = create_wrapper(r);
-            #ifndef NDEBUG
-            m_text = create_text();
-            #endif
             return *this;
         }
 
@@ -161,7 +177,9 @@ namespace parserlib {
          * @return an annotation parse node for this rule.
          */
         template <class Annotation>
-        annotation_parse_node<rule_ref_parse_node<ParseContext>, Annotation> operator [](const Annotation& annotation) {
+        annotation_parse_node<rule_ref_parse_node<ParseContext>, Annotation> 
+            operator [](const Annotation& annotation)
+        {
             return make_annotation_parse_node(*this, annotation);
         }
 
@@ -223,22 +241,6 @@ namespace parserlib {
         }
 
         /**
-         * Returns the name of this rule.
-         * @return the name of this rule.
-         */
-        const std::string& name() const {
-            return m_name;
-        }
-
-        /**
-         * Sets the name of this rule.
-         * @param rule the name of this rule.
-         */
-        void set_name(const std::string& name) {
-            m_name = name;
-        }
-
-        /**
          * Checks if this rule is the same rule as the given rule.
          * Using pointer checks like this: `this == &r` does not work 
          * due to `operator &` being overloaded.
@@ -249,19 +251,34 @@ namespace parserlib {
             return this == r.this_ptr();
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
+        /**
+         * Returns the name of the rule.
+         * @return the name of the rule.
+         */
+        std::string text() const override {
+            return m_name;
         }
-        #endif
+
+        /**
+         * Returns the name of the rule.
+         * @return the name of the rule.
+         */
+        const std::string& name() const {
+            return m_name;
+        }
+
+        /**
+         * Sets the name of the rule.
+         * @param name the name of the rule.
+         */
+        void set_name(const std::string& name) {
+            m_name = name;
+        }
 
     private:
         //state
         std::unique_ptr<parse_node_wrapper<ParseContext>> m_parse_node;
-        std::string m_name;
-        #ifndef NDEBUG
-        std::string m_text;
-        #endif
+        std::string m_name{"<unnamed rule>"};
 
         //create a wrapper for a parse node
         template <class ParseNode>
@@ -343,20 +360,6 @@ namespace parserlib {
             pc.m_terminal_parsing_allowed = prev_terminal_parsing_allowed;
             return true;
         }
-
-        #ifndef NDEBUG
-        std::string create_text() const {
-            std::stringstream stream;
-            if (m_name.empty()) {
-                stream << this_ptr();
-            }
-            else {
-                stream << m_name;
-            }
-            stream << "(" << m_parse_node->text() << ")";
-            return stream.str();
-        }
-        #endif
     };
 
 

@@ -42,7 +42,7 @@ namespace parserlib {
         return do_catch_loop_break([&]() {
             while (pc.parse_valid()) {
                 const auto start_iterator = pc.parse_position().iterator();
-                if (!parse_node.parse(pc) || pc.parse_position().iterator() == start_iterator) {
+                if (!pc.parse(parse_node) || pc.parse_position().iterator() == start_iterator) {
                     break;
                 }
             }

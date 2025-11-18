@@ -9,21 +9,25 @@
 namespace parserlib {
 
 
+    /**
+     * Trait for identifying if a class has the method `parse_annotation`.
+     */
     template <class, class, class, class = void> 
-    struct has_method_parse_annotation
-        : std::false_type
+    struct has_method_parse_annotation : std::false_type
     {
     };
 
 
+    /**
+     * True if the given method has the `parse_annotation` method.
+     * @param ParseContext the parse context type to pass to the method.
+     * @param ParseNode the parse node type to pass to the method.
+     * @param Annotation the annotation type to pass to the method.
+     */
     template <class ParseContext, class ParseNode, class Annotation>
-    struct has_method_parse_annotation<
-        ParseContext,
-        ParseNode,
-        Annotation,
-        std::void_t<decltype(std::declval<ParseContext>().parse_annotation(std::declval<ParseContext&>(), std::declval<ParseNode>(), std::declval<Annotation>()))>
-    >
-        : std::true_type
+    struct has_method_parse_annotation<ParseContext, ParseNode, Annotation, 
+        std::void_t<decltype(std::declval<ParseContext>().parse_annotation(std::declval<ParseContext&>(), std::declval<ParseNode>(), std::declval<Annotation>()))>>
+    : std::true_type
     {
     };
 
@@ -44,9 +48,6 @@ namespace parserlib {
         annotation_parse_node(const ParseNode& parse_node, const Annotation& annotation)
             : m_parse_node(parse_node)
             , m_annotation(annotation)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -61,42 +62,47 @@ namespace parserlib {
                 return pc.parse_annotation(pc, m_parse_node, m_annotation);
             }
             else {
-                return m_parse_node.parse(pc);
+                return pc.parse(m_parse_node);
             }
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const ParseNode m_parse_node;
-        const Annotation m_annotation;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
             std::stringstream stream;
             stream << "annotation(" << m_parse_node.text() << ", " << m_annotation << ")";
             return stream.str();
         }
-        #endif
+
+    private:
+        const ParseNode m_parse_node;
+        const Annotation m_annotation;
     };
 
 
-    template <class T, class Annotation>
-    auto make_annotation_parse_node(T&& object, const Annotation& annotation) {
-        return annotation_parse_node(make_parse_node(object), annotation);
+    /**
+     * Makes an annotaton parse node.
+     * @param parse_node or expression to create an annotation for.
+     * @param annotation the annotation object.
+     * @return an annotation parse node.
+     */
+    template <class ParseNode, class Annotation>
+    auto make_annotation_parse_node(ParseNode&& parse_node, const Annotation& annotation) {
+        return annotation_parse_node(make_parse_node(parse_node), annotation);
     }
 
 
-    template <class T, class Annotation>
-    auto make_annotation_parse_node(T&& object, const Annotation* annotation) {
-        return annotation_parse_node(make_parse_node(object), std::basic_string(annotation));
+    /**
+     * Makes an annotaton parse node from a string.
+     * @param parse_node or expression to create an annotation for.
+     * @param annotation the annotation string.
+     * @return an annotation parse node.
+     */
+    template <class ParseNode, class Annotation>
+    auto make_annotation_parse_node(ParseNode&& parse_node, const Annotation* annotation) {
+        return annotation_parse_node(make_parse_node(parse_node), std::basic_string(annotation));
     }
 
 

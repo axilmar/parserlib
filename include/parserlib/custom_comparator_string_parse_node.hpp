@@ -27,10 +27,6 @@ namespace parserlib {
         custom_comparator_string_parse_node(const std::basic_string<Symbol>& string, const SymbolComparator& symbol_comparator)
             : m_string(string)
             , m_symbol_comparator(symbol_comparator)
-            #ifndef NDEBUG
-            , m_text("custom_comparator(\"" + m_string + "\")")
-            #endif            
-            
         {
         }
 
@@ -63,18 +59,17 @@ namespace parserlib {
             return false;
         }
 
-        #ifndef NDEBUG
-        std::string text() const {
-            return m_text;
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
+            return "custom_comparator(\"" + m_string + "\")";
         }
-        #endif
 
     private:
         const std::basic_string<Symbol> m_string;
         const SymbolComparator m_symbol_comparator;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
     };
 
 

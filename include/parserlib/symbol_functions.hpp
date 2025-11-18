@@ -1,4 +1,3 @@
-#ifndef NDEBUG
 #ifndef PARSERLIB_TERMINAL_FUNCTIONS_HPP
 #define PARSERLIB_TERMINAL_FUNCTIONS_HPP
 
@@ -29,4 +28,3 @@ namespace parserlib {
 
 
 #endif //PARSERLIB_TERMINAL_FUNCTIONS_HPP
-#endif

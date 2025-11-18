@@ -10,6 +10,7 @@ namespace parserlib {
 
     /**
      * An error parse node.
+     * It adds an error to the given parse context.
      * @param ErrorId type of error id.
      * @param SkipParseNode parse node to use for skipping the erroneous input.
      */
@@ -24,9 +25,6 @@ namespace parserlib {
         error_parse_node(const ErrorId& id, const SkipParseNode& skip_parse_node)
             : m_id(id)
             , m_skip_parse_node(skip_parse_node)
-            #ifndef NDEBUG
-            , m_text(create_text())
-            #endif
         {
         }
 
@@ -41,7 +39,7 @@ namespace parserlib {
         bool parse(ParseContext& pc) const {
             if (pc.parse_valid()) {
                 const auto start_pos = pc.parse_position();
-                if (m_skip_parse_node.parse(pc)) {
+                if (pc.parse(m_skip_parse_node)) {
                     pc.add_error(m_id, start_pos, pc.iterator());
                     return true;
                 }
@@ -49,26 +47,19 @@ namespace parserlib {
             return false;
         }
 
-        #ifndef NDEBUG
-        const std::string& text() const {
-            return m_text;
-        }
-        #endif
-
-    private:
-        const ErrorId m_id;
-        const SkipParseNode m_skip_parse_node;
-        #ifndef NDEBUG
-        const std::string m_text;
-        #endif
-
-        #ifndef NDEBUG
-        std::string create_text() const {
+        /**
+         * Converts the parse node to a textual description.
+         * @return a string of this parse node as text.
+         */
+        std::string text() const override {
             std::stringstream stream;
             stream << "error(" << id_name<ErrorId>::get(m_id) << ", " << m_skip_parse_node.text() << ")";
             return stream.str();
         }
-        #endif
+
+    private:
+        const ErrorId m_id;
+        const SkipParseNode m_skip_parse_node;
     };
 
 

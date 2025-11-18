@@ -86,7 +86,7 @@ namespace parserlib {
          */
         template <class ParseContext, class ParseNode, class Annotation>
         bool parse_annotation(ParseContext& pc, const ParseNode& parse_node, const Annotation& annotation) {
-            return parse_node.parse(pc);
+            return pc.parse(parse_node);
         }
     };
 
@@ -160,7 +160,7 @@ namespace parserlib {
                 *m_output_stream << std::string(m_indentation_level * m_indentation_size, ' ') << "Parsing " << annotation << " at " << pc.parse_position().to_string(pc.begin_iterator()) << std::endl;
                 ++m_indentation_level;
             }
-            const bool result = parse_node.parse(pc);
+            const bool result = pc.parse(parse_node);
             if (m_output_stream) {
                 --m_indentation_level;
                 if (result) {
