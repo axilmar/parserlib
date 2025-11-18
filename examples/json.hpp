@@ -93,16 +93,6 @@ namespace parserlib {
          */
         enum class ERROR_ID {
             INVALID_CHARACTERS,
-            EXPECTED_COMMA,
-            EXPECTED_COLON,
-            EXPECTED_VALUE,
-            EXPECTED_STRING,
-            EXPECTED_MEMBER,
-            EXPECTED_LEFT_SQUARE_BRACKET,
-            EXPECTED_RIGHT_SQUARE_BRACKET,
-            EXPECTED_LEFT_CURLY_BRACKET,
-            EXPECTED_RIGHT_CURLY_BRACKET,
-            EXPECTED_ARRAY
         };
 
         template <class Source = std::string> class impl {
@@ -259,6 +249,9 @@ namespace parserlib {
                         //number terminal
                         const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
+                        //object member start
+                        const auto object_member_start = &(terminal(TOKEN_ID::STRING) >> TOKEN_ID::COLON);
+
                         //array member list
                         const auto array_member_list = value >> *(TOKEN_ID::COMMA >> value);
 
@@ -286,23 +279,15 @@ namespace parserlib {
                             ;
 
                         //the object member
-                        const auto object_member = (
-                            string >>
-                            TOKEN_ID::COLON >>
-                            value
-                            )->*AST_ID::MEMBER;
+                        const auto object_member = (string >> TOKEN_ID::COLON >> value)->*AST_ID::MEMBER;
 
                         //the object member list
                         const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
 
                         //the object
-                        object = (
-                            TOKEN_ID::LEFT_CURLY_BRACKET >>
-                            -object_member_list >>
-                            TOKEN_ID::RIGHT_CURLY_BRACKET
-                            )->*AST_ID::OBJECT;
+                        object = (TOKEN_ID::LEFT_CURLY_BRACKET >> -object_member_list >> TOKEN_ID::RIGHT_CURLY_BRACKET)->*AST_ID::OBJECT;
 
-                        //this grammar
+                        //the parser grammar
                         *this = object >> end();
                     }
                 };
@@ -391,16 +376,6 @@ namespace parserlib {
     static const char* get_id_name(typename json::ERROR_ID id) {
         static const char* names[] = {
             "INVALID_CHARACTERS",
-            "EXPECTED_COMMA",
-            "EXPECTED_COLON",
-            "EXPECTED_VALUE",
-            "EXPECTED_STRING",
-            "EXPECTED_MEMBER",
-            "EXPECTED_LEFT_SQUARE_BRACKET",
-            "EXPECTED_RIGHT_SQUARE_BRACKET",
-            "EXPECTED_LEFT_CURLY_BRACKET",
-            "EXPECTED_RIGHT_CURLY_BRACKET",
-            "EXPECTED_ARRAY"
         };
         return names[static_cast<int>(id)];
     }
