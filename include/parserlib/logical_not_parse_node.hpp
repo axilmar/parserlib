@@ -24,7 +24,7 @@ namespace parserlib {
         logical_not_parse_node(const ParseNode& child)
             : m_child(child)
             #ifndef NDEBUG
-            , m_text("!(" + m_child.text() + ")")
+            , m_text("!" + m_child.text() + "")
             #endif
         {
         }

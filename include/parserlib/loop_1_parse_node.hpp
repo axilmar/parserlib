@@ -22,7 +22,7 @@ namespace parserlib {
         loop_1_parse_node(const ParseNode& child)
             : m_child(child)
             #ifndef NDEBUG
-            , m_text("+(" + m_child.text() + ")")
+            , m_text("+" + m_child.text() + "")
             #endif
         {
         }
