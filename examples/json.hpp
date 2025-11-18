@@ -249,9 +249,6 @@ namespace parserlib {
                         //number terminal
                         const auto number = terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
 
-                        //object member start
-                        const auto object_member_start = &(terminal(TOKEN_ID::STRING) >> TOKEN_ID::COLON);
-
                         //array member list
                         const auto array_member_list = value >> *(TOKEN_ID::COMMA >> value);
 
