@@ -11,7 +11,7 @@ R"({
     "v1": null,
     "v2": false,
     "v3": true,
-    "v4": [false, true, {"x":5, "y":6}, 15, "aaa", null
+    "v4": [false, true, {"x":5, "y":6}, 15, "aaa", null],
     "v5": { "a" : 32 },
     "v6": 17,
     "v7": "abc"
