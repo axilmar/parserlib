@@ -116,29 +116,42 @@ namespace parserlib {
                 return m_match_count;
             }
 
+        private:
+            parse_position_type m_parse_position;
+            size_t m_match_count;
+            bool m_terminal_parsing_allowed;
+
+            state()
+                : m_match_count(0)
+                , m_terminal_parsing_allowed(true)
+            {
+            }
+
+            state(const parse_position_type& parse_pos, size_t match_count = 0, bool tpa = false)
+                : m_parse_position(parse_pos)
+                , m_match_count(match_count)
+                , m_terminal_parsing_allowed(tpa)
+            {
+            }
+            friend parse_context_type;
+        };
+
+        /**
+         * Internal error state type.
+         */
+        class error_state {
+        public:
             /**
-             * Returns the error count.
-             * @return the error count.
+             * Returns the number of errors.
+             * @return the number of errors.
              */
             size_t error_count() const {
                 return m_error_count;
             }
 
         private:
-            parse_position_type m_parse_position;
-            size_t m_match_count;
             size_t m_error_count;
-            bool m_terminal_parsing_allowed;
-
-            state() {
-            }
-
-            state(const parse_position_type& parse_pos, size_t match_count = 0, size_t error_count = 0, bool tpa = false)
-                : m_parse_position(parse_pos)
-                , m_match_count(match_count)
-                , m_error_count(error_count)
-                , m_terminal_parsing_allowed(tpa)
-            {
+            error_state(size_t error_count) : m_error_count(error_count) {
             }
             friend parse_context_type;
         };
@@ -352,8 +365,33 @@ namespace parserlib {
         }
 
         /**
+         * Returns part of the errors currently available.
+         * @param state state to get the errors from.
+         * @return the errors from the given error state up to the current error state.
+         */
+        error_container_type errors(const error_state& state) const {
+            const size_t ofs = std::min(state.m_error_count, m_errors.size());
+            return error_container_type(std::next(m_errors.begin(), ofs), m_errors.end());
+        }
+
+        /**
+         * Returns the current errors state.
+         * @return the current errors state.
+         */
+        error_state get_error_state() const {
+            return { m_errors.size() };
+        }
+
+        /**
+         * Sets the error state.
+         * @param state the error state.
+         */
+        void set_error_state(const error_state& state) {
+            m_errors.resize(state.m_error_count);
+        }
+
+        /**
          * Adds an error.
-         * The error will be cancelled if a higher node restores the parse context to a previous state.
          * @param id error id.
          * @param start_pos start position.
          * @param end_iterator end iterator.
@@ -363,12 +401,20 @@ namespace parserlib {
         }
 
         /**
+         * Adds multiple errors to the internal error container.
+         * @param errors the errors to add.
+         */
+        void add_errors(const error_container_type& errors) {
+            m_errors.insert(m_errors.end(), errors.begin(), errors.end());
+        }
+
+        /**
          * Returns the current state of the parse context.
          * The state can be used to rewind the parse context to a prior state.
          * @return the current state of the parse context.
          */
         state get_state() const {
-            return state(m_parse_position, m_matches.size(), m_errors.size(), m_terminal_parsing_allowed);
+            return state(m_parse_position, m_matches.size(), m_terminal_parsing_allowed);
         }
 
         /**
@@ -378,7 +424,6 @@ namespace parserlib {
         void set_state(const state& st) {
             m_parse_position = st.m_parse_position;
             m_matches.resize(st.m_match_count);
-            m_errors.resize(st.m_error_count);
             m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
         }
 
