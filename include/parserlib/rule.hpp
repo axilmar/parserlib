@@ -15,6 +15,7 @@
 #include "annotation_parse_node.hpp"
 #include "named_parse_node.hpp"
 #include "rule_optimizations.hpp"
+#include "infinite_recursion_exception.hpp"
 
 
 namespace parserlib {
@@ -203,6 +204,7 @@ namespace parserlib {
          * Uses the internal expression in order to handle parsing.
          * @param pc the current parse context.
          * @return true on success, false on failure.
+         * #exception infinite_recursion_exception thrown if there is an infinite recursion.
          */
         bool parse(ParseContext& pc) const {
             const auto it = pc.m_rule_data.find(this);
@@ -320,6 +322,10 @@ namespace parserlib {
                         const bool result = parse_left_recursion(pc, rd);
                         rd = prev_rd;
                         return result;
+                    }
+                    catch (left_recursion ex) {
+                        rd = prev_rd;
+                        throw infinite_recursion_exception( ex.rule->text(), pc.parse_position().to_string(pc.begin()) );
                     }
                     catch (...) {
                         rd = prev_rd;

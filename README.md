@@ -1165,6 +1165,7 @@ And the following interface:
 * method `begin()`: returns the start parse position of the part of the source that the ast node represents, which also can be used as a const iterator.
 * method `end()`: returns the end iterator of the part of the source the ast node represents.
 * method `source()`: returns the source portion of the input the ast node represents; it is either a string, for character-based input, or a vector, for non-character-based input.
+* method `content()`: returns the original source that was parsed.
 * method `parent()`: returns a pointer to the parent ast node.
 * method `children()`: returns a vector of children.
 * method `add_child(child, index = -1)`: adds a child at the specified index; -1 means 'last child'.
@@ -1296,7 +1297,7 @@ Each parse node has a field `m_text` which is set to the textual description of 
 
 This is valid only in debug mode.
 
-For example, the JSON parser produces the following texts:
+For example, some of the JSON parser texts are:
 
 ```
 //text for 'object' expression

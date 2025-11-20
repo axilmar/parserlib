@@ -871,6 +871,30 @@ static void test_rule_parsing() {
 }
 
 
+static void test_rule_infinite_recursion_parsing() {
+    rule<> a, b, c;
+
+    a = "a" >>= b;
+    b = "b" >>= c;
+    c = "c" >>= a;
+
+    {
+        std::string src = "a";
+        parse_context<> pc(src);
+        try {
+            const bool ok = pc.parse(a);
+            assert(!ok);
+        }
+        catch (const infinite_recursion_exception& ex) {
+            std::cout << ex.what() << std::endl;
+        }
+        assert(pc.parse_position().iterator() == src.begin());
+    }
+
+
+}
+
+
 #define TEST_CALC(V)\
 {\
     std::string input = #V;\
@@ -2143,6 +2167,7 @@ void run_tests() {
     test_choice_errors_parsing();
     test_match_parsing();
     test_rule_parsing();
+    test_rule_infinite_recursion_parsing();
     calculator().test_rule_left_recursion_parsing();
     test_case_insensitive_parsing();
     test_non_character_parsing();
