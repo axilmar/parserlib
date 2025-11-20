@@ -1914,8 +1914,9 @@ static void test_errors() {
 
 
 static void test_on_error() {
+    enum { EXPECTED_A };
     const auto a = terminal('a');
-    const auto grammar = *on_error(a | error(1), skip_before(a));
+    const auto grammar = *on_error(a | error(EXPECTED_A), skip_before(a));
 
     {
         std::string src = "a";
@@ -1942,7 +1943,7 @@ static void test_on_error() {
         assert(result);
         assert(pc.parse_ended());
         assert(pc.errors().size() == 1);
-        assert(pc.errors()[0].id() == 1);
+        assert(pc.errors()[0].id() == EXPECTED_A);
         assert(pc.errors()[0].start_position().iterator() == std::next(src.begin(), 1));
         assert(pc.errors()[0].end_iterator() == std::next(src.begin(), 1));
     }
