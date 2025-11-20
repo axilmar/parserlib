@@ -1079,7 +1079,7 @@ for(const auto& match : pc.matches()) {
 }
 ```
 
-#### The 'infinite_recursion_exception'
+##### The 'infinite_recursion_exception'
 
 When it is impossible to parse an input due to infinite recursion, an infinite recursion exception is thrown.
 
@@ -1097,7 +1097,7 @@ catch (const infinite_recursion_exception& ex) {
 Since parse nodes have a text representation, a possible output can be:
 
 ```cpp
-infinite recursion exception at line 5, column 2, from "rule1"
+infinite recursion exception at line 5, column 2, from 'rule1'
 ```
 
 ##### Using errors
