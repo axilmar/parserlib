@@ -1079,6 +1079,27 @@ for(const auto& match : pc.matches()) {
 }
 ```
 
+#### The 'infinite_recursion_exception'
+
+When it is impossible to parse an input due to infinite recursion, an infinite recursion exception is thrown.
+
+Here is an example of how to handle it:
+
+```cpp
+try {
+    bool ok = grammar.parse(pc);
+}
+catch (const infinite_recursion_exception& ex) {
+	std::cut << ex.what() << std::endl;
+}
+```
+
+Since parse nodes have a text representation, a possible output can be:
+
+```cpp
+infinite recursion exception at line 5, column 2, from "rule1"
+```
+
 ##### Using errors
 
 The `errors()` function of a parse context returns the errors found during parsing. It returns an `std::vector` of `parse_error` objects.

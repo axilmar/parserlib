@@ -18,7 +18,7 @@ namespace parserlib {
             : std::runtime_error("")
             , m_source(source)
             , m_position(position)
-            , m_what("Infinite recursion exception at " + m_position + " from " + m_source)
+            , m_what("Infinite recursion exception at " + m_position + ", from '" + m_source + "'")
         {
         }
 
