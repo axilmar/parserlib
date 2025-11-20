@@ -5,6 +5,7 @@
 #include <cassert>
 #include <map>
 #include <algorithm>
+#include <type_traits>
 #include "parse_context_data.hpp"
 #include "parse_context_default_options.hpp"
 
@@ -12,6 +13,7 @@
 namespace parserlib {
 
 
+    class parse_node_base;
     template <class ParseContext> class rule;
 
 
@@ -491,14 +493,38 @@ namespace parserlib {
         /**
          * Invokes the parse function on the given parse node.
          * It invokes the function `init()` on the parse node, allowing it to make 
-         * dynamic initialization.
+         * dynamic initialization, but only in debug mode.
          * @param parse_node parse node to invoke.
          * @return the parse result.
          */
-        template <class ParseNode>
-        bool parse(const ParseNode& parse_node) {
+        template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<ParseNode>>, bool> = true>
+        bool parse(ParseNode&& parse_node) {
+            #ifndef NDEBUG
             parse_node.init();
+            #endif
             return parse_node.parse(*this);
+        }
+
+        /**
+         * Converts the given expression into a parse node, then invokes the method `parse`
+         * which accepts a parse node.
+         * @param expression the expression to parse.
+         * @return the result of an expression.
+         */
+        template <class Expression, std::enable_if_t<!std::is_base_of_v<parse_node_base, std::decay_t<Expression>>, bool> = true>
+        bool parse(Expression&& expression) {
+            return parse(make_parse_node(expression));
+        }
+
+        /**
+         * Sets the parse position to be after the last error.
+         * It allows continuing parsing after the last error.
+         */
+        void set_parse_position_after_last_error() {
+            if (!m_errors.empty()) {
+                m_parse_position = m_errors.back().start_position();
+                increment_parse_position();
+            }
         }
 
     private:

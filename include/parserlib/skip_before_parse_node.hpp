@@ -3,6 +3,7 @@
 
 
 #include "parse_node.hpp"
+#include "skip_node_base.hpp"
 
 
 namespace parserlib {
@@ -16,7 +17,7 @@ namespace parserlib {
      * @param ParseNode the parse node to use for parsing.
      */
     template <class ParseNode>
-    class skip_before_parse_node : public parse_node<skip_before_parse_node<ParseNode>> {
+    class skip_before_parse_node : public parse_node<skip_before_parse_node<ParseNode>>, public skip_node_base {
     public:
         /**
          * The constructor.
@@ -33,7 +34,7 @@ namespace parserlib {
          * or the input is exhausted.
          * After the call, the parse state is the one before the last call of the parser.
          * @param pc the parse context to use.
-         * @return true if the input was skipped successfully, false if the input is exhausted.
+         * @return always true.
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
@@ -54,7 +55,7 @@ namespace parserlib {
                 pc.set_state(state);
                 pc.increment_parse_position();
             }
-            return false;
+            return true;
         }
 
         /**
@@ -64,6 +65,12 @@ namespace parserlib {
         std::string text() const override {
             return "skip_before(" + m_parse_node.text() + ")";
         }
+
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_parse_node.init();
+        }
+        #endif
 
     private:
         const ParseNode m_parse_node;

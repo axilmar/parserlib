@@ -47,8 +47,10 @@ namespace parserlib {
         bool parse(ParseContext& pc) const {
             const auto start_state = pc.get_state();
             const auto start_error_state = pc.get_error_state();
+            auto branch_state = pc.get_state();
             typename ParseContext::error_container_type branch_errors;
-            return _parse<0>(pc, start_state, start_error_state, branch_errors);
+            bool branch_result = false;
+            return _parse<0>(pc, start_state, start_error_state, branch_state, branch_errors, branch_result);
         }
 
         /**
@@ -78,24 +80,55 @@ namespace parserlib {
             return stream.str();
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            tuple_for_each(m_children, [&](const auto& child) {
+                child.init();
+            });            
+        }
+        #endif
+
     private:
         const std::tuple<ParseNodes...> m_children;
 
-        template <class ParseNode, class ParseContext, class State, class ErrorState, class ErrorContainer> 
-        bool invoke_child(const ParseNode& child, ParseContext& pc, const State& start_state, const ErrorState& start_error_state, ErrorContainer& branch_errors) const {
-            //if a branch succeeded, do nothing else
-            if (pc.parse(child)) {
-                return true;
-            }
-
-            //if this branch created errors that are more further down the source than the previous branch,
-            //then keep the errors of this branch
-            if (!branch_errors.empty() && pc.errors().size() > start_error_state.error_count()) {
-                const auto& last_error = pc.errors().back();
-                const auto& last_branch_error = branch_errors.back();
-                if (last_error.begin() > last_branch_error.begin()) {
+        template <class ParseContext, class ErrorState, class ErrorContainer> 
+        static bool get_branch_errors(ParseContext& pc, const ErrorState& start_error_state, ErrorContainer& branch_errors) {
+            if (pc.errors().size() > start_error_state.error_count()) {
+                if (!branch_errors.empty()) {
+                    const auto& last_error = pc.errors().back();
+                    const auto& last_branch_error = branch_errors.back();
+                    if (last_error.begin() > last_branch_error.begin()) {
+                        branch_errors = pc.errors(start_error_state);
+                    }
+                }
+                else {
                     branch_errors = pc.errors(start_error_state);
                 }
+                return true;
+            }
+            return false;
+        }
+
+        template <class ParseNode, class ParseContext, class State, class ErrorState, class ErrorContainer> 
+        static bool invoke_child(const ParseNode& child, ParseContext& pc, const State& start_state, const ErrorState& start_error_state, State& branch_state, ErrorContainer& branch_errors, bool& branch_result) {
+            //if parse is successful
+            if (pc.parse(child)) {
+                //if parsed without new errors, then stop branch testing and return true;
+                //keep the errors
+                if (!get_branch_errors(pc, start_error_state, branch_errors)) {
+                    pc.add_errors(branch_errors);
+                    return true;
+                }
+
+                //continue branch testing to get the longest parsing possible;
+                //since this branch returned true, save the parse state to return it later
+                branch_state = pc.get_state();
+                branch_result = true;
+            }
+
+            //else failed to parse; collect the branch errors
+            else {
+                get_branch_errors(pc, start_error_state, branch_errors);
             }
 
             //restore the state for the next branch
@@ -105,17 +138,18 @@ namespace parserlib {
         }
 
         template <size_t Index, class ParseContext, class State, class ErrorState, class ErrorContainer>
-        bool _parse(ParseContext& pc, const State& start_state, const ErrorState& start_error_state, ErrorContainer& branch_errors) const {
+        bool _parse(ParseContext& pc, const State& start_state, const ErrorState& start_error_state, State& branch_state, ErrorContainer& branch_errors, bool& branch_result) const {
             if constexpr (Index < std::tuple_size_v<std::tuple<ParseNodes...>>) {
                 const auto& child = std::get<Index>(m_children);
-                if (invoke_child(child, pc, start_state, start_error_state, branch_errors)) {
+                if (invoke_child(child, pc, start_state, start_error_state, branch_state, branch_errors, branch_result)) {
                     return true;
                 }
-                return _parse<Index + 1>(pc, start_state, start_error_state, branch_errors);
+                return _parse<Index + 1>(pc, start_state, start_error_state, branch_state, branch_errors, branch_result);
             }
             else {
                 pc.add_errors(branch_errors);
-                return false;
+                pc.set_state(branch_state);
+                return branch_result;
             }
         }
     };

@@ -56,6 +56,12 @@ namespace parserlib {
             return m_rule.name();
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_rule.init();
+        }
+        #endif
+
     private:
         rule_type& m_rule;
     };

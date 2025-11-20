@@ -29,22 +29,34 @@ namespace parserlib {
         virtual ~parse_node_base() {
         }
 
+        #ifndef NDEBUG
+        /**
+         * Provided so as that subclasses can initialize the tree of nodes before any parse.
+         * The default implementation is empty.
+         */
+        virtual void init_tree() const {
+        }
+        #endif
+
+        #ifndef NDEBUG
         /**
          * Does dynamic initialization of the parse node.
          * It debug mode, it sets the `m_text` member of the parse node, if not set yet.
          * Setting the text dynamically is required due to rules being recursive.
-         * The operation is thread-safe (protected by a mutex).
+         * The operation is thread-safe (protected by a recursive mutex, avoiding recursive rules infinite recursion).
          * In release mode, it does nothing.
          * This function will be invoked automatically from `parse_context::parse(parse_node)`.
          */
         void init() const {
-            #ifndef NDEBUG
-            std::lock_guard lock(m_mutex);
-            if (m_text.empty()) {
-                m_text = text();
+            if (m_mutex.try_lock()) {
+                if (m_text.empty()) {
+                    m_text = text();
+                    init_tree();
+                }
+                m_mutex.unlock();
             }
-            #endif
         }
+        #endif
 
         /**
          * Interface for returning the text description of the node.
@@ -85,7 +97,7 @@ namespace parserlib {
     private:
         #ifndef NDEBUG
         mutable std::string m_text;
-        mutable std::mutex m_mutex;
+        mutable std::recursive_mutex m_mutex;
         #endif
     };
 

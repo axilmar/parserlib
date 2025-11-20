@@ -41,8 +41,11 @@ namespace parserlib {
     bool loop_parse(ParseContext& pc, const ParseNode& parse_node) {
         return do_catch_loop_break([&]() {
             while (pc.parse_valid()) {
-                const auto start_iterator = pc.parse_position().iterator();
-                if (!pc.parse(parse_node) || pc.parse_position().iterator() == start_iterator) {
+                const auto start_state = pc.get_state();
+                const auto start_error_state = pc.get_error_state();
+                if (!pc.parse(parse_node) || pc.parse_position().iterator() == start_state.iterator()) {
+                    pc.set_state(start_state);
+                    pc.set_error_state(start_error_state);
                     break;
                 }
             }

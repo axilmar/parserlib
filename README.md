@@ -250,7 +250,7 @@ IF no skip parser is provided, then the parse position is not advanced.
 
 This feature allows parsers to handle errors, then continue parsing.
 
-Any parse node can be a skip parse node; side effects of parse nodes are cancelled if used as skip parse nodes; the current parse context is not affected by them.
+Any parse node can be a skip parse node; side effects of parse nodes are canceled if used as skip parse nodes; the current parse context is not affected by them.
 
 For example:
 ```cpp
@@ -271,6 +271,29 @@ const auto token
     | error(ERROR_ID::INVALID_CHARACTERS, skip_before(symbol));
 
 const tokenizer = *token;
+```
+
+Error parse nodes return true.
+
+If continuing parsing after an error is not desired, then the error declaration shall be followed by `false`.
+
+Example:
+
+```cpp
+error(ERROR_UNEXPECTED) >> false;
+```
+
+#### Function 'on_error'
+
+The function `on_error(parse_node, skip_parse_node)` allows continuation of parsing after the last error, to a point where the skip parse error defines.
+
+It allows jumping to a forward parse position after an error happens within another parse node.
+
+Example:
+
+```cpp
+const auto a = terminal('a');
+const auto grammar = *on_error(a | error(1), skip_before(a));
 ```
 
 #### Function 'loop_break'
@@ -890,7 +913,6 @@ A state has the following methods:
 * iterator()
 * text_position()
 * match_count()
-* error_count()
 
 These methods are the same as the relevant methods of the parse context.
 
@@ -908,6 +930,30 @@ It is used to restore a parse context to a previous state.
 
 ```cpp
 pc.set_state(prev_state);
+```
+
+###### Method 'get_error_state()'
+
+The method `get_error_state()` returns the current error state of a parse context.
+
+An error state has the following methods:
+
+* error_count()
+
+An error state value can only be created by a parse context, via `get_error_state()`.
+
+```cpp
+pc.get_error_state();
+```
+
+###### Method 'set_error_state(error_state)'
+
+The method `set_error_state(state)` sets the state of a parse context.
+
+It is used to restore a parse context's error state to a previous state.
+
+```cpp
+pc.set_error_state(prev_error_state);
 ```
 
 ###### Method 'int compare_symbols(A, B)'
@@ -977,6 +1023,21 @@ parser_grammar.parse(parser_parse_context);
 
 For a full example of this, [see the test function `test_multistage_parsing()`](./tests/tests.cpp#test_multistage_parsing).
 
+##### Method 'parse(parse_node | expression)'
+
+The methodd `parse(parse_node | expression)` parses a parse node; if an expression is given, then it is converted to a parse node.
+
+In debug mode, it calls the `init` method of a parse node, which fills the `m_text` members of parse nodes of the tree.
+
+Example:
+
+```cpp
+const auto grammar = terminal("abc");
+std::string src = "abc";
+parse_context<> pc(src);
+pc.parse(grammar);
+```
+
 #### Using the parsing results
 
 The member function `parse(parse_context)` of a parse node returns a bool which indicates if the parsing was successful.
@@ -1043,6 +1104,37 @@ for(const auto& error : pc.errors()) {
 ```
 
 **NOTE**: *`input.begin()` is passed to the `parse_position().to_string()` function in order to get the index of the iterator, if the text position is empty; the index is written to the string, instead of the text position.*
+
+##### How errors work
+
+The `error` function can be used to add an error to the parse context, which contains an error container (a vector of error instances).
+
+The error container is not reset to a previous state when the parse context state is rewinded to a previous state, because errors should remain for the user to see them; that is the reason there are separate `get_error_state()` and `set_error_state` functions in a parse context.
+
+The library keeps the errors of the longest parsing; i.e. if we have the following grammar:
+
+```cpp
+enum { EXPECTED_B, EXPECTED_C };
+
+const auto term
+    = terminal('a') >> ('b' | (error(EXPECTED_B) >> false)) >> ('c' | error(EXPECTED_C))
+    | terminal('a') >> ('b' | error(EXPECTED_B))
+    ;
+
+const auto grammar = term;
+```
+
+Then the following errors will be created, for the given inputs:
+
+| input  | error        | result | input exhausted            |
+|--------|--------------|--------|----------------------------|
+| "abc"  | none         | true   | yes                        |
+| "ab"   | none         | true   | yes                        |
+| "ab@"  | EXPECTED_C   | true   | no; parsing stopped at '@' |
+| "a@"   | EXPECTED_B   | true   | no; parsing stopped at '@' |
+---------------------------------------------------------------
+
+The result of parsing 
 
 #### Abstract Syntax Trees (ASTs)
 

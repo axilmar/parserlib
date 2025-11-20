@@ -54,11 +54,11 @@ namespace parserlib {
 
         //tokenize
         result->tokenizer.parse_context = TokenizerParseContext(source);
-        result->tokenizer.success = tokenizer_grammar.parse(result->tokenizer.parse_context) && result->tokenizer.parse_context.errors().empty();
+        result->tokenizer.success = result->tokenizer.parse_context.parse(tokenizer_grammar) && result->tokenizer.parse_context.errors().empty();
 
         //parse
         result->parser.parse_context = result->tokenizer.parse_context.template derive_parse_context<typename ParserParseContext::match_id_type, typename ParserParseContext::error_id_type>();
-        result->parser.success = parser_grammar.parse(result->parser.parse_context) && result->parser.parse_context.errors().empty();
+        result->parser.success = result->parser.parse_context.parse(parser_grammar) && result->parser.parse_context.errors().empty();
 
         //make ast
         result->ast = make_ast(result->parser.parse_context.matches());

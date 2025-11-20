@@ -19,7 +19,7 @@
 #include "parserlib/named_parse_node.hpp"
 #include "parserlib/newline_parse_node.hpp"
 #include "parserlib/optional_parse_node.hpp"
-#include "parserlib/parse_context.hpp"
+#include "parserlib/on_error_parse_node.hpp"
 #include "parserlib/parse_context_extensions.hpp"
 #include "parserlib/parse_context_options.hpp"
 #include "parserlib/range_parse_node.hpp"
@@ -34,6 +34,7 @@
 #include "parserlib/utilities.hpp"
 #include "parserlib/tokenize_and_parse.hpp"
 #include "parserlib/debug_parse_node.hpp"
+#include "parserlib/parse_context.hpp"
 
 
 #endif // PARSERLIB_HPP

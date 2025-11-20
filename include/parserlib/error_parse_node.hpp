@@ -2,7 +2,9 @@
 #define PARSERLIB_ERROR_PARSE_NODE_HPP
 
 
+#include <type_traits>
 #include "bool_parse_node.hpp"
+#include "skip_node_base.hpp"
 
 
 namespace parserlib {
@@ -12,7 +14,7 @@ namespace parserlib {
      * An error parse node.
      * It adds an error to the given parse context.
      * @param ErrorId type of error id.
-     * @param SkipParseNode parse node to use for skipping the erroneous input.
+     * @param SkipParseNode Type of parse node to use for skipping the erroneous input.
      */
     template <class ErrorId, class SkipParseNode> 
     class error_parse_node : public parse_node<error_parse_node<ErrorId, SkipParseNode>> {
@@ -57,6 +59,12 @@ namespace parserlib {
             return stream.str();
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_skip_parse_node.init();
+        }
+        #endif
+
     private:
         const ErrorId m_id;
         const SkipParseNode m_skip_parse_node;
@@ -69,7 +77,7 @@ namespace parserlib {
      * @param skip_parse_node parse node to use for skipping the erroneous input.
      * @return an error parse node.
      */
-    template <class ErrorId, class SkipParseNode>
+    template <class ErrorId, class SkipParseNode, std::enable_if_t<std::is_base_of_v<skip_node_base, std::decay_t<SkipParseNode>>, bool> = true>
     auto error(const ErrorId& id, SkipParseNode&& skip_parse_node) {
         return error_parse_node(id, make_parse_node(skip_parse_node));
     }
@@ -83,7 +91,7 @@ namespace parserlib {
      */
     template <class ErrorId>
     auto error(const ErrorId& id) {
-        return error(id, true);
+        return error_parse_node(id, make_parse_node(true));
     }
 
 

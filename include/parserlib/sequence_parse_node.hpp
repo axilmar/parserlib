@@ -80,6 +80,14 @@ namespace parserlib {
             return (stream.str());
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            tuple_for_each(m_children, [&](const auto& child) {
+                child.init();
+            });            
+        }
+        #endif
+
     private:
         const std::tuple<ParseNodes...> m_children;
 

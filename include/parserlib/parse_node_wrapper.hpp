@@ -33,6 +33,10 @@ namespace parserlib {
          * @return the text representation of the wrapped parse node.
          */
         virtual std::string text() const = 0;
+
+        #ifndef NDEBUG
+        virtual void init() const = 0;
+        #endif
     };
 
 
@@ -70,6 +74,12 @@ namespace parserlib {
         std::string text() const override {
             return m_parse_node.text();
         }
+
+        #ifndef NDEBUG
+        void init() const override {
+            m_parse_node.init();
+        }
+        #endif
 
     private:
         const ParseNode m_parse_node;

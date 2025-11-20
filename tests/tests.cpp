@@ -642,7 +642,7 @@ static void test_choice_errors_parsing() {
         const auto grammar = long_branch | small_branch | smaller_branch;
 
         {
-            std::string src = "abcde";
+            std::string src = "123456789";
             parse_context<> pc(src);
             const bool ok = pc.parse(grammar);
             assert(ok);
@@ -650,7 +650,7 @@ static void test_choice_errors_parsing() {
         }
 
         {
-            std::string src = "123456789";
+            std::string src = "abcde";
             parse_context<> pc(src);
             const bool ok = pc.parse(grammar);
             assert(ok);
@@ -666,17 +666,6 @@ static void test_choice_errors_parsing() {
         }
 
         {
-            std::string src = "abc@e";
-            parse_context<> pc(src);
-            const bool ok = pc.parse(grammar);
-            assert(ok);
-            assert(pc.parse_ended());
-            assert(pc.errors().size() == 1);
-            assert(pc.errors()[0].id() == EXPECTED_D);
-            assert(pc.errors()[0].begin() == std::next(src.begin(), 3));
-        }
-
-        {
             std::string src = "123456@89";
             parse_context<> pc(src);
             const bool ok = pc.parse(grammar);
@@ -685,6 +674,17 @@ static void test_choice_errors_parsing() {
             assert(pc.errors().size() == 1);
             assert(pc.errors()[0].id() == EXPECTED_7);
             assert(pc.errors()[0].begin() == std::next(src.begin(), 6));
+        }
+
+        {
+            std::string src = "abc@e";
+            parse_context<> pc(src);
+            const bool ok = pc.parse(grammar);
+            assert(ok);
+            assert(pc.parse_ended());
+            assert(pc.errors().size() == 1);
+            assert(pc.errors()[0].id() == EXPECTED_D);
+            assert(pc.errors()[0].begin() == std::next(src.begin(), 3));
         }
 
         {
@@ -712,7 +712,7 @@ static void test_choice_errors_parsing() {
         const auto grammar = long_branch | small_branch | smaller_branch;
 
         {
-            std::string src = "abcde";
+            std::string src = "abcdefghij";
             parse_context<> pc(src);
             const bool ok = pc.parse(grammar);
             assert(ok);
@@ -720,7 +720,7 @@ static void test_choice_errors_parsing() {
         }
 
         {
-            std::string src = "abcdefghij";
+            std::string src = "abcde";
             parse_context<> pc(src);
             const bool ok = pc.parse(grammar);
             assert(ok);
@@ -736,25 +736,25 @@ static void test_choice_errors_parsing() {
         }
 
         {
-            std::string src = "abc@e";
-            parse_context<> pc(src);
-            const bool ok = pc.parse(grammar);
-            assert(ok);
-            assert(pc.parse_ended());
-            assert(pc.errors().size() == 1);
-            assert(pc.errors()[0].id() == EXPECTED_D);
-            assert(pc.errors()[0].begin() == std::next(src.begin(), 3));
-        }
-
-        {
             std::string src = "abcdef@hij";
             parse_context<> pc(src);
             const bool ok = pc.parse(grammar);
             assert(ok);
-            assert(pc.parse_ended());
+            assert(!pc.parse_ended());
             assert(pc.errors().size() == 1);
             assert(pc.errors()[0].id() == EXPECTED_G);
             assert(pc.errors()[0].begin() == std::next(src.begin(), 6));
+        }
+
+        {
+            std::string src = "abc@e";
+            parse_context<> pc(src);
+            const bool ok = pc.parse(grammar);
+            assert(ok);
+            assert(!pc.parse_ended());
+            assert(pc.errors().size() == 1);
+            assert(pc.errors()[0].id() == EXPECTED_D);
+            assert(pc.errors()[0].begin() == std::next(src.begin(), 3));
         }
 
         {
@@ -763,6 +763,57 @@ static void test_choice_errors_parsing() {
             const bool ok = pc.parse(grammar);
             assert(ok);
             assert(pc.parse_ended());
+            assert(pc.errors().size() == 1);
+            assert(pc.errors()[0].id() == EXPECTED_B);
+            assert(pc.errors()[0].begin() == std::next(src.begin(), 1));
+        }
+    }
+
+    {
+        enum { EXPECTED_B, EXPECTED_C };
+
+        const auto term
+            = terminal('a') >> ('b' | (error(EXPECTED_B) >> false)) >> ('c' | error(EXPECTED_C))
+            | terminal('a') >> ('b' | error(EXPECTED_B))
+            ;
+
+        const auto grammar = term;
+
+        {
+            std::string src = "abc";
+            parse_context<> pc(src);
+            const bool ok = pc.parse(grammar);
+            assert(ok);
+            assert(pc.parse_ended());
+            assert(pc.errors().size() == 0);
+        }
+
+        {
+            std::string src = "ab";
+            parse_context<> pc(src);
+            const bool ok = pc.parse(grammar);
+            assert(ok);
+            assert(pc.parse_ended());
+            assert(pc.errors().size() == 0);
+        }
+
+        {
+            std::string src = "ab@";
+            parse_context<> pc(src);
+            const bool ok = pc.parse(grammar);
+            assert(ok);
+            assert(!pc.parse_ended());
+            assert(pc.errors().size() == 1);
+            assert(pc.errors()[0].id() == EXPECTED_C);
+            assert(pc.errors()[0].begin() == std::next(src.begin(), 2));
+        }
+
+        {
+            std::string src = "a@";
+            parse_context<> pc(src);
+            const bool ok = pc.parse(grammar);
+            assert(ok);
+            assert(!pc.parse_ended());
             assert(pc.errors().size() == 1);
             assert(pc.errors()[0].id() == EXPECTED_B);
             assert(pc.errors()[0].begin() == std::next(src.begin(), 1));
@@ -1862,6 +1913,42 @@ static void test_errors() {
 }
 
 
+static void test_on_error() {
+    const auto a = terminal('a');
+    const auto grammar = *on_error(a | error(1), skip_before(a));
+
+    {
+        std::string src = "a";
+        parse_context<> pc(src);
+        const bool result = pc.parse(grammar);
+        assert(result);
+        assert(pc.parse_ended());
+        assert(pc.errors().size() == 0);
+    }
+
+    {
+        std::string src = "aa";
+        parse_context<> pc(src);
+        const bool result = pc.parse(grammar);
+        assert(result);
+        assert(pc.parse_ended());
+        assert(pc.errors().size() == 0);
+    }
+
+    {
+        std::string src = "a@a";
+        parse_context<> pc(src);
+        const bool result = pc.parse(grammar);
+        assert(result);
+        assert(pc.parse_ended());
+        assert(pc.errors().size() == 1);
+        assert(pc.errors()[0].id() == 1);
+        assert(pc.errors()[0].start_position().iterator() == std::next(src.begin(), 1));
+        assert(pc.errors()[0].end_iterator() == std::next(src.begin(), 1));
+    }
+}
+
+
 static void test_ast() {
     enum match_id { A, B, C, D, E, DE, PRG };
 
@@ -2061,6 +2148,7 @@ void run_tests() {
     //test_debug_annotations();
     test_rule_optimizations();
     test_errors();
+    test_on_error();
     test_ast();
     test_multistage_parsing();
     test_load_file();

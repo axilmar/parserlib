@@ -45,6 +45,12 @@ namespace parserlib {
             return "debug(" + m_child.text() + ")";
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_child.init();
+        }
+        #endif
+
     private:
         const ParseNode m_child;
     };

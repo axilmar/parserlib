@@ -275,6 +275,14 @@ namespace parserlib {
             m_name = name;
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            if (m_parse_node) {
+                m_parse_node->init();
+            }
+        }
+        #endif
+
     private:
         //state
         std::unique_ptr<parse_node_wrapper<ParseContext>> m_parse_node;

@@ -50,6 +50,12 @@ namespace parserlib {
             return "newline(" + m_parse_node.text() + ")";
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_parse_node.init();
+        }
+        #endif
+
     private:
         const ParseNode m_parse_node;
     };

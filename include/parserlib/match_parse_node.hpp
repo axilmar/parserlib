@@ -70,6 +70,12 @@ namespace parserlib {
             return stream.str();
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_child.init();
+        }
+        #endif
+
     private:
         const MatchId m_id;
         const ParseNode m_child;
