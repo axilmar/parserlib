@@ -235,12 +235,20 @@ namespace parserlib {
                     using rule_type::operator =;
 
                     grammar() {
-
                         //string terminal
                         const auto string = "string" >>= terminal(TOKEN_ID::STRING)->*AST_ID::STRING;
 
                         //number terminal
                         const auto number = "number" >>= terminal(TOKEN_ID::NUMBER)->*AST_ID::NUMBER;
+
+                        //the object member
+                        const auto object_member = "object_member" >>= (string >> TOKEN_ID::COLON >> value)->*AST_ID::MEMBER;
+
+                        //the object member list
+                        const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
+
+                        //the object
+                        object = "object" >>= (TOKEN_ID::LEFT_CURLY_BRACKET >> -object_member_list >> TOKEN_ID::RIGHT_CURLY_BRACKET)->*AST_ID::OBJECT;
 
                         //array member list
                         const auto array_member_list = value >> *(TOKEN_ID::COMMA >> value);
@@ -268,17 +276,8 @@ namespace parserlib {
                             | null_
                             ;
 
-                        //the object member
-                        const auto object_member = "object_member" >>= (string >> TOKEN_ID::COLON >> value)->*AST_ID::MEMBER;
-
-                        //the object member list
-                        const auto object_member_list = object_member >> *(TOKEN_ID::COMMA >> object_member);
-
-                        //the object
-                        object = "object" >>= (TOKEN_ID::LEFT_CURLY_BRACKET >> -object_member_list >> TOKEN_ID::RIGHT_CURLY_BRACKET)->*AST_ID::OBJECT;
-
                         //the parser grammar
-                        *this = "parser" >>= object >> end();
+                        *this = "parser" >>= value >> end();
                     }
                 };
             };

@@ -23,31 +23,54 @@ namespace parserlib {
     };
 
 
+    /**
+     * Tokenize and parse result.
+     */
     template <class Source, class TokenizerParseContext, class ParserParseContext>
     struct tokenize_and_parse_result 
         : tokenize_and_parse_result_errors<std::is_same_v<typename TokenizerParseContext::error_id_type, typename ParserParseContext::error_id_type>, TokenizerParseContext>
     {
+        /** AST node type. */
         using ast_node_type = ast_node<typename ParserParseContext::source_type, typename ParserParseContext::match_id_type, typename ParserParseContext::text_position_type>;
+
+        /** AST node pointer type. */
         using ast_node_ptr_type = std::shared_ptr<ast_node_type>;
 
+        /** The tokenizer part. */
         struct {
+            /** The tokenizer parse context. */
             TokenizerParseContext parse_context;
+
+            /** The tokenizer parse result. */
             bool success;
         } tokenizer;
 
+        /** The parser part. */
         struct {
+            /** The parser parse context. */
             ParserParseContext parse_context;
+
+            /** The parser parse result. */
             bool success;
         } parser;
 
+        /** The created ast. */
         std::vector<ast_node_ptr_type> ast;
 
+        /** tokenizer and parser success. */
         bool success;
     };
 
 
+    /**
+     * Function that tokenizes and parses a source.
+     * @param source the source to tokenize and parse.
+     * @param tokenizer_grammar the root rule for the tokenizer.
+     * @param parser_grammar the root rule for the parser.
+     * @param astFactory factory to use for creating AST nodes; if not given, then the default is used.
+     */
     template <class Source, class TokenizerParseContext, class ParserParseContext, class ASTFactory = default_ast_factory<typename ParserParseContext::source_type, typename ParserParseContext::match_id_type, typename ParserParseContext::text_position_type>>
-    auto tokenize_and_parse(Source& source, rule<TokenizerParseContext>& tokenizer_grammar, rule<ParserParseContext>& parser_grammar, const ASTFactory& astNodeFactory = ASTFactory()) {
+    auto tokenize_and_parse(Source& source, rule<TokenizerParseContext>& tokenizer_grammar, rule<ParserParseContext>& parser_grammar, const ASTFactory& astFactory = ASTFactory()) {
         using result_type = tokenize_and_parse_result<Source, TokenizerParseContext, ParserParseContext>;
 
         std::shared_ptr<result_type> result = std::make_shared<result_type>();
@@ -61,7 +84,7 @@ namespace parserlib {
         result->parser.success = result->parser.parse_context.parse(parser_grammar) && result->parser.parse_context.errors().empty();
 
         //make ast
-        result->ast = make_ast(result->parser.parse_context.matches());
+        result->ast = make_ast(result->parser.parse_context.matches(), astFactory);
 
         //total success
         result->success = result->tokenizer.success && result->parser.success;

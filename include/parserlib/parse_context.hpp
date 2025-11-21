@@ -485,7 +485,7 @@ namespace parserlib {
          * @param ErrorId error id type.
          * @param Extensions parse context extensions.
          */
-        template <class DerivedMatchId, class DerivedErrorId, class... DerivedExtensions>
+        template <class DerivedMatchId, class DerivedErrorId = ErrorId, class... DerivedExtensions>
         auto derive_parse_context() {
             return parse_context<match_container_type, DerivedMatchId, DerivedErrorId, default_text_position, default_symbol_comparator, DerivedExtensions...>(m_matches);
         }
