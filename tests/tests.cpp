@@ -15,7 +15,6 @@ static void test_symbol_parsing() {
         parse_context<> pc(src);
         const bool ok = pc.parse(grammar);
         assert(ok);
-        assert(ok);
         assert(pc.parse_ended());
     }
 
