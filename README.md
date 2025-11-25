@@ -72,6 +72,7 @@ int main() {
 ## Examples
 
 * [JSON parser](./examples/json.hpp)
+* [XML parser](./examples/xml.hpp)
 
 ## Changes
 
