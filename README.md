@@ -7,8 +7,9 @@
 * [Debugging a parser](./doc/debugging_a_parser.md)
 * [Parsing left recursion grammars](./doc/left_recursion.md)
 * [Writing a tokenizer and parser](./doc/tokenizer_and_parser.md)
-* [Doxygen documentation](./doc/doxygen/html/index.html)
 * [Changes](#changes)
+
+Full code documentation at [./doc/doxygen/html/index.html](./doc/doxygen/html/index.html).
 
 ## Introduction
 
