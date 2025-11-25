@@ -7,6 +7,7 @@
 * [Debugging a parser](./doc/debugging_a_parser.md)
 * [Parsing left recursion grammars](./doc/left_recursion.md)
 * [Writing a tokenizer and parser](./doc/tokenizer_and_parser.md)
+* [Examples](#examples)
 * [Changes](#changes)
 
 Full code documentation at [./doc/doxygen/html/index.html](./doc/doxygen/html/index.html).
@@ -67,6 +68,10 @@ int main() {
     return 0;
 }
 ```
+
+## Examples
+
+* [JSON parser](./examples/json.hpp)
 
 ## Changes
 
