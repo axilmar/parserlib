@@ -4,7 +4,7 @@
 * [Using the library](./doc/using_the_library.md)
 * [Writing a parser](./doc/writing_a_parser.md)
 * [Using a parser](./doc/using_a_parser.md)
-* [Debugging a parser](./doc/debugging_a_psrser.md)
+* [Debugging a parser](./doc/debugging_a_parser.md)
 * [Parsing left recursion grammars](./doc/left_recursion.md)
 * [Writing a tokenizer and parser](./doc/tokenizer_and_parser.md)
 * [Changes](#changes)
