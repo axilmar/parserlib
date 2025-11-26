@@ -59,14 +59,6 @@ namespace parserlib {
             return m_name;
         }
 
-        /**
-         * Sets the name of the parse node.
-         * @param name the name of the parse node.
-         */
-        void set_name(const std::string& name) {
-            m_name = name;
-        }
-
         #ifndef NDEBUG
         void init_tree() const override {
             m_parse_node.init();
