@@ -26,7 +26,7 @@ namespace parserlib {
          * Returns the 'what' of the exception.
          * @return the 'what' of the exception.
          */
-        const char* what() const override {
+        const char* what() const noexcept override {
             return m_what.c_str();
         }
 

@@ -30,7 +30,7 @@ namespace parserlib {
          * The constructor.
          * @param levels levels of nested loops to break.
          */
-        loop_break_parse_node(size_t levels) 
+        loop_break_parse_node(size_t levels)
             : m_levels(levels)
         {
         }
@@ -72,4 +72,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif PARSERLIB_LOOP_BREAK_PARSE_NODE_HPP
+#endif //PARSERLIB_LOOP_BREAK_PARSE_NODE_HPP

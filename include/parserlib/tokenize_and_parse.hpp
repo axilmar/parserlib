@@ -27,7 +27,7 @@ namespace parserlib {
      * Tokenize and parse result.
      */
     template <class Source, class TokenizerParseContext, class ParserParseContext>
-    struct tokenize_and_parse_result 
+    struct tokenize_and_parse_result
         : tokenize_and_parse_result_errors<std::is_same_v<typename TokenizerParseContext::error_id_type, typename ParserParseContext::error_id_type>, TokenizerParseContext>
     {
         /** AST node type. */
@@ -98,7 +98,7 @@ namespace parserlib {
 
             //add the parser errors
             for (const auto& parserError : result->parser.parse_context.errors()) {
-                result->errors.push_back(parse_error(parserError.id(), parserError.begin_iterator()->start_position(), parserError.end_iterator()->begin_iterator()));
+                result->errors.push_back(parse_error<Source, typename TokenizerParseContext::error_id_type, typename TokenizerParseContext::text_position_type>(parserError.id(), parserError.begin_iterator()->start_position(), parserError.end_iterator()->begin_iterator()));
             }
 
             //sort the errors by starting position
