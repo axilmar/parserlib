@@ -17,6 +17,7 @@
 		* [error](#function-'error')
 		* [on_error](#function-'on_error')
 		* [loop_break](#function-'loop_break')
+		* [memoized](#function-'memoized')
 	* [Rules](#rules)
 	* [Operators](#operators)
 		* [unary operator *](#unary-operator-'*')
@@ -263,6 +264,20 @@ Example:
 //loop over 'a'; if 'b' is met, stop the loop.
 const auto loop = *((&terminal('b') >> error(ERROR_ID::INVALID_CHARACTER) >> loop_break()) | 'a');
 ```
+
+#### Function 'memoized'
+
+The function `memoized(<parse node>)` can be used to add memoization of the result of parsing a specific parse node.
+
+It is useful when a parse node must be parsed repeatedly at a specific position in the source: instead of calling the parser, its parse results are recalled from internal parse context memory.
+
+Example:
+
+```cpp
+memoized(f);
+```
+
+**Note**: *Memoizing a parser may result in slower parsing, due to memory management; it is advised that parsing durations are measured with and without memoization.*
 
 #### Rules
 

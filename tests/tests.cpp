@@ -1,6 +1,8 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <chrono>
+#include <cmath>
 #include "parserlib.hpp"
 
 
@@ -2160,6 +2162,85 @@ static void test_first_unparsed_position() {
 }
 
 
+static double rnd() {
+    return (double)rand() / (double)RAND_MAX;
+}
+
+
+static void test_memoization() {
+    const auto create_random_digit = [](std::stringstream& stream) {
+        const int random_digit_index = (int)std::round(rnd() * 9);
+        const char digit = (char)('0' + random_digit_index);
+        stream << digit;
+    };
+
+    const auto create_random_integer = [&](std::stringstream& stream) {
+        for (size_t i = 0; i < 32; ++i) {
+            create_random_digit(stream);
+        }
+    };
+
+    const auto create_random_input = [&](size_t number_count) {
+        std::stringstream stream;
+        for (size_t i = 0; i < number_count; ++i) {
+            if (i > 0) {
+                stream << ',';
+            }
+            create_random_integer(stream);
+        }
+        return stream.str();
+    };
+
+    std::string src = create_random_input(10000);
+
+    {
+        const auto digit = range('0', '9');
+        const auto integer = +digit;
+        const auto fp = integer >> '.' >> integer;
+        const auto number = fp | integer;
+        const auto grammar = number >> *(',' >> number);
+
+        parse_context<> pc(src);
+
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        for (size_t i = 0; i < 10000; ++i) {
+            grammar.parse(pc);
+        }
+
+        const auto end = std::chrono::high_resolution_clock::now();
+
+        const auto duration = end - start;
+        const double seconds = std::chrono::duration<double>(duration).count();
+
+        std::cout << "parse without memoization took " << seconds << std::endl;
+    }
+
+    {
+        const auto digit = range('0', '9');
+        const auto integer = memoized(+digit);
+        const auto fp = integer >> '.' >> integer;
+        const auto number = fp | integer;
+        const auto grammar = number >> *(',' >> number);
+
+        parse_context<> pc(src);
+
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        for (size_t i = 0; i < 10000; ++i) {
+            grammar.parse(pc);
+        }
+
+        const auto end = std::chrono::high_resolution_clock::now();
+
+        const auto duration = end - start;
+        const double seconds = std::chrono::duration<double>(duration).count();
+
+        std::cout << "parse with memoization took " << seconds << std::endl;
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_case_insensitive_symbol_parsing();
@@ -2195,4 +2276,5 @@ void run_tests() {
     test_load_file();
     test_id_name();
     test_first_unparsed_position();
+    test_memoization();
 }

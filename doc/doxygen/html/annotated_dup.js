@@ -37,6 +37,7 @@ var annotated_dup =
       [ "loop_break_exception", "structparserlib_1_1loop__break__exception.html", "structparserlib_1_1loop__break__exception" ],
       [ "loop_break_parse_node", "classparserlib_1_1loop__break__parse__node.html", "classparserlib_1_1loop__break__parse__node" ],
       [ "match_parse_node", "classparserlib_1_1match__parse__node.html", "classparserlib_1_1match__parse__node" ],
+      [ "memoized_parse_node", "classparserlib_1_1memoized__parse__node.html", "classparserlib_1_1memoized__parse__node" ],
       [ "named_parse_node", "classparserlib_1_1named__parse__node.html", "classparserlib_1_1named__parse__node" ],
       [ "newline_parse_node", "classparserlib_1_1newline__parse__node.html", "classparserlib_1_1newline__parse__node" ],
       [ "on_error_parse_node", "classparserlib_1_1on__error__parse__node.html", "classparserlib_1_1on__error__parse__node" ],

@@ -110,12 +110,12 @@ $(function(){initNavTree('infinite__recursion__exception_8hpp_source.html','',''
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>            : std::runtime_error(<span class="stringliteral">&quot;&quot;</span>)</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>            , m_source(source)</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>            , m_position(position)</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>            , m_what(m_position + <span class="stringliteral">&quot;&#39;&quot;</span> + m_source + <span class="stringliteral">&quot;&#39;: &quot;</span> + <span class="stringliteral">&quot;: infinite recursion exception&quot;</span>)</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>            , m_what(m_position + <span class="stringliteral">&quot;: &#39;&quot;</span> + m_source + <span class="stringliteral">&quot;&#39;: infinite recursion exception&quot;</span>)</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>        {</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>        }</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span></div>
 <div class="foldopen" id="foldopen00029" data-start="{" data-end="}">
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classparserlib_1_1infinite__recursion__exception.html#a7d71b84e662e31a66a84985ae005351d">   29</a></span>        <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code hl_function" href="classparserlib_1_1infinite__recursion__exception.html#a7d71b84e662e31a66a84985ae005351d">what</a>()<span class="keyword"> const override </span>{</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classparserlib_1_1infinite__recursion__exception.html#af19da651c6dc8465fd7d45692310f7c7">   29</a></span>        <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code hl_function" href="classparserlib_1_1infinite__recursion__exception.html#af19da651c6dc8465fd7d45692310f7c7">what</a>() const noexcept<span class="keyword"> override </span>{</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>            <span class="keywordflow">return</span> m_what.c_str();</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        }</div>
 </div>
@@ -132,7 +132,7 @@ $(function(){initNavTree('infinite__recursion__exception_8hpp_source.html','',''
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#endif </span><span class="comment">//PARSERLIB_INFINITE_RECURSION_EXCEPTION_HPP</span></div>
-<div class="ttc" id="aclassparserlib_1_1infinite__recursion__exception_html_a7d71b84e662e31a66a84985ae005351d"><div class="ttname"><a href="classparserlib_1_1infinite__recursion__exception.html#a7d71b84e662e31a66a84985ae005351d">parserlib::infinite_recursion_exception::what</a></div><div class="ttdeci">const char * what() const override</div><div class="ttdef"><b>Definition</b> infinite_recursion_exception.hpp:29</div></div>
+<div class="ttc" id="aclassparserlib_1_1infinite__recursion__exception_html_af19da651c6dc8465fd7d45692310f7c7"><div class="ttname"><a href="classparserlib_1_1infinite__recursion__exception.html#af19da651c6dc8465fd7d45692310f7c7">parserlib::infinite_recursion_exception::what</a></div><div class="ttdeci">const char * what() const noexcept override</div><div class="ttdef"><b>Definition</b> infinite_recursion_exception.hpp:29</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

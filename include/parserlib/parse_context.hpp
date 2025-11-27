@@ -505,8 +505,7 @@ namespace parserlib {
 
         /**
          * Invokes the parse function on the given parse node.
-         * It invokes the function `init()` on the parse node, allowing it to make 
-         * dynamic initialization, but only in debug mode.
+         * In debug mode, it invokes the function `init()` on the parse node, allowing it to make dynamic initialization.
          * @param parse_node parse node to invoke.
          * @return the parse result.
          */
@@ -527,6 +526,40 @@ namespace parserlib {
         template <class Expression, std::enable_if_t<!std::is_base_of_v<parse_node_base, std::decay_t<Expression>>, bool> = true>
         bool parse(Expression&& expression) {
             return parse(make_parse_node(expression));
+        }
+
+        /**
+         * Invokes the parse function on the given parse node, but only if the specific combination of 
+         * parse position and expression has not yet been parsed.
+         * Otherwise, the result of previous parsing (parse position, matches and errors)
+         * are recovered from internal memory.
+         * If an exception happens in the initial parse, then no memoization happens.
+         * @param parse_node parse node to invoke.
+         * @return the parse result.
+         */
+        template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<ParseNode>>, bool> = true>
+        bool parse_memoized(const ParseNode& parse_node) {
+            //the key is the combination of the parse position and parse node address
+            const auto key = std::make_pair(m_parse_position.iterator(), parse_node.id());
+
+            //find the key
+            const auto it = m_memoized.find(key);
+
+            //if found, restore memoized state
+            if (it != m_memoized.end()) {
+                const auto& mem = it->second;
+                m_parse_position = std::get<1>(mem);
+                m_matches.insert(m_matches.end(), std::get<2>(mem).begin(), std::get<2>(mem).end());
+                m_errors.insert(m_errors.end(), std::get<3>(mem).begin(), std::get<3>(mem).end());
+                return std::get<0>(mem);
+            }
+
+            //else parse and memoize state
+            const auto start_state = get_state();
+            const auto start_error_state = get_error_state();
+            const bool result = parse(parse_node);
+            m_memoized.insert(std::make_pair(key, std::make_tuple(result, m_parse_position, match_container_type(std::next(m_matches.begin(), start_state.match_count()), std::next(m_matches.begin(), m_matches.size())), error_container_type(std::next(m_errors.begin(), start_error_state.error_count()), std::next(m_errors.begin(), m_errors.size())))));
+            return result;
         }
 
         /**
@@ -570,6 +603,7 @@ namespace parserlib {
         bool m_terminal_parsing_allowed{ true };
         std::map<const rule_type*, rule_data> m_rule_data;
         parse_position_type m_first_unparsed_position;
+        std::map<std::pair<iterator_type, int>, std::tuple<bool, parse_position_type, match_container_type, error_container_type>> m_memoized;
 
         friend rule_type;
     };

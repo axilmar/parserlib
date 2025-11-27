@@ -150,6 +150,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8b17558f350557628d8a7847f00ba456" id="r_a8b17558f350557628d8a7847f00ba456"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b17558f350557628d8a7847f00ba456">add_errors</a> (const <a class="el" href="#a3fb7273dbf158f62bac6e0ee43d7024c">error_container_type</a> &amp;<a class="el" href="#a989d6c908fe93264696ce9a6ed30a45a">errors</a>)</td></tr>
 <tr class="memitem:a346efc39c9fedd8a5508aa749cdb09d2" id="r_a346efc39c9fedd8a5508aa749cdb09d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a346efc39c9fedd8a5508aa749cdb09d2">get_state</a> () const</td></tr>
 <tr class="memitem:a390e2155d86b6ba35e392beedefe7b5f" id="r_a390e2155d86b6ba35e392beedefe7b5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a390e2155d86b6ba35e392beedefe7b5f">set_state</a> (const <a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a> &amp;st)</td></tr>
+<tr class="memitem:ad8188e35f8012466907d2e9622d0afe6" id="r_ad8188e35f8012466907d2e9622d0afe6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a8863e5c2a6adb3e9286a811897611d2e">parse_position_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad8188e35f8012466907d2e9622d0afe6">get_first_unparsed_position</a> () const</td></tr>
 <tr class="memitem:a8f8c16709699eb0ab019a81afad4ab1e" id="r_a8f8c16709699eb0ab019a81afad4ab1e"><td class="memTemplParams" colspan="2">template&lt;class A, class B&gt; </td></tr>
 <tr class="memitem:a8f8c16709699eb0ab019a81afad4ab1e template"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8f8c16709699eb0ab019a81afad4ab1e">compare_symbols</a> (const A &amp;a, const B &amp;b) const</td></tr>
 <tr class="memitem:a0821fa575ac33d7406941a5c04fca77e" id="r_a0821fa575ac33d7406941a5c04fca77e"><td class="memTemplParams" colspan="2">template&lt;class T&gt; </td></tr>
@@ -163,7 +164,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7584197e14bbd8f6a0a4cf6e99f5d487 template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7584197e14bbd8f6a0a4cf6e99f5d487">parse</a> (ParseNode &amp;&amp;<a class="el" href="classparserlib_1_1parse__node.html">parse_node</a>)</td></tr>
 <tr class="memitem:a14e1e6b01a7701988f866a52fd4dc4e8" id="r_a14e1e6b01a7701988f866a52fd4dc4e8"><td class="memTemplParams" colspan="2">template&lt;class Expression, std::enable_if_t&lt;!std::is_base_of_v&lt; <a class="el" href="classparserlib_1_1parse__node__base.html">parse_node_base</a>, std::decay_t&lt; Expression &gt; &gt;, bool &gt; = true&gt; </td></tr>
 <tr class="memitem:a14e1e6b01a7701988f866a52fd4dc4e8 template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14e1e6b01a7701988f866a52fd4dc4e8">parse</a> (Expression &amp;&amp;expression)</td></tr>
+<tr class="memitem:a44f46bd099737018c159fc64b349e95a" id="r_a44f46bd099737018c159fc64b349e95a"><td class="memTemplParams" colspan="2">template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class="el" href="classparserlib_1_1parse__node__base.html">parse_node_base</a>, std::decay_t&lt; ParseNode &gt; &gt;, bool &gt; = true&gt; </td></tr>
+<tr class="memitem:a44f46bd099737018c159fc64b349e95a template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a44f46bd099737018c159fc64b349e95a">parse_memoized</a> (const ParseNode &amp;<a class="el" href="classparserlib_1_1parse__node.html">parse_node</a>)</td></tr>
 <tr class="memitem:a1e9f0170c4b3cb6e7e8167d1c90cb460" id="r_a1e9f0170c4b3cb6e7e8167d1c90cb460"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1e9f0170c4b3cb6e7e8167d1c90cb460">set_parse_position_after_last_error</a> ()</td></tr>
+<tr class="memitem:ac0623afbbd3520617d1a3b31e6658901" id="r_ac0623afbbd3520617d1a3b31e6658901"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac0623afbbd3520617d1a3b31e6658901">set_parse_position_at_first_unparsed_position</a> ()</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;class Source = default_source_type, class MatchId = default_match_id_type, class ErrorId = default_error_id_type, class TextPosition = default_text_position_type, class SymbolComparator = default_symbol_comparator_type, class... Extensions&gt;<br />
@@ -1053,6 +1057,34 @@ template&lt;class Source = default_source_type, class MatchId = default_match_id
 
 </div>
 </div>
+<a id="ad8188e35f8012466907d2e9622d0afe6" name="ad8188e35f8012466907d2e9622d0afe6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8188e35f8012466907d2e9622d0afe6">&#9670;&#160;</a></span>get_first_unparsed_position()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Source = default_source_type, class MatchId = default_match_id_type, class ErrorId = default_error_id_type, class TextPosition = default_text_position_type, class SymbolComparator = default_symbol_comparator_type, class... Extensions&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a8863e5c2a6adb3e9286a811897611d2e">parse_position_type</a> <a class="el" href="classparserlib_1_1parse__context.html">parserlib::parse_context</a>&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::get_first_unparsed_position </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns the first unparsed position. </p><dl class="section return"><dt>Returns</dt><dd>the first unparsed position. </dd></dl>
+
+</div>
+</div>
 <a id="a4f879916b192faf73cfb58df1ea8409a" name="a4f879916b192faf73cfb58df1ea8409a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4f879916b192faf73cfb58df1ea8409a">&#9670;&#160;</a></span>get_match_start_state()</h2>
 
@@ -1372,7 +1404,7 @@ template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Invokes the parse function on the given parse node. It invokes the function <span class="tt">init()</span> on the parse node, allowing it to make dynamic initialization, but only in debug mode. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Invokes the parse function on the given parse node. In debug mode, it invokes the function <span class="tt">init()</span> on the parse node, allowing it to make dynamic initialization. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname"><a class="el" href="classparserlib_1_1parse__node.html">parse_node</a></td><td>parse node to invoke. </td></tr>
   </table>
@@ -1407,6 +1439,42 @@ template&lt;class Source = default_source_type, class MatchId = default_match_id
 </table>
 </div><div class="memdoc">
 <p>Checks if the end of the source is reached. </p><dl class="section return"><dt>Returns</dt><dd>true if the end of the source has been reached, false otherwise. </dd></dl>
+
+</div>
+</div>
+<a id="a44f46bd099737018c159fc64b349e95a" name="a44f46bd099737018c159fc64b349e95a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44f46bd099737018c159fc64b349e95a">&#9670;&#160;</a></span>parse_memoized()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Source = default_source_type, class MatchId = default_match_id_type, class ErrorId = default_error_id_type, class TextPosition = default_text_position_type, class SymbolComparator = default_symbol_comparator_type, class... Extensions&gt; </div>
+<div class="memtemplate">
+template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class="el" href="classparserlib_1_1parse__node__base.html">parse_node_base</a>, std::decay_t&lt; ParseNode &gt; &gt;, bool &gt; = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classparserlib_1_1parse__context.html">parserlib::parse_context</a>&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::parse_memoized </td>
+          <td>(</td>
+          <td class="paramtype">const ParseNode &amp;</td>          <td class="paramname"><span class="paramname"><em>parse_node</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Invokes the parse function on the given parse node, but only if the specific combination of parse position and expression has not yet been parsed. Otherwise, the result of previous parsing (parse position, matches and errors) are recovered from internal memory. If an exception happens in the initial parse, then no memoization happens. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"><a class="el" href="classparserlib_1_1parse__node.html">parse_node</a></td><td>parse node to invoke. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>the parse result. </dd></dl>
 
 </div>
 </div>
@@ -1556,7 +1624,35 @@ template&lt;class Source = default_source_type, class MatchId = default_match_id
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Sets the parse position to be after the last error. It allows continuing parsing after the last error. </p>
+<p>Sets the parse position to be after the last error. </p>
+
+</div>
+</div>
+<a id="ac0623afbbd3520617d1a3b31e6658901" name="ac0623afbbd3520617d1a3b31e6658901"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0623afbbd3520617d1a3b31e6658901">&#9670;&#160;</a></span>set_parse_position_at_first_unparsed_position()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Source = default_source_type, class MatchId = default_match_id_type, class ErrorId = default_error_id_type, class TextPosition = default_text_position_type, class SymbolComparator = default_symbol_comparator_type, class... Extensions&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classparserlib_1_1parse__context.html">parserlib::parse_context</a>&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::set_parse_position_at_first_unparsed_position </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sets the parse position to be at the first unparsed position. </p>
 
 </div>
 </div>

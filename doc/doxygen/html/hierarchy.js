@@ -97,6 +97,9 @@ var hierarchy =
       [ "parserlib::parse_node< match_parse_node< MatchId, ParseNode > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::match_parse_node< MatchId, ParseNode >", "classparserlib_1_1match__parse__node.html", null ]
       ] ],
+      [ "parserlib::parse_node< memoized_parse_node< ParseNode > >", "classparserlib_1_1parse__node.html", [
+        [ "parserlib::memoized_parse_node< ParseNode >", "classparserlib_1_1memoized__parse__node.html", null ]
+      ] ],
       [ "parserlib::parse_node< named_parse_node< ParseNode > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::named_parse_node< ParseNode >", "classparserlib_1_1named__parse__node.html", null ]
       ] ],
