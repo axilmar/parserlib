@@ -175,6 +175,7 @@ namespace parserlib {
             , m_begin_iterator(begin)
             , m_end_iterator(end)
             , m_left_recursion_start_state(begin)
+            , m_first_unparsed_position(begin)
         {
         }
 
@@ -200,6 +201,7 @@ namespace parserlib {
             , m_begin_iterator(begin)
             , m_end_iterator(end)
             , m_left_recursion_start_state(begin)
+            , m_first_unparsed_position(begin)
         {
         }
 
@@ -424,9 +426,20 @@ namespace parserlib {
          * @param st the state to set.
          */
         void set_state(const state& st) {
+            if (m_parse_position.iterator() > m_first_unparsed_position.iterator()) {
+                m_first_unparsed_position = m_parse_position;
+            }
             m_parse_position = st.m_parse_position;
             m_matches.resize(st.m_match_count);
             m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
+        }
+
+        /**
+         * Returns the first unparsed position.
+         * @return the first unparsed position.
+         */
+        parse_position_type get_first_unparsed_position() const {
+            return m_first_unparsed_position.iterator() > m_parse_position.iterator() ? m_first_unparsed_position : m_parse_position;
         }
 
         /**
@@ -518,12 +531,20 @@ namespace parserlib {
 
         /**
          * Sets the parse position to be after the last error.
-         * It allows continuing parsing after the last error.
          */
         void set_parse_position_after_last_error() {
             if (!m_errors.empty()) {
                 m_parse_position = m_errors.back().start_position();
                 increment_parse_position();
+            }
+        }
+
+        /**
+         * Sets the parse position to be at the first unparsed position.
+         */
+        void set_parse_position_at_first_unparsed_position() {
+            if (m_first_unparsed_position.iterator() > m_parse_position.iterator()) {
+                m_parse_position = m_first_unparsed_position;
             }
         }
 
@@ -548,6 +569,7 @@ namespace parserlib {
         state m_left_recursion_start_state;
         bool m_terminal_parsing_allowed{ true };
         std::map<const rule_type*, rule_data> m_rule_data;
+        parse_position_type m_first_unparsed_position;
 
         friend rule_type;
     };

@@ -2145,6 +2145,21 @@ static void test_id_name() {
 }
 
 
+static void test_first_unparsed_position() {
+    const auto long_expr = terminal('1') >> '2' >> '3' >> '4' >> '5' >> '6';
+    const auto short_expr = terminal('x') >> 'y' >> 'z';
+    const auto grammar = long_expr | short_expr;
+
+    {
+        std::string src = "1234@6789";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.get_first_unparsed_position().iterator() == std::next(src.begin(), 4));
+    }
+}
+
+
 void run_tests() {
     test_symbol_parsing();
     test_case_insensitive_symbol_parsing();
@@ -2179,4 +2194,5 @@ void run_tests() {
     test_multistage_parsing();
     test_load_file();
     test_id_name();
+    test_first_unparsed_position();
 }
