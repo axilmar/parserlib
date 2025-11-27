@@ -535,12 +535,13 @@ namespace parserlib {
          * are recovered from internal memory.
          * If an exception happens in the initial parse, then no memoization happens.
          * @param parse_node parse node to invoke.
+         * @param id id of the parse node.
          * @return the parse result.
          */
         template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<ParseNode>>, bool> = true>
-        bool parse_memoized(const ParseNode& parse_node) {
+        bool parse_memoized(const ParseNode& parse_node, int id) {
             //the key is the combination of the parse position and parse node address
-            const auto key = std::make_pair(m_parse_position.iterator(), parse_node.id());
+            const auto key = std::make_pair(m_parse_position.iterator(), id);
 
             //find the key
             const auto it = m_memoized.find(key);

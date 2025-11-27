@@ -64,23 +64,11 @@ namespace parserlib {
          */
         virtual std::string text() const = 0;
 
-        /**
-         * Returns the id of the parse node.
-         * Each node automatically gets an id when constructed.
-         * This is useful in order to know the identity of an expression.
-         * @return the id of the node.
-         */
-        int id() const {
-            return m_id;
-        }
-
     protected:
         /**
          * The default constructor.
          */
-        parse_node_base()
-            : m_id(new_parse_node_base_id())
-        {
+        parse_node_base() {
         }
 
         #ifndef NDEBUG
@@ -90,7 +78,6 @@ namespace parserlib {
          */
         parse_node_base(const parse_node_base& src)
             : m_text(src.m_text)
-            , m_id(src.m_id)
         {
         }
         #endif
@@ -112,12 +99,6 @@ namespace parserlib {
         mutable std::string m_text;
         mutable std::recursive_mutex m_mutex;
         #endif
-        const int m_id;
-
-        static int new_parse_node_base_id() {
-            static thread_local int id = 0;
-            return ++id;
-        }
     };
 
 

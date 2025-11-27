@@ -22,6 +22,7 @@ namespace parserlib {
          */
         memoized_parse_node(const ParseNode& parse_node) 
             : m_parse_node(parse_node)
+            , m_id(id())
         {
         }
 
@@ -32,7 +33,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return pc.parse_memoized(m_parse_node);
+            return pc.parse_memoized(m_parse_node, m_id);
         }
 
         /**
@@ -45,6 +46,12 @@ namespace parserlib {
 
     private:
         const ParseNode m_parse_node;
+        const int m_id;
+
+        static int id() {
+            static thread_local int id = 0;
+            return ++id;
+        }
     };
 
 
