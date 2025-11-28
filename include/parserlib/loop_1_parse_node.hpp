@@ -53,6 +53,11 @@ namespace parserlib {
         }
         #endif
 
+        //optimization; loop 1 that becomes optional becomes loop 0
+        loop_0_parse_node<ParseNode> operator -() const {
+            return m_child;
+        }
+
     private:
         const ParseNode m_child;
     };
