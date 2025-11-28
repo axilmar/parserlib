@@ -7,60 +7,12 @@
 #include <sstream>
 #include <algorithm>
 #include <vector>
+#include <type_traits>
 #include "is_char.hpp"
+#include "is_range.hpp"
 
 
 namespace parserlib {
-
-
-    /**
-     * Trait for getting the part of a content from a content type.
-     * It must be overloaded for custom source types in order to retrieve
-     * the content from them.
-     * @param Source type of source.
-     */
-    template <class Source> struct content_type {
-        /** The source type. */
-        using source_type = Source;
-
-        /** The iterator type. */
-        using iterator_type = typename source_type::const_iterator;
-
-        /**
-         * Returns a copy of the given range.
-         * @param begin begin of range.
-         * @param end end of range.
-         * @return a copy of the given range.
-         */
-        static Source get(const iterator_type& begin, const iterator_type& end) {
-            return { begin, end };
-        }
-    };
-
-
-    template <class Source, class MatchId, class TextPosition> class match;
-
-
-    /**
-     * Overload for vector of matches.
-     */
-    template <class Source, class MatchId, class TextPosition, class Alloc> struct content_type<std::vector<match<Source, MatchId, TextPosition>, Alloc>> {
-        /** The source type is the vector of matches. */
-        using source_type = std::vector<match<Source, MatchId, TextPosition>, Alloc>;
-
-        /** The iterator type. */
-        using iterator_type = typename source_type::const_iterator;
-
-        /**
-         * Returns a copy of the source of the given range.
-         * @param begin begin of range.
-         * @param end end of range.
-         * @return a copy of the source of the given range.
-         */
-        static auto get(const iterator_type& begin, const iterator_type& end) {
-            return content_type<Source>::get(begin->begin(), end->begin());
-        }
-    };
 
 
     /**
@@ -270,21 +222,15 @@ namespace parserlib {
          * @return the part of the source that corresponds to this partition.
          */
         auto source() const {
-            if constexpr (is_char_v<symbol_type>) {
-                return std::basic_string<symbol_type>(m_start_position.iterator(), m_end_iterator);
-            }
-            else {
-                return std::vector<symbol_type>(m_start_position.iterator(), m_end_iterator);
-            }
+            return _source(m_start_position.iterator(), m_end_iterator);
         }
 
         /**
-         * Returns the part of the content that corresponds to this partition.
-         * The content is the initial text that was parsed.
-         * @return the part of the content that corresponds to this partition.
+         * Returns the content that was originally parsed that corresponds to this partition.
+         * @return the content that was originally parsed that corresponds to this partition.
          */
         auto content() const {
-            return parserlib::content_type<Source>::get(m_start_position.iterator(), m_end_iterator);
+            return _content(m_start_position.iterator(), m_end_iterator);
         }
 
         /**
@@ -299,6 +245,30 @@ namespace parserlib {
         id_type m_id;
         parse_position_type m_start_position;
         iterator_type m_end_iterator;
+
+        template <class It>
+        static auto _source(const It& begin, const It& end) {
+            using element_type = std::decay_t<decltype(*begin)>;
+            if constexpr (is_char_v<element_type>) {
+                return std::basic_string<element_type>(begin, end);
+            }
+            else {
+                return std::vector<element_type>(begin, end);
+            }
+        }
+
+        template <class It>
+        static auto _content(const It& begin, const It& end) {
+            using element_type = std::decay_t<decltype(*begin)>;
+            if constexpr (is_range_v<element_type>) {
+                const element_type& begin_element = *begin;
+                const element_type& end_element = *end;
+                return _content(begin_element.begin(), end_element.begin());
+            }
+            else {
+                return _source(begin, end);
+            }
+        }
     };
 
 
