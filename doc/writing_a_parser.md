@@ -18,6 +18,7 @@
 		* [on_error](#function-'on_error')
 		* [loop_break](#function-'loop_break')
 		* [memoized](#function-'memoized')
+		* [multimatch](#function-'multimatch')
 	* [Rules](#rules)
 	* [Operators](#operators)
 		* [unary operator *](#unary-operator-'*')
@@ -278,6 +279,19 @@ memoized(f);
 ```
 
 **Note**: *Memoizing a parser may result in slower parsing, due to memory management; it is advised that parsing durations are measured with and without memoization.*
+
+#### Function 'multimatch'
+
+The function `multimatch(<parse node>, <choice of matches>)` can be used to prefix one or more matches with a specific parse node.
+
+It is useful as an optimization, where the prefix is common between multiple branches.
+
+Example:
+
+```cpp
+//parse either '#1' or '#2' or '#3'.
+multimatch('#', terminal('1')->*ONE | terminal('2')->*TWO | terminal('3')->*THREE);
+```
 
 #### Rules
 

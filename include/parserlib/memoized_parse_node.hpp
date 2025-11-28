@@ -44,6 +44,12 @@ namespace parserlib {
             return "memoized(" + m_parse_node.text() + ')';
         }
 
+        #ifndef NDEBUG
+        void init_tree() const override {
+            m_parse_node.init();
+        }
+        #endif
+
     private:
         const ParseNode m_parse_node;
         const int m_id;

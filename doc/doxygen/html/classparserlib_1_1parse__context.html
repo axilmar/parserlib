@@ -140,6 +140,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a79be96621546734638e7dbbc8239319b" id="r_a79be96621546734638e7dbbc8239319b"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a79be96621546734638e7dbbc8239319b">match_count</a> () const</td></tr>
 <tr class="memitem:a5eaf253a46c328e700dfe17c4ccfa9e2" id="r_a5eaf253a46c328e700dfe17c4ccfa9e2"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="#a487b71d571c0b9a59487d169eea80f19">match_container_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5eaf253a46c328e700dfe17c4ccfa9e2">matches</a> () const</td></tr>
 <tr class="memitem:a4f879916b192faf73cfb58df1ea8409a" id="r_a4f879916b192faf73cfb58df1ea8409a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4f879916b192faf73cfb58df1ea8409a">get_match_start_state</a> () const</td></tr>
+<tr class="memitem:a160ca97447a37769ba87b77bd358e1d7" id="r_a160ca97447a37769ba87b77bd358e1d7"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a160ca97447a37769ba87b77bd358e1d7">get_multimatch_start_state</a> () const</td></tr>
+<tr class="memitem:ae2e212c832ec7fe433339003b7f19c0f" id="r_ae2e212c832ec7fe433339003b7f19c0f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2e212c832ec7fe433339003b7f19c0f">set_multimatch_start_state</a> (const <a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a> &amp;st)</td></tr>
 <tr class="memitem:a3571e00b49f3d6388b25700a1acefefc" id="r_a3571e00b49f3d6388b25700a1acefefc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3571e00b49f3d6388b25700a1acefefc">add_match</a> (const <a class="el" href="#a2ce1f934d7b1134b89f05eeb49f4d80b">match_id_type</a> &amp;id, const <a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a> &amp;start_state, const <a class="el" href="#a248749c9d5914b98cdd6c57e5e853a57">iterator_type</a> &amp;<a class="el" href="#a952e3582f5dcfd662d41920373b216a6">end_iterator</a>)</td></tr>
 <tr class="memitem:a7351bf1dd379454f54ad41338d2c07eb" id="r_a7351bf1dd379454f54ad41338d2c07eb"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7351bf1dd379454f54ad41338d2c07eb">error_count</a> () const</td></tr>
 <tr class="memitem:a989d6c908fe93264696ce9a6ed30a45a" id="r_a989d6c908fe93264696ce9a6ed30a45a"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="#a3fb7273dbf158f62bac6e0ee43d7024c">error_container_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a989d6c908fe93264696ce9a6ed30a45a">errors</a> () const</td></tr>
@@ -164,8 +166,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7584197e14bbd8f6a0a4cf6e99f5d487 template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7584197e14bbd8f6a0a4cf6e99f5d487">parse</a> (ParseNode &amp;&amp;<a class="el" href="classparserlib_1_1parse__node.html">parse_node</a>)</td></tr>
 <tr class="memitem:a14e1e6b01a7701988f866a52fd4dc4e8" id="r_a14e1e6b01a7701988f866a52fd4dc4e8"><td class="memTemplParams" colspan="2">template&lt;class Expression, std::enable_if_t&lt;!std::is_base_of_v&lt; <a class="el" href="classparserlib_1_1parse__node__base.html">parse_node_base</a>, std::decay_t&lt; Expression &gt; &gt;, bool &gt; = true&gt; </td></tr>
 <tr class="memitem:a14e1e6b01a7701988f866a52fd4dc4e8 template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14e1e6b01a7701988f866a52fd4dc4e8">parse</a> (Expression &amp;&amp;expression)</td></tr>
-<tr class="memitem:a44f46bd099737018c159fc64b349e95a" id="r_a44f46bd099737018c159fc64b349e95a"><td class="memTemplParams" colspan="2">template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class="el" href="classparserlib_1_1parse__node__base.html">parse_node_base</a>, std::decay_t&lt; ParseNode &gt; &gt;, bool &gt; = true&gt; </td></tr>
-<tr class="memitem:a44f46bd099737018c159fc64b349e95a template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a44f46bd099737018c159fc64b349e95a">parse_memoized</a> (const ParseNode &amp;<a class="el" href="classparserlib_1_1parse__node.html">parse_node</a>)</td></tr>
+<tr class="memitem:aa47d7c81f6b633aae35227e2f94496e4" id="r_aa47d7c81f6b633aae35227e2f94496e4"><td class="memTemplParams" colspan="2">template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class="el" href="classparserlib_1_1parse__node__base.html">parse_node_base</a>, std::decay_t&lt; ParseNode &gt; &gt;, bool &gt; = true&gt; </td></tr>
+<tr class="memitem:aa47d7c81f6b633aae35227e2f94496e4 template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa47d7c81f6b633aae35227e2f94496e4">parse_memoized</a> (const ParseNode &amp;<a class="el" href="classparserlib_1_1parse__node.html">parse_node</a>, int id)</td></tr>
 <tr class="memitem:a1e9f0170c4b3cb6e7e8167d1c90cb460" id="r_a1e9f0170c4b3cb6e7e8167d1c90cb460"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1e9f0170c4b3cb6e7e8167d1c90cb460">set_parse_position_after_last_error</a> ()</td></tr>
 <tr class="memitem:ac0623afbbd3520617d1a3b31e6658901" id="r_ac0623afbbd3520617d1a3b31e6658901"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac0623afbbd3520617d1a3b31e6658901">set_parse_position_at_first_unparsed_position</a> ()</td></tr>
 </table>
@@ -1113,6 +1115,34 @@ template&lt;class Source = default_source_type, class MatchId = default_match_id
 
 </div>
 </div>
+<a id="a160ca97447a37769ba87b77bd358e1d7" name="a160ca97447a37769ba87b77bd358e1d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a160ca97447a37769ba87b77bd358e1d7">&#9670;&#160;</a></span>get_multimatch_start_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Source = default_source_type, class MatchId = default_match_id_type, class ErrorId = default_error_id_type, class TextPosition = default_text_position_type, class SymbolComparator = default_symbol_comparator_type, class... Extensions&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a> &amp; <a class="el" href="classparserlib_1_1parse__context.html">parserlib::parse_context</a>&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::get_multimatch_start_state </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Returns the multimatch start state. </p><dl class="section return"><dt>Returns</dt><dd>the multimatch start state. </dd></dl>
+
+</div>
+</div>
 <a id="a346efc39c9fedd8a5508aa749cdb09d2" name="a346efc39c9fedd8a5508aa749cdb09d2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a346efc39c9fedd8a5508aa749cdb09d2">&#9670;&#160;</a></span>get_state()</h2>
 
@@ -1442,8 +1472,8 @@ template&lt;class Source = default_source_type, class MatchId = default_match_id
 
 </div>
 </div>
-<a id="a44f46bd099737018c159fc64b349e95a" name="a44f46bd099737018c159fc64b349e95a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44f46bd099737018c159fc64b349e95a">&#9670;&#160;</a></span>parse_memoized()</h2>
+<a id="aa47d7c81f6b633aae35227e2f94496e4" name="aa47d7c81f6b633aae35227e2f94496e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa47d7c81f6b633aae35227e2f94496e4">&#9670;&#160;</a></span>parse_memoized()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1458,8 +1488,12 @@ template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class
         <tr>
           <td class="memname">bool <a class="el" href="classparserlib_1_1parse__context.html">parserlib::parse_context</a>&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::parse_memoized </td>
           <td>(</td>
-          <td class="paramtype">const ParseNode &amp;</td>          <td class="paramname"><span class="paramname"><em>parse_node</em></span></td><td>)</td>
+          <td class="paramtype">const ParseNode &amp;</td>          <td class="paramname"><span class="paramname"><em>parse_node</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>id</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -1471,6 +1505,7 @@ template&lt;class ParseNode, std::enable_if_t&lt; std::is_base_of_v&lt; <a class
 <p>Invokes the parse function on the given parse node, but only if the specific combination of parse position and expression has not yet been parsed. Otherwise, the result of previous parsing (parse position, matches and errors) are recovered from internal memory. If an exception happens in the initial parse, then no memoization happens. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname"><a class="el" href="classparserlib_1_1parse__node.html">parse_node</a></td><td>parse node to invoke. </td></tr>
+    <tr><td class="paramname">id</td><td>id of the parse node. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1594,6 +1629,39 @@ template&lt;class Source = default_source_type, class MatchId = default_match_id
 <p>Sets the left recursion start state. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">st</td><td>the new left recursion start state. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae2e212c832ec7fe433339003b7f19c0f" name="ae2e212c832ec7fe433339003b7f19c0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2e212c832ec7fe433339003b7f19c0f">&#9670;&#160;</a></span>set_multimatch_start_state()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Source = default_source_type, class MatchId = default_match_id_type, class ErrorId = default_error_id_type, class TextPosition = default_text_position_type, class SymbolComparator = default_symbol_comparator_type, class... Extensions&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classparserlib_1_1parse__context.html">parserlib::parse_context</a>&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::set_multimatch_start_state </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classparserlib_1_1parse__context_1_1state.html">state</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>st</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Sets the multimatch start state. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">st</td><td>the new multimatch start state. </td></tr>
   </table>
   </dd>
 </dl>

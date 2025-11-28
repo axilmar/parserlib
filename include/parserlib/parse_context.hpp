@@ -340,6 +340,22 @@ namespace parserlib {
         }
 
         /**
+         * Returns the multimatch start state.
+         * @return the multimatch start state.
+         */
+        const state& get_multimatch_start_state() const {
+            return m_multimatch_start_state;
+        }
+
+        /**
+         * Sets the multimatch start state.
+         * @param st the new multimatch start state.
+         */
+        void set_multimatch_start_state(const state& st) {
+            m_multimatch_start_state = st;
+        }
+
+        /**
          * Adds a match.
          * The range is from the given start state's position, up to the current iterator.
          * @param id match id.
@@ -605,6 +621,7 @@ namespace parserlib {
         std::map<const rule_type*, rule_data> m_rule_data;
         parse_position_type m_first_unparsed_position;
         std::map<std::pair<iterator_type, int>, std::tuple<bool, parse_position_type, match_container_type, error_container_type>> m_memoized;
+        state m_multimatch_start_state;
 
         friend rule_type;
     };

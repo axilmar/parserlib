@@ -4,8 +4,6 @@ var hierarchy =
     [ "parserlib::choice_parse_node_base", "classparserlib_1_1choice__parse__node__base.html", [
       [ "parserlib::choice_parse_node< ParseNodes >", "classparserlib_1_1choice__parse__node.html", null ]
     ] ],
-    [ "parserlib::content_type&lt; Source &gt;", "structparserlib_1_1content__type.html", null ],
-    [ "parserlib::content_type&lt; std::vector&lt; match&lt; Source, MatchId, TextPosition &gt;, Alloc &gt; &gt;", "structparserlib_1_1content__type_3_01std_1_1vector_3_01match_3_01_source_00_01_match_id_00_01_tebf30c57be5f7c7a522d3f07b43c02325.html", null ],
     [ "parserlib::debug_annotations_extension&lt; OutputStream &gt;", "classparserlib_1_1debug__annotations__extension.html", null ],
     [ "parserlib::default_ast_factory&lt; Source, MatchId, TextPosition &gt;", "classparserlib_1_1default__ast__factory.html", null ],
     [ "parserlib::default_debug_annotations_extension", "classparserlib_1_1default__debug__annotations__extension.html", null ],
@@ -26,8 +24,10 @@ var hierarchy =
     [ "std::false_type", null, [
       [ "parserlib::has_method_parse_annotation< ParseContext, ParseNode, Annotation, std::void_t< decltype(std::declval< ParseContext >().parse_annotation(std::declval< ParseContext & >(), std::declval< ParseNode >(), std::declval< Annotation >()))> >", "structparserlib_1_1has__method__parse__annotation_3_01_parse_context_00_01_parse_node_00_01_anno75adae3916b9ef406846c63b763cd39a.html", null ],
       [ "parserlib::is_parse_functor< T, std::void_t< decltype(std::declval< T >()(std::declval< parse_context<> & >()))> >", "structparserlib_1_1is__parse__functor_3_01_t_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3b659ad522ea47d922340465b17d8feb1.html", null ],
+      [ "parserlib::is_range< T, std::void_t< decltype(std::declval< T >().begin()), decltype(std::declval< T >().end())> >", "structparserlib_1_1is__range_3_01_t_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_01_t_01_3705a0039c64eb7e760d3a1ee4870542.html", null ],
       [ "parserlib::has_method_parse_annotation< class, class, class, class >", "structparserlib_1_1has__method__parse__annotation.html", null ],
-      [ "parserlib::is_parse_functor< T, P >", "structparserlib_1_1is__parse__functor.html", null ]
+      [ "parserlib::is_parse_functor< T, P >", "structparserlib_1_1is__parse__functor.html", null ],
+      [ "parserlib::is_range< T, P >", "structparserlib_1_1is__range.html", null ]
     ] ],
     [ "parserlib::id_name&lt; T, P &gt;", "structparserlib_1_1id__name.html", null ],
     [ "parserlib::id_name&lt; T, std::void_t&lt; decltype(get_id_name(std::declval&lt; T &gt;()))&gt; &gt;", "structparserlib_1_1id__name_3_01_t_00_01std_1_1void__t_3_01decltype_07get__id__name_07std_1_1dece6d10a1409cde5016c7fffe4e913911c.html", null ],
@@ -99,6 +99,12 @@ var hierarchy =
       ] ],
       [ "parserlib::parse_node< memoized_parse_node< ParseNode > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::memoized_parse_node< ParseNode >", "classparserlib_1_1memoized__parse__node.html", null ]
+      ] ],
+      [ "parserlib::parse_node< multimatch_match_parse_node< MatchId, ParseNode > >", "classparserlib_1_1parse__node.html", [
+        [ "parserlib::multimatch_match_parse_node< MatchId, ParseNode >", "classparserlib_1_1multimatch__match__parse__node.html", null ]
+      ] ],
+      [ "parserlib::parse_node< multimatch_parse_node< LeadingParseNode, ChoiceParseNode > >", "classparserlib_1_1parse__node.html", [
+        [ "parserlib::multimatch_parse_node< LeadingParseNode, ChoiceParseNode >", "classparserlib_1_1multimatch__parse__node.html", null ]
       ] ],
       [ "parserlib::parse_node< named_parse_node< ParseNode > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::named_parse_node< ParseNode >", "classparserlib_1_1named__parse__node.html", null ]
@@ -178,6 +184,7 @@ var hierarchy =
     [ "parserlib::tokenize_and_parse_result_errors&lt; true, TokenizerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors_3_01true_00_01_tokenizer_parse_context_01_4.html", null ],
     [ "std::true_type", null, [
       [ "parserlib::has_method_parse_annotation< ParseContext, ParseNode, Annotation, std::void_t< decltype(std::declval< ParseContext >().parse_annotation(std::declval< ParseContext & >(), std::declval< ParseNode >(), std::declval< Annotation >()))> >", "structparserlib_1_1has__method__parse__annotation_3_01_parse_context_00_01_parse_node_00_01_anno75adae3916b9ef406846c63b763cd39a.html", null ],
-      [ "parserlib::is_parse_functor< T, std::void_t< decltype(std::declval< T >()(std::declval< parse_context<> & >()))> >", "structparserlib_1_1is__parse__functor_3_01_t_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3b659ad522ea47d922340465b17d8feb1.html", null ]
+      [ "parserlib::is_parse_functor< T, std::void_t< decltype(std::declval< T >()(std::declval< parse_context<> & >()))> >", "structparserlib_1_1is__parse__functor_3_01_t_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3b659ad522ea47d922340465b17d8feb1.html", null ],
+      [ "parserlib::is_range< T, std::void_t< decltype(std::declval< T >().begin()), decltype(std::declval< T >().end())> >", "structparserlib_1_1is__range_3_01_t_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3_01_t_01_3705a0039c64eb7e760d3a1ee4870542.html", null ]
     ] ]
 ];

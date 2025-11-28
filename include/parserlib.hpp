@@ -35,6 +35,7 @@
 #include "parserlib/utilities.hpp"
 #include "parserlib/tokenize_and_parse.hpp"
 #include "parserlib/debug_parse_node.hpp"
+#include "parserlib/multimatch_parse_node.hpp"
 #include "parserlib/parse_context.hpp"
 
 

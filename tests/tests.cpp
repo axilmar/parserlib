@@ -852,6 +852,35 @@ static void test_match_parsing() {
 }
 
 
+static void test_multimatch_parsing() {
+    enum class ID { A, B, C };
+
+    const auto a = terminal('a')->*ID::A;
+    const auto b = terminal('b')->*ID::B;
+    const auto c = terminal('c')->*ID::C;
+    const auto m = multimatch('#', a | b | c);
+    const auto grammar = *m;
+
+    {
+        std::string src = "#a#b#c";
+        parse_context<std::string, ID> pc(src);
+        const bool ok = pc.parse(grammar);
+        assert(ok);
+        assert(pc.parse_ended());
+        assert(pc.matches().size() == 3);
+        assert(pc.matches()[0].id() == ID::A);
+        assert(pc.matches()[0].start_position().iterator() == src.begin());
+        assert(pc.matches()[0].end_iterator() == std::next(src.begin(), 2));
+        assert(pc.matches()[1].id() == ID::B);
+        assert(pc.matches()[1].start_position().iterator() == std::next(src.begin(), 2));
+        assert(pc.matches()[1].end_iterator() == std::next(src.begin(), 4));
+        assert(pc.matches()[2].id() == ID::C);
+        assert(pc.matches()[2].start_position().iterator() == std::next(src.begin(), 4));
+        assert(pc.matches()[2].end_iterator() == std::next(src.begin(), 6));
+    }
+}
+
+
 static void test_rule_parsing() {
     rule<> grammar = 'a';
 
@@ -2262,6 +2291,7 @@ void run_tests() {
     test_choice_parsing();
     test_choice_errors_parsing();
     test_match_parsing();
+    test_multimatch_parsing();
     test_rule_parsing();
     test_rule_infinite_recursion_parsing();
     calculator().test_rule_left_recursion_parsing();
