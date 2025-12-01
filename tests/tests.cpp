@@ -881,6 +881,29 @@ static void test_multimatch_parsing() {
 }
 
 
+static void test_multiple_parsing() {
+    const auto a = terminal('a');
+    const auto grammar = 4 * a;
+
+    {
+        std::string src = "aaaa";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.parse_ended());
+    }
+
+    {
+        std::string src = "aaab";
+        parse_context<> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(!pc.parse_ended());
+        assert(pc.iterator() == src.begin());
+    }
+}
+
+
 static void test_rule_parsing() {
     rule<> grammar = 'a';
 
@@ -2292,6 +2315,7 @@ void run_tests() {
     test_choice_errors_parsing();
     test_match_parsing();
     test_multimatch_parsing();
+    test_multiple_parsing();
     test_rule_parsing();
     test_rule_infinite_recursion_parsing();
     calculator().test_rule_left_recursion_parsing();

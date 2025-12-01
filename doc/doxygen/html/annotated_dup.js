@@ -13,6 +13,7 @@ var annotated_dup =
       [ "custom_comparator_string_parse_node", "classparserlib_1_1custom__comparator__string__parse__node.html", "classparserlib_1_1custom__comparator__string__parse__node" ],
       [ "custom_comparator_symbol_parse_node", "classparserlib_1_1custom__comparator__symbol__parse__node.html", "classparserlib_1_1custom__comparator__symbol__parse__node" ],
       [ "debug_parse_node", "classparserlib_1_1debug__parse__node.html", "classparserlib_1_1debug__parse__node" ],
+      [ "ebnf", "classparserlib_1_1ebnf.html", "classparserlib_1_1ebnf" ],
       [ "end_parse_node", "classparserlib_1_1end__parse__node.html", "classparserlib_1_1end__parse__node" ],
       [ "error_match_parse_node", "classparserlib_1_1error__match__parse__node.html", "classparserlib_1_1error__match__parse__node" ],
       [ "error_parse_node", "classparserlib_1_1error__parse__node.html", "classparserlib_1_1error__parse__node" ],
@@ -42,6 +43,7 @@ var annotated_dup =
       [ "memoized_parse_node", "classparserlib_1_1memoized__parse__node.html", "classparserlib_1_1memoized__parse__node" ],
       [ "multimatch_parse_node", "classparserlib_1_1multimatch__parse__node.html", "classparserlib_1_1multimatch__parse__node" ],
       [ "multimatch_match_parse_node", "classparserlib_1_1multimatch__match__parse__node.html", "classparserlib_1_1multimatch__match__parse__node" ],
+      [ "multiple_parse_node", "classparserlib_1_1multiple__parse__node.html", "classparserlib_1_1multiple__parse__node" ],
       [ "named_parse_node", "classparserlib_1_1named__parse__node.html", "classparserlib_1_1named__parse__node" ],
       [ "newline_parse_node", "classparserlib_1_1newline__parse__node.html", "classparserlib_1_1newline__parse__node" ],
       [ "on_error_parse_node", "classparserlib_1_1on__error__parse__node.html", "classparserlib_1_1on__error__parse__node" ],
@@ -77,7 +79,7 @@ var annotated_dup =
       [ "string_parse_node", "classparserlib_1_1string__parse__node.html", "classparserlib_1_1string__parse__node" ],
       [ "symbol_parse_node", "classparserlib_1_1symbol__parse__node.html", "classparserlib_1_1symbol__parse__node" ],
       [ "tokenize_and_parse_result_errors", "structparserlib_1_1tokenize__and__parse__result__errors.html", null ],
-      [ "tokenize_and_parse_result_errors&lt; true, TokenizerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors_3_01true_00_01_tokenizer_parse_context_01_4.html", null ],
+      [ "tokenize_and_parse_result_errors&lt; true, LexerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors_3_01true_00_01_lexer_parse_context_01_4.html", null ],
       [ "tokenize_and_parse_result", "structparserlib_1_1tokenize__and__parse__result.html", "structparserlib_1_1tokenize__and__parse__result" ]
     ] ]
 ];

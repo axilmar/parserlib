@@ -6,5 +6,6 @@ var searchData=
   ['match_5fparse_5fnode_3',['match_parse_node',['../classparserlib_1_1match__parse__node.html#a0b214f542302c05d8cf98bcbdfce088a',1,'parserlib::match_parse_node']]],
   ['matches_4',['matches',['../classparserlib_1_1parse__context.html#a5eaf253a46c328e700dfe17c4ccfa9e2',1,'parserlib::parse_context::matches()'],['../classparserlib_1_1match.html#a8fd39f0cbbf207e01594a21a93646086',1,'parserlib::match::matches()']]],
   ['memoized_5fparse_5fnode_5',['memoized_parse_node',['../classparserlib_1_1memoized__parse__node.html#a3fb0289371f03a678867a731d317291c',1,'parserlib::memoized_parse_node']]],
-  ['multimatch_5fparse_5fnode_6',['multimatch_parse_node',['../classparserlib_1_1multimatch__parse__node.html#ae961d19a584e996e935f097ecda012a0',1,'parserlib::multimatch_parse_node']]]
+  ['multimatch_5fparse_5fnode_6',['multimatch_parse_node',['../classparserlib_1_1multimatch__parse__node.html#ae961d19a584e996e935f097ecda012a0',1,'parserlib::multimatch_parse_node']]],
+  ['multiple_5fparse_5fnode_7',['multiple_parse_node',['../classparserlib_1_1multiple__parse__node.html#a8d85fc3a7eb026cdc7fd8dd0102a5839',1,'parserlib::multiple_parse_node']]]
 ];

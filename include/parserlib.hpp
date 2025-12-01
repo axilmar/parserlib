@@ -17,6 +17,7 @@
 #include "parserlib/loop_1_parse_node.hpp"
 #include "parserlib/match_parse_node.hpp"
 #include "parserlib/memoized_parse_node.hpp"
+#include "parserlib/multiple_parse_node.hpp"
 #include "parserlib/named_parse_node.hpp"
 #include "parserlib/newline_parse_node.hpp"
 #include "parserlib/optional_parse_node.hpp"

@@ -31,6 +31,7 @@
 		* [binary operator -](#binary-operator-'-')
 		* [binary operator ->*](#binary-operator-'->*')
 		* [binary operator >>=](#binary-operator-'>>=')
+		* [binary operator *](#binary-operator-'*')
 	* [Custom parser classes](#custom-parser-classes)
 	* [Conversion of types to parse nodes](#conversion-of-types-to-parse-nodes)
 
@@ -450,6 +451,30 @@ Example:
 
 ```cpp
 const auto integer = "integer" >>= +digit;
+```
+
+#### Custom parser classes
+
+A parser class must have the following interface:
+
+```cpp
+class my_parser_class : public parserlib::parse_node<my_parser_class> {
+public:
+	template <class ParseContext> bool parse(ParseContext& pc) const;
+};
+```
+
+##### Binary operator '*'
+
+The binary `operator *(size_t, <parse_node>)` can be used to repeat a parse node 1 or more times, up to a specific amount of times.
+
+Example:
+
+```cpp
+const auto hex_digit = range('0', '9') | range('a', 'f') | range('A', 'F');
+const auto hex8 = 2 * hex_digit;
+const auto hex16 = 2 * hex8;
+const auto hex32 = 2 * hex16;
 ```
 
 #### Custom parser classes

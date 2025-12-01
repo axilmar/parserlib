@@ -12,12 +12,14 @@ var hierarchy =
     [ "parserlib::default_output_stream&lt; std::wostream &gt;", "structparserlib_1_1default__output__stream_3_01std_1_1wostream_01_4.html", null ],
     [ "parserlib::default_symbol_comparator", "classparserlib_1_1default__symbol__comparator.html", null ],
     [ "parserlib::default_text_position", "classparserlib_1_1default__text__position.html", null ],
+    [ "parserlib::ebnf", "classparserlib_1_1ebnf.html", null ],
     [ "std::enable_shared_from_this", null, [
       [ "parserlib::ast_node< typename ParserParseContext::source_type, typename ParserParseContext::match_id_type, typename ParserParseContext::text_position_type >", "classparserlib_1_1ast__node.html", null ],
       [ "parserlib::ast_node< Source, MatchId, TextPosition >", "classparserlib_1_1ast__node.html", null ]
     ] ],
     [ "parserlib::parse_context&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::error_state", "classparserlib_1_1parse__context_1_1error__state.html", null ],
     [ "Extensions...", null, [
+      [ "parserlib::parse_context< Source, token_id, error_id, text_position >()", "classparserlib_1_1parse__context.html", null ],
       [ "parserlib::parse_context< source_type, match_id_type, error_id_type, text_position_type, symbol_comparator_type, Extensions... >", "classparserlib_1_1parse__context.html", null ],
       [ "parserlib::parse_context< Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions >", "classparserlib_1_1parse__context.html", null ]
     ] ],
@@ -106,6 +108,9 @@ var hierarchy =
       [ "parserlib::parse_node< multimatch_parse_node< LeadingParseNode, ChoiceParseNode > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::multimatch_parse_node< LeadingParseNode, ChoiceParseNode >", "classparserlib_1_1multimatch__parse__node.html", null ]
       ] ],
+      [ "parserlib::parse_node< multiple_parse_node< ParseNode > >", "classparserlib_1_1parse__node.html", [
+        [ "parserlib::multiple_parse_node< ParseNode >", "classparserlib_1_1multiple__parse__node.html", null ]
+      ] ],
       [ "parserlib::parse_node< named_parse_node< ParseNode > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::named_parse_node< ParseNode >", "classparserlib_1_1named__parse__node.html", null ]
       ] ],
@@ -142,6 +147,9 @@ var hierarchy =
       [ "parserlib::parse_node< symbol_parse_node< Symbol > >", "classparserlib_1_1parse__node.html", [
         [ "parserlib::symbol_parse_node< Symbol >", "classparserlib_1_1symbol__parse__node.html", null ]
       ] ],
+      [ "parserlib::rule< tokenizer_parse_context >", "classparserlib_1_1rule.html", [
+        [ "parserlib::ebnf::tokenizer< Source >::grammar", "classparserlib_1_1ebnf_1_1tokenizer_1_1grammar.html", null ]
+      ] ],
       [ "parserlib::rule< parse_context_type >", "classparserlib_1_1rule.html", null ],
       [ "parserlib::rule< ParseContext >", "classparserlib_1_1rule.html", null ],
       [ "parserlib::parse_node< Derived >", "classparserlib_1_1parse__node.html", null ],
@@ -151,6 +159,7 @@ var hierarchy =
       [ "parserlib::parse_node_wrapper_implementation< ParseContext, ParseNode >", "classparserlib_1_1parse__node__wrapper__implementation.html", null ]
     ] ],
     [ "parserlib::parse_position&lt; Source, TextPosition &gt;", "classparserlib_1_1parse__position.html", null ],
+    [ "parserlib::ebnf::parser&lt; Source &gt;", "classparserlib_1_1ebnf_1_1parser.html", null ],
     [ "std::runtime_error", null, [
       [ "parserlib::infinite_recursion_exception", "classparserlib_1_1infinite__recursion__exception.html", null ]
     ] ],
@@ -177,11 +186,12 @@ var hierarchy =
     ] ],
     [ "parserlib::parse_context&lt; Source, MatchId, ErrorId, TextPosition, SymbolComparator, Extensions &gt;::state", "classparserlib_1_1parse__context_1_1state.html", null ],
     [ "parserlib::text_position", "classparserlib_1_1text__position.html", null ],
-    [ "parserlib::tokenize_and_parse_result_errors&lt; SameErrorId, TokenizerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors.html", null ],
-    [ "parserlib::tokenize_and_parse_result_errors&lt; std::is_same_v&lt; TokenizerParseContext::error_id_type, ParserParseContext::error_id_type &gt;, TokenizerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors.html", [
-      [ "parserlib::tokenize_and_parse_result< Source, TokenizerParseContext, ParserParseContext >", "structparserlib_1_1tokenize__and__parse__result.html", null ]
+    [ "parserlib::tokenize_and_parse_result_errors&lt; SameErrorId, LexerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors.html", null ],
+    [ "parserlib::tokenize_and_parse_result_errors&lt; std::is_same_v&lt; LexerParseContext::error_id_type, ParserParseContext::error_id_type &gt;, LexerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors.html", [
+      [ "parserlib::tokenize_and_parse_result< Source, LexerParseContext, ParserParseContext >", "structparserlib_1_1tokenize__and__parse__result.html", null ]
     ] ],
-    [ "parserlib::tokenize_and_parse_result_errors&lt; true, TokenizerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors_3_01true_00_01_tokenizer_parse_context_01_4.html", null ],
+    [ "parserlib::tokenize_and_parse_result_errors&lt; true, LexerParseContext &gt;", "structparserlib_1_1tokenize__and__parse__result__errors_3_01true_00_01_lexer_parse_context_01_4.html", null ],
+    [ "parserlib::ebnf::tokenizer&lt; Source &gt;", "classparserlib_1_1ebnf_1_1tokenizer.html", null ],
     [ "std::true_type", null, [
       [ "parserlib::has_method_parse_annotation< ParseContext, ParseNode, Annotation, std::void_t< decltype(std::declval< ParseContext >().parse_annotation(std::declval< ParseContext & >(), std::declval< ParseNode >(), std::declval< Annotation >()))> >", "structparserlib_1_1has__method__parse__annotation_3_01_parse_context_00_01_parse_node_00_01_anno75adae3916b9ef406846c63b763cd39a.html", null ],
       [ "parserlib::is_parse_functor< T, std::void_t< decltype(std::declval< T >()(std::declval< parse_context<> & >()))> >", "structparserlib_1_1is__parse__functor_3_01_t_00_01std_1_1void__t_3_01decltype_07std_1_1declval_3b659ad522ea47d922340465b17d8feb1.html", null ],
