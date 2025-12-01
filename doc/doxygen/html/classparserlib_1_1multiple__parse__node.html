@@ -97,13 +97,15 @@ $(function(){initNavTree('classparserlib_1_1multiple__parse__node.html','','clas
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8d85fc3a7eb026cdc7fd8dd0102a5839" id="r_a8d85fc3a7eb026cdc7fd8dd0102a5839"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d85fc3a7eb026cdc7fd8dd0102a5839">multiple_parse_node</a> (size_t times, const ParseNode &amp;child)</td></tr>
+<tr class="memitem:aee631ef461db45eccf1ca6c9cfec72c8" id="r_aee631ef461db45eccf1ca6c9cfec72c8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee631ef461db45eccf1ca6c9cfec72c8">multiple_parse_node</a> (size_t min_times, size_t max_times, const ParseNode &amp;child)</td></tr>
 <tr class="memitem:a36ad519fdaa3d47baee1a7d60a2b21af" id="r_a36ad519fdaa3d47baee1a7d60a2b21af"><td class="memTemplParams" colspan="2">template&lt;class ParseContext&gt; </td></tr>
 <tr class="memitem:a36ad519fdaa3d47baee1a7d60a2b21af template"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a36ad519fdaa3d47baee1a7d60a2b21af">parse</a> (ParseContext &amp;pc) const</td></tr>
 <tr class="memitem:a2814cfe78d5dd40e9d60637632bf8a37" id="r_a2814cfe78d5dd40e9d60637632bf8a37"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2814cfe78d5dd40e9d60637632bf8a37">text</a> () const override</td></tr>
 <tr class="memitem:a15c850bdb031c8c66867c232c5de755f" id="r_a15c850bdb031c8c66867c232c5de755f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a15c850bdb031c8c66867c232c5de755f">init_tree</a> () const override</td></tr>
-<tr class="memitem:a9e7be2139d8c0460360d0bc3574a5cdd" id="r_a9e7be2139d8c0460360d0bc3574a5cdd"><td class="memItemLeft" align="right" valign="top"><a id="a9e7be2139d8c0460360d0bc3574a5cdd" name="a9e7be2139d8c0460360d0bc3574a5cdd"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>times</b> () const</td></tr>
+<tr class="memitem:ab34df6117d119eb8afe182c74b1e7d22" id="r_ab34df6117d119eb8afe182c74b1e7d22"><td class="memItemLeft" align="right" valign="top"><a id="ab34df6117d119eb8afe182c74b1e7d22" name="ab34df6117d119eb8afe182c74b1e7d22"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>min_times</b> () const</td></tr>
+<tr class="memitem:a0dc0480b713ade97f164e08ea9cab485" id="r_a0dc0480b713ade97f164e08ea9cab485"><td class="memItemLeft" align="right" valign="top"><a id="a0dc0480b713ade97f164e08ea9cab485" name="a0dc0480b713ade97f164e08ea9cab485"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_times</b> () const</td></tr>
 <tr class="memitem:a48e7a358f9ab421caf6a46ce12fae6dc" id="r_a48e7a358f9ab421caf6a46ce12fae6dc"><td class="memItemLeft" align="right" valign="top"><a id="a48e7a358f9ab421caf6a46ce12fae6dc" name="a48e7a358f9ab421caf6a46ce12fae6dc"></a>
 const ParseNode &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>child</b> () const</td></tr>
 <tr class="inherit_header pub_methods_classparserlib_1_1parse__node"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classparserlib_1_1parse__node')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public Member Functions inherited from <a class="el" href="classparserlib_1_1parse__node.html">parserlib::parse_node&lt; multiple_parse_node&lt; ParseNode &gt; &gt;</a></td></tr>
@@ -134,8 +136,8 @@ class parserlib::multiple_parse_node&lt; ParseNode &gt;</div><p>A parse node tha
   </dd>
 </dl>
 </div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a8d85fc3a7eb026cdc7fd8dd0102a5839" name="a8d85fc3a7eb026cdc7fd8dd0102a5839"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d85fc3a7eb026cdc7fd8dd0102a5839">&#9670;&#160;</a></span>multiple_parse_node()</h2>
+<a id="aee631ef461db45eccf1ca6c9cfec72c8" name="aee631ef461db45eccf1ca6c9cfec72c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee631ef461db45eccf1ca6c9cfec72c8">&#9670;&#160;</a></span>multiple_parse_node()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -148,7 +150,12 @@ template&lt;class ParseNode&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classparserlib_1_1multiple__parse__node.html">parserlib::multiple_parse_node</a>&lt; ParseNode &gt;::multiple_parse_node </td>
           <td>(</td>
-          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>times</em></span>, </td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>min_times</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>max_times</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -164,7 +171,8 @@ template&lt;class ParseNode&gt; </div>
 </div><div class="memdoc">
 <p>The constructor. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">times</td><td>times to use the specific parse node. </td></tr>
+    <tr><td class="paramname">min_times</td><td>min times times to use the specific parse node. </td></tr>
+    <tr><td class="paramname">max_times</td><td>max times times to use the specific parse node. </td></tr>
     <tr><td class="paramname">child</td><td>the parse node to use. </td></tr>
   </table>
   </dd>
@@ -229,7 +237,7 @@ template&lt;class ParseContext&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Invokes the supplied parse node the supplied amount of times. If there is an error, then the whole parsing is cancelled, since this parse node is a sequence parse node. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Invokes the supplied parse node the supplied amount of times. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pc</td><td>the current parse context. </td></tr>
   </table>

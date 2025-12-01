@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <type_traits>
+#include <cassert>
 #include "parse_node.hpp"
 
 
@@ -20,29 +21,36 @@ namespace parserlib {
     public:
         /**
          * The constructor.
-         * @param times times to use the specific parse node.
+         * @param min_times min times times to use the specific parse node.
+         * @param max_times max times times to use the specific parse node.
          * @param child the parse node to use.
          */
-        multiple_parse_node(size_t times, const ParseNode& child)
-            : m_times(times)
+        multiple_parse_node(size_t min_times, size_t max_times, const ParseNode& child)
+            : m_min_times(min_times)
+            , m_max_times(max_times)
             , m_child(child)
         {
+            assert(m_min_times <= m_max_times);
         }
 
         /**
          * Invokes the supplied parse node the supplied amount of times.
-         * If there is an error, then the whole parsing is cancelled,
-         * since this parse node is a sequence parse node.
          * @param pc the current parse context.
          * @return true on success, false on failure.
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             const auto initial_state = pc.get_state();
-            for (size_t i = 0; i < m_times; ++i) {
+            for (size_t i = 0; i < m_min_times; ++i) {
                 if (!m_child.parse(pc)) {
                     pc.set_state(initial_state);
                     return false;
+                }
+            }
+            for (size_t i = m_min_times; i < m_max_times; ++i) {
+                if (!m_child.parse(pc)) {
+                    pc.set_state(initial_state);
+                    break;
                 }
             }
             return true;
@@ -54,9 +62,9 @@ namespace parserlib {
          */
         std::string text() const override {
             std::stringstream stream;
-            stream << '(';
-            stream << m_times;
-            stream << " * ";
+            stream << "loop(";
+            stream << m_min_times << ", ";
+            stream << m_max_times << ", ";
             stream << m_child.text();
             stream << ')';
             return stream.str();
@@ -68,8 +76,12 @@ namespace parserlib {
         }
         #endif
 
-        size_t times() const {
-            return m_times;
+        size_t min_times() const {
+            return m_min_times;
+        }
+
+        size_t max_times() const {
+            return m_max_times;
         }
 
         const ParseNode& child() const {
@@ -77,7 +89,8 @@ namespace parserlib {
         }
 
     private:
-        const size_t m_times;
+        const size_t m_min_times;
+        const size_t m_max_times;
         const ParseNode m_child;
     };
 
@@ -90,14 +103,27 @@ namespace parserlib {
      */
     template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, ParseNode>, bool> = true>
     auto operator * (size_t times, const ParseNode& child) {
-        return multiple_parse_node(times, child);
+        return multiple_parse_node(times, times, child);
+    }
+
+
+    /**
+     * Function that creates a loop from min to max times.
+     * @param min_times min times times to use the specific parse node.
+     * @param max_times max times times to use the specific parse node.
+     * @param child the parse node to use; it must be a parse node object.
+     * @return a multiple parse node.
+     */
+    template <class ParseNode>
+    auto loop(size_t min_times, size_t max_times, ParseNode&& child) {
+        return multiple_parse_node(min_times, max_times, make_parse_node(child));
     }
 
 
     //optimization
     template <class ParseNode>
     auto operator * (size_t times, const multiple_parse_node<ParseNode>& multiple) {
-        return multiple_parse_node(times * multiple.times(), multiple.child());
+        return multiple_parse_node(times * multiple.min_times(), times * multiple.max_times(), multiple.child());
     }
 
 

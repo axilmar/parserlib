@@ -19,6 +19,7 @@
 		* [loop_break](#function-'loop_break')
 		* [memoized](#function-'memoized')
 		* [multimatch](#function-'multimatch')
+		* [loop](#function-'loop')
 	* [Rules](#rules)
 	* [Operators](#operators)
 		* [unary operator *](#unary-operator-'*')
@@ -292,6 +293,16 @@ Example:
 ```cpp
 //parse either '#1' or '#2' or '#3'.
 multimatch('#', terminal('1')->*ONE | terminal('2')->*TWO | terminal('3')->*THREE);
+```
+
+#### Function 'loop'
+
+The function `loop(min_times, max_times, <parse_node>)` can be used to loop over a parse node from min to max times.
+
+Example:
+
+```cpp
+loop(3, 5, "a");
 ```
 
 #### Rules
