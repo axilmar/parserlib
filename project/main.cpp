@@ -1,16 +1,11 @@
 extern void run_tests();
+extern void test_ebnf();
 extern void run_examples();
 
 
-#include <iostream>
-#include "parserlib/id_name.hpp"
-
-
-using namespace parserlib;
-
-
 int main() {
-    run_tests();
-    run_examples();
+    //run_tests();
+    test_ebnf();
+    //run_examples();
     return 0;
 }
