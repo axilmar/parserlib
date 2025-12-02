@@ -213,7 +213,7 @@ namespace parserlib {
             if (it == pc.m_rule_data.end()) {
                 const rule_data_type initial_state = { pc.parse_position().iterator(), ParseContext::rule_state::none };
                 auto [it1, ok] = pc.m_rule_data.insert(std::make_pair(this, initial_state));
-                return _parse(pc, it1->second, initial_state);
+                return _parse(pc, it1->second, [&]() { pc.m_rule_data.erase(it1); });
             }
 
             //subsequent entrance; start new state if iterator has advanced from last time
@@ -221,7 +221,7 @@ namespace parserlib {
                 const auto prev_state = it->second;
                 it->second.iterator = pc.parse_position().iterator();
                 it->second.state = ParseContext::rule_state::none;
-                return _parse(pc, it->second, prev_state);
+                return _parse(pc, it->second, [&]() { it->second = prev_state; });
             }
 
             //left recursion found
@@ -310,30 +310,31 @@ namespace parserlib {
         };
 
         //parse rule; on exception, restore rule data
-        bool _parse(ParseContext& pc, rule_data_type& rd, const rule_data_type& prev_rd) const {
+        template <class Finalizer>
+        bool _parse(ParseContext& pc, rule_data_type& rd, const Finalizer& finalizer) const {
             try {
                 const bool result = m_parse_node->parse(pc);
-                rd = prev_rd;
+                finalizer();
                 return result;
             }
             catch (left_recursion ex) {
                 if (ex.rule == this) {
                     try {
                         const bool result = parse_left_recursion(pc, rd);
-                        rd = prev_rd;
+                        finalizer();
                         return result;
                     }
                     catch (left_recursion ex) {
-                        rd = prev_rd;
+                        finalizer();
                         throw infinite_recursion_exception( ex.rule->text(), pc.parse_position().to_string(pc.begin()) );
                     }
                     catch (...) {
-                        rd = prev_rd;
+                        finalizer();
                         throw;
                     }
                 }
                 else {
-                    rd = prev_rd;
+                    finalizer();
                     throw ex;
                 }
             }
