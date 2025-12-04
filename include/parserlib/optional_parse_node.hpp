@@ -2,65 +2,27 @@
 #define PARSERLIB_OPTIONAL_PARSE_NODE_HPP
 
 
-#include "parse_node.hpp"
+#include "unary_parse_node.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * A parse node which invokes a child node and disregards the result.
-     * @param ParseNode type of child parse node.
-     */
-    template <class ParseNode> 
-    class optional_parse_node : public parse_node<optional_parse_node<ParseNode>> {
+    template <class T>
+    class optional_parse_node : public unary_parse_node<optional_parse_node<T>, T> {
     public:
-        /**
-         * The constructor.
-         * @param child the child parse node.
-         */
-        optional_parse_node(const ParseNode& child)
-            : m_child(child)
-        {
-        }
+        using unary_parse_node<optional_parse_node<T>, T>::unary_parse_node;
 
-        /**
-         * It invokes the child parse node.
-         * @param pc the current parse context.
-         * @return always true.
-         */
-        template <class ParseContext>
-        bool parse(ParseContext& pc) const {
-            const auto initial_state = pc.get_state();
-            if (pc.parse(m_child)) {
-                return true;
-            }
-            pc.set_state(initial_state);
+        bool parse(parse_context_interface& pc) const {
+            this->child().parse(pc);
             return true;
         }
-
-        /**
-         * Converts the parse node to a textual description.
-         * @return a string of this parse node as text.
-         */
-        std::string text() const override {
-            return "-" + m_child.text() + "";
-        }
-
-        #ifndef NDEBUG
-        void init_tree() const override {
-            m_child.init();
-        }
-        #endif
-
-    private:
-        const ParseNode m_child;
     };
 
 
     template <class Derived>
     optional_parse_node<Derived> parse_node<Derived>::operator -() const {
-        return *derived();
+        return optional_parse_node<Derived>(*static_cast<const Derived *>(this));
     }
 
 

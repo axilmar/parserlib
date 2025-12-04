@@ -2,65 +2,26 @@
 #define PARSERLIB_LOGICAL_AND_PARSE_NODE_HPP
 
 
-#include "parse_node.hpp"
+#include "unary_parse_node.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * A parse node which invokes a child node, then restores the parse context state,
-     * returning the result of the child node.
-     * It can be used as a logical predicate.
-     * @param ParseNode type of child parse node.
-     */
-    template <class ParseNode>
-    class logical_and_parse_node : public parse_node<logical_and_parse_node<ParseNode>> {
+    template <class T>
+    class logical_and_parse_node : public unary_parse_node<logical_and_parse_node<T>, T> {
     public:
-        /**
-         * The constructor.
-         * @param child the child parse node.
-         */
-        logical_and_parse_node(const ParseNode& child)
-            : m_child(child)
-        {
-        }
+        using unary_parse_node<logical_and_parse_node<T>, T>::unary_parse_node;
 
-        /**
-         * It invokes the child parse node.
-         * @param pc the current parse context; on return, it is in the same state as on entrance.
-         * @return the result of the child parse node.
-         */
-        template <class ParseContext>
-        bool parse(ParseContext& pc) const {
-            const auto state = pc.get_state();
-            const bool result = pc.parse(m_child);
-            pc.set_state(state);
-            return result;
+        bool parse(parse_context_interface& pc) const {
+            return pc.test_parse(this->parse_function());
         }
-
-        /**
-         * Converts the parse node to a textual description.
-         * @return a string of this parse node as text.
-         */
-        std::string text() const override {
-            return "&" + m_child.text() + "";
-        }
-
-        #ifndef NDEBUG
-        void init_tree() const override {
-            m_child.init();
-        }
-        #endif
-
-    private:
-        const ParseNode m_child;
     };
 
 
     template <class Derived>
     logical_and_parse_node<Derived> parse_node<Derived>::operator &() const {
-        return *derived();
+        return logical_and_parse_node<Derived>(*static_cast<const Derived *>(this));
     }
 
 

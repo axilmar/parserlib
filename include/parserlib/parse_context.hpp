@@ -3,627 +3,353 @@
 
 
 #include <cassert>
-#include <map>
-#include <algorithm>
-#include <type_traits>
-#include "parse_context_data.hpp"
-#include "parse_context_default_options.hpp"
+#include <string>
+#include <cctype>
+#include "parse_context_interface.hpp"
+#include "parse_match.hpp"
+#include "parse_error.hpp"
 
 
 namespace parserlib {
 
 
-    class parse_node_base;
-    template <class ParseContext> class rule;
-
-
-    /**
-     * The `parse_context` class contains a parser's state.
-     * It is constructed from a range of symbols (i.e. a string, a set of tokens etc),
-     * which must be statically castable to int (for comparisons).
-     * It contains a parse position, which is manipulated by parser node classes.
-     * It contains a set of matches over the source.
-     * It contains state that allows rules to handle left recursion.
-     *
-     * @param Source the source type; it can be any STL-like container.
-     * @param MatchId type of id for matches; it can be any custom enumeration or any other type.
-     * @param ErrorId type of id for errors; it can be any custom enumeration or any other type.
-     * @param TextPosition position in text; it is optionally used for providing line and column information.
-     * @param SymbolComparator class used for comparing symbols; it can be used for case-insensitive comparisons.
-     * @param Extensions the list of parse context extensions.
-     */
-    template <
-        class Source = default_source_type,
-        class MatchId = default_match_id_type,
-        class ErrorId = default_error_id_type,
-        class TextPosition = default_text_position_type,
-        class SymbolComparator = default_symbol_comparator_type,
-        class... Extensions
-    >
-    class parse_context : public Extensions... {
+    class empty_text_position {
     public:
-        /** The source type. */
-        using source_type = Source;
-
-        /** The iterator type. */
-        using iterator_type = typename Source::const_iterator;
-
-        /** The match id type. */
-        using match_id_type = MatchId;
-
-        /** The error id type. */
-        using error_id_type = ErrorId;
-
-        /** The text position type. */
-        using text_position_type = TextPosition;
-
-        /** The symbol comparator type. */
-        using symbol_comparator_type = SymbolComparator;
-
-        /** The parse position type. */
-        using parse_position_type = parse_position<source_type, text_position_type>;
-
-        /** The match type. */
-        using match_type = match<source_type, match_id_type, text_position_type>;
-
-        /** The match container type. */
-        using match_container_type = std::vector<match_type>;
-
-        /** The error type. */
-        using error_type = parse_error<source_type, error_id_type, text_position_type>;
-
-        /** The error container type. */
-        using error_container_type = std::vector<error_type>;
-
-        /** This class' type. */
-        using parse_context_type = parse_context<source_type, match_id_type, error_id_type, text_position_type, symbol_comparator_type, Extensions...>;
-
-        /** Rule type. */
-        using rule_type = rule<parse_context_type>;
-
-        /**
-         * Internal state type.
-         */
-        class state {
-        public:
-            /**
-             * Returns the parse position.
-             * @return the parse position.
-             */
-            const parse_position_type& parse_position() const {
-                return m_parse_position;
-            }
-
-            /**
-             * Returns the iterator.
-             * @return the iterator.
-             */
-            const iterator_type& iterator() const {
-                return m_parse_position.iterator();
-            }
-
-            /**
-             * Returns the text position.
-             * @return the text position.
-             */
-            const text_position_type& text_position() const {
-                return m_parse_position.text_position();
-            }
-
-            /**
-             * Returns the match count.
-             * @return the match count.
-             */
-            size_t match_count() const {
-                return m_match_count;
-            }
-
-        private:
-            parse_position_type m_parse_position;
-            size_t m_match_count;
-            bool m_terminal_parsing_allowed;
-
-            state()
-                : m_match_count(0)
-                , m_terminal_parsing_allowed(true)
-            {
-            }
-
-            state(const parse_position_type& parse_pos, size_t match_count = 0, bool tpa = false)
-                : m_parse_position(parse_pos)
-                , m_match_count(match_count)
-                , m_terminal_parsing_allowed(tpa)
-            {
-            }
-            friend parse_context_type;
-        };
-
-        /**
-         * Internal error state type.
-         */
-        class error_state {
-        public:
-            /**
-             * Returns the number of errors.
-             * @return the number of errors.
-             */
-            size_t error_count() const {
-                return m_error_count;
-            }
-
-        private:
-            size_t m_error_count;
-            error_state(size_t error_count) : m_error_count(error_count) {
-            }
-            friend parse_context_type;
-        };
-
-        /**
-         * The default constructor.
-         */
-        parse_context()
-        {
+        size_t line() const {
+            return 0;
         }
 
-        /**
-         * Constructor from source range.
-         * @param begin start of source.
-         * @param end end of source.
-         */
-        parse_context(const iterator_type& begin, const iterator_type& end)            
-            : m_parse_position(begin)
-            , m_begin_iterator(begin)
-            , m_end_iterator(end)
-            , m_left_recursion_start_state(begin)
-            , m_first_unparsed_position(begin)
-        {
+        size_t column() const {
+            return 0;
         }
 
-        /**
-         * Constructor from source.
-         * @param source the source.
-         */
-        parse_context(source_type& source)
-            : parse_context(source.begin(), source.end())
-        {
+        void increment_column() {
         }
 
-        /**
-         * Constructor from source range and extension args.
-         * @param begin start of source.
-         * @param end end of source.
-         * @param extensionArgs arguments for the extensions.
-         */
-        template <class... ExtensionArgs>
-        parse_context(const iterator_type& begin, const iterator_type& end, ExtensionArgs&&... extensionArgs)
-            : Extensions(std::forward<ExtensionArgs>(extensionArgs))...
-            , m_parse_position(begin)
-            , m_begin_iterator(begin)
-            , m_end_iterator(end)
-            , m_left_recursion_start_state(begin)
-            , m_first_unparsed_position(begin)
-        {
+        void increment_line() {
+        }
+    };
+
+
+    class text_position {
+    public:
+        size_t line() const {
+            return m_line;
         }
 
-        /**
-         * Constructor from source and extension args.
-         * @param source the source.
-         * @param extensionArgs arguments for the extensions.
-         */
-        template <class... ExtensionArgs>
-        parse_context(source_type& source, ExtensionArgs&&... extensionArgs)
-            : parse_context(source.begin(), source.end(), std::forward<ExtensionArgs>(extensionArgs)...)
-        {
+        size_t column() const {
+            return m_column;
         }
 
-        /**
-         * Returns the current parse position.
-         * @return the current parse position.
-         */
-        const parse_position_type& parse_position() const {
-            return m_parse_position;
+        void increment_column() {
+            ++m_column;
         }
 
-        /**
-         * Returns the iterator.
-         * @return the iterator.
-         */
-        const iterator_type& iterator() const {
-            return m_parse_position.iterator();
-        }
-
-        /**
-         * Returns the current text position.
-         * @return the current text position.
-         */
-        const text_position_type& text_position() const {
-            return m_parse_position.text_position();
-        }
-
-        /**
-         * Returns the begin iterator.
-         * @return the begin iterator.
-         */
-        const iterator_type& begin_iterator() const {
-            return m_begin_iterator;
-        }
-
-        /**
-         * Returns the end iterator.
-         * @return the end iterator.
-         */
-        const iterator_type& end_iterator() const {
-            return m_end_iterator;
-        }
-
-        /**
-         * Returns the begin iterator.
-         * @return the begin iterator.
-         */
-        const iterator_type& begin() const {
-            return m_begin_iterator;
-        }
-
-        /**
-         * Returns the end iterator.
-         * @return the end iterator.
-         */
-        const iterator_type& end() const {
-            return m_end_iterator;
-        }
-
-        /**
-         * Checks if the end of the source is reached.
-         * @return true if the end of the source has not been reached, false otherwise.
-         */
-        bool parse_valid() const {
-            return m_parse_position.iterator() != m_end_iterator;
-        }
-
-        /**
-         * Checks if the end of the source is reached.
-         * @return true if the end of the source has been reached, false otherwise.
-         */
-        bool parse_ended() const {
-            return m_parse_position.iterator() == m_end_iterator;
-        }
-
-        /**
-         * Increments the parse position (iterator and text position) by one.
-         */
-        void increment_parse_position() {
-            assert(parse_valid());
-            m_parse_position.increment();
-        }
-
-        /**
-         * Increments the parse position (iterator and text position column) by a specific count.
-         * @param count number of columns to add to the current parse position.
-         */
-        void increment_parse_position(size_t count) {
-            assert(parse_valid());
-            assert(std::next(m_parse_position.iterator(), count) <= m_end_iterator);
-            m_parse_position.increment(count);
-        }
-
-        /**
-         * Increments the text position line.
-         * It does not increment any iterators.
-         * The text column is set to its initial value.
-         */
-        void increment_parse_position_line() {
-            m_parse_position.increment_line();
-        }
-
-        /**
-         * Returns the match count.
-         * @return the match count.
-         */
-        size_t match_count() const {
-            return m_matches.size();
-        }
-
-        /**
-         * Returns the matches currently available.
-         * @return the matches currently available.
-         */
-        const match_container_type& matches() const {
-            return m_matches;
-        }
-
-        /**
-         * Returns the current state for a match start.
-         * @return the state for a match start.
-         */
-        state get_match_start_state() const {
-            return terminal_parsing_allowed() ? get_state() : m_left_recursion_start_state;
-        }
-
-        /**
-         * Returns the multimatch start state.
-         * @return the multimatch start state.
-         */
-        const state& get_multimatch_start_state() const {
-            return m_multimatch_start_state;
-        }
-
-        /**
-         * Sets the multimatch start state.
-         * @param st the new multimatch start state.
-         */
-        void set_multimatch_start_state(const state& st) {
-            m_multimatch_start_state = st;
-        }
-
-        /**
-         * Adds a match.
-         * The range is from the given start state's position, up to the current iterator.
-         * @param id match id.
-         * @param start_state start state.
-         * @param end_iterator end iterator.
-         */
-        void add_match(const match_id_type& id, const state& start_state, const iterator_type& end_iterator) {
-            match_container_type children(std::next(m_matches.begin(), start_state.m_match_count), m_matches.end());
-            m_matches.resize(start_state.m_match_count);
-            m_matches.push_back(match_type(id, start_state.m_parse_position, end_iterator, std::move(children)));
-        }
-
-        /**
-         * Returns the error count.
-         * @return the error count.
-         */
-        size_t error_count() const {
-            return m_errors.size();
-        }
-
-        /**
-         * Returns the errors currently available.
-         * @return the errors currently available.
-         */
-        const error_container_type& errors() const {
-            return m_errors;
-        }
-
-        /**
-         * Returns part of the errors currently available.
-         * @param state state to get the errors from.
-         * @return the errors from the given error state up to the current error state.
-         */
-        error_container_type errors(const error_state& state) const {
-            const size_t ofs = std::min(state.m_error_count, m_errors.size());
-            return error_container_type(std::next(m_errors.begin(), ofs), m_errors.end());
-        }
-
-        /**
-         * Returns the current errors state.
-         * @return the current errors state.
-         */
-        error_state get_error_state() const {
-            return { m_errors.size() };
-        }
-
-        /**
-         * Sets the error state.
-         * @param state the error state.
-         */
-        void set_error_state(const error_state& state) {
-            m_errors.resize(state.m_error_count);
-        }
-
-        /**
-         * Adds an error.
-         * @param id error id.
-         * @param start_pos start position.
-         * @param end_iterator end iterator.
-         */
-        void add_error(const error_id_type& id, const parse_position_type& start_pos, const iterator_type& end_iterator) {
-            m_errors.push_back(error_type(id, start_pos, end_iterator));
-        }
-
-        /**
-         * Adds multiple errors to the internal error container.
-         * @param errors the errors to add.
-         */
-        void add_errors(const error_container_type& errors) {
-            m_errors.insert(m_errors.end(), errors.begin(), errors.end());
-        }
-
-        /**
-         * Returns the current state of the parse context.
-         * The state can be used to rewind the parse context to a prior state.
-         * @return the current state of the parse context.
-         */
-        state get_state() const {
-            return state(m_parse_position, m_matches.size(), m_terminal_parsing_allowed);
-        }
-
-        /**
-         * Sets the current state of the parse context.
-         * @param st the state to set.
-         */
-        void set_state(const state& st) {
-            if (m_parse_position.iterator() > m_first_unparsed_position.iterator()) {
-                m_first_unparsed_position = m_parse_position;
-            }
-            m_parse_position = st.m_parse_position;
-            m_matches.resize(st.m_match_count);
-            m_terminal_parsing_allowed = st.m_terminal_parsing_allowed;
-        }
-
-        /**
-         * Returns the first unparsed position.
-         * @return the first unparsed position.
-         */
-        parse_position_type get_first_unparsed_position() const {
-            return m_first_unparsed_position.iterator() > m_parse_position.iterator() ? m_first_unparsed_position : m_parse_position;
-        }
-
-        /**
-         * Using the supplied symbol comparator type, it compares two symbols.
-         * @param a the first symbol.
-         * @param b the second symbol.
-         * @return -1, 0 or 1 depending on if the first symbol is less then, equal to or greater than the second symbol value.
-         */
-        template <class A, class B>
-        int compare_symbols(const A& a, const B& b) const {
-            return m_symbol_comparator(a, b);
-        }
-
-        /**
-         * Using the supplied symbol comparator type, it compares the current symbol
-         * with the given value.
-         * @param other the other value to compare the current symbol to.
-         * @return -1, 0 or 1 depending on if the current symbol is less then, equal to or greater than the other symbol value.
-         */
-        template <class T>
-        int compare_current_symbol(const T& other) const {
-            assert(parse_valid());
-            return compare_symbols(*m_parse_position.iterator(), other);
-        }
-
-        /**
-         * Checks if a terminal should or should not be parsed at the current parse context state.
-         * Used in support of left recursion parsing, in which there is a state where terminals
-         * shall not be parsed.
-         * @return true if a terminal parsing can be parsed at this state, false otherwise.
-         */
-        bool terminal_parsing_allowed() const {
-            return m_terminal_parsing_allowed;
-        }
-
-        /**
-         * Returns the current left recursion start state.
-         * @return the current left recursion start state.
-         */
-        const state& left_recursion_start_state() const {
-            return m_left_recursion_start_state;
-        }
-
-        /**
-         * Sets the left recursion start state.
-         * @param st the new left recursion start state.
-         */
-        void set_left_recursion_start_state(const state& st) {
-            m_left_recursion_start_state = st;
-        }
-
-        /**
-         * Returns a parse context for the matches found while using this parse context.
-         * Provided so as that it can be used in multi-stage parsing.
-         * @param MatchId match id type.
-         * @param ErrorId error id type.
-         * @param Extensions parse context extensions.
-         */
-        template <class DerivedMatchId, class DerivedErrorId = ErrorId, class... DerivedExtensions>
-        auto derive_parse_context() {
-            return parse_context<match_container_type, DerivedMatchId, DerivedErrorId, default_text_position, default_symbol_comparator, DerivedExtensions...>(m_matches);
-        }
-
-        /**
-         * Invokes the parse function on the given parse node.
-         * In debug mode, it invokes the function `init()` on the parse node, allowing it to make dynamic initialization.
-         * @param parse_node parse node to invoke.
-         * @return the parse result.
-         */
-        template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<ParseNode>>, bool> = true>
-        bool parse(ParseNode&& parse_node) {
-            #ifndef NDEBUG
-            parse_node.init();
-            #endif
-            return parse_node.parse(*this);
-        }
-
-        /**
-         * Converts the given expression into a parse node, then invokes the method `parse`
-         * which accepts a parse node.
-         * @param expression the expression to parse.
-         * @return the result of an expression.
-         */
-        template <class Expression, std::enable_if_t<!std::is_base_of_v<parse_node_base, std::decay_t<Expression>>, bool> = true>
-        bool parse(Expression&& expression) {
-            return parse(make_parse_node(expression));
-        }
-
-        /**
-         * Invokes the parse function on the given parse node, but only if the specific combination of 
-         * parse position and expression has not yet been parsed.
-         * Otherwise, the result of previous parsing (parse position, matches and errors)
-         * are recovered from internal memory.
-         * If an exception happens in the initial parse, then no memoization happens.
-         * @param parse_node parse node to invoke.
-         * @param id id of the parse node.
-         * @return the parse result.
-         */
-        template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<ParseNode>>, bool> = true>
-        bool parse_memoized(const ParseNode& parse_node, int id) {
-            //the key is the combination of the parse position and parse node address
-            const auto key = std::make_pair(m_parse_position.iterator(), id);
-
-            //find the key
-            const auto it = m_memoized.find(key);
-
-            //if found, restore memoized state
-            if (it != m_memoized.end()) {
-                const auto& mem = it->second;
-                m_parse_position = std::get<1>(mem);
-                m_matches.insert(m_matches.end(), std::get<2>(mem).begin(), std::get<2>(mem).end());
-                m_errors.insert(m_errors.end(), std::get<3>(mem).begin(), std::get<3>(mem).end());
-                return std::get<0>(mem);
-            }
-
-            //else parse and memoize state
-            const auto start_state = get_state();
-            const auto start_error_state = get_error_state();
-            const bool result = parse(parse_node);
-            m_memoized.insert(std::make_pair(key, std::make_tuple(result, m_parse_position, match_container_type(std::next(m_matches.begin(), start_state.match_count()), std::next(m_matches.begin(), m_matches.size())), error_container_type(std::next(m_errors.begin(), start_error_state.error_count()), std::next(m_errors.begin(), m_errors.size())))));
-            return result;
-        }
-
-        /**
-         * Sets the parse position to be after the last error.
-         */
-        void set_parse_position_after_last_error() {
-            if (!m_errors.empty()) {
-                m_parse_position = m_errors.back().start_position();
-                increment_parse_position();
-            }
-        }
-
-        /**
-         * Sets the parse position to be at the first unparsed position.
-         */
-        void set_parse_position_at_first_unparsed_position() {
-            if (m_first_unparsed_position.iterator() > m_parse_position.iterator()) {
-                m_parse_position = m_first_unparsed_position;
-            }
+        void increment_line() {
+            ++m_line;
+            m_column = 1;
         }
 
     private:
-        enum class rule_state {
-            none,
-            reject,
-            accept
-        };
+        size_t m_line{ 1 };
+        size_t m_column{ 1 };
+    };
 
-        struct rule_data {
+
+    class case_sensitive_symbol_comparator {
+    public:
+        int operator ()(int a, int b) const {
+            return a - b;
+        }
+    };
+
+
+    class case_insensitive_symbol_comparator {
+    public:
+        int operator ()(int a, int b) const {
+            return std::tolower(a) - std::tolower(b);
+        }
+    };
+
+
+    template <class Source = std::string, class MatchId = int, class ErrorId = int, class TextPosition = empty_text_position, class SymbolComparator = case_sensitive_symbol_comparator>
+    class parse_context : public parse_context_interface {
+    public:
+        using iterator_type = typename Source::const_iterator;
+
+        using parse_match_type = parse_match<iterator_type, MatchId, TextPosition>;
+        using parse_match_container_type = std::vector<parse_match_type>;
+
+        using parse_error_type = parse_error<iterator_type, ErrorId, TextPosition>;
+        using parse_error_container_type = std::vector<parse_error_type>;
+
+        parse_context(const iterator_type& begin, const iterator_type& end)
+            : m_iterator(begin)
+            , m_end(end)
+        {
+        }
+
+        parse_context(Source& src)
+            : parse_context(src.begin(), src.end())
+        {
+        }
+
+        const iterator_type& iterator() const {
+            return m_iterator;
+        }
+
+        const TextPosition& text_position() const {
+            return m_text_position;
+        }
+
+        const parse_match_container_type& matches() const {
+            return m_matches;
+        }
+
+        const parse_error_container_type& errors() const {
+            return m_errors;
+        }
+
+        bool is_parse_valid() const override {
+            return m_iterator != m_end;
+        }
+
+        bool is_parse_end() const override {
+            return m_iterator == m_end;
+        }
+
+        bool parse_symbol(int symbol) override {
+            if (is_parse_valid()) {
+                if (compare(*m_iterator, symbol) == 0) {
+                    increment_parse_position();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool parse_string(const std::vector<int>& string) override {
+            auto itStr = string.begin();
+            auto itSrc = m_iterator;
+            auto tp = m_text_position;
+            for (;;) {
+                if (itStr == string.end()) {
+                    break;
+                }
+                if (itSrc == m_end || compare(*itSrc, *itStr) != 0) {
+                    return false;
+                }
+                ++itStr;
+                ++itSrc;
+                tp.increment_column();
+            }
+            m_iterator = itSrc;
+            m_text_position = tp;
+            return true;
+        }
+
+        bool parse_set(const std::vector<int>& set) override {
+            if (is_parse_valid()) {
+                const auto& token = *m_iterator;
+                for (const auto& symbol : set) {
+                    if (compare(token, symbol) == 0) {
+                        increment_parse_position();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        bool parse_range(int min, int max) override {
+            if (is_parse_valid()) {
+                const auto& token = *m_iterator;
+                if (compare(token, min) >= 0 && compare(token, max) <= 0) {
+                    increment_parse_position();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool parse_newline(int symbol) override {
+            if (parse_symbol(symbol)) {
+                m_text_position.increment_line();
+                return true;
+            }
+            return false;
+        }
+
+        bool parse_newline(const std::vector<int>& string) override {
+            if (parse_string(string)) {
+                m_text_position.increment_line();
+                return true;
+            }
+            return false;
+        }
+
+        bool parse_any() override {
+            if (is_parse_valid()) {
+                increment_parse_position();
+                return true;
+            }
+            return false;
+        }
+
+        bool skip_before(const parse_function_type& fn) override {
+            while (m_iterator != m_end) {
+                const state prev_state = get_state();
+                try {
+                    const bool ok = fn(*this);
+                    set_state(prev_state);
+                    if (ok) {
+                        return true;
+                    }
+                }
+                catch (...) {
+                    set_state(prev_state);
+                    throw;
+                }
+                increment_parse_position();
+            }
+            return false;
+        }
+
+        bool skip_after(const parse_function_type& fn) override {
+            while (m_iterator != m_end) {
+                const state prev_state = get_state();
+                try {
+                    if (fn(*this)) {
+                        return true;
+                    }
+                }
+                catch (...) {
+                    set_state(prev_state);
+                    throw;
+                }
+                set_state(prev_state);
+                increment_parse_position();
+            }
+            return false;
+        }
+
+        bool parse(const parse_function_type& fn) override {
+            const state prev_state = get_state();
+            try {
+                if (fn(*this)) {
+                    return true;
+                }
+            }
+            catch (...) {
+                set_state(prev_state);
+                throw;
+            }
+            set_state(prev_state);
+            return false;
+        }
+
+        bool test_parse(const parse_function_type& fn) override {
+            const state prev_state = get_state();
+            try {
+                const bool ok = fn(*this);
+                set_state(prev_state);
+                return ok;
+            }
+            catch (...) {
+                set_state(prev_state);
+                throw;
+            }
+            return false;
+        }
+
+        void push_match_start_state() override {
+            m_match_start_state_stack.push_back(get_state());
+        }
+
+        void pop_match_start_state() override {
+            assert(!m_match_start_state_stack.empty());
+            m_match_start_state_stack.pop_back();
+        }
+
+        void add_match_and_pop_match_start_state(int match_id) override {
+            assert(!m_match_start_state_stack.empty());
+            const state match_start_state = m_match_start_state_stack.back();
+            m_match_start_state_stack.pop_back();
+            m_matches.push_back(parse_match_type(match_start_state.iterator, m_iterator, static_cast<MatchId>(match_id), match_start_state.text_position, m_text_position));
+        }
+
+        void push_error_start_state() override {
+            m_error_start_state_stack.push_back(get_state());
+        }
+
+        void pop_error_start_state() override {
+            assert(!m_error_start_state_stack.empty());
+            m_error_start_state_stack.pop_back();
+        }
+
+        void add_error_and_pop_error_start_state(int error_id) override {
+            assert(!m_error_start_state_stack.empty());
+            const state error_start_state = m_error_start_state_stack.back();
+            m_error_start_state_stack.pop_back();
+            m_errors.push_back(parse_error_type(error_start_state.iterator, m_iterator, static_cast<ErrorId>(error_id), error_start_state.text_position, m_text_position));
+        }
+
+        bool parse_loop(const parse_function_type& fn) {
+            while (is_parse_valid()) {
+                const state prev_state = get_state();
+                try {
+                    if (!fn(*this)) {
+                        set_state(prev_state);
+                        break;
+                    }
+                }
+                catch (...) {
+                    set_state(prev_state);
+                    throw;
+                }
+                if (m_iterator == prev_state.iterator) {
+                    break;
+                }
+            }
+            return true;
+        }
+
+    private:
+        struct state {
             iterator_type iterator;
-            rule_state state;
+            TextPosition text_position;
+            size_t match_count;
         };
 
-        symbol_comparator_type m_symbol_comparator;
-        parse_position_type m_parse_position;
-        iterator_type m_begin_iterator;
-        iterator_type m_end_iterator;
-        match_container_type m_matches;
-        error_container_type m_errors;
-        state m_left_recursion_start_state;
-        bool m_terminal_parsing_allowed{ true };
-        std::map<const rule_type*, rule_data> m_rule_data;
-        parse_position_type m_first_unparsed_position;
-        std::map<std::pair<iterator_type, int>, std::tuple<bool, parse_position_type, match_container_type, error_container_type>> m_memoized;
-        state m_multimatch_start_state;
+        iterator_type m_iterator;
+        const iterator_type m_end;
+        TextPosition m_text_position;
+        std::vector<state> m_state_stack;
+        std::vector<state> m_match_start_state_stack;
+        std::vector<state> m_error_start_state_stack;
+        parse_match_container_type m_matches;
+        parse_error_container_type m_errors;
+        const SymbolComparator m_symbol_comparator;
 
-        friend rule_type;
+        template <class A, class B> 
+        int compare(const A& a, const B& b) const {
+            return m_symbol_comparator(static_cast<int>(a), static_cast<int>(b));
+        }
+
+        void increment_parse_position() {
+            ++m_iterator;
+            m_text_position.increment_column();
+        }
+
+        state get_state() const {
+            return { m_iterator, m_text_position, m_matches.size() };
+        }
+
+        void set_state(const state& s) {
+            m_iterator = s.iterator;
+            m_text_position = s.text_position;
+            m_matches.resize(s.match_count);
+        }
     };
 
 

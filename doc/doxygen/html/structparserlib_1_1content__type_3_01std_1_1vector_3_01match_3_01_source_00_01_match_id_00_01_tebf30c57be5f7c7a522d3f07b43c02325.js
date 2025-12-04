@@ -1,5 +1,0 @@
-var structparserlib_1_1content__type_3_01std_1_1vector_3_01match_3_01_source_00_01_match_id_00_01_tebf30c57be5f7c7a522d3f07b43c02325 =
-[
-    [ "iterator_type", "structparserlib_1_1content__type_3_01std_1_1vector_3_01match_3_01_source_00_01_match_id_00_01_tebf30c57be5f7c7a522d3f07b43c02325.html#a832e4bc74c967387a68fce8ecd2ff9ee", null ],
-    [ "source_type", "structparserlib_1_1content__type_3_01std_1_1vector_3_01match_3_01_source_00_01_match_id_00_01_tebf30c57be5f7c7a522d3f07b43c02325.html#a0cbeffaa904157d9cb8733977b157642", null ]
-];

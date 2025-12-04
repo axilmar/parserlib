@@ -2,179 +2,70 @@
 #define PARSERLIB_CHOICE_PARSE_NODE_HPP
 
 
-#include <tuple>
-#include <type_traits>
-#include <sstream>
-#include "parse_node.hpp"
-#ifndef NDEBUG
-#include "tuple.hpp"
-#endif
+#include "multiary_parse_node.hpp"
+
 
 namespace parserlib {
 
 
-    /**
-     * Base class for choice parse nodes.
-     */
-    class choice_parse_node_base {
+    struct choice_parse_node_tag {
     };
 
 
-    /**
-     * A parse node that invokes a series of children parse nodes to parse.
-     * At least one of the children must parse successfully in order for this parse node to parse successfully.
-     * @param ParseNodes list of children parse node types.
-     */
-    template <class... ParseNodes>
-    class choice_parse_node : public parse_node<choice_parse_node<ParseNodes...>>, public choice_parse_node_base {
+    template <class... T>
+    class choice_parse_node : public multiary_parse_node<choice_parse_node<T...>, T...>, public choice_parse_node_tag {
+    private:
+        template <class Child>
+        static parse_function_type create_parse_function(const Child& child) {
+            return [&](parse_context_interface& pc) {
+                return child.parse(pc);
+            };
+        }
+
+        using parse_function_tuple_type = decltype(std::make_tuple(create_parse_function(std::declval<T>())...));
+
     public:
-        /**
-         * The constructor.
-         * @param children the children parse nodes.
-         */
-        choice_parse_node(const std::tuple<ParseNodes...>& children)
-            : m_children(children)
+        using base_class_type = multiary_parse_node<choice_parse_node<T...>, T...>;
+
+        using tuple_type = std::tuple<T...>;
+
+        choice_parse_node(const tuple_type& children)
+            : base_class_type(children)
+            , m_parse_functions(std::apply([](const auto&... child) { return std::make_tuple(create_parse_function(child)...);  }, this->children()))
         {
         }
 
-        /**
-         * Invokes one child node after the other.
-         * @param pc the current parse context; if parsing fails, then the state of the parse context on return
-         *  is exactly the same as the state of the parse context on entrance.
-         * @return false if at least one child parse node returns false, otherwise it returns true.
-         */
-        template <class ParseContext>
-        bool parse(ParseContext& pc) const {
-            const auto start_state = pc.get_state();
-            const auto start_error_state = pc.get_error_state();
-            auto branch_state = pc.get_state();
-            typename ParseContext::error_container_type branch_errors;
-            bool branch_result = false;
-            return _parse<0>(pc, start_state, start_error_state, branch_state, branch_errors, branch_result);
+        bool parse(parse_context_interface& pc) const {
+            return this->_parse<0>(pc);
         }
-
-        /**
-         * Returns the children nodes.
-         * @return the children nodes.
-         */
-        const std::tuple<ParseNodes...>& children() const {
-            return m_children;
-        }
-
-        /**
-         * Converts the parse node to a textual description.
-         * @return a string of this parse node as text.
-         */
-        std::string text() const override {
-            std::stringstream stream;
-            size_t count = 0;
-            stream << '(';
-            tuple_for_each(m_children, [&](const auto& child) {
-                if (count) {
-                    stream << " | ";
-                }
-                stream << child.text();
-                ++count;
-            });
-            stream << ')';
-            return stream.str();
-        }
-
-        #ifndef NDEBUG
-        void init_tree() const override {
-            tuple_for_each(m_children, [&](const auto& child) {
-                child.init();
-            });            
-        }
-        #endif
 
     private:
-        const std::tuple<ParseNodes...> m_children;
+        const parse_function_tuple_type m_parse_functions;
 
-        template <class ParseContext, class ErrorState, class ErrorContainer> 
-        static bool get_branch_errors(ParseContext& pc, const ErrorState& start_error_state, ErrorContainer& branch_errors) {
-            if (pc.errors().size() > start_error_state.error_count()) {
-                if (!branch_errors.empty()) {
-                    const auto& last_error = pc.errors().back();
-                    const auto& last_branch_error = branch_errors.back();
-                    if (last_error.begin() > last_branch_error.begin()) {
-                        branch_errors = pc.errors(start_error_state);
-                    }
-                }
-                else {
-                    branch_errors = pc.errors(start_error_state);
-                }
-                return true;
-            }
-            return false;
-        }
-
-        template <class ParseNode, class ParseContext, class State, class ErrorState, class ErrorContainer> 
-        static bool invoke_child(const ParseNode& child, ParseContext& pc, const State& start_state, const ErrorState& start_error_state, State& branch_state, ErrorContainer& branch_errors, bool& branch_result) {
-            //if parse is successful
-            if (pc.parse(child)) {
-                //if parsed without new errors, then stop branch testing and return true;
-                //keep the errors
-                if (!get_branch_errors(pc, start_error_state, branch_errors)) {
-                    pc.add_errors(branch_errors);
+        template <size_t Index> bool _parse(parse_context_interface& pc) const {
+            if constexpr (Index < std::tuple_size_v<tuple_type>) {
+                const parse_function_type& parse_function = std::get<Index>(m_parse_functions);
+                if (pc.parse(parse_function)) {
                     return true;
                 }
-
-                //continue branch testing to get the longest parsing possible;
-                //since this branch returned true, save the parse state to return it later
-                branch_state = pc.get_state();
-                branch_result = true;
-            }
-
-            //else failed to parse; collect the branch errors
-            else {
-                get_branch_errors(pc, start_error_state, branch_errors);
-            }
-
-            //restore the state for the next branch
-            pc.set_state(start_state);
-            pc.set_error_state(start_error_state);
-            return false;
-        }
-
-        template <size_t Index, class ParseContext, class State, class ErrorState, class ErrorContainer>
-        bool _parse(ParseContext& pc, const State& start_state, const ErrorState& start_error_state, State& branch_state, ErrorContainer& branch_errors, bool& branch_result) const {
-            if constexpr (Index < std::tuple_size_v<std::tuple<ParseNodes...>>) {
-                const auto& child = std::get<Index>(m_children);
-                if (invoke_child(child, pc, start_state, start_error_state, branch_state, branch_errors, branch_result)) {
-                    return true;
-                }
-                return _parse<Index + 1>(pc, start_state, start_error_state, branch_state, branch_errors, branch_result);
+                return _parse<Index + 1>(pc);
             }
             else {
-                pc.add_errors(branch_errors);
-                pc.set_state(branch_state);
-                return branch_result;
+                return false;
             }
         }
     };
 
 
-    /**
-     * Operator that creates a choice out of one or two parse nodes.
-     * Instances of choice_parse_node are flatted into the result node.
-     * @param left the left operand.
-     * @param right the right operand.
-     * @return the choice of the given operands.
-     */
-    template <
-        class L,
-        class R,
-        std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true
-    >
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, std::decay_t<L>> || std::is_base_of_v<parse_node_tag, std::decay_t<R>>, bool> = true> 
     auto operator | (L&& left, R&& right) {
-        if constexpr (std::is_base_of_v<choice_parse_node_base, std::decay_t<L>> && std::is_base_of_v<choice_parse_node_base, std::decay_t<R>>) {
+        if constexpr (std::is_base_of_v<choice_parse_node_tag, std::decay_t<L>> && std::is_base_of_v<choice_parse_node_tag, std::decay_t<R>>) {
             return choice_parse_node(std::tuple_cat(left.children(), right.children()));
         }
-        else if constexpr (std::is_base_of_v<choice_parse_node_base, std::decay_t<L>>) {
+        else if constexpr (std::is_base_of_v<choice_parse_node_tag, std::decay_t<L>>) {
             return choice_parse_node(std::tuple_cat(left.children(), std::make_tuple(make_parse_node(right))));
         }
-        else if constexpr (std::is_base_of_v<choice_parse_node_base, std::decay_t<R>>) {
+        else if constexpr (std::is_base_of_v<choice_parse_node_tag, std::decay_t<R>>) {
             return choice_parse_node(std::tuple_cat(std::make_tuple(make_parse_node(left)), right.children()));
         }
         else {

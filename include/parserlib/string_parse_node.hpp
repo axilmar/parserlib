@@ -2,112 +2,42 @@
 #define PARSERLIB_STRING_PARSE_NODE_HPP
 
 
-#include <type_traits>
-#include <string>
 #include "parse_node.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * A string parse node.
-     * @param Symbol string element type.
-     */
-    template <class Symbol>
-    class string_parse_node : public parse_node<string_parse_node<Symbol>> {
+    template <class Container>
+    class string_parse_node : public parse_node<string_parse_node<Container>> {
     public:
-        /**
-         * The constructor.
-         * @param string the string to parse.
-         */
-        string_parse_node(const std::basic_string<Symbol>& string)
+        template <class Container>
+        string_parse_node(const Container& string)
             : m_string(string)
+            , m_symbol_sequence(string.begin(), string.end())
         {
         }
 
-        /**
-         * Parses the string against the current input.
-         * @param pc the current parse context.
-         * @return true if the whole string is parsed successfully, false otherwise.
-         */
-        template <class ParseContext>
-        bool parse(ParseContext& pc) const {
-            if (pc.parse_valid() && pc.terminal_parsing_allowed()) {
-                auto thisIt = m_string.begin();
-                auto parseIt = pc.parse_position().iterator();
-                for (;;) {
-                    if (thisIt == m_string.end()) {
-                        pc.increment_parse_position(m_string.size());
-                        return true;
-                    }
-                    if (parseIt == pc.end_iterator()) {
-                        break;
-                    }
-                    if (pc.compare_symbols(*thisIt, *parseIt) != 0) {
-                        break;
-                    }
-                    ++thisIt;
-                    ++parseIt;
-                }
-            }
-            return false;
-        }
-
-        /**
-         * Converts the parse node to a textual description.
-         * @return a string of this parse node as text.
-         */
-        std::string text() const override {
-            return '"' + m_string + '"';
+        bool parse(parse_context_interface& pc) const {
+            return pc.parse_string(m_symbol_sequence);
         }
 
     private:
-        const std::basic_string<Symbol> m_string;
+        const Container m_string;
+        const std::vector<int> m_symbol_sequence;
+
     };
 
 
-    /**
-     * Creates a string parse node out of a null-terminated string.
-     * @param string the string to create a string parse node from.
-     * @return a string parse node.
-     */
-    template <class Symbol, std::enable_if_t<!std::is_function_v<Symbol>, bool> = true>
-    string_parse_node<Symbol> make_parse_node(const Symbol* string) {
-        return string_parse_node<Symbol>(string);
+    template <class T>
+    auto terminal(const T* string) {
+        return string_parse_node<std::basic_string<T>>(std::basic_string<T>(string));
     }
 
 
-    /**
-     * Creates a string parse node out of a string.
-     * @param string the string to create a string parse node from.
-     * @return a string parse node.
-     */
-    template <class Symbol>
-    string_parse_node<Symbol> make_parse_node(const std::basic_string<Symbol>& string) {
-        return string_parse_node<Symbol>(string);
-    }
-
-
-    /**
-     * Creates a string parse node out of a null-terminated string.
-     * @param string the string to create a string parse node from.
-     * @return a string parse node.
-     */
-    template <class Symbol>
-    string_parse_node<Symbol> terminal(const Symbol* string) {
-        return make_parse_node(string);
-    }
-
-
-    /**
-     * Creates a string parse node out of a string.
-     * @param string the string to create a string parse node from.
-     * @return a string parse node.
-     */
-    template <class Symbol>
-    string_parse_node<Symbol> terminal(const std::basic_string<Symbol>& string) {
-        return make_parse_node(string);
+    template <class T, class Traits, class Alloc>
+    auto terminal(const std::basic_string<T, Traits, Alloc>& string) {
+        return string_parse_node(string);
     }
 
 
