@@ -11,7 +11,10 @@ namespace parserlib {
     template <class T>
     class loop_0_parse_node : public unary_parse_node<loop_0_parse_node<T>, T> {
     public:
-        using unary_parse_node<loop_0_parse_node<T>, T>::unary_parse_node;
+        loop_0_parse_node(const T& child) 
+            : unary_parse_node<loop_0_parse_node<T>, T>('*' + child.type(), child)
+        {
+        }
 
         bool parse(parse_context_interface& pc) const {
             return pc.parse_loop(this->parse_function());

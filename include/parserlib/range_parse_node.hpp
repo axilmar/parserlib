@@ -13,7 +13,8 @@ namespace parserlib {
     class range_parse_node : public parse_node<range_parse_node<T>> {
     public:
         range_parse_node(const T& min, const T& max)
-            : m_min(min)
+            : parse_node<range_parse_node<T>>(std::string("range('") + min + "' , '" + max + "')")
+            , m_min(min)
             , m_max(max)
         {
             assert(min <= max);

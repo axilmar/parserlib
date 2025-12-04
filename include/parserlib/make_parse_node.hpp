@@ -2,19 +2,19 @@
 #define PARSERLIB_MAKE_PARSE_NODE_HPP
 
 
-#include <memory>
 #include <type_traits>
 #include <string>
 #include "symbol_parse_node.hpp"
 #include "string_parse_node.hpp"
 #include "bool_parse_node.hpp"
+#include "rule_parse_node.hpp"
 
 
 namespace parserlib {
 
 
     //parse node
-    template <class T, std::enable_if_t<std::is_base_of_v<parse_node_tag, T>, bool> = true>
+    template <class T, std::enable_if_t<std::is_base_of_v<parse_node_base, T>, bool> = true>
     const T& make_parse_node(const T& parse_node) {
         return parse_node;
     }
@@ -37,7 +37,7 @@ namespace parserlib {
     //pointer
     template <class T>
     auto make_parse_node(const T* value) {
-        return string_parse_node<std::basic_string<T>>>(std::basic_string<T>(value));
+        return string_parse_node<std::basic_string<T>>(std::basic_string<T>(value));
     }
 
 
@@ -52,6 +52,12 @@ namespace parserlib {
     template <class T, std::enable_if_t<std::is_same_v<T, bool>, bool> = true>
     auto make_parse_node(const T& value) {
         return bool_parse_node(value);
+    }
+
+
+    //rule
+    inline rule_parse_node make_parse_node(rule& r) {
+        return r;
     }
 
 

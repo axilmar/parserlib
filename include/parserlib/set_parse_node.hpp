@@ -2,6 +2,7 @@
 #define PARSERLIB_SET_PARSE_NODE_HPP
 
 
+#include <sstream>
 #include "parse_node.hpp"
 
 
@@ -12,7 +13,8 @@ namespace parserlib {
     class set_parse_node : public parse_node<set_parse_node<Container>> {
     public:
         set_parse_node(const Container& set)
-            : m_set(set)
+            : parse_node<set_parse_node<Container>>(get_type(set))
+            , m_set(set)
             , m_symbol_sequence(set.begin(), set.end())
         {
         }
@@ -24,6 +26,17 @@ namespace parserlib {
     private:
         const Container m_set;
         const std::vector<int> m_symbol_sequence;
+
+        template <class Container>
+        static std::string get_type(const Container& set) {
+            std::stringstream stream;
+            stream << "set(\"";
+            for (const auto& c : set) {
+                stream << c;
+            }
+            stream << "\")";
+            return stream.str();
+        }
     };
 
 
