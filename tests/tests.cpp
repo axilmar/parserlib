@@ -36,6 +36,8 @@ void run_tests() {
     auto e1 = error(1, skip_before('a'));
     auto e2 = error(2, skip_after('a'));
 
+    auto d1 = debug(terminal('a'));
+
     std::string src = "123";
     parse_context<> pc(src);
 }
