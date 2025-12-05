@@ -69,7 +69,7 @@ namespace parserlib {
         }
 
         bool parse(parse_context_interface& pc) {
-            return m_parse_function(pc);
+            return pc.parse_left_recursion(this, m_parse_function);
         }
 
     private:

@@ -11,7 +11,6 @@ namespace parserlib {
     template <class Container>
     class string_parse_node : public parse_node<string_parse_node<Container>> {
     public:
-        template <class Container>
         string_parse_node(const Container& string)
             : m_string(string)
             , m_symbol_sequence(string.begin(), string.end())

@@ -9,6 +9,9 @@
 namespace parserlib {
 
 
+    class rule;
+
+
     class parse_context_interface {
     public:
         virtual bool is_parse_valid() const = 0;
@@ -43,6 +46,8 @@ namespace parserlib {
 
         virtual void add_match(int match_id) = 0;
 
+        virtual bool parse_match_(int match_id, const parse_function_type& fn) = 0;
+
         virtual void push_error_start_state() = 0;
 
         virtual void pop_error_start_state() = 0;
@@ -50,6 +55,8 @@ namespace parserlib {
         virtual void add_error(int error_id) = 0;
 
         virtual bool parse_loop(const parse_function_type& fn) = 0;
+
+        virtual bool parse_left_recursion(rule* r, const parse_function_type& fn) = 0;
     };
 
 

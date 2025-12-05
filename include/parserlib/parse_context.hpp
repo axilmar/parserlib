@@ -6,6 +6,8 @@
 #include <string>
 #include <cctype>
 #include <sstream>
+#include <map>
+#include <stdexcept>
 #include "parse_context_interface.hpp"
 #include "parse_match.hpp"
 #include "parse_error.hpp"
@@ -53,7 +55,7 @@ namespace parserlib {
 
         std::string to_string() const {
             std::stringstream stream;
-            stream << "line " << m_line << ", column ", m_column;
+            stream << "line " << m_line << ", column " << m_column;
             return stream.str();
         }
 
@@ -79,6 +81,22 @@ namespace parserlib {
     };
 
 
+    class left_recursion_exception {
+    public:
+        left_recursion_exception(rule* r)
+            : m_rule(r)
+        {
+        }
+
+        class rule* rule() const {
+            return m_rule;
+        }
+
+    private:
+        class rule* m_rule;
+    };
+
+
     template <class Source = std::string, class MatchId = int, class ErrorId = int, class TextPosition = empty_text_position, class SymbolComparator = case_sensitive_symbol_comparator>
     class parse_context : public parse_context_interface {
     public:
@@ -92,6 +110,7 @@ namespace parserlib {
 
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_iterator(begin)
+            , m_begin(begin)
             , m_end(end)
         {
         }
@@ -126,6 +145,9 @@ namespace parserlib {
         }
 
         bool parse_symbol(int symbol) override {
+            if (get_block_terminals_state()) {
+                return false;
+            }
             if (is_parse_valid()) {
                 if (compare(*m_iterator, symbol) == 0) {
                     increment_parse_position();
@@ -136,6 +158,9 @@ namespace parserlib {
         }
 
         bool parse_string(const std::vector<int>& string) override {
+            if (get_block_terminals_state()) {
+                return false;
+            }
             auto itStr = string.begin();
             auto itSrc = m_iterator;
             auto tp = m_text_position;
@@ -156,6 +181,9 @@ namespace parserlib {
         }
 
         bool parse_set(const std::vector<int>& set) override {
+            if (get_block_terminals_state()) {
+                return false;
+            }
             if (is_parse_valid()) {
                 const auto& token = *m_iterator;
                 for (const auto& symbol : set) {
@@ -169,6 +197,9 @@ namespace parserlib {
         }
 
         bool parse_range(int min, int max) override {
+            if (get_block_terminals_state()) {
+                return false;
+            }
             if (is_parse_valid()) {
                 const auto& token = *m_iterator;
                 if (compare(token, min) >= 0 && compare(token, max) <= 0) {
@@ -196,6 +227,9 @@ namespace parserlib {
         }
 
         bool parse_any() override {
+            if (get_block_terminals_state()) {
+                return false;
+            }
             if (is_parse_valid()) {
                 increment_parse_position();
                 return true;
@@ -280,10 +314,17 @@ namespace parserlib {
 
         void add_match(int match_id) override {
             assert(!m_match_start_state_stack.empty());
-            const state& match_start_state = m_match_start_state_stack.back();
-            parse_match_container_type children(m_matches.begin() + match_start_state.match_count, m_matches.end());
-            m_matches.resize(match_start_state.match_count);
-            m_matches.push_back(parse_match_type(match_start_state.iterator, m_iterator, static_cast<MatchId>(match_id), match_start_state.text_position, m_text_position, std::move(children)));
+            add_match_from(match_id, m_match_start_state_stack.back());
+        }
+
+        virtual bool parse_match_(int match_id, const parse_function_type& fn) {
+            assert(get_block_terminals_state() ? !m_left_recursion_match_start_state_stack.empty() : !m_match_start_state_stack.empty());
+            const state match_start_state = get_block_terminals_state() ? m_left_recursion_match_start_state_stack.back() : m_match_start_state_stack.back();
+            if (fn(*this)) {
+                add_match_from(match_id, match_start_state);
+                return true;
+            }
+            return false;
         }
 
         void push_error_start_state() override {
@@ -302,7 +343,7 @@ namespace parserlib {
         }
 
         bool parse_loop(const parse_function_type& fn) override {
-            while (is_parse_valid()) {
+            for(;;) {
                 const state prev_state = get_state();
                 try {
                     if (!fn(*this)) {
@@ -321,6 +362,28 @@ namespace parserlib {
             return true;
         }
 
+        bool parse_left_recursion(rule* r, const parse_function_type& fn) override {
+            const rule_state rs = get_rule_state(r);
+
+            if (m_iterator != rs.iterator) {
+                return parse_rule(r, fn);
+            }
+
+            switch (rs.status) {
+                case rule_status::none:
+                    throw left_recursion_exception(r);
+
+                case rule_status::reject:
+                    return false;
+
+                case rule_status::accept:
+                    set_block_terminals_state(false);
+                    return true;
+            }
+
+            throw std::runtime_error("parse_context::parse_left_recursion: invalid rule status.");
+        }
+
     private:
         struct state {
             iterator_type iterator;
@@ -328,17 +391,34 @@ namespace parserlib {
             size_t match_count;
         };
 
+        enum class rule_status {
+            none,
+            reject,
+            accept
+        };
+
+        struct rule_state {
+            iterator_type iterator;
+            rule_status status;
+        };
+
+        using rule_state_stack = std::vector<rule_state>;
+
         iterator_type m_iterator;
+        const iterator_type m_begin;
         const iterator_type m_end;
         TextPosition m_text_position;
-        const SymbolComparator m_symbol_comparator;
+        const SymbolComparator m_symbol_comparator{};
         std::vector<state> m_state_stack;
         std::vector<state> m_match_start_state_stack;
         std::vector<state> m_error_start_state_stack;
         parse_match_container_type m_matches;
         parse_error_container_type m_errors;
+        std::map<rule*, rule_state_stack> m_rule_state_stacks;
+        std::vector<bool> m_block_terminals_stack{false};
+        std::vector<state> m_left_recursion_match_start_state_stack;
 
-        template <class A, class B> 
+        template <class A, class B>
         int compare(const A& a, const B& b) const {
             return m_symbol_comparator(static_cast<int>(a), static_cast<int>(b));
         }
@@ -356,6 +436,112 @@ namespace parserlib {
             m_iterator = s.iterator;
             m_text_position = s.text_position;
             m_matches.resize(s.match_count);
+        }
+
+        void add_match_from(int match_id, const state& match_start_state) {
+            parse_match_container_type children(m_matches.begin() + match_start_state.match_count, m_matches.end());
+            m_matches.resize(match_start_state.match_count);
+            m_matches.push_back(parse_match_type(match_start_state.iterator, m_iterator, static_cast<MatchId>(match_id), match_start_state.text_position, m_text_position, std::move(children)));
+        }
+
+        rule_state get_rule_state(rule* r) {
+            rule_state_stack& rss = m_rule_state_stacks[r];
+            if (rss.empty()) {
+                rss.push_back(rule_state{ m_begin, rule_status::none });
+            }
+            return rss.back();
+        }
+
+        void push_rule_state(rule* r, const rule_state& state) {
+            m_rule_state_stacks[r].push_back(state);
+        }
+
+        void pop_rule_state(rule* r) {
+            m_rule_state_stacks[r].pop_back();
+        }
+
+        void push_left_recursion_match_start_state() {
+            m_left_recursion_match_start_state_stack.push_back(get_state());
+        }
+
+        void pop_left_recursion_match_start_state() {
+            m_left_recursion_match_start_state_stack.pop_back();
+        }
+
+        void push_block_terminals_state(bool v) {
+            m_block_terminals_stack.push_back(v);
+        }
+
+        void pop_block_terminals_state() {
+            m_block_terminals_stack.pop_back();
+        }
+
+        bool get_block_terminals_state() {
+            return m_block_terminals_stack.back();
+        }
+
+        void set_block_terminals_state(bool v) {
+            m_block_terminals_stack.back() = v;
+        }
+
+        bool invoke_rule_parse_function(rule* r, const parse_function_type& fn, rule_status status) {
+            push_rule_state(r, rule_state{ m_iterator, status });
+            try {
+                const bool ok = fn(*this);
+                pop_rule_state(r);
+                return ok;
+            }
+            catch (...) {
+                pop_rule_state(r);
+                throw;
+            }
+        }
+
+        bool invoke_rule_parse_function_accept(rule* r, const parse_function_type& fn) {
+            push_block_terminals_state(true);
+            try {
+                const bool ok = invoke_rule_parse_function(r, fn, rule_status::accept);
+                pop_block_terminals_state();
+                return ok;
+            }
+            catch (...) {
+                pop_block_terminals_state();
+                throw;
+            }
+        }
+
+        bool handle_left_recursion(rule* r, const parse_function_type& fn) {
+            push_left_recursion_match_start_state();
+            try {
+                //reject phase
+                if (!invoke_rule_parse_function(r, fn, rule_status::reject)) {
+                    pop_left_recursion_match_start_state();
+                    return false;
+                }
+
+                //accept phase
+                while (invoke_rule_parse_function_accept(r, fn)) {
+                }
+
+                pop_left_recursion_match_start_state();
+                return true;
+            }
+            catch (...) {
+                pop_left_recursion_match_start_state();
+                throw;
+            }
+        }
+
+        bool parse_rule(rule* r, const parse_function_type& fn) {
+            try {
+                return invoke_rule_parse_function(r, fn, rule_status::none );
+            }
+            catch (left_recursion_exception ex) {
+                if (ex.rule() == r) {
+                    return handle_left_recursion(r, fn);
+                }
+                throw ex;
+            }
         }
     };
 

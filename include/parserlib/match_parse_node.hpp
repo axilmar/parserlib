@@ -19,14 +19,7 @@ namespace parserlib {
         }
 
         bool parse(parse_context_interface& pc) const {
-            pc.push_match_start_state();
-            if (this->child().parse(pc)) {
-                pc.add_match(static_cast<int>(m_id));
-                pc.pop_match_start_state();
-                return true;
-            }
-            pc.pop_match_start_state();
-            return false;
+            return pc.parse_match_(static_cast<int>(m_id), this->parse_function());
         }
 
         const MatchId& id() const {
