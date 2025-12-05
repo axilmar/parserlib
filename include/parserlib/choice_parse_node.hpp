@@ -24,7 +24,7 @@ namespace parserlib {
         }
 
         bool parse(parse_context_interface& pc) const {
-            return this->_parse<0>(pc);
+            return _parse<0>(pc);
         }
 
     private:
@@ -56,7 +56,7 @@ namespace parserlib {
     };
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, std::decay_t<L>> || std::is_base_of_v<parse_node_tag, std::decay_t<R>>, bool> = true> 
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true> 
     auto operator | (L&& left, R&& right) {
         if constexpr (std::is_base_of_v<choice_parse_node_tag, std::decay_t<L>> && std::is_base_of_v<choice_parse_node_tag, std::decay_t<R>>) {
             return choice_parse_node(std::tuple_cat(left.children(), right.children()));

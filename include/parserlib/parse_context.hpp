@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <cctype>
+#include <sstream>
 #include "parse_context_interface.hpp"
 #include "parse_match.hpp"
 #include "parse_error.hpp"
@@ -48,6 +49,12 @@ namespace parserlib {
         void increment_line() {
             ++m_line;
             m_column = 1;
+        }
+
+        std::string to_string() const {
+            std::stringstream stream;
+            stream << "line " << m_line << ", column ", m_column;
+            return stream.str();
         }
 
     private:
@@ -294,7 +301,7 @@ namespace parserlib {
             m_errors.push_back(parse_error_type(error_start_state.iterator, m_iterator, static_cast<ErrorId>(error_id), error_start_state.text_position, m_text_position));
         }
 
-        bool parse_loop(const parse_function_type& fn) {
+        bool parse_loop(const parse_function_type& fn) override {
             while (is_parse_valid()) {
                 const state prev_state = get_state();
                 try {
@@ -324,12 +331,12 @@ namespace parserlib {
         iterator_type m_iterator;
         const iterator_type m_end;
         TextPosition m_text_position;
+        const SymbolComparator m_symbol_comparator;
         std::vector<state> m_state_stack;
         std::vector<state> m_match_start_state_stack;
         std::vector<state> m_error_start_state_stack;
         parse_match_container_type m_matches;
         parse_error_container_type m_errors;
-        const SymbolComparator m_symbol_comparator;
 
         template <class A, class B> 
         int compare(const A& a, const B& b) const {

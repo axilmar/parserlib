@@ -38,7 +38,7 @@ namespace parserlib {
     };
 
 
-    template <class T, class MatchId, std::enable_if_t<std::is_base_of_v<parse_node_tag, T>, bool> = true>
+    template <class T, class MatchId, std::enable_if_t<std::is_base_of_v<parse_node_base, T>, bool> = true>
     auto operator ->* (const T& child, const MatchId& id) {
         return match_parse_node<T, MatchId>(child, id);
     }

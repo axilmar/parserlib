@@ -49,7 +49,7 @@ namespace parserlib {
     };
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, std::decay_t<L>> || std::is_base_of_v<parse_node_tag, std::decay_t<R>>, bool> = true> 
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true> 
     auto operator >> (L&& left, R&& right) {
         if constexpr (std::is_base_of_v<sequence_parse_node_tag, std::decay_t<L>> && std::is_base_of_v<sequence_parse_node_tag, std::decay_t<R>>) {
             return sequence_parse_node(std::tuple_cat(left.children(), right.children()));
@@ -66,7 +66,7 @@ namespace parserlib {
     }
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, std::decay_t<L>> || std::is_base_of_v<parse_node_tag, std::decay_t<R>>, bool> = true> 
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true> 
     auto operator - (L&& left, R&& right) {
         return !make_parse_node(right) >> make_parse_node(left);
     }

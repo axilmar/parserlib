@@ -3,16 +3,10 @@
 
 
 #include <vector>
-#include <functional>
+#include "parse_function_type.hpp"
 
 
 namespace parserlib {
-
-
-    class parse_context_interface;
-
-
-    using parse_function_type = std::function<bool(parse_context_interface& pc)>;
 
 
     class parse_context_interface {

@@ -17,6 +17,10 @@ namespace parserlib {
 
         bool parse(parse_context_interface& pc) const;
 
+        rule& get_rule() const {
+            return m_rule;
+        }
+
     private:
         rule& m_rule;
     };

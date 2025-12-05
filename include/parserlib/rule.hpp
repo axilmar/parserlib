@@ -13,7 +13,7 @@
 namespace parserlib {
 
 
-    class rule : public parse_node_tag {
+    class rule : public parse_node_base {
     public:
         rule() {
         }
@@ -68,7 +68,7 @@ namespace parserlib {
             return rule_parse_node(*this);
         }
 
-        bool parse(parse_context_interface& pc) const {
+        bool parse(parse_context_interface& pc) {
             return m_parse_function(pc);
         }
 

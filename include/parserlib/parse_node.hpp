@@ -17,12 +17,23 @@ namespace parserlib {
     template <class T> class logical_not_parse_node;
 
 
-    struct parse_node_tag {
+    class parse_node_base {
+    public:
+        const std::string& name() const {
+            return m_name;
+        }
+
+        void set_name(const std::string& name) {
+            m_name = name;
+        }
+
+    private:
+        std::string m_name{"<unnamed>"};
     };
 
 
     template <class Derived>
-    class parse_node : public parse_node_tag {
+    class parse_node : public parse_node_base {
     public:
         loop_0_parse_node<Derived> operator *() const;
 

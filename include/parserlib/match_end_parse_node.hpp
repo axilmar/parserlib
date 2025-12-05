@@ -8,7 +8,7 @@
 namespace parserlib {
 
 
-    class match_end_parse_node : public parse_node_tag {
+    class match_end_parse_node : public parse_node_base {
     public:
         bool parse(parse_context_interface& pc) const {
             pc.pop_match_start_state();

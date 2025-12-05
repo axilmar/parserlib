@@ -10,7 +10,7 @@ namespace parserlib {
 
 
     template <class MatchId>
-    class add_match_parse_node : public parse_node_tag {
+    class add_match_parse_node : public parse_node_base {
     public:
         add_match_parse_node(const MatchId& id)
             : m_id(id)
