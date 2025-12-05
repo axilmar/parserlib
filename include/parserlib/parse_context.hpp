@@ -274,7 +274,9 @@ namespace parserlib {
         void add_match(int match_id) override {
             assert(!m_match_start_state_stack.empty());
             const state& match_start_state = m_match_start_state_stack.back();
-            m_matches.push_back(parse_match_type(match_start_state.iterator, m_iterator, static_cast<MatchId>(match_id), match_start_state.text_position, m_text_position));
+            parse_match_container_type children(m_matches.begin() + match_start_state.match_count, m_matches.end());
+            m_matches.resize(match_start_state.match_count);
+            m_matches.push_back(parse_match_type(match_start_state.iterator, m_iterator, static_cast<MatchId>(match_id), match_start_state.text_position, m_text_position, std::move(children)));
         }
 
         void push_error_start_state() override {
