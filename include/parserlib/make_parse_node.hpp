@@ -14,9 +14,9 @@ namespace parserlib {
 
 
     //parse node
-    template <class T, std::enable_if_t<std::is_base_of_v<parse_node_base, T>, bool> = true>
-    const T& make_parse_node(const T& parse_node) {
-        return parse_node;
+    template <class Derived>
+    const Derived& make_parse_node(const parse_node<Derived>& parse_node) {
+        return static_cast<const Derived&>(parse_node);
     }
 
 

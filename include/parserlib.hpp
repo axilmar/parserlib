@@ -19,6 +19,7 @@
 #include "parserlib/sequence_parse_node.hpp"
 #include "parserlib/skip_after_parse_node.hpp"
 #include "parserlib/skip_before_parse_node.hpp"
+#include "parserlib/named.hpp"
 
 
 #endif // PARSERLIB_HPP

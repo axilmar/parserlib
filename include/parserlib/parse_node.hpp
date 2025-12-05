@@ -44,13 +44,6 @@ namespace parserlib {
         logical_and_parse_node<Derived> operator &() const;
 
         logical_not_parse_node<Derived> operator !() const;
-
-    protected:
-        parse_node() {
-        }
-
-        ~parse_node() {
-        }
     };
 
 

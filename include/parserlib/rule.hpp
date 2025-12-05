@@ -24,12 +24,12 @@ namespace parserlib {
 
         template <class T> 
         rule(const T& value)
-            : m_parse_function([v = make_parse_node(value)](parse_context_interface& pc) { return v.parse(pc); })
+            : m_parse_function(get_parse_function(value))
         {
         }
 
         rule(rule& r)
-            : m_parse_function([&](parse_context_interface& pc) { return r.parse(pc); })
+            : m_parse_function(get_parse_function(r))
         {
         }
 
@@ -39,12 +39,12 @@ namespace parserlib {
 
         template <class T>
         rule& operator = (const T& value) {
-            m_parse_function = [v = make_parse_node(value)](parse_context_interface& pc) { return v.parse(pc); };
+            m_parse_function = get_parse_function(value);
             return *this;
         }
 
         rule& operator = (rule& r) {
-            m_parse_function = [&](parse_context_interface& pc) { return r.parse(pc); };
+            m_parse_function = get_parse_function(r);
             return *this;
         }
 
@@ -74,6 +74,22 @@ namespace parserlib {
 
     private:
         parse_function_type m_parse_function;
+
+        template <class T> 
+        parse_function_type get_parse_function(const T& value) {
+            const auto v = make_parse_node(value);
+            set_name(v.name());
+            return [v](parse_context_interface& pc) {
+                return v.parse(pc);
+            };
+        }
+
+        parse_function_type get_parse_function(rule& r) {
+            set_name(r.name());
+            return [&r](parse_context_interface& pc) {
+                return r.parse(pc);
+            };
+        }
     };
 
 
