@@ -14,6 +14,19 @@ namespace parserlib {
 
     template <class... T>
     class choice_parse_node : public multiary_parse_node<choice_parse_node<T...>, T...>, public choice_parse_node_tag {
+    public:
+        using tuple_type = std::tuple<T...>;
+
+        choice_parse_node(const tuple_type& children)
+            : base_class_type(children)
+            , m_parse_functions(std::apply([](const auto&... child) { return std::make_tuple(create_parse_function(child)...);  }, this->children()))
+        {
+        }
+
+        bool parse(parse_context_interface& pc) const {
+            return this->_parse<0>(pc);
+        }
+
     private:
         template <class Child>
         static parse_function_type create_parse_function(const Child& child) {
@@ -24,22 +37,8 @@ namespace parserlib {
 
         using parse_function_tuple_type = decltype(std::make_tuple(create_parse_function(std::declval<T>())...));
 
-    public:
         using base_class_type = multiary_parse_node<choice_parse_node<T...>, T...>;
 
-        using tuple_type = std::tuple<T...>;
-
-        choice_parse_node(const tuple_type& children)
-            : base_class_type(get_type(children), children)
-            , m_parse_functions(std::apply([](const auto&... child) { return std::make_tuple(create_parse_function(child)...);  }, this->children()))
-        {
-        }
-
-        bool parse(parse_context_interface& pc) const {
-            return this->_parse<0>(pc);
-        }
-
-    private:
         const parse_function_tuple_type m_parse_functions;
 
         template <size_t Index> bool _parse(parse_context_interface& pc) const {
@@ -54,20 +53,10 @@ namespace parserlib {
                 return false;
             }
         }
-
-        static std::string get_type(const tuple_type& children) {
-            return std::apply([](const auto& head, const auto&... tail) {
-                std::stringstream stream;
-                stream << '(' << head.type();
-                ((stream << " | " << tail.type()), ...);
-                stream << ')';
-                return stream.str();
-            }, children);
-        }
     };
 
 
-    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_base, std::decay_t<L>> || std::is_base_of_v<parse_node_base, std::decay_t<R>>, bool> = true> 
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, std::decay_t<L>> || std::is_base_of_v<parse_node_tag, std::decay_t<R>>, bool> = true> 
     auto operator | (L&& left, R&& right) {
         if constexpr (std::is_base_of_v<choice_parse_node_tag, std::decay_t<L>> && std::is_base_of_v<choice_parse_node_tag, std::decay_t<R>>) {
             return choice_parse_node(std::tuple_cat(left.children(), right.children()));

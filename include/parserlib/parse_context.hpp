@@ -271,10 +271,9 @@ namespace parserlib {
             m_match_start_state_stack.pop_back();
         }
 
-        void add_match_and_pop_match_start_state(int match_id) override {
+        void add_match(int match_id) override {
             assert(!m_match_start_state_stack.empty());
-            const state match_start_state = m_match_start_state_stack.back();
-            m_match_start_state_stack.pop_back();
+            const state& match_start_state = m_match_start_state_stack.back();
             m_matches.push_back(parse_match_type(match_start_state.iterator, m_iterator, static_cast<MatchId>(match_id), match_start_state.text_position, m_text_position));
         }
 
@@ -287,10 +286,9 @@ namespace parserlib {
             m_error_start_state_stack.pop_back();
         }
 
-        void add_error_and_pop_error_start_state(int error_id) override {
+        void add_error(int error_id) override {
             assert(!m_error_start_state_stack.empty());
             const state error_start_state = m_error_start_state_stack.back();
-            m_error_start_state_stack.pop_back();
             m_errors.push_back(parse_error_type(error_start_state.iterator, m_iterator, static_cast<ErrorId>(error_id), error_start_state.text_position, m_text_position));
         }
 

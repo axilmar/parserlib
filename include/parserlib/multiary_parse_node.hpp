@@ -14,18 +14,13 @@ namespace parserlib {
     public:
         using tuple_type = std::tuple<T...>;
 
-        const tuple_type& children() const {
-            return m_children;
-        }
-
-    protected:
-        multiary_parse_node(const std::string& type, const tuple_type& children)
-            : parse_node<Derived>(type)
-            , m_children(children)
+        multiary_parse_node(const tuple_type& children)
+            : m_children(children)
         {
         }
 
-        ~multiary_parse_node() {
+        const tuple_type& children() const {
+            return m_children;
         }
 
     private:

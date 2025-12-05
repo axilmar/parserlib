@@ -13,14 +13,17 @@ namespace parserlib {
     public:
         template <class Container>
         string_parse_node(const Container& string)
-            : parse_node<string_parse_node<Container>>(string)
-            , m_string(string)
+            : m_string(string)
             , m_symbol_sequence(string.begin(), string.end())
         {
         }
 
         bool parse(parse_context_interface& pc) const {
             return pc.parse_string(m_symbol_sequence);
+        }
+
+        const Container& string() const {
+            return m_string;
         }
 
     private:

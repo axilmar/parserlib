@@ -26,12 +26,10 @@ void run_tests() {
     auto c3 = c1 | terminal('d') >> false;
 
     auto m1 = terminal('a')->*1;
-    auto m2 = match_start() >> terminal('a') >> match_end(1);
+    auto m2 = match_start() >> terminal('a') >> match(1) >> match_end();
 
     rule r1 = 'a';
     rule r2 = r1;
-    rule r3 = {"r3", 'a'};
-    rule r4 = {"r4", r3};
     r1 = "aaa";
     r2 = r1;
 

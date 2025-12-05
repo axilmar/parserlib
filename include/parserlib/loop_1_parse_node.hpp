@@ -12,7 +12,7 @@ namespace parserlib {
     class loop_1_parse_node : public unary_parse_node<loop_1_parse_node<T>, T> {
     public:
         loop_1_parse_node(const T& child) 
-            : unary_parse_node<loop_1_parse_node<T>, T>('+' + child.type(), child)
+            : unary_parse_node<loop_1_parse_node<T>, T>(child)
         {
         }
 

@@ -8,6 +8,7 @@
 #include "parserlib/match_parse_node.hpp"
 #include "parserlib/match_start_parse_node.hpp"
 #include "parserlib/match_end_parse_node.hpp"
+#include "parserlib/add_match_parse_node.hpp"
 #include "parserlib/make_parse_node.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/sequence_parse_node.hpp"

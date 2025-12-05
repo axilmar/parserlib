@@ -47,13 +47,13 @@ namespace parserlib {
 
         virtual void pop_match_start_state() = 0;
 
-        virtual void add_match_and_pop_match_start_state(int match_id) = 0;
+        virtual void add_match(int match_id) = 0;
 
         virtual void push_error_start_state() = 0;
 
         virtual void pop_error_start_state() = 0;
 
-        virtual void add_error_and_pop_error_start_state(int error_id) = 0;
+        virtual void add_error(int error_id) = 0;
 
         virtual bool parse_loop(const parse_function_type& fn) = 0;
     };

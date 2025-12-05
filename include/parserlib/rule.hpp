@@ -13,11 +13,9 @@
 namespace parserlib {
 
 
-    class rule : public parse_node_base {
+    class rule : public parse_node_tag {
     public:
-        rule(const std::string& name = "") :
-            parse_node_base(name)
-        {
+        rule() {
         }
 
         rule(const rule&) = delete;
@@ -26,27 +24,12 @@ namespace parserlib {
 
         template <class T> 
         rule(const T& value)
-            : parse_node_base(make_parse_node(value).type())
-            , m_parse_function([v = make_parse_node(value)](parse_context_interface& pc) { return v.parse(pc); })
-        {
-        }
-
-        template <class T> 
-        rule(const std::string& name, const T& value)
-            : parse_node_base(name, make_parse_node(value).type())
-            , m_parse_function([v = make_parse_node(value)](parse_context_interface& pc) { return v.parse(pc); })
+            : m_parse_function([v = make_parse_node(value)](parse_context_interface& pc) { return v.parse(pc); })
         {
         }
 
         rule(rule& r)
-            : parse_node_base("", "rule&")
-            , m_parse_function([&](parse_context_interface& pc) { return r.parse(pc); })
-        {
-        }
-
-        rule(const std::string& name, rule& r)
-            : parse_node_base(name, "rule&")
-            , m_parse_function([&](parse_context_interface& pc) { return r.parse(pc); })
+            : m_parse_function([&](parse_context_interface& pc) { return r.parse(pc); })
         {
         }
 
@@ -56,15 +39,12 @@ namespace parserlib {
 
         template <class T>
         rule& operator = (const T& value) {
-            const auto v = make_parse_node(value);
-            m_parse_function = [v](parse_context_interface& pc) { return v.parse(pc); };
-            set_type(v.type());
+            m_parse_function = [v = make_parse_node(value)](parse_context_interface& pc) { return v.parse(pc); };
             return *this;
         }
 
         rule& operator = (rule& r) {
             m_parse_function = [&](parse_context_interface& pc) { return r.parse(pc); };
-            set_type("rule&");
             return *this;
         }
 
@@ -98,8 +78,7 @@ namespace parserlib {
 
 
     rule_parse_node::rule_parse_node(rule& r)
-        : parse_node<rule_parse_node>(r.name())
-        , m_rule(r)
+        : m_rule(r)
     {
     }
 

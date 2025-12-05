@@ -13,8 +13,7 @@ namespace parserlib {
     class set_parse_node : public parse_node<set_parse_node<Container>> {
     public:
         set_parse_node(const Container& set)
-            : parse_node<set_parse_node<Container>>(get_type(set))
-            , m_set(set)
+            : m_set(set)
             , m_symbol_sequence(set.begin(), set.end())
         {
         }
@@ -23,20 +22,13 @@ namespace parserlib {
             return pc.parse_set(m_symbol_sequence);
         }
 
+        const Container& set() const {
+            return m_set;
+        }
+
     private:
         const Container m_set;
         const std::vector<int> m_symbol_sequence;
-
-        template <class Container>
-        static std::string get_type(const Container& set) {
-            std::stringstream stream;
-            stream << "set(\"";
-            for (const auto& c : set) {
-                stream << c;
-            }
-            stream << "\")";
-            return stream.str();
-        }
     };
 
 

@@ -2,35 +2,23 @@
 #define PARSERLIB_MATCH_END_PARSE_NODE_HPP
 
 
-#include "id_name.hpp"
 #include "parse_node.hpp"
 
 
 namespace parserlib {
 
 
-    template <class MatchId>
-    class match_end_parse_node : public parse_node_base {
+    class match_end_parse_node : public parse_node_tag {
     public:
-        match_end_parse_node(const MatchId& id)
-            : parse_node_base("match_end(" + id_name(id) + ')')
-            , m_id(id)
-        {
-        }
-
         bool parse(parse_context_interface& pc) const {
-            pc.add_match_and_pop_match_start_state(static_cast<int>(m_id));
+            pc.pop_match_start_state();
             return true;
         }
-
-    private:
-        const MatchId m_id;
     };
 
 
-    template <class MatchId>
-    match_end_parse_node<MatchId> match_end(const MatchId& id) {
-        return id;
+    inline match_end_parse_node match_end() {
+        return {};
     }
 
 

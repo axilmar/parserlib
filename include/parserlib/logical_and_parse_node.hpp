@@ -12,7 +12,7 @@ namespace parserlib {
     class logical_and_parse_node : public unary_parse_node<logical_and_parse_node<T>, T> {
     public:
         logical_and_parse_node(const T& child) 
-            : unary_parse_node<logical_and_parse_node<T>, T>('&' + child.type(), child)
+            : unary_parse_node<logical_and_parse_node<T>, T>(child)
         {
         }
 
