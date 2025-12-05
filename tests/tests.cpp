@@ -32,6 +32,9 @@ void run_tests() {
     rule r2 = r1;
     r1 = "aaa";
     r2 = r1;
+    
+    auto e1 = error(1, skip_before('a'));
+    auto e2 = error(2, skip_after('a'));
 
     std::string src = "123";
     parse_context<> pc(src);
