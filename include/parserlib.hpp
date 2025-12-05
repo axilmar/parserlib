@@ -4,6 +4,8 @@
 
 #include "parserlib/parse_context.hpp"
 #include "parserlib/add_match_parse_node.hpp"
+#include "parserlib/any_parse_node.hpp"
+#include "parserlib/end_parse_node.hpp"
 #include "parserlib/debug_parse_node.hpp"
 #include "parserlib/match_parse_node.hpp"
 #include "parserlib/match_start_parse_node.hpp"

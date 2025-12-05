@@ -38,6 +38,9 @@ void run_tests() {
 
     auto d1 = debug(terminal('a'));
 
+    auto z1 = any();
+    auto z2 = end();
+
     std::string src = "123";
     parse_context<> pc(src);
 }
