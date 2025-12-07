@@ -3,7 +3,6 @@
 
 
 #include <iterator>
-#include <type_traits>
 
 
 namespace parserlib {
@@ -39,39 +38,19 @@ namespace parserlib {
         }
 
         bool operator < (const parse_position_type& other) const {
-            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
-                return m_iterator < other.m_iterator;
-            }
-            else {
-                return m_source_position < other.m_source_position;
-            }
+            return m_source_position < other.m_source_position;
         }
 
         bool operator <= (const parse_position_type& other) const {
-            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
-                return m_iterator <= other.m_iterator;
-            }
-            else {
-                return m_source_position <= other.m_source_position;
-            }
+            return m_source_position <= other.m_source_position;
         }
 
         bool operator > (const parse_position_type& other) const {
-            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
-                return m_iterator > other.m_iterator;
-            }
-            else {
-                return m_source_position > other.m_source_position;
-            }
+            return m_source_position > other.m_source_position;
         }
 
         bool operator >= (const parse_position_type& other) const {
-            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
-                return m_iterator >= other.m_iterator;
-            }
-            else {
-                return m_source_position >= other.m_source_position;
-            }
+            return m_source_position >= other.m_source_position;
         }
 
         void set_iterator(const Iterator& iterator) {

@@ -238,14 +238,14 @@ namespace parserlib {
         }
 
         template <class ParseNode>
-        bool parse_loop_0(const ParseNode& parse_node) {
+        bool parse_loop0(const ParseNode& parse_node) {
             while (parse_node.parse(*this)) {                
             }
             return true;
         }
 
         template <class ParseNode>
-        bool parse_loop_1(const ParseNode& parse_node) {
+        bool parse_loop1(const ParseNode& parse_node) {
             if (parse_node.parse(*this)) {
                 return parse_loop_0(parse_node);
             }
@@ -547,7 +547,7 @@ namespace parserlib {
         bool _handle_left_recursion_accept(rule_type& rule, const parse_function_type& fn, _rule_left_recursion_state& rule_state, const _match_start_state& mss) {
             rule_state.m_status = _rule_left_recursion_status::accept;
             for(;;) {
-                m_state.m_match_start_position = mss;
+                m_state.m_match_start_state = mss;
                 _lock_parsing();
                 rule_state.m_iterator = m_state.m_parse_position.get_iterator();
                 if (!fn(*this)) {

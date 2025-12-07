@@ -2,6 +2,9 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
+#include "parse_node_tag.hpp"
+
+
 namespace parserlib {
 
 
@@ -13,7 +16,7 @@ namespace parserlib {
 
 
     template <class Derived> 
-    class parse_node {
+    class parse_node : public parse_node_tag {
     public:
         loop0<Derived> operator *() const;
         loop1<Derived> operator +() const;
@@ -22,7 +25,7 @@ namespace parserlib {
         logical_not<Derived> operator !() const;
         
         const Derived& derived() const {
-            return *static_cast<Derived*>(this);
+            return *static_cast<const Derived*>(this);
         }
     };
 

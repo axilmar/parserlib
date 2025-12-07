@@ -3,9 +3,12 @@
 
 
 #include <cassert>
+#include <any>
 #include <vector>
 #include <utility>
 #include <iterator>
+#include <string>
+#include <initializer_list>
 #include "invalid_generic_source_iterator.hpp"
 
 
@@ -227,14 +230,25 @@ namespace parserlib {
 
         template <class Iterator>
         generic_source(const Iterator& begin, const Iterator& end)
-            : m_begin(begin)
-            , m_end(end)
+            : generic_source(std::vector(begin, end), intern_ctor_tag())
         {
         }
 
         template <class Container>
-        generic_source(Container& container)
-            : generic_source(container.begin(), container.end())
+        generic_source(Container&& container)
+            : generic_source(std::forward<Container>(container), intern_ctor_tag())
+        {
+        }
+
+        template <class T>
+        generic_source(const T* null_terminated_string)
+            : generic_source(std::basic_string<T>(null_terminated_string), intern_ctor_tag())
+        {
+        }
+
+        template <class T>
+        generic_source(const std::initializer_list<T>& init_list)
+            : generic_source(std::vector<T>(init_list.begin(), init_list.end()), intern_ctor_tag())
         {
         }
 
@@ -247,8 +261,19 @@ namespace parserlib {
         }
 
     private:
+        std::any m_container;
         const_iterator m_begin;
         const_iterator m_end;
+
+        struct intern_ctor_tag {};
+
+        template <class Container>
+        generic_source(Container&& container, intern_ctor_tag)
+            : m_container(std::forward<Container>(container))
+            , m_begin(std::any_cast<const Container &>(m_container).begin())
+            , m_end(std::any_cast<const Container &>(m_container).end())
+        {
+        }
     };
 
 
