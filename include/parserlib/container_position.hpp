@@ -11,8 +11,28 @@ namespace parserlib {
             return m_index;
         }
 
+        bool operator == (const container_position& other) const {
+            return m_index == other.m_index;
+        }
+
+        bool operator != (const container_position& other) const {
+            return m_index != other.m_index;
+        }
+
         bool operator < (const container_position& other) const {
             return m_index < other.m_index;
+        }
+
+        bool operator <= (const container_position& other) const {
+            return m_index <= other.m_index;
+        }
+
+        bool operator > (const container_position& other) const {
+            return m_index > other.m_index;
+        }
+
+        bool operator >= (const container_position& other) const {
+            return m_index >= other.m_index;
         }
 
         container_position& operator ++() {

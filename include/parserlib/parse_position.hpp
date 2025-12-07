@@ -30,6 +30,14 @@ namespace parserlib {
             return m_source_position;
         }
 
+        bool operator == (const parse_position_type& other) const {
+            return m_iterator == other.m_iterator;
+        }
+
+        bool operator != (const parse_position_type& other) const {
+            return m_iterator != other.m_iterator;
+        }
+
         bool operator < (const parse_position_type& other) const {
             if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
                 return m_iterator < other.m_iterator;
@@ -39,14 +47,51 @@ namespace parserlib {
             }
         }
 
-        void increment() {
-            ++m_iterator;
-            ++m_source_position;
+        bool operator <= (const parse_position_type& other) const {
+            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
+                return m_iterator <= other.m_iterator;
+            }
+            else {
+                return m_source_position <= other.m_source_position;
+            }
         }
 
-        void increment(size_t count) {
+        bool operator > (const parse_position_type& other) const {
+            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
+                return m_iterator > other.m_iterator;
+            }
+            else {
+                return m_source_position > other.m_source_position;
+            }
+        }
+
+        bool operator >= (const parse_position_type& other) const {
+            if constexpr (std::is_same_v<typename Iterator::iterator_category, std::random_access_iterator_tag>) {
+                return m_iterator >= other.m_iterator;
+            }
+            else {
+                return m_source_position >= other.m_source_position;
+            }
+        }
+
+        void set_iterator(const Iterator& iterator) {
+            m_iterator = iterator;
+        }
+
+        void set_source_position(const SourcePosition& source_position) {
+            m_source_position = source_position;
+        }
+
+        parse_position_type& operator ++() {
+            ++m_iterator;
+            ++m_source_position;
+            return *this;
+        }
+
+        parse_position_type& operator +=(size_t count) {
             std::advance(m_iterator, count);
             m_source_position += count;
+            return *this;
         }
 
         void increment_line() {
