@@ -2,31 +2,57 @@
 #define PARSERLIB_PARSE_NODE_HPP
 
 
-#include "parse_node_tag.hpp"
+#include "interface_parse_node.hpp"
 
 
 namespace parserlib {
 
 
-    template <class Child> class loop0;
-    template <class Child> class loop1;
-    template <class Child> class optional;
-    template <class Child> class logical_and;
-    template <class Child> class logical_not;
-
-
-    template <class Derived> 
-    class parse_node : public parse_node_tag {
+    class parse_node {
     public:
-        loop0<Derived> operator *() const;
-        loop1<Derived> operator +() const;
-        optional<Derived> operator -() const;
-        logical_and<Derived> operator &() const;
-        logical_not<Derived> operator !() const;
-        
-        const Derived& derived() const {
-            return *static_cast<const Derived*>(this);
+        // construction
+
+        parse_node() {
         }
+
+        parse_node(parse_node&& pn) noexcept : m_parse_node(std::move(pn.m_parse_node)) {
+        }
+
+        parse_node(interface::parse_node_ptr&& ipn) : m_parse_node(std::move(ipn)) {
+        }
+
+        // assignment
+
+        parse_node& operator = (parse_node&& pn) noexcept {
+            m_parse_node = std::move(pn.m_parse_node);
+            return *this;
+        }
+
+        parse_node& operator = (interface::parse_node_ptr&& ipn) {
+            m_parse_node = std::move(ipn);
+            return *this;
+        }
+
+        // DSL
+
+        inline parse_node operator *() const;
+
+        inline parse_node operator +() const;
+
+        inline parse_node operator -() const;
+
+        inline parse_node operator &() const;
+
+        inline parse_node operator !() const;
+
+        // parse
+
+        bool parse(interface::parse_context& pc) const {
+            return m_parse_node->parse(pc);
+        }
+
+    private:
+        interface::parse_node_ptr m_parse_node;
     };
 
 

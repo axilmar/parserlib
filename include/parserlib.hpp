@@ -2,14 +2,10 @@
 #define PARSERLIB_HPP
 
 
-#include "parserlib/set.hpp"
-#include "parserlib/range.hpp"
-#include "parserlib/any.hpp"
-#include "parserlib/end.hpp"
-#include "parserlib/newline.hpp"
-#include "parserlib/rule.hpp"
-#include "parserlib/sequence.hpp"
-#include "parserlib/choice.hpp"
+#include "parserlib/symbol_parse_node.hpp"
+#include "parserlib/string_parse_node.hpp"
+#include "parserlib/set_parse_node.hpp"
+#include "parserlib/range_parse_node.hpp"
 
 
 #endif // PARSERLIB_HPP
