@@ -21,4 +21,21 @@ void run_tests() {
     set(std::vector<int>({ 1, 2, 3 }));
 
     range('0', '9');
+
+    *terminal('a');
+    +terminal('a');
+    -terminal('a');
+    &terminal('a');
+    !terminal('a');
+
+    auto s1 = terminal('a') >> 'b' >> 'c' >> "aaa" >> terminal('b');
+
+    auto c1 = terminal('a') | 'b' | 'c' | "aaa" | terminal('b') >> true;
+
+    auto c2 = terminal('a') | s1 | true | function([](interface::parse_context& pc) { return false; });
+
+    error(1, skip_after('a'));
+
+    rule r1 = 'a';
+    rule r2 = r1;
 }

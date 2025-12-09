@@ -18,12 +18,12 @@ namespace parserlib::interface {
     };
 
 
-    using parse_node_ptr = std::unique_ptr<parse_node>;
+    using parse_node_ptr = std::shared_ptr<parse_node>;
 
 
     template <class T, class... Args>
     parse_node_ptr create_parse_node(Args&&... args) {
-        return std::make_unique<T>(std::forward<Args>(args)...);
+        return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
 

@@ -28,7 +28,7 @@ namespace parserlib {
                         return true;
                     }
                     if (pc.is_end_parse_position() || pc.compare_symbols(pc.get_current_symbol(), static_cast<int>(*it))) {
-                        pc.pop_state();
+                        pc.restore_state();
                         return false;
                     }
                     ++it;
@@ -64,6 +64,26 @@ namespace parserlib {
     template <class T, class Traits>
     parse_node terminal(const std::basic_string_view<T, Traits>& str) {
         return interface::create_parse_node<string_parse_node<std::basic_string_view<T, Traits>>>(str);
+    }
+
+
+    template <class T>
+    parse_node::parse_node(const T* null_term_str) : m_parse_node(terminal(null_term_str)) {
+    }
+
+
+    template <class T, class Traits, class Alloc>
+    parse_node::parse_node(const std::basic_string<T, Traits, Alloc>& str) : m_parse_node(terminal(str)) {
+    }
+
+
+    template <class T, class Traits, class Alloc>
+    parse_node::parse_node(std::basic_string<T, Traits, Alloc>&& str) : m_parse_node(terminal(std::move(str))) {
+    }
+
+
+    template <class T, class Traits>
+    parse_node::parse_node(const std::basic_string_view<T, Traits>& str) : m_parse_node(terminal(str)) {
     }
 
 

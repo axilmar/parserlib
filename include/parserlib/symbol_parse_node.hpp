@@ -2,6 +2,7 @@
 #define PARSERLIB_SYMBOL_PARSE_NODE_HPP
 
 
+#include <type_traits>
 #include "parse_node.hpp"
 
 
@@ -32,6 +33,11 @@ namespace parserlib {
     template <class T>
     parse_node terminal(const T& symbol) {
         return interface::create_parse_node<symbol_parse_node<T>>(symbol);
+    }
+
+
+    template <class T>
+    parse_node::parse_node(const T& symbol) : m_parse_node(terminal(symbol)) {
     }
 
 
