@@ -19,11 +19,13 @@
 #include "parserlib/end_parse_node.hpp"
 #include "parserlib/function_parse_node.hpp"
 #include "parserlib/newline_parse_node.hpp"
+#include "parserlib/match_parse_node.hpp"
 #include "parserlib/error_parse_node.hpp"
 #include "parserlib/skip_after_parse_node.hpp"
 #include "parserlib/skip_before_parse_node.hpp"
 #include "parserlib/rule_ref_parse_node.hpp"
 #include "parserlib/rule.hpp"
+#include "parserlib/parse_context.hpp"
 
 
 #endif // PARSERLIB_HPP

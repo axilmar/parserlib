@@ -3,6 +3,7 @@
 
 
 #include <memory>
+#include <string>
 #include "interface_parse_context.hpp"
 
 
@@ -14,7 +15,18 @@ namespace parserlib::interface {
         virtual ~parse_node() {
         }
 
+        const std::string& get_name() const {
+            return m_name;
+        }
+
+        void set_name(const std::string& name) {
+            m_name = name;
+        }
+
         virtual bool parse(interface::parse_context& pc) const = 0;
+
+    private:
+        std::string m_name;
     };
 
 
