@@ -38,7 +38,7 @@ namespace parserlib {
 
 
     template <class ErrorId>
-    parse_node error(const ErrorId& id, const parse_node& skip_parse_node) {
+    parse_node error(const ErrorId& id, const parse_node& skip_parse_node = true) {
         return interface::create_parse_node<error_parse_node<ErrorId>>(id, skip_parse_node);
     }
 

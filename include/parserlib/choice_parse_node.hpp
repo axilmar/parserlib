@@ -40,10 +40,10 @@ namespace parserlib {
                 }
             }
             catch (...) {
-                pc.restore_state();
+                pc.pop_state();
                 throw;
             }
-            pc.restore_state();
+            pc.pop_state();
             return false;
         }
     };

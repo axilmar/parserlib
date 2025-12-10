@@ -48,15 +48,13 @@ namespace parserlib::interface {
 
         virtual void pop_state() = 0;
 
-        virtual void restore_state() = 0;
+        virtual void pop_state_without_activation() = 0;
 
         // match API
 
         virtual void push_match_start_state() = 0;
 
         virtual void pop_match_start_state() = 0;
-
-        virtual void restore_match_start_state() = 0;
 
         virtual void add_match(int id) = 0;
 

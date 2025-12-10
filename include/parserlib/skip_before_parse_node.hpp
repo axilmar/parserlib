@@ -19,13 +19,13 @@ namespace parserlib {
                     pc.push_state();
                     try {
                         const bool result = m_child.parse(pc);
-                        pc.restore_state();
+                        pc.pop_state();
                         if (result) {
                             return true;
                         }
                     }
                     catch (...) {
-                        pc.restore_state();
+                        pc.pop_state();
                         throw;
                     }
                     pc.increment_parse_position();

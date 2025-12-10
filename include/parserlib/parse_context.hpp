@@ -150,7 +150,7 @@ namespace parserlib {
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_active_state{ get_initial_state(begin, end) }
             , m_end(end)
-            , m_initial_rule_state_vector{ get_initial_rule_state(begin) }
+            , m_initial_rule_state_vector{ get_initial_rule_state(end) }
         {
         }
 
@@ -196,11 +196,11 @@ namespace parserlib {
         }
 
         void pop_state() override {
+            m_active_state = m_state_stack.back();
             m_state_stack.pop_back();
         }
 
-        void restore_state() override {
-            m_active_state = m_state_stack.back();
+        void pop_state_without_activation() override {
             m_state_stack.pop_back();
         }
 
@@ -211,18 +211,16 @@ namespace parserlib {
         }
 
         void pop_match_start_state() override {
-            m_match_start_state_stack.pop_back();
-        }
-
-        void restore_match_start_state() override {
             m_active_state.match_start_state = m_match_start_state_stack.back();
             m_match_start_state_stack.pop_back();
         }
 
         void add_match(int id) override {
-            match_container_type children(m_matches.begin() + m_active_state.match_start_state.match_count, m_matches.end());
-            m_matches.resize(m_active_state.match_start_state.match_count);
-            m_matches.emplace_back(static_cast<match_id_type>(id), m_active_state.match_start_state.parse_position, m_active_state.parse_position, std::move(children));
+            assert(!m_match_start_state_stack.empty());
+            const match_start_state& last_match_start_state = m_match_start_state_stack.back();
+            match_container_type children(m_matches.begin() + last_match_start_state.match_count, m_matches.end());
+            m_matches.resize(last_match_start_state.match_count);
+            m_matches.emplace_back(static_cast<match_id_type>(id), last_match_start_state.parse_position, m_active_state.parse_position, std::move(children));
         }
 
         // error API
@@ -236,6 +234,7 @@ namespace parserlib {
         }
 
         void add_error(int id) override {
+            assert(!m_error_start_parse_position_stack.empty());
             m_errors.emplace_back(static_cast<error_id_type>(id), m_error_start_parse_position_stack.back(), m_active_state.parse_position);
         }
 

@@ -10,19 +10,68 @@
 namespace parserlib {
 
 
-    class rule : public parse_node {
+    class rule {
     public:
-        using parse_node::parse_node;
+        // constructors
 
-        rule(rule& r) : parse_node(r) {
+        rule() {
         }
 
-        using parse_node::operator =;
+        rule(const rule&) = delete;
 
-        rule& operator = (rule& r) {
-            parse_node::operator = (r);
+        rule(rule&&) = delete;
+
+        rule(const parse_node& pn) : m_parse_node(pn) {
+        }
+
+        rule(parse_node&& pn) : m_parse_node(std::move(pn)) {
+        }
+
+        rule(rule& r) : m_parse_node(r) {
+        }
+
+        // assignment
+
+        rule& operator = (const rule&) = delete;
+
+        rule& operator = (rule&&) = delete;
+
+        rule& operator = (const parse_node& pn) {
+            m_parse_node = pn;
             return *this;
         }
+
+        rule& operator = (parse_node&& pn) {
+            m_parse_node = std::move(pn);
+            return *this;
+        }
+
+        rule& operator = (rule& r) {
+            m_parse_node = r;
+            return *this;
+        }
+
+        // DSL
+
+        parse_node operator *() {
+            return *this;
+        }
+
+        parse_node operator +() {
+            return *this;
+        }
+
+        parse_node operator -() {
+            return *this;
+        }
+
+        parse_node operator &() {
+            return *this;
+        }
+
+        parse_node operator !() const;
+
+        // parse
 
         bool parse(interface::parse_context& pc) {
             if (!pc.is_rule_left_recursive_at_current_parse_position(*this)) {
@@ -46,9 +95,11 @@ namespace parserlib {
         }
 
     private:
+        parse_node m_parse_node;
+
         bool parse_non_left_recursion(interface::parse_context& pc) {
             try {
-                return parse_with_rule_status(pc, rule_status::none);
+                return parse(pc, rule_status::none);
             }
             catch (const rule_left_recursion_exception& ex) {
                 if (std::addressof(ex.get_rule()) == this) {
@@ -59,42 +110,63 @@ namespace parserlib {
         }
 
         bool parse_left_recursion(interface::parse_context& pc) {
-            if (parse_left_recursion_with_match_start(pc, rule_status::reject_left_recursion)) {
-                while (parse_accept_left_recursion(pc)) {
-                }
-                return true;
-            }
-            return false;
-        }
-
-        bool parse_accept_left_recursion(interface::parse_context& pc) {
-            pc.begin_accept_left_recursion();
-            try {
-                return parse_left_recursion_with_match_start(pc, rule_status::accept_left_recursion);
-            }
-            catch (...) {
-                pc.end_accept_left_recursion();
-                throw;
-            }
-        }
-
-        bool parse_left_recursion_with_match_start(interface::parse_context& pc, rule_status rs) {
+            //save the left recursion match start for later
             pc.push_match_start_state();
+
+            //the reject phase
             try {
-                const bool result = parse_with_rule_status(pc, rs);
-                pc.restore_match_start_state();
-                return result;
+                if (!parse(pc, rule_status::reject_left_recursion)) {
+                    pc.pop_match_start_state();
+                    return false;
+                }
             }
             catch (...) {
                 pc.pop_match_start_state();
                 throw;
             }
+
+            //the accept phase
+            for (;;) {
+                //activate the saved match start start for the left recursion
+                //by popping it from the stack
+                pc.pop_match_start_state();
+
+                //disallow terminals until a rule accepts
+                pc.begin_accept_left_recursion();
+
+                try {
+                    //save the left recursion match start state to the stack for next loop
+                    pc.push_match_start_state();
+
+                    const bool result = parse(pc, rule_status::accept_left_recursion);
+
+                    //reactivate the appropriate match start state for the next loop
+                    pc.pop_match_start_state();
+
+                    //allow terminal matching
+                    pc.end_accept_left_recursion();
+
+                    //failure to parse more of this left recursion;
+                    //end left recursion parsing
+                    if (!result) {
+                        break;
+                    }
+                }
+                catch (...) {
+                    pc.pop_match_start_state();
+                    pc.end_accept_left_recursion();
+                    throw;
+                }
+            }
+
+            pc.pop_match_start_state();
+            return true;
         }
 
-        bool parse_with_rule_status(interface::parse_context& pc, rule_status rs) {
+        bool parse(interface::parse_context& pc, rule_status rs) {
             pc.push_rule_state(*this, rs);
             try {
-                const bool result = parse_node::parse(pc);
+                const bool result = m_parse_node.parse(pc);
                 pc.pop_rule_state(*this);
                 return result;
             }

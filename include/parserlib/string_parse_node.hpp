@@ -28,7 +28,7 @@ namespace parserlib {
                         return true;
                     }
                     if (pc.is_end_parse_position() || pc.compare_symbols(pc.get_current_symbol(), static_cast<int>(*it))) {
-                        pc.restore_state();
+                        pc.pop_state();
                         return false;
                     }
                     ++it;

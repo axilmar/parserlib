@@ -17,11 +17,11 @@ namespace parserlib {
             pc.push_state();
             try {
                 const bool result = !m_child.parse(pc);
-                pc.restore_state();
+                pc.pop_state();
                 return result;
             }
             catch (...) {
-                pc.restore_state();
+                pc.pop_state();
                 throw;
             }
         }

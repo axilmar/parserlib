@@ -20,15 +20,15 @@ namespace parserlib {
                     try {
                         const bool result = m_child.parse(pc);
                         if (result) {
-                            pc.pop_state();
+                            pc.pop_state_without_activation();
                             return true;
                         }
                     }
                     catch (...) {
-                        pc.restore_state();
+                        pc.pop_state();
                         throw;
                     }
-                    pc.restore_state();
+                    pc.pop_state();
                     pc.increment_parse_position();
                 } while (pc.is_valid_parse_position());
             }

@@ -21,12 +21,12 @@ namespace parserlib {
             for (const auto& pn : m_children) {
                 try {
                     if (!pn.parse(pc)) {
-                        pc.restore_state();
+                        pc.pop_state();
                         return false;
                     }
                 }
                 catch (...) {
-                    pc.restore_state();
+                    pc.pop_state();
                     throw;
                 }
             }
