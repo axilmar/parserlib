@@ -2,185 +2,155 @@
 #define PARSERLIB_RULE_HPP
 
 
-#include <stdexcept>
+#include <memory>
+#include <map>
+#include <utility>
 #include "parse_node.hpp"
-#include "rule_left_recursion_exception.hpp"
+#include "parse_node_wrapper.hpp"
+#include "parse_left_recursion_algorithm.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
 
 
-    class rule {
+    /**
+     * Special parse node that allows the creation of recursive grammars.
+     * @param ParseContext the parse context to use for parsing.
+     */
+    template <class ParseContext = parse_context>
+    class rule : public parse_node<rule<ParseContext>> {
     public:
-        // constructors
-
-        rule() {
+        /**
+         * The default constructor.
+         */
+        rule() 
+            : m_forward_reference(get_forward_reference(this))
+        {
         }
 
-        rule(const rule&) = delete;
-
-        rule(rule&&) = delete;
-
-        rule(const parse_node& pn) : m_parse_node(pn) {
+        /**
+         * The copy constructor.
+         * @param src the source object.
+         */
+        rule(const rule& src)
+            : m_forward_reference(get_forward_reference(std::addressof(src)))
+        {
+            register_forward_reference();
         }
 
-        rule(parse_node&& pn) : m_parse_node(std::move(pn)) {
+        /**
+         * The move constructor.
+         * @param src the source object.
+         */
+        rule(rule&& src)
+            : m_forward_reference(std::move(src.m_forward_reference))
+        {
+            register_forward_reference();
         }
 
-        rule(rule& r) : m_parse_node(r) {
+        /**
+         * Constructor from value/parse node.
+         * @param src source value/parse node.
+         */
+        template <class T>
+        rule(const T& src)
+            : m_forward_reference(get_forward_reference(this))
+        {            
+            m_forward_reference->parse_node = make_unique_wrapper(src);
         }
 
-        // assignment
-
-        rule& operator = (const rule&) = delete;
-
-        rule& operator = (rule&&) = delete;
-
-        rule& operator = (const parse_node& pn) {
-            m_parse_node = pn;
+        /**
+         * The copy assignment operator.
+         * @param src the source object.
+         * @return reference to this.
+         */
+        rule& operator = (const rule& src) {
+            m_forward_reference = get_forward_reference(std::addressof(src));
+            register_forward_reference();
             return *this;
         }
 
-        rule& operator = (parse_node&& pn) {
-            m_parse_node = std::move(pn);
+        /**
+         * The move assignment operator.
+         * @param src the source object.
+         * @return reference to this.
+         */
+        rule& operator = (rule&& src) {
+            m_forward_reference = std::move(src.m_forward_reference);
+            register_forward_reference();
             return *this;
         }
 
-        rule& operator = (rule& r) {
-            m_parse_node = r;
+        /**
+         * Assignment from value/parse node.
+         * All instances of this rule receive the new parse node.
+         * @param src the source object.
+         * @return reference to this.
+         */
+        template <class T>
+        rule& operator = (const T& src) {
+            m_forward_reference->parse_node = make_unique_wrapper(src);
             return *this;
         }
 
-        // DSL
-
-        parse_node operator *() {
-            return *this;
-        }
-
-        parse_node operator +() {
-            return *this;
-        }
-
-        parse_node operator -() {
-            return *this;
-        }
-
-        parse_node operator &() {
-            return *this;
-        }
-
-        parse_node operator !() const;
-
-        // parse
-
-        bool parse(interface::parse_context& pc) {
-            if (!pc.is_rule_left_recursive_at_current_parse_position(*this)) {
-                return parse_non_left_recursion(pc);
-            }
-            else {
-                auto rs = pc.get_rule_status(*this);
-                switch (rs) {
-                    case rule_status::none:
-                        throw rule_left_recursion_exception(*this);
-
-                    case rule_status::reject_left_recursion:
-                        return false;
-
-                    case rule_status::accept_left_recursion:
-                        pc.end_accept_left_recursion();
-                        return true;
-                }
-            }
-            throw std::runtime_error("parserlib::rule::parse: invalid rule state.");
+        /**
+         * Parses this rule using left recursion parsing.
+         * @param pc the parse context to use.
+         * @return true on success, false on failure.
+         */
+        bool parse(ParseContext& pc) const {
+            return parse_left_recursion_algorithm::parse(
+                pc, 
+                reinterpret_cast<parse_node_id_type>(m_forward_reference->parse_node.get()), 
+                *m_forward_reference->parse_node.get()
+            );
         }
 
     private:
-        parse_node m_parse_node;
+        //each rule points to this shared object
+        struct forward_reference {
+            std::unique_ptr<parse_node_wrapper<ParseContext>> parse_node;
+        };
 
-        bool parse_non_left_recursion(interface::parse_context& pc) {
-            try {
-                return parse(pc, rule_status::none);
-            }
-            catch (const rule_left_recursion_exception& ex) {
-                if (std::addressof(ex.get_rule()) == this) {
-                    return parse_left_recursion(pc);
-                }
-                throw ex;
-            }
+        //the shared object
+        std::shared_ptr<forward_reference> m_forward_reference;
+
+        //type of map for storing forward references
+        using forward_reference_map = std::map<const rule*, std::shared_ptr<forward_reference>>;
+
+        //contains the forward references map
+        static forward_reference_map& get_forward_reference_map() {
+            static thread_local forward_reference_map forward_references;
+            return forward_references;
         }
 
-        bool parse_left_recursion(interface::parse_context& pc) {
-            //save the left recursion match start for later
-            pc.push_match_start_state();
-
-            //the reject phase
-            try {
-                if (!parse(pc, rule_status::reject_left_recursion)) {
-                    pc.pop_match_start_state();
-                    return false;
-                }
+        //get a forward reference for the given rule;
+        //if the forward reference struct does not exist,
+        //then a new one is created.
+        static std::shared_ptr<forward_reference> get_forward_reference(const rule* r) {
+            forward_reference_map& forward_references = get_forward_reference_map();
+            auto it = forward_references.find(r);
+            if (it != forward_references.end()) {
+                return it->second;
             }
-            catch (...) {
-                pc.pop_match_start_state();
-                throw;
-            }
-
-            //the accept phase
-            for (;;) {
-                //activate the saved match start start for the left recursion
-                //by popping it from the stack
-                pc.pop_match_start_state();
-
-                //disallow terminals until a rule accepts
-                pc.begin_accept_left_recursion();
-
-                try {
-                    //save the left recursion match start state to the stack for next loop
-                    pc.push_match_start_state();
-
-                    const bool result = parse(pc, rule_status::accept_left_recursion);
-
-                    //reactivate the appropriate match start state for the next loop
-                    pc.pop_match_start_state();
-
-                    //allow terminal matching
-                    pc.end_accept_left_recursion();
-
-                    //failure to parse more of this left recursion;
-                    //end left recursion parsing
-                    if (!result) {
-                        break;
-                    }
-                }
-                catch (...) {
-                    pc.pop_match_start_state();
-                    pc.end_accept_left_recursion();
-                    throw;
-                }
-            }
-
-            pc.pop_match_start_state();
-            return true;
+            auto [it1, ok] = forward_references.insert(std::make_pair(r, std::make_shared<forward_reference>()));
+            return it1->second;
         }
 
-        bool parse(interface::parse_context& pc, rule_status rs) {
-            pc.push_rule_state(*this, rs);
-            try {
-                const bool result = m_parse_node.parse(pc);
-                pc.pop_rule_state(*this);
-                return result;
-            }
-            catch (...) {
-                pc.pop_rule_state(*this);
-                throw;
-            }
+        //creates a unique wrapper for type T
+        template <class T>
+        static std::unique_ptr<parse_node_wrapper<ParseContext>> make_unique_wrapper(const T& src) {
+            using parse_node_type = decltype(make_parse_node(src));
+            using wrapper_type = parse_node_wrapper_impl<ParseContext, parse_node_type>;
+            return std::make_unique<wrapper_type>(make_parse_node(src));
+        }
+
+        //registers this with its current forward reference
+        void register_forward_reference() {
+            get_forward_reference_map()[this] = m_forward_reference;
         }
     };
-
-
-    bool rule_ref_parse_node::parse(interface::parse_context& pc) const {
-        return m_rule.parse(pc);
-    }
 
 
 } //namespace parserlib

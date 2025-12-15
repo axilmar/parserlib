@@ -9,35 +9,56 @@
 namespace parserlib {
 
 
-    template <class T>
-    class symbol_parse_node : public interface::parse_node {
+    /**
+     * A parse node class that parses a single symbol.
+     * @param Symbol Type of symbol to parse; must be convertible to 'int'.
+     */
+    template <class Symbol>
+    class symbol_parse_node : public parse_node<symbol_parse_node<Symbol>> {
     public:
-        symbol_parse_node(const T& symbol) : m_symbol(symbol) {
+        /**
+         * The constructor.
+         * @param symbol the symbol to parse.
+         */
+        symbol_parse_node(const Symbol& symbol) 
+            : m_symbol(symbol)
+        {
         }
 
-        bool parse(interface::parse_context& pc) const override {
-            if (pc.is_valid_parse_position()) {
-                if (pc.compare_symbols(pc.get_current_symbol(), static_cast<int>(m_symbol)) == 0) {
-                    pc.increment_parse_position();
-                    return true;
-                }
-            }
-            return false;
+        /**
+         * Parses a symbol.
+         * @param pc the context to use for parsing.
+         * @return true on success, false on failure.
+         */
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            return pc.parse_symbol(static_cast<int>(m_symbol));
         }
 
     private:
-        const T m_symbol;
+        Symbol m_symbol;
     };
 
 
-    template <class T>
-    parse_node terminal(const T& symbol) {
-        return interface::create_parse_node<symbol_parse_node<T>>(symbol);
+    /**
+     * Creates a symbol parse node.
+     * @param symbol the symbol to parse.
+     * @return a symbol parse node.
+     */
+    template <class Symbol>
+    symbol_parse_node<Symbol> terminal(const Symbol& symbol) {
+        return symbol;
     }
 
 
-    template <class T>
-    parse_node::parse_node(const T& symbol) : m_parse_node(terminal(symbol)) {
+    /**
+     * Creates a symbol parse node.
+     * @param symbol the symbol to parse; must not be a boolean.
+     * @return a symbol parse node.
+     */
+    template <class Symbol, std::enable_if_t<!std::is_same_v<Symbol, bool> && !std::is_base_of_v<parse_node_tag, Symbol>, bool> = true>
+    symbol_parse_node<Symbol> make_parse_node(const Symbol& symbol) {
+        return symbol;
     }
 
 

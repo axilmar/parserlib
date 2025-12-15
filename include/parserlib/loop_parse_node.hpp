@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_OPTIONAL_PARSE_NODE_HPP
-#define PARSERLIB_OPTIONAL_PARSE_NODE_HPP
+#ifndef PARSERLIB_LOOP_PARSE_NODE_HPP
+#define PARSERLIB_LOOP_PARSE_NODE_HPP
 
 
 #include "parent_parse_node.hpp"
@@ -9,20 +9,20 @@ namespace parserlib {
 
 
     /**
-     * A parse node that makes another parse node optional.
-     * @param Child Type of the parse node to make optional.
+     * A parse node that makes a loop out of another parse node.
+     * @param Child Type of the parse node to create a loop for.
      */
     template <class Child>
-    class optional_parse_node : public parent_parse_node<optional_parse_node<Child>, Child> {
+    class loop_parse_node : public parent_parse_node<loop_parse_node<Child>, Child> {
     public:
         /** The parent parse node type. */
-        using parent_type = parent_parse_node<optional_parse_node<Child>, Child>;
+        using parent_type = parent_parse_node<loop_parse_node<Child>, Child>;
 
         /**
          * The constructor.
          * @param child the child.
          */
-        optional_parse_node(const Child& child)
+        loop_parse_node(const Child& child)
             : parent_type(child)
         {
         }
@@ -42,7 +42,7 @@ namespace parserlib {
 
 
     template <class Impl>
-    optional_parse_node<Impl> parse_node<Impl>::operator -() const {
+    loop_parse_node<Impl> parse_node<Impl>::operator *() const {
         return *get_impl();
     }
 
@@ -50,4 +50,4 @@ namespace parserlib {
 } //namespace parserlib
 
 
-#endif //PARSERLIB_OPTIONAL_PARSE_NODE_HPP
+#endif //PARSERLIB_LOOP_PARSE_NODE_HPP

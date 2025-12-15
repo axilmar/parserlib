@@ -2,37 +2,50 @@
 #define PARSERLIB_LOGICAL_AND_PARSE_NODE_HPP
 
 
-#include "parse_node.hpp"
+#include "parent_parse_node.hpp"
+#include "parse_with_parse_state.hpp"
 
 
 namespace parserlib {
 
 
-    class logical_and_parse_node : public interface::parse_node {
+    /**
+     * A parse node that acts as a logical AND predicate, using another node.
+     * @param Child Type of the parse node to make a logical AND parse node out ot.
+     */
+    template <class Child>
+    class logical_and_parse_node : public parent_parse_node<logical_and_parse_node<Child>, Child> {
     public:
-        logical_and_parse_node(const parserlib::parse_node& child) : m_child(child) {
+        /** The parent parse node type. */
+        using parent_type = parent_parse_node<logical_and_parse_node<Child>, Child>;
+
+        /**
+         * The constructor.
+         * @param child the child.
+         */
+        logical_and_parse_node(const Child& child)
+            : parent_type(child)
+        {
         }
 
-        bool parse(interface::parse_context& pc) const override {
-            pc.push_state();
-            try {
-                const bool result = m_child.parse(pc);
-                pc.pop_state();
-                return result;
-            }
-            catch (...) {
-                pc.pop_state();
-                throw;
-            }
+        /**
+         * Parses the node; in the end, it restores the parse state to the one
+         * before the function is entered.
+         * @param pc the context to pass to the child.
+         * @return the result of the parse node.
+         */
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            return parse_without_parse_state(pc, [&](ParseContext& pc) { 
+                return parent_type::get_children().parse(pc);
+            });
         }
-
-    private:
-        const parserlib::parse_node m_child;
     };
 
 
-    inline parse_node parse_node::operator &() const {
-        return interface::create_parse_node<logical_and_parse_node>(*this);
+    template <class Impl>
+    logical_and_parse_node<Impl> parse_node<Impl>::operator &() const {
+        return *get_impl();
     }
 
 

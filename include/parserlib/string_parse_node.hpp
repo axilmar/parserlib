@@ -3,87 +3,73 @@
 
 
 #include <string_view>
-#include <string>
+#include <vector>
 #include "parse_node.hpp"
 
 
 namespace parserlib {
 
 
-    template <class Container>
-    class string_parse_node : public interface::parse_node {
+    /**
+     * A parse node class that parses a string.
+     * @param Char type of character; it must be convertible to 'int'.
+     */
+    template <class Char>
+    class string_parse_node : public parse_node<string_parse_node<Char>> {
     public:
-        string_parse_node(const Container& container) : m_container(container) {
+        /**
+         * The constructor.
+         * @param string the string to parse.
+         */
+        string_parse_node(const std::basic_string_view<Char>& string)
+            : m_string(string)
+            , m_symbol_sequence(get_symbol_sequence(string))
+        {
         }
 
-        string_parse_node(Container&& container) : m_container(std::move(container)) {
-        }
-
-        bool parse(interface::parse_context& pc) const override {
-            if (pc.is_valid_parse_position()) {
-                pc.push_state();
-                auto it = m_container.begin();
-                for (;;) {
-                    if (it == m_container.end()) {
-                        return true;
-                    }
-                    if (pc.is_end_parse_position() || pc.compare_symbols(pc.get_current_symbol(), static_cast<int>(*it))) {
-                        pc.pop_state();
-                        return false;
-                    }
-                    ++it;
-                    pc.increment_parse_position();
-                }
-            }
-            return false;
+        /**
+         * Parses a string.
+         * @param pc the context to use for parsing.
+         * @return true on success, false on failure.
+         */
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            return pc.parse_symbol_sequence(m_symbol_sequence);
         }
 
     private:
-        const Container m_container;
+        std::basic_string_view<Char> m_string;
+        std::vector<int> m_symbol_sequence;
+
+        static std::vector<int> get_symbol_sequence(const std::basic_string_view<Char>& string) {
+            std::vector<int> result;
+            for (const Char& ch : string) {
+                result.push_back(static_cast<int>(ch));
+            }
+            return result;
+        }
     };
 
 
-    template <class T>
-    parse_node terminal(const T* null_term_str) {
-        return interface::create_parse_node<string_parse_node<std::basic_string_view<T>>>(null_term_str);
+    /**
+     * Creates a parse node for a string.
+     * @param string string to create a string parse node of.
+     * @return a string parse node.
+     */
+    template <class Char>
+    string_parse_node<Char> terminal(const Char* string) {
+        return std::basic_string_view<Char>(string);
     }
 
 
-    template <class T, class Traits, class Alloc>
-    parse_node terminal(const std::basic_string<T, Traits, Alloc>& str) {
-        return interface::create_parse_node<string_parse_node<std::basic_string<T, Traits, Alloc>>>(str);
-    }
-
-
-    template <class T, class Traits, class Alloc>
-    parse_node terminal(std::basic_string<T, Traits, Alloc>&& str) {
-        return interface::create_parse_node<string_parse_node<std::basic_string<T, Traits, Alloc>>>(std::move(str));
-    }
-
-
-    template <class T, class Traits>
-    parse_node terminal(const std::basic_string_view<T, Traits>& str) {
-        return interface::create_parse_node<string_parse_node<std::basic_string_view<T, Traits>>>(str);
-    }
-
-
-    template <class T>
-    parse_node::parse_node(const T* null_term_str) : m_parse_node(terminal(null_term_str)) {
-    }
-
-
-    template <class T, class Traits, class Alloc>
-    parse_node::parse_node(const std::basic_string<T, Traits, Alloc>& str) : m_parse_node(terminal(str)) {
-    }
-
-
-    template <class T, class Traits, class Alloc>
-    parse_node::parse_node(std::basic_string<T, Traits, Alloc>&& str) : m_parse_node(terminal(std::move(str))) {
-    }
-
-
-    template <class T, class Traits>
-    parse_node::parse_node(const std::basic_string_view<T, Traits>& str) : m_parse_node(terminal(str)) {
+    /**
+     * Creates a parse node for a string.
+     * @param string string to create a string parse node of.
+     * @return a string parse node.
+     */
+    template <class Char>
+    string_parse_node<Char> make_parse_node(const Char* string) {
+        return std::basic_string_view<Char>(string);
     }
 
 

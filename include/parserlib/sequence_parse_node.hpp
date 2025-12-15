@@ -2,61 +2,64 @@
 #define PARSERLIB_SEQUENCE_PARSE_NODE_HPP
 
 
-#include "vector_concatenation.hpp"
-#include "parse_node.hpp"
+#include "tuple.hpp"
+#include "loop_parse_node.hpp"
+#include "parse_with_parse_state.hpp"
 
 
 namespace parserlib {
 
 
-    class sequence_parse_node : public interface::parse_node {
+    template <class... Children>
+    class sequence_parse_node : public parent_parse_node<sequence_parse_node<Children...>, std::tuple<Children...>> {
     public:
-        using container = std::vector<parserlib::parse_node>;
+        using tuple_type = std::tuple<Children...>;
 
-        sequence_parse_node(container&& children) : m_children(std::move(children)) {
+        using parent_type = parent_parse_node<sequence_parse_node<Children...>, tuple_type>;
+
+        sequence_parse_node(const tuple_type& children)
+            : parent_type(children)
+        {
         }
 
-        bool parse(interface::parse_context& pc) const override {
-            pc.push_state();
-            for (const auto& pn : m_children) {
-                try {
-                    if (!pn.parse(pc)) {
-                        pc.pop_state();
-                        return false;
-                    }
-                }
-                catch (...) {
-                    pc.pop_state();
-                    throw;
-                }
-            }
-            return true;
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            return parse_with_parse_state(pc, [&](ParseContext& pc) {
+                return tuple_for_each_cond<0, true>(parent_type::get_children(), [&](const auto& child) { 
+                    return child.parse(pc); 
+                });
+            });
         }
-
-        const container& children() const {
-            return m_children;
-        }
-
-    private:
-        const container m_children;
     };
 
 
-    inline parse_node operator >> (const parse_node& left, const parse_node& right) {
-        const sequence_parse_node* left_sequence = dynamic_cast<const sequence_parse_node*>(left.get().get());
-        const sequence_parse_node* right_sequence = dynamic_cast<const sequence_parse_node*>(right.get().get());
-        if (left_sequence && right_sequence) {
-            return interface::create_parse_node<sequence_parse_node>(concatenate_vectors(left_sequence->children(), right_sequence->children()));
-        }
-        else if (left_sequence) {
-            return interface::create_parse_node<sequence_parse_node>(concatenate_vector_with_element(left_sequence->children(), right));
-        }
-        else if (right_sequence) {
-            return interface::create_parse_node<sequence_parse_node>(concatenate_element_with_vector(left, right_sequence->children()));
-        }
-        else {
-            return interface::create_parse_node<sequence_parse_node>(sequence_parse_node::container{left, right});
-        }
+    template <class Impl>
+    sequence_parse_node<Impl, loop_parse_node<Impl>> parse_node<Impl>::operator +() const {
+        return std::make_tuple(*get_impl(), *(*get_impl()));
+    }
+
+
+    template <class... Children>
+    const std::tuple<Children...>& make_parse_node_tuple(const parse_node<sequence_parse_node<Children...>>& sequence) {
+        return sequence.get_impl()->get_children();
+    }
+
+
+    template <class L, class R> 
+    auto operator >> (const parse_node<L>& left, const parse_node<R>& right) {
+        return sequence_parse_node(make_parse_node_tuple(left, right));
+    }
+
+
+    template <class L, class R> 
+    auto operator >> (const parse_node<L>& left, const R& right) {
+        return sequence_parse_node(make_parse_node_tuple(left, right));
+    }
+
+
+    template <class L, class R> 
+    auto operator >> (const L& left, const parse_node<R>& right) {
+        return sequence_parse_node(make_parse_node_tuple(left, right));
     }
 
 

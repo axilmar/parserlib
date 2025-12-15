@@ -2,68 +2,59 @@
 #define PARSERLIB_CHOICE_PARSE_NODE_HPP
 
 
-#include "vector_concatenation.hpp"
-#include "parse_node.hpp"
+#include <type_traits>
+#include "tuple.hpp"
+#include "loop_parse_node.hpp"
+#include "parse_with_parse_state.hpp"
 
 
 namespace parserlib {
 
 
-    class choice_parse_node : public interface::parse_node {
+    template <class... Children>
+    class choice_parse_node : public parent_parse_node<choice_parse_node<Children...>, std::tuple<Children...>> {
     public:
-        using container = std::vector<parserlib::parse_node>;
+        using tuple_type = std::tuple<Children...>;
 
-        choice_parse_node(container&& children) : m_children(std::move(children)) {
+        using parent_type = parent_parse_node<choice_parse_node<Children...>, tuple_type>;
+
+        choice_parse_node(const tuple_type& children)
+            : parent_type(children)
+        {
         }
 
-        bool parse(interface::parse_context& pc) const override {
-            for (const auto& pn : m_children) {
-                if (parse_child(pc, pn)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        const container& children() const {
-            return m_children;
-        }
-
-    private:
-        const container m_children;
-
-        bool parse_child(interface::parse_context& pc, const parserlib::parse_node& child) const {
-            pc.push_state();
-            try {
-                if (child.parse(pc)) {
-                    return true;
-                }
-            }
-            catch (...) {
-                pc.pop_state();
-                throw;
-            }
-            pc.pop_state();
-            return false;
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            return parse_with_parse_state(pc, [&](ParseContext& pc) {
+                return tuple_for_each_cond<0, false>(parent_type::get_children(), [&](const auto& child) { 
+                    return child.parse(pc); 
+                });
+            });
         }
     };
 
 
-    inline parse_node operator | (const parse_node& left, const parse_node& right) {
-        const choice_parse_node* left_choice = dynamic_cast<const choice_parse_node*>(left.get().get());
-        const choice_parse_node* right_choice = dynamic_cast<const choice_parse_node*>(right.get().get());
-        if (left_choice && right_choice) {
-            return interface::create_parse_node<choice_parse_node>(concatenate_vectors(left_choice->children(), right_choice->children()));
-        }
-        else if (left_choice) {
-            return interface::create_parse_node<choice_parse_node>(concatenate_vector_with_element(left_choice->children(), right));
-        }
-        else if (right_choice) {
-            return interface::create_parse_node<choice_parse_node>(concatenate_element_with_vector(left, right_choice->children()));
-        }
-        else {
-            return interface::create_parse_node<choice_parse_node>(choice_parse_node::container{left, right});
-        }
+    template <class... Children>
+    const std::tuple<Children...>& make_parse_node_tuple(const parse_node<choice_parse_node<Children...>>& choice) {
+        return choice.get_impl()->get_children();
+    }
+
+
+    template <class L, class R> 
+    auto operator | (const parse_node<L>& left, const parse_node<R>& right) {
+        return choice_parse_node(make_parse_node_tuple(left, right));
+    }
+
+
+    template <class L, class R, std::enable_if_t<!std::is_base_of_v<parse_node_tag, R>, bool> = true> 
+    auto operator | (const parse_node<L>& left, const R& right) {
+        return choice_parse_node(make_parse_node_tuple(left, right));
+    }
+
+
+    template <class L, class R, std::enable_if_t<!std::is_base_of_v<parse_node_tag, L>, bool> = true> 
+    auto operator | (const L& left, const parse_node<R>& right) {
+        return choice_parse_node(make_parse_node_tuple(left, right));
     }
 
 
