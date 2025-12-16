@@ -2,6 +2,7 @@
 #define PARSERLIB_SEQUENCE_PARSE_NODE_HPP
 
 
+#include <type_traits>
 #include "tuple.hpp"
 #include "loop_parse_node.hpp"
 #include "parse_with_parse_state.hpp"
@@ -51,13 +52,13 @@ namespace parserlib {
     }
 
 
-    template <class L, class R> 
+    template <class L, class R, std::enable_if_t<!std::is_base_of_v<parse_node_tag, R>, bool> = true> 
     auto operator >> (const parse_node<L>& left, const R& right) {
         return sequence_parse_node(make_parse_node_tuple(left, right));
     }
 
 
-    template <class L, class R> 
+    template <class L, class R, std::enable_if_t<!std::is_base_of_v<parse_node_tag, L>, bool> = true> 
     auto operator >> (const L& left, const parse_node<R>& right) {
         return sequence_parse_node(make_parse_node_tuple(left, right));
     }

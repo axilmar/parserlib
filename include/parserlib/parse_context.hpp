@@ -20,7 +20,7 @@ namespace parserlib {
      * 
      *  - managing the parse position.
      *  - doing symbol comparisons.
-     *  - providing the basic parse operations for performance (parsing symbols, sequences, sets, ranges).
+     *  - providing the basic parse operations for performance (parsing symbols, sequences, sets, ranges, any, etc...).
      *  - managing the parse state.
      *  - managing matches.
      *  - managing errors.
@@ -51,6 +51,11 @@ namespace parserlib {
          * @param count number of symbols to increment the parse position.
          */
         virtual void increment_parse_position(std::size_t count) = 0;
+
+        /**
+         * Increments the line of the current parse position.
+         */
+        virtual void increment_parse_position_line() = 0;
 
         /**
          * Retrieves the current symbol, i.e. the symbol at the current parse position.
@@ -94,6 +99,12 @@ namespace parserlib {
          * @return true if the current symbol is within the given range, false otherwise.
          */
         virtual bool parse_symbol_range(int min, int max) = 0;
+
+        /**
+         * Parses any symbol, except if the end of input has been reached.
+         * @return true if the end of input has not been reached, false otherwise.
+         */
+        virtual bool parse_any_symbol() = 0;
 
         /**
          * Saves the current parse state into an internal stack.

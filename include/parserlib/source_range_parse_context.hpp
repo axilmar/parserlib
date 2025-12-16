@@ -99,6 +99,13 @@ namespace parserlib {
         }
 
         /**
+         * Increments the line of the current parse position.
+         */
+        void increment_parse_position_line() final {
+            m_state.parse_position.increment_line();
+        }
+
+        /**
          * Retrieves the current symbol, i.e. the symbol at the current parse position.
          * @return the current symbol.
          */
@@ -191,6 +198,18 @@ namespace parserlib {
             }
             return false;
         }
+        
+        /**
+         * Parses any symbol, except if the end of input has been reached.
+         * @return true if the end of input has not been reached, false otherwise.
+         */
+        bool parse_any_symbol() final {
+            if (is_valid_parse_position()) {
+                increment_parse_position();
+                return true;
+            }
+            return false;
+        }
 
         /**
          * Saves the current parse state into an internal stack.
@@ -208,6 +227,7 @@ namespace parserlib {
             assert(!m_state_stack.empty());
             m_state = m_state_stack.back();
             m_state_stack.pop_back();
+            m_matches.resize(m_state.match_count);
         }
 
         /**
@@ -235,6 +255,7 @@ namespace parserlib {
             assert(!m_match_start_state_stack.empty());
             m_match_start_state = m_match_start_state_stack.back();
             m_match_start_state_stack.pop_back();
+            m_matches.resize(m_match_start_state.match_count);
         }
 
         /**

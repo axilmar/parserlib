@@ -32,7 +32,7 @@ namespace parserlib {
          * Parses the node; in the end, it restores the parse state to the one
          * before the function is entered.
          * @param pc the context to pass to the child.
-         * @return the opposite of the result of the parse node.
+         * @return the opposite of what the child parse node returned.
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {

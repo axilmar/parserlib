@@ -62,8 +62,7 @@ namespace parserlib {
 
     template <class Impl>
     const std::tuple<Impl> make_parse_node_tuple(const parse_node<Impl>& parse_node) {
-        Impl impl = *parse_node.get_impl();
-        return std::make_tuple(impl);
+        return std::make_tuple(*parse_node.get_impl());
     }
 
 

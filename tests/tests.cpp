@@ -11,7 +11,7 @@ void run_tests() {
 
     rule<istream_parse_context<>> grammar;
 
-    const auto g = terminal('a') | grammar;
+    const auto g = terminal('a')->*1 >> debug(any()) >> end() >> false >> newline('\n') >> error(1, skip_after('a'));
 
     grammar = g;
 
