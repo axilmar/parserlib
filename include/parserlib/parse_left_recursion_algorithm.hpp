@@ -145,7 +145,6 @@ namespace parserlib {
                 //try to parse
                 try {
                     //save the current match start state in order to later restore it for the next loop
-                    context.save_match_start_state();
                     context.begin_accept_left_recursion_state(parse_node_id);
                     
                     //parse
@@ -153,7 +152,6 @@ namespace parserlib {
                     
                     //restore the state
                     context.restore_left_recursion_state(parse_node_id);                    
-                    context.restore_match_start_state();
 
                     if (!result) {
                         break;

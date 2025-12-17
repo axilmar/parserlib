@@ -21,6 +21,7 @@ struct test_match {
     size_t end;
     const char* text;
     int id;
+    std::vector<test_match> children;
 };
 
 
@@ -45,6 +46,21 @@ struct any_value {
 #define _ any_value()
 
 
+template <class MatchContainer>
+static void do_test_matches(const char* file, const int line, const std::string& source, const MatchContainer& matches, const std::vector<test_match>& test_matches) {
+    ASSERT(file, line, matches.size() == test_matches.size());
+    for (size_t index = 0; index < test_matches.size(); ++index) {
+        const auto& context_match = matches[index];
+        const struct test_match& test_match = test_matches[index];
+        ASSERT(file, line, context_match.get_begin_parse_position().get_iterator() == std::next(source.begin(), test_match.begin));
+        ASSERT(file, line, context_match.get_end_parse_position().get_iterator() == std::next(source.begin(), test_match.end));
+        ASSERT(file, line, context_match.get_source<std::string>() == test_match.text);
+        ASSERT(file, line, static_cast<int>(context_match.get_id()) == test_match.id);
+        do_test_matches(file, line, source, context_match.get_children(), test_match.children);
+    }
+}
+
+
 template <class Grammar>
 static void do_test(
     const char* file,
@@ -64,15 +80,7 @@ static void do_test(
     ASSERT(file, line, result == test_result);
 
     //test the matches
-    ASSERT(file, line, context.get_matches().size() == test_matches.size());
-    for (size_t index = 0; index < test_matches.size(); ++index) {
-        const auto& context_match = context.get_matches()[index];
-        const struct test_match& test_match = test_matches[index];
-        ASSERT(file, line, context_match.get_begin_parse_position().get_iterator() == std::next(source.begin(), test_match.begin));
-        ASSERT(file, line, context_match.get_end_parse_position().get_iterator() == std::next(source.begin(), test_match.end));
-        ASSERT(file, line, context_match.get_source<std::string>() == test_match.text);
-        ASSERT(file, line, static_cast<int>(context_match.get_id()) == test_match.id);
-    }
+    do_test_matches(file, line, source, context.get_matches(), test_matches);
 
     //test the errors
     ASSERT(file, line, context.get_errors().size() == test_errors.size());
@@ -226,11 +234,11 @@ static void test_parse_choice() {
 
 
 static void test_parse_match() {
-    const auto grammar = +(terminal('a')->*1 | terminal('b')->*2);
-    DO_TEST(grammar, "a", true, { {0, 1, "a", 1} });
-    DO_TEST(grammar, "b", true, { {0, 1, "b", 2} });
-    DO_TEST(grammar, "ab", true, { {0, 1, "a", 1}, {1, 2, "b", 2} });
-    DO_TEST(grammar, "c", false);
+    const auto grammar = +((terminal('a')->*1 >> terminal('b')->*2)->*4 | terminal('c')->*3);
+    DO_TEST(grammar, "ab", true, { {0, 2, "ab", 4, {{0, 1, "a", 1}, {1, 2, "b", 2}}} });
+    DO_TEST(grammar, "c", true, { {0, 1, "c", 3} });
+    DO_TEST(grammar, "abc", true, { {0, 2, "ab", 4, {{0, 1, "a", 1}, {1, 2, "b", 2}}}, {2, 3, "c", 3} });
+    DO_TEST(grammar, "d", false);
 }
 
 

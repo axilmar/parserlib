@@ -255,7 +255,6 @@ namespace parserlib {
             assert(!m_match_start_state_stack.empty());
             m_match_start_state = m_match_start_state_stack.back();
             m_match_start_state_stack.pop_back();
-            m_matches.resize(m_match_start_state.match_count);
         }
 
         /**
