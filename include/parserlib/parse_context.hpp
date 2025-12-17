@@ -42,6 +42,14 @@ namespace parserlib {
         virtual bool is_valid_parse_position() const = 0;
 
         /**
+         * Tests whether the end position is reached or not.
+         * @return true if the end position is reached, false otherwise.
+         */
+        bool is_end_parse_position() const {
+            return !is_valid_parse_position();
+        }
+
+        /**
          * Increments the current parse position by one symbol.
          */
         virtual void increment_parse_position() = 0;

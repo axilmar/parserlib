@@ -40,8 +40,19 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            if (parent_type::get_children().parse(pc)) {
+            pc.save_error_start_state();
+            bool result;
+            try {
+                result = parent_type::get_children().parse(pc);
+            }
+            catch (...) {
+                pc.restore_error_start_state();
+                throw;
+            }
+            pc.restore_error_start_state();
+            if (result) {
                 pc.add_error(static_cast<int>(m_id));
+                return true;
             }
             return false;
         }

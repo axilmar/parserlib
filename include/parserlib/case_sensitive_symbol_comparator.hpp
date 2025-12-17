@@ -21,7 +21,7 @@ namespace parserlib {
          * @return the difference 'a - b' as an integer.
          */
         template <class A, class B>
-        int operator ()(const A& a, const & b) const {
+        int operator ()(const A& a, const B& b) const {
             return std::tolower(static_cast<int>(a)) - std::tolower(static_cast<int>(b));
         }
     };

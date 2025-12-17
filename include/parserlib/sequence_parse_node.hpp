@@ -64,6 +64,24 @@ namespace parserlib {
     }
 
 
+    template <class L, class R> 
+    auto operator - (const parse_node<L>& left, const parse_node<R>& right) {
+        return !right >> left;
+    }
+
+
+    template <class L, class R, std::enable_if_t<!std::is_base_of_v<parse_node_tag, R>, bool> = true> 
+    auto operator - (const parse_node<L>& left, const R& right) {
+        return !make_parse_node(right) >> left;
+    }
+
+
+    template <class L, class R, std::enable_if_t<!std::is_base_of_v<parse_node_tag, L>, bool> = true> 
+    auto operator - (const L& left, const parse_node<R>& right) {
+        return !right >> make_parse_node(left);
+    }
+
+
 } //namespace parserlib
 
 

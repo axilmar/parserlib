@@ -268,6 +268,7 @@ namespace parserlib {
             m_matches.resize(m_match_start_state.match_count);
             m_matches.push_back(match_type(static_cast<match_id_type>(id), m_match_start_state.parse_position, m_state.parse_position, std::move(children)));
             m_state.match_count = m_matches.size();
+            m_match_start_state.parse_position = m_state.parse_position;
             m_match_start_state.match_count = m_matches.size();
         }
 
@@ -294,6 +295,7 @@ namespace parserlib {
          */
         void add_error(int id) final {
             m_errors.push_back(parse_error_type(static_cast<error_id_type>(id), m_error_start_state.parse_position, m_state.parse_position));
+            m_error_start_state.parse_position = m_state.parse_position;
         }
 
         /**

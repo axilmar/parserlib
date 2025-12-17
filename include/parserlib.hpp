@@ -2,6 +2,10 @@
 #define PARSERLIB_HPP
 
 
+#include "parserlib/default_source_position.hpp"
+#include "parserlib/text_source_position.hpp"
+#include "parserlib/default_symbol_comparator.hpp"
+#include "parserlib/case_sensitive_symbol_comparator.hpp"
 #include "parserlib/container_parse_context.hpp"
 #include "parserlib/istream_parse_context.hpp"
 #include "parserlib/symbol_parse_node.hpp"
@@ -21,6 +25,7 @@
 #include "parserlib/sequence_parse_node.hpp"
 #include "parserlib/choice_parse_node.hpp"
 #include "parserlib/match_parse_node.hpp"
+#include "parserlib/parse_node_ptr.hpp"
 #include "parserlib/rule.hpp"
 
 

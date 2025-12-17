@@ -10,6 +10,7 @@ namespace parserlib {
     template <class Child> class logical_and_parse_node;
     template <class Child> class logical_not_parse_node;
     template <class... Children> class sequence_parse_node;
+    template <class ParseContext> class parse_node_ptr;
 
 
     struct parse_node_tag {
@@ -70,6 +71,12 @@ namespace parserlib {
          * @return a logical NOT parse node.
          */
         logical_not_parse_node<Impl> operator !() const;
+
+        /**
+         * Creates a parse_node_ptr instance out of this parse node.
+         * @return a generic parse_node_ptr instance out of this parse node.
+         */
+        auto operator ~() const;
     };
 
 

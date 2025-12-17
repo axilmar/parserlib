@@ -24,6 +24,9 @@ namespace parserlib {
         /** Type of parse position. */
         using parse_position_type = parse_position<Iterator, SourcePosition>;
 
+        /** Type of iterator. */
+        using iterator_type = Iterator;
+
         /**
          * The default constructor.
          */
@@ -41,7 +44,7 @@ namespace parserlib {
             , m_begin_parse_position(begin_parse_position)
             , m_end_parse_position(end_parse_position)
         {
-            assert(m_begin_parse_position < m_end_parse_position);
+            assert(m_begin_parse_position <= m_end_parse_position);
         }
 
         /**
@@ -66,6 +69,22 @@ namespace parserlib {
          */
         const parse_position_type& get_end_parse_position() const {
             return m_end_parse_position;
+        }
+
+        /**
+         * Returns the begin parse position iterator.
+         * @return the begin parse position iterator.
+         */
+        const iterator_type& begin() const {
+            return m_begin_parse_position.get_iterator();
+        }
+
+        /**
+         * Returns the end parse position iterator.
+         * @return the end parse position iterator.
+         */
+        const iterator_type& end() const {
+            return m_end_parse_position.get_iterator();
         }
 
         /**
