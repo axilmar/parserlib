@@ -34,8 +34,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            while (parent_type::get_children().parse(pc)) {
-            }
+            parent_type::get_children().parse(pc);
             return true;
         }
     };

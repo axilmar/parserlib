@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_TUPLE_HPP
-#define PARSERLIB_TUPLE_HPP
+#ifndef PARSERLIB_TUPLE_FOR_EACH_HPP
+#define PARSERLIB_TUPLE_FOR_EACH_HPP
 
 
 #include <tuple>
@@ -54,25 +54,7 @@ namespace parserlib {
     }
 
 
-    template <class T>
-    auto make_parse_node_tuple(const T& value) {
-        return std::make_tuple(make_parse_node(value));
-    }
-
-
-    template <class Impl>
-    const std::tuple<Impl> make_parse_node_tuple(const parse_node<Impl>& parse_node) {
-        return std::make_tuple(*parse_node.get_impl());
-    }
-
-
-    template <class L, class R>
-    auto make_parse_node_tuple(const L& left, const R& right) {
-        return std::tuple_cat(make_parse_node_tuple(left), make_parse_node_tuple(right));
-    }
-
-
 } //namespace parserlib
 
 
-#endif //PARSERLIB_TUPLE_HPP
+#endif //PARSERLIB_TUPLE_FOR_EACH_HPP
