@@ -8,6 +8,11 @@
 namespace parserlib {
 
 
+    /**
+     * A class that represents a parse error. 
+     * @param Id id type of range.
+     * @param Iterator iterator type.
+     */
     template <class Id, class Iterator>
     class parse_error : public source_range<Id, Iterator> {
     public:

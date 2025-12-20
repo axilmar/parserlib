@@ -9,8 +9,8 @@ namespace parserlib {
 
 
     /**
-     * Base class for source ranges.
-     * @param Id id of range.
+     * A class that represents a source range.
+     * @param Id id type of range.
      * @param Iterator iterator type.
      */
     template <class Id = int, class Iterator = typename std::string::const_iterator>
@@ -53,7 +53,7 @@ namespace parserlib {
         /**
          * The default constructor.
          */
-        source_range() noexcept {
+        source_range() {
         }
 
         /**

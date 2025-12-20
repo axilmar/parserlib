@@ -10,6 +10,11 @@
 namespace parserlib {
 
 
+    /**
+     * A class that represents a match.
+     * @param Id id type of range.
+     * @param Iterator iterator type.
+     */
     template <class Id = int, class Iterator = typename std::string::const_iterator>
     class match : public source_range<Id, Iterator> {
     public:
@@ -28,7 +33,7 @@ namespace parserlib {
         /**
          * The default constructor.
          */
-        match() noexcept {
+        match() {
         }
 
         /**

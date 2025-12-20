@@ -11,6 +11,8 @@ namespace parserlib {
 
     /**
      * A parse iterator.
+     * It combines a normal iterator and a text position.
+     * Useful in cases where the line and column of the input text needs to be known.
      * @param Iterator iterator type.
      * @param TextPosition text position type.
      */
@@ -38,27 +40,11 @@ namespace parserlib {
         }
 
         /**
-         * Returns the index of this parse position.
-         * @return the index of this parse position.
-         */
-        operator size_t () const noexcept {
-            return m_index;
-        }
-
-        /**
          * Returns the iterator.
          * @return the iterator.
          */
         const iterator_type& get_iterator() const noexcept {
             return m_iterator;
-        }
-
-        /**
-         * Dereferences the iterator.
-         * @return the result of operator *() on the iterator.
-         */
-        auto operator *() const {
-            return *m_iterator;
         }
 
         /**
@@ -70,20 +56,44 @@ namespace parserlib {
         }
 
         /**
-         * Increments the parse position.
+         * Checks if this iterator points to the same element as another iterator.
+         * @param other the other iterator to compare against this.
+         * @return true if both iterators point to the same element, false otherwise.
+         */
+        bool operator == (const parse_iterator& other) const {
+            return m_iterator == other.m_iterator;
+        }
+
+        /**
+         * Checks if this iterator points to a different element than another iterator.
+         * @param other the other iterator to compare against this.
+         * @return true if this points to a different element than the given iterator, false otherwise.
+         */
+        bool operator != (const parse_iterator& other) const {
+            return m_iterator != other.m_iterator;
+        }
+
+        /**
+         * Dereferences the iterator.
+         * @return the result of operator *() on the iterator.
+         */
+        auto operator *() const {
+            return *m_iterator;
+        }
+
+        /**
+         * Increments the parse iterator by one.
          */
         void operator ++() {
-            ++m_index;
             ++m_iterator;
             ++m_text_position;
         }
 
         /**
-         * Increments the parse position by an amount.
+         * Increments the parse iterator by an amount.
          * @param count number of positions to increment the parse position.
          */
         void operator +=(size_t count) {
-            m_index += count;
             m_iterator = std::next(m_iterator, count);
             m_text_position += count;
         }
@@ -91,12 +101,11 @@ namespace parserlib {
         /**
          * Increments the line of the text position.
          */
-        void increment_text_position_line() {
+        void increment_text_position_line() noexcept {
             m_text_position.increment_line();
         }
 
     private:
-        size_t m_index{ 0 };
         iterator_type m_iterator;
         text_position_type m_text_position;
     };

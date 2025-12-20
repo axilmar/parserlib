@@ -10,7 +10,7 @@ namespace parserlib {
 
     /**
      * A file text position.
-     * It maintains a line and column.
+     * It maintains a line and a column.
      */
     class file_text_position {
     public:

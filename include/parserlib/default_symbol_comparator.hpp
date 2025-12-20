@@ -7,6 +7,8 @@ namespace parserlib {
 
     /**
      * The default symbol comparator.
+     * It compares operands by casting them to `ìnt` 
+     * and computing their difference.
      */
     class default_symbol_comparator {
     public:
