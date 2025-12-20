@@ -83,26 +83,32 @@ namespace parserlib {
 
         /**
          * Increments the parse iterator by one.
+         * @return reference to this.
          */
-        void operator ++() {
+        parse_iterator& operator ++() {
             ++m_iterator;
             ++m_text_position;
+            return *this;
         }
 
         /**
          * Increments the parse iterator by an amount.
          * @param count number of positions to increment the parse position.
+         * @return reference to this.
          */
-        void operator +=(size_t count) {
+        parse_iterator& operator +=(size_t count) {
             m_iterator = std::next(m_iterator, count);
             m_text_position += count;
+            return *this;
         }
 
         /**
          * Increments the line of the text position.
+         * @return reference to this.
          */
-        void increment_text_position_line() noexcept {
+        parse_iterator& increment_text_position_line() noexcept {
             m_text_position.increment_line();
+            return *this;
         }
 
     private:
