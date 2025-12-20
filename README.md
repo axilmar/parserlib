@@ -10,7 +10,7 @@
 * [Examples](#examples)
 * [Changes](#changes)
 
-Full code documentation at [./doc/doxygen/html/index.html](./doc/doxygen/html/index.html).
+Full code documentation at: [./doc/doxygen/html/index.html](./doc/doxygen/html/index.html).
 
 ## Introduction
 
