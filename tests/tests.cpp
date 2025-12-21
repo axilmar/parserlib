@@ -8,5 +8,5 @@ void run_tests() {
 	terminal("a");
 	make_parse_node("a");
 	set("a");
-	range('a', 'z');
+	!range('a', 'z');
 }

@@ -318,6 +318,49 @@ namespace parserlib {
             m_errors.emplace_back(id, begin, end);
         }
 
+        /**
+         * Executes a function.
+         * If the function fails, or an exception happens, 
+         * then the state of this parse context is restored.
+         * @param fn function; it is passed this parse context.
+         * @return true if the function suceeds, false otherwise.
+         */
+        template <class F>
+        bool do_and_restore_state_on_failure(const F& fn) {
+            const state initial_state = m_state;
+            try {
+                if (fn()) {
+                    return true;
+                }
+                m_state = initial_state;
+            }
+            catch (...) {
+                m_state = initial_state;
+                throw;
+            }
+            return false;
+        }
+
+        /**
+         * Executes a function, then restores the state to the one before the function was called.
+         * If an exception happens, then the state of this parse context is restored.
+         * @param fn function; it is passed this parse context.
+         * @return true if the function suceeds, false otherwise.
+         */
+        template <class F>
+        bool do_and_restore_state(const F& fn) {
+            const state initial_state = m_state;
+            try {
+                const bool result = fn();
+                m_state = initial_state;
+                return result;
+            }
+            catch (...) {
+                m_state = initial_state;
+                throw;
+            }
+        }
+
     private:
         state m_state;
         const iterator_type m_end;
