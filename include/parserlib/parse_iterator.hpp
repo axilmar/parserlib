@@ -106,7 +106,7 @@ namespace parserlib {
          * Increments the line of the text position.
          * @return reference to this.
          */
-        parse_iterator& increment_text_position_line() noexcept {
+        parse_iterator& increment_line() noexcept {
             m_text_position.increment_line();
             return *this;
         }

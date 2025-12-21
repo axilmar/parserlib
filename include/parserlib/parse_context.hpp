@@ -198,10 +198,10 @@ namespace parserlib {
         }
 
         /**
-         * Increments the text position line.
+         * Increments the parse position line.
          */
-        void increment_text_position_line() {
-            m_state.m_match_parse_state.m_iterator = m_state.m_parse_state.m_iterator.increment_text_position_line();
+        void increment_parse_position_line() {
+            m_state.m_match_parse_state.m_iterator = m_state.m_parse_state.m_iterator.increment_line();
         }
 
         /**
@@ -228,7 +228,7 @@ namespace parserlib {
          * @return their numeric difference.
          */
         template <class L, class R>
-        static int compare_symbols(const L& left, const R& right) noexcept {
+        int compare_symbols(const L& left, const R& right) const noexcept {
             return symbol_comparator_type::compare(left, right);
         }
 
