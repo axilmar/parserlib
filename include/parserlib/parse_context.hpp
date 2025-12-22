@@ -130,7 +130,7 @@ namespace parserlib {
              * Returns the end iterator.
              * @return the end iterator.
              */
-            const iterator_type& get_end() const {
+            const iterator_type& get_end_iterator() const {
                 return m_end;
             }
 
@@ -210,6 +210,14 @@ namespace parserlib {
          */
         const iterator_type& get_iterator() const {
             return m_state.m_parse_state.m_iterator;
+        }
+
+        /**
+            * Returns the end iterator.
+            * @return the end iterator.
+            */
+        const iterator_type& get_end_iterator() const {
+            return m_end;
         }
 
         /**

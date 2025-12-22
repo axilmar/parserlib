@@ -10,5 +10,5 @@ void run_tests() {
 	make_parse_node("a");
 	set("a");
 	!range('a', 'z');
-	terminal('a')->*1;
+	parse_node_ptr<parse_context<>> ptr = terminal('a')->*1;
 }
