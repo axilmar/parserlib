@@ -319,14 +319,14 @@ namespace parserlib {
         }
 
         /**
-         * Executes a function.
-         * If the function fails, or an exception happens, 
+         * Executes a parse function.
+         * If the function fails, 
          * then the state of this parse context is restored.
          * @param fn function; it is passed this parse context.
          * @return true if the function suceeds, false otherwise.
          */
         template <class F>
-        bool do_and_restore_state_on_failure(const F& fn) {
+        bool parse_and_restore_state_on_failure(const F& fn) {
             const state initial_state = m_state;
             try {
                 if (fn()) {
@@ -342,13 +342,12 @@ namespace parserlib {
         }
 
         /**
-         * Executes a function, then restores the state to the one before the function was called.
-         * If an exception happens, then the state of this parse context is restored.
+         * Executes a parse function, then restores the parse context state.
          * @param fn function; it is passed this parse context.
          * @return true if the function suceeds, false otherwise.
          */
         template <class F>
-        bool do_and_restore_state(const F& fn) {
+        bool parse_and_restore_state(const F& fn) {
             const state initial_state = m_state;
             try {
                 const bool result = fn();

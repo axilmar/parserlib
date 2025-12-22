@@ -3,7 +3,8 @@ using namespace parserlib;
 
 
 void run_tests() {
-	terminal('a');
+	auto s = terminal('a') >> 'b' >> 'c' >> any() >> true >> debug(terminal('a')) >> end() >> newline('\n');
+	auto c = terminal('a') | 'b' | 'c';
 	make_parse_node('a');
 	terminal("a");
 	make_parse_node("a");

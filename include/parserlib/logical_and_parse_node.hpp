@@ -31,7 +31,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return pc.do_and_restore_state([&]() { 
+            return pc.parse_and_restore_state([&]() { 
                 return m_child.parse(pc);
             });
         }
