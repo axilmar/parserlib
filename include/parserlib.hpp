@@ -20,6 +20,10 @@
 #include "parserlib/logical_not_parse_node.hpp"
 #include "parserlib/sequence_parse_node.hpp"
 #include "parserlib/choice_parse_node.hpp"
+#include "parserlib/match_parse_node.hpp"
+#include "parserlib/error_parse_node.hpp"
+#include "parserlib/skip_before_parse_node.hpp"
+#include "parserlib/skip_after_parse_node.hpp"
 
 
 #endif // PARSERLIB_HPP

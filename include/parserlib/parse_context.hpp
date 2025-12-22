@@ -123,7 +123,7 @@ namespace parserlib {
              * @return the parse state for matches.
              */
             const parse_state& get_match_parse_state() const noexcept {
-                return m_match_parse_state();
+                return m_match_parse_state;
             }
 
             /**
