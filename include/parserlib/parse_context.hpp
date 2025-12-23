@@ -2,10 +2,12 @@
 #define PARSERLIB_PARSE_CONTEXT_HPP
 
 
+#include <map>
 #include "match.hpp"
 #include "parse_error.hpp"
 #include "default_symbol_comparator.hpp"
 #include "parse_iterator.hpp"
+#include "left_recursion_status.hpp"
 
 
 namespace parserlib {
@@ -37,7 +39,7 @@ namespace parserlib {
         using error_id_type = ErrorId;
 
         /** Symbol comparator type. */
-        using symbol_comparator_type = default_symbol_comparator;
+        using symbol_comparator_type = SymbolComparator;
 
         /** Parse context type. */
         using parse_context_type = parse_context<Iterator, MatchId, ErrorId, SymbolComparator>;
@@ -140,6 +142,43 @@ namespace parserlib {
             iterator_type m_end;
 
             friend parse_context_type;
+        };
+
+        /**
+         * Left recursion state.
+         */
+        class left_recursion_state {
+        public:
+            /**
+             * The constructor.
+             * @param it the iterator.
+             * @param st the status.
+             */
+            left_recursion_state(const iterator_type& it, left_recursion_status st)
+                : m_iterator(it)
+                , m_status(st)
+            {
+            }
+
+            /**
+             * Returns the iterator.
+             * @return the iterator.
+             */
+            const iterator_type& get_iterator() const {
+                return m_iterator;
+            }
+
+            /**
+             * Returns the status.
+             * @return the status.
+             */
+            left_recursion_status get_status() const {
+                return m_status;
+            }
+
+        private:
+            iterator_type m_iterator;
+            left_recursion_status m_status;
         };
 
         /**
@@ -254,7 +293,7 @@ namespace parserlib {
          */
         void set_state(const state& s) {
             m_state = s;
-            m_matches.resize(s.m_parse_state.match_count);
+            m_matches.resize(s.m_parse_state.m_match_count);
         }
 
         /**
@@ -327,45 +366,13 @@ namespace parserlib {
         }
 
         /**
-         * Executes a parse function.
-         * If the function fails, 
-         * then the state of this parse context is restored.
-         * @param fn function; it is passed this parse context.
-         * @return true if the function suceeds, false otherwise.
+         * Returns the left recursion state for the specific parse node.
+         * @param pn address of parse node; used only as a key to a map.
+         * @return the left recursion state for this parse node.
          */
-        template <class F>
-        bool parse_and_restore_state_on_failure(const F& fn) {
-            const state initial_state = m_state;
-            try {
-                if (fn()) {
-                    return true;
-                }
-                m_state = initial_state;
-            }
-            catch (...) {
-                m_state = initial_state;
-                throw;
-            }
-            return false;
-        }
-
-        /**
-         * Executes a parse function, then restores the parse context state.
-         * @param fn function; it is passed this parse context.
-         * @return true if the function suceeds, false otherwise.
-         */
-        template <class F>
-        bool parse_and_restore_state(const F& fn) {
-            const state initial_state = m_state;
-            try {
-                const bool result = fn();
-                m_state = initial_state;
-                return result;
-            }
-            catch (...) {
-                m_state = initial_state;
-                throw;
-            }
+        left_recursion_state& get_left_recursion_state(const void* pn) {
+            const auto [it, ok] = m_left_recursion_states.insert(std::make_pair(pn, left_recursion_state(m_end, left_recursion_status::no_left_recursion)));
+            return it->second;
         }
 
     private:
@@ -373,6 +380,7 @@ namespace parserlib {
         const iterator_type m_end;
         match_container_type m_matches;
         parse_error_container_type m_errors;
+        std::map<const void*, left_recursion_state> m_left_recursion_states;
     };
 
 

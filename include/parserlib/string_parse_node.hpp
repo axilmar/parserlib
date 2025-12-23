@@ -34,14 +34,14 @@ namespace parserlib {
 		template <class ParseContext>
 		bool parse(ParseContext& pc) const {
 			if (pc.is_valid_parse_position()) {
-				const auto itString = m_string.begin();
-				const auto itSource = pc.get_iterator();
+				auto itString = m_string.begin();
+				auto itSource = pc.get_iterator();
 				for (;;) {
 					if (itString == m_string.end()) {
 						pc.increment_parse_position(m_string.size());
 						return true;
 					}
-					if (itSource == pc.get_state().get_end()) {
+					if (itSource == pc.get_state().get_end_iterator()) {
 						break;
 					}
 					const auto string_char = *itString;

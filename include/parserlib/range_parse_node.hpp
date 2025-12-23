@@ -36,7 +36,7 @@ namespace parserlib {
 		template <class ParseContext>
 		bool parse(ParseContext& pc) const {
 			if (pc.is_valid_parse_position()) {
-				const auto current_symbol = pc.get_range();
+				const auto current_symbol = pc.get_symbol();
 				if (pc.compare_symbols(m_min, current_symbol) <= 0 && pc.compare_symbols(m_max, current_symbol) >= 0) {
 					pc.increment_parse_position();
 					return true;

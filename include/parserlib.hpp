@@ -2,6 +2,7 @@
 #define PARSERLIB_HPP
 
 
+#include "parserlib/case_sensitive_symbol_comparator.hpp"
 #include "parserlib/parse_context.hpp"
 #include "parserlib/parse_iterator.hpp"
 #include "parserlib/symbol_parse_node.hpp"
@@ -12,6 +13,7 @@
 #include "parserlib/bool_parse_node.hpp"
 #include "parserlib/debug_parse_node.hpp"
 #include "parserlib/end_parse_node.hpp"
+#include "parserlib/function_parse_node.hpp"
 #include "parserlib/newline_parse_node.hpp"
 #include "parserlib/loop0_parse_node.hpp"
 #include "parserlib/loop1_parse_node.hpp"
@@ -25,6 +27,7 @@
 #include "parserlib/skip_before_parse_node.hpp"
 #include "parserlib/skip_after_parse_node.hpp"
 #include "parserlib/parse_node_ptr.hpp"
+#include "parserlib/rule.hpp"
 
 
 #endif // PARSERLIB_HPP

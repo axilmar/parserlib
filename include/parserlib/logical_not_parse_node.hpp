@@ -3,6 +3,7 @@
 
 
 #include "parse_node.hpp"
+#include "parse_algorithms.hpp"
 
 
 namespace parserlib {
@@ -31,7 +32,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return pc.parse_and_restore_state([&]() { 
+            return parse_and_restore_state(pc, [&]() { 
                 return !m_child.parse(pc);
             });
         }

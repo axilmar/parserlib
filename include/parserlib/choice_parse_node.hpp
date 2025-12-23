@@ -5,6 +5,7 @@
 #include <tuple>
 #include <type_traits>
 #include "parse_node.hpp"
+#include "parse_algorithms.hpp"
 
 
 namespace parserlib {
@@ -60,7 +61,7 @@ namespace parserlib {
 
         template <class ParseContext, class Child>
         static bool _parse_child(ParseContext& pc, const Child& child) {
-            return pc.parse_and_restore_state_on_failure([&]() {
+            return parse_and_restore_state_on_failure(pc, [&]() {
                 return child.parse(pc);
             });
         }
