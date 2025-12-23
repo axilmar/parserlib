@@ -740,6 +740,11 @@ static void test_parse_recursion() {
 }
 
 
+static void test_parse_left_recursion() {
+    //TODO
+}
+
+
 void run_tests() {
     /*
     test_parse_any();
@@ -763,6 +768,7 @@ void run_tests() {
     test_parse_set();
     test_parse_string();
     test_parse_symbol();
-    */
     test_parse_recursion();
+    */
+    test_parse_left_recursion();
 }
