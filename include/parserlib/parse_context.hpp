@@ -3,6 +3,7 @@
 
 
 #include <map>
+#include <algorithm>
 #include "match.hpp"
 #include "parse_error.hpp"
 #include "default_symbol_comparator.hpp"
@@ -153,10 +154,12 @@ namespace parserlib {
              * The constructor.
              * @param it the iterator.
              * @param st the status.
+             * @param initial the initial status; initial state is invalid.
              */
-            left_recursion_state(const iterator_type& it, left_recursion_status st)
+            left_recursion_state(const iterator_type& it, left_recursion_status st, bool initial = false)
                 : m_iterator(it)
                 , m_status(st)
+                , m_initial_state(initial)
             {
             }
 
@@ -176,9 +179,18 @@ namespace parserlib {
                 return m_status;
             }
 
+            /**
+             * Checks if this state is the initial one.
+             * @return true if the state is the initial one, false otherwise.
+             */
+            bool is_initial_state() const {
+                return m_initial_state;
+            }
+
         private:
             iterator_type m_iterator;
             left_recursion_status m_status;
+            bool m_initial_state;
         };
 
         /**
@@ -189,6 +201,7 @@ namespace parserlib {
         parse_context(const iterator_type& begin, const iterator_type& end)
             : m_state(begin, end)
             , m_end(end)
+            , m_initial_left_recursion_state(begin, left_recursion_status::no_left_recursion, true)
         {
         }
 
@@ -371,7 +384,7 @@ namespace parserlib {
          * @return the left recursion state for this parse node.
          */
         left_recursion_state& get_left_recursion_state(const void* pn) {
-            const auto [it, ok] = m_left_recursion_states.insert(std::make_pair(pn, left_recursion_state(m_end, left_recursion_status::no_left_recursion)));
+            const auto [it, ok] = m_left_recursion_states.insert(std::make_pair(pn, m_initial_left_recursion_state));
             return it->second;
         }
 
@@ -381,6 +394,7 @@ namespace parserlib {
         match_container_type m_matches;
         parse_error_container_type m_errors;
         std::map<const void*, left_recursion_state> m_left_recursion_states;
+        const left_recursion_state m_initial_left_recursion_state;
     };
 
 

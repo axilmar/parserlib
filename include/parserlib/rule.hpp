@@ -12,14 +12,25 @@
 namespace parserlib {
 
 
+    /**
+     * A parse node that allows grammars to be recursive.
+     * @param ParseContext type of parse context to use.
+     */
     template <class ParseContext>
     class rule : public parse_node<rule<ParseContext>> {
     public:
+        /**
+         * The default constructor.
+         */
         rule() 
             : m_ref(make_ref(this))
         {
         }
 
+        /**
+         * The copy constructor.
+         * @param r the source object.
+         */
         rule(const rule& r)
             : m_ref(make_ref(std::addressof(r)))
         {
@@ -27,25 +38,44 @@ namespace parserlib {
 
         rule(rule&& r) = delete;
 
+        /**
+         * Constructor from value/parse node.
+         * @param value value/parse node.
+         */
         template <class T>
         rule(const T& value)
             : m_ref(make_ref(this, make_wrapper(value)))
         {
         }
 
+        /**
+         * The copy assignment operator.
+         * @param r the source object.
+         * @return reference to this.
+         */
         rule& operator = (const rule& r) {
-            m_ref = r.m_ref;
+            m_ref = make_ref(std::addressof(r));
             return *this;
         }
 
         rule& operator = (rule&& r) = delete;
 
+        /**
+         * Assignment from value/parse node.
+         * @param value value/parse node.
+         * @return reference to this.
+         */
         template <class T>
         rule& operator = (const T& value) {
             m_ref->parse_node = make_wrapper(value);
             return *this;
         }
 
+        /**
+         * Parses using the left recursion parsing algorithm.
+         * @param pc the parse context.
+         * @return true on success, false on failure.
+         */
         bool parse(ParseContext& pc) const {
             const parse_node_wrapper<ParseContext>& pn = *m_ref->parse_node;
             return parse_left_recursion_algorithm::parse(pc, pn);

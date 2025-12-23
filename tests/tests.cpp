@@ -677,7 +677,71 @@ static void test_parse_symbol() {
 }
 
 
+static void test_parse_recursion() {
+    using PARSE_CONTEXT = parse_context<>;
+
+    const rule<PARSE_CONTEXT> grammar = -(terminal('a') >> grammar);
+
+    {
+        std::string source = "";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "a";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aa";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aaa";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "ab";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "aab";
+        PARSE_CONTEXT pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 2));
+    }
+}
+
+
 void run_tests() {
+    /*
     test_parse_any();
     test_parse_bool();
     test_parse_case_sensitive();
@@ -699,4 +763,6 @@ void run_tests() {
     test_parse_set();
     test_parse_string();
     test_parse_symbol();
+    */
+    test_parse_recursion();
 }

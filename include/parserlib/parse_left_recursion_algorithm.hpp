@@ -29,7 +29,7 @@ namespace parserlib {
             auto& lrs = pc.get_left_recursion_state(std::addressof(pn));
 
             //if the parse iterator has advanced from the last time, enter a new no-left-recursion state
-            if (lrs.get_iterator() != pc.get_iterator()) {
+            if (pc.get_iterator() != lrs.get_iterator() || lrs.is_initial_state()) {
                 return parse_no_left_recursion(pc, pn, lrs);
             }
 
