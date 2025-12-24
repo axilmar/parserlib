@@ -105,7 +105,7 @@ namespace parserlib {
         static bool handle_left_recursion(ParseContext& pc, const ParseNode& pn, LeftRecursionState& lrs) {
             //get the match parse state to later activate it for the accept phase,
             //in order to maintain left associativity.
-            const auto match_parse_state = pc.get_match_parse_state();
+            const auto mps = pc.get_match_parse_state();
 
             //try the reject phase
             if (!parse_left_recursion_status(pc, pn, lrs, left_recursion_status::reject_left_recursion)) {
@@ -116,7 +116,7 @@ namespace parserlib {
             for (;;) {
                 //activate the match parse state, so as that following matches
                 //start from the correct point
-                pc.set_match_parse_state(match_parse_state);
+                pc.set_match_parse_state(mps);
 
                 //block terminal parsing; before any terminal is parsed,
                 //there must be an 'accept'.

@@ -237,7 +237,8 @@ namespace parserlib {
          * If the end of input is exceeded, the result is undefined.
          */
         void increment_parse_position() {
-            m_state.m_match_parse_state.m_iterator = ++m_state.m_parse_state.m_iterator;
+            ++m_state.m_parse_state.m_iterator;
+            m_state.m_match_parse_state = m_state.m_parse_state;
         }
 
         /**
@@ -246,14 +247,16 @@ namespace parserlib {
          * @param count number of positions to increment the parse position.
          */
         void increment_parse_position(size_t count) {
-            m_state.m_match_parse_state.m_iterator = m_state.m_parse_state.m_iterator += count;
+            m_state.m_parse_state.m_iterator += count;
+            m_state.m_match_parse_state = m_state.m_parse_state;
         }
 
         /**
          * Increments the parse position line.
          */
         void increment_parse_position_line() {
-            m_state.m_match_parse_state.m_iterator = m_state.m_parse_state.m_iterator.increment_line();
+            m_state.m_parse_state.m_iterator.increment_line();
+            m_state.m_match_parse_state = m_state.m_parse_state;
         }
 
         /**
