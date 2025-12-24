@@ -3,6 +3,8 @@
 
 
 #include <string>
+#include <vector>
+#include "is_char.hpp"
 
 
 namespace parserlib {
@@ -24,6 +26,9 @@ namespace parserlib {
 
         /** Source range type. */
         using source_range_type = source_range<Id, Iterator>;
+
+        /** value type. */
+        using value_type = typename iterator_type::value_type;
 
         /**
          * Returns the id of the source range.
@@ -47,6 +52,20 @@ namespace parserlib {
          */
         const iterator_type& end() const noexcept {
             return m_end;
+        }
+
+        /**
+         * Returns the portion of the source that corresponds to this range
+         * either as a string (for character types) or a vector (for non-character types).
+         * 
+         */
+        auto get_source() const {
+            if constexpr (is_char_v<value_type>) {
+                return std::basic_string<value_type>(m_begin, m_end);
+            }
+            else {
+                return std::vector<value_type>(m_begin, m_end);
+            }
         }
 
     protected:

@@ -36,7 +36,14 @@ namespace parserlib {
         {
         }
 
-        rule(rule&& r) = delete;
+        /**
+         * The move constructor.
+         * @param r the source object.
+         */
+        rule(rule&& r) 
+            : m_ref(make_common_ref(std::addressof(r), this))
+        {
+        }
 
         /**
          * Constructor from value/parse node.
@@ -65,7 +72,15 @@ namespace parserlib {
             return *this;
         }
 
-        rule& operator = (rule&& r) = delete;
+        /**
+         * The move assignment operator.
+         * @param r the source object.
+         * @return reference to this.
+         */
+        rule& operator = (rule&& r) {
+            m_ref = make_common_ref(std::addressof(r), this);
+            return *this;
+        }
 
         /**
          * Assignment from value/parse node.

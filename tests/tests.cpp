@@ -1,3 +1,5 @@
+#include <functional>
+#include <sstream>
 #include "parserlib.hpp"
 using namespace parserlib;
 
@@ -472,13 +474,13 @@ static void test_parse_optional() {
 
 
 static void test_parse_node_ptr() {
-    using PARSE_CONTEXT = parse_context<>;
+    using parse_context_type = parse_context<>;
 
-    parse_node_ptr<PARSE_CONTEXT> grammar = terminal('a');
+    parse_node_ptr<parse_context_type> grammar = terminal('a');
 
     {
         std::string source = "a";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
     }
@@ -523,13 +525,13 @@ static void test_parse_range() {
 
 
 static void test_parse_rule() {
-    using PARSE_CONTEXT = parse_context<>;
+    using parse_context_type = parse_context<>;
 
-    rule<PARSE_CONTEXT> grammar = terminal('a');
+    rule<parse_context_type> grammar = terminal('a');
 
     {
         std::string source = "a";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -537,7 +539,7 @@ static void test_parse_rule() {
 
     {
         std::string source = "b";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -678,13 +680,13 @@ static void test_parse_symbol() {
 
 
 static void test_parse_recursion() {
-    using PARSE_CONTEXT = parse_context<>;
+    using parse_context_type = parse_context<>;
 
-    const rule<PARSE_CONTEXT> grammar = -(terminal('a') >> grammar);
+    const rule<parse_context_type> grammar = -(terminal('a') >> grammar);
 
     {
         std::string source = "";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_parse_position());
@@ -692,7 +694,7 @@ static void test_parse_recursion() {
 
     {
         std::string source = "a";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_parse_position());
@@ -700,7 +702,7 @@ static void test_parse_recursion() {
 
     {
         std::string source = "aa";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_parse_position());
@@ -708,7 +710,7 @@ static void test_parse_recursion() {
 
     {
         std::string source = "aaa";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_parse_position());
@@ -716,7 +718,7 @@ static void test_parse_recursion() {
 
     {
         std::string source = "b";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.begin());
@@ -724,7 +726,7 @@ static void test_parse_recursion() {
 
     {
         std::string source = "ab";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == std::next(source.begin(), 1));
@@ -732,7 +734,7 @@ static void test_parse_recursion() {
 
     {
         std::string source = "aab";
-        PARSE_CONTEXT pc(source);
+        parse_context_type pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == std::next(source.begin(), 2));
@@ -741,7 +743,87 @@ static void test_parse_recursion() {
 
 
 static void test_parse_left_recursion() {
-    //TODO
+    /**** types ****/
+
+    using parse_context_type = parse_context<>;
+
+    using match_type = typename parse_context_type::match_type;
+
+    using rule_type = rule<parse_context_type>;
+
+    /**** grammar ****/
+
+    enum {NUM, ADD, SUB, MUL, DIV};
+
+    rule_type add, mul;
+
+    auto digit = range('0', '9');
+
+    auto num = (+digit >> -('.' >> +digit))->*NUM;
+
+    auto val = '(' >> add >> ')'
+             | num;
+
+    add = (add >> '+' >> mul)->*ADD
+        | (add >> '-' >> mul)->*SUB
+        | mul;
+
+    mul = (mul >> '*' >> val)->*MUL
+        | (mul >> '/' >> val)->*DIV
+        | val;
+
+    auto grammar = add;
+
+    /*** helper functions ****/
+
+    std::function<double(const match_type&)> eval;
+
+    eval = [&](const match_type& match) {
+        switch (match.get_id()) {
+            case NUM: {
+                std::stringstream stream;
+                stream << match.get_source();
+                double v;
+                stream >> v;
+                return v;
+            }
+
+            case ADD:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) + eval(match.get_children()[1]);
+
+            case SUB:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) - eval(match.get_children()[1]);
+
+            case MUL:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) * eval(match.get_children()[1]);
+
+            case DIV:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) / eval(match.get_children()[1]);
+        }
+
+        throw std::runtime_error("calculator::eval: invalid match id");
+    };
+
+    auto calc = [&](const char* expr, double val) {
+        std::string source = expr;
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        const double eval_value = eval(pc.get_matches()[0]);
+        assert(eval_value == val);
+    };
+
+    #define CALC(EXPR) calc(#EXPR, EXPR)
+
+    /*** tests ****/
+
+    CALC(1);
+
 }
 
 
