@@ -1,80 +1,21 @@
 # Parserlib
 
-* [Introduction](#introduction)
-* [Using the library](./doc/using_the_library.md)
-* [Writing a parser](./doc/writing_a_parser.md)
-* [Using a parser](./doc/using_a_parser.md)
-* [Debugging a parser](./doc/debugging_a_parser.md)
-* [Parsing left recursion grammars](./doc/left_recursion.md)
-* [Writing a tokenizer and parser](./doc/tokenizer_and_parser.md)
-* [Examples](#examples)
+A C++17 Parsing Expression Grammar recursive-descent parsing library.
+
 * [Changes](#changes)
 
-Full code documentation at [./doc/doxygen/html/index.html](./doc/doxygen/html/index.html).
+**Current Version**
 
-## Introduction
-
-`Parserlib` is a `c++17` header only library that allows building of recursive-descent parsers using EBNF-like syntax.
-
-**Features**
-
-* c++17 (tested with msvc and gcc).
-* header-only.
-* recursive-descent parsing.
-* parsing of left-recursive grammars.
-* EBNF-like syntax.
-* character/custom type parsing.
-* extensible via templates.
-* multiple error handling.
-* ASTs (Abstract Syntax Trees).
-* debugging via annotations.
-* debugging via inspecting grammar as text.
-
-**Version**
-
-1.0.0.9
-
-**Quick example**
-
-The following program implements and uses a calculator parser on strings:
-
-```cpp
-#include "parserlib.hpp"
-using namespace parserlib;
-
-extern rule<> expr;
-
-const auto digit = range('0', '9');
-
-const auto number = +digit >> -('.' >> +digit);
-
-rule<> val = number
-           | '(' >> expr >> ')';
-
-rule<> mul = mul >> '*' >> val
-           | mul >> '/' >> val
-           | val;
-
-rule<> add = add >> '+' >> mul
-           | add >> '-' >> mul
-           | mul;
-
-rule<> expr = add;
-
-int main() {
-	std::string input = "1+2/(3*4)";
-    parse_context<> pc(input);
-    const bool result = expr.parse(pc);
-    return 0;
-}
-```
-
-## Examples
-
-* [JSON parser](./examples/json.hpp)
-* [XML parser](./examples/xml.hpp)
+1.0.0.10
 
 ## Changes
+
+- 1.0.0.10
+
+	- changed the parse context API so it is also usable with stream iterators.
+	- removed some features that were not really useful.
+	- rules no longer need to be bound variables.
+	- TODO documentation.
 
 - 1.0.0.9
 	- Rewritten again from scratch in order to improve the quality.
