@@ -1,279 +1,1124 @@
-#include <iostream>
 #include <functional>
+#include <sstream>
 #include "parserlib.hpp"
-
-
 using namespace parserlib;
 
 
-#define ASSERT(FILE, LINE, COND) {\
-    if ((COND) == false) {\
-        std::cout << "Assertion failed: file " << FILE << ", line " << LINE << ": " << #COND << std::endl;\
-    }\
-}
+static void test_parse_any() {
+    const auto grammar = any();
 
-
-#define DO_TEST(...) do_test(__FILE__, __LINE__, __VA_ARGS__)
-
-
-struct test_match {
-    size_t begin;
-    size_t end;
-    const char* text;
-    int id;
-    std::vector<test_match> children;
-};
-
-
-struct test_error {
-    size_t begin;
-    size_t end;
-    int id;
-};
-
-
-using text_parse_context = container_parse_context<std::string, int, int, text_source_position>;
-
-
-struct any_value {
-    template <class T>
-    operator T() const {
-        return T();
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
     }
-};
 
-
-#define _ any_value()
-
-
-template <class MatchContainer>
-static void do_test_matches(const char* file, const int line, const std::string& source, const MatchContainer& matches, const std::vector<test_match>& test_matches) {
-    ASSERT(file, line, matches.size() == test_matches.size());
-    for (size_t index = 0; index < test_matches.size(); ++index) {
-        const auto& context_match = matches[index];
-        const struct test_match& test_match = test_matches[index];
-        ASSERT(file, line, context_match.get_begin_parse_position().get_iterator() == std::next(source.begin(), test_match.begin));
-        ASSERT(file, line, context_match.get_end_parse_position().get_iterator() == std::next(source.begin(), test_match.end));
-        ASSERT(file, line, context_match.get_source<std::string>() == test_match.text);
-        ASSERT(file, line, static_cast<int>(context_match.get_id()) == test_match.id);
-        do_test_matches(file, line, source, context_match.get_children(), test_match.children);
+    {
+        std::string source = "";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_end_parse_position());
     }
 }
 
 
-template <class Grammar>
-static void do_test(
-    const char* file,
-    const int line,
-    const Grammar& grammar, 
-    const std::string& input, 
-    bool test_result, 
-    const std::vector<test_match>& test_matches = {}, 
-    const std::vector<test_error>& test_errors = {},
-    const std::function<bool(text_parse_context&)>& other_test = {})
-{
-    std::string source = input;
-    text_parse_context context(source);
-    const bool result = grammar.parse(context);
-    
-    //test the parse result
-    ASSERT(file, line, result == test_result);
-
-    //test the matches
-    do_test_matches(file, line, source, context.get_matches(), test_matches);
-
-    //test the errors
-    ASSERT(file, line, context.get_errors().size() == test_errors.size());
-    for (size_t index = 0; index < test_errors.size(); ++index) {
-        const auto& context_error = context.get_errors()[index];
-        const struct test_error& test_error = test_errors[index];
-        ASSERT(file, line, context_error.get_begin_parse_position().get_iterator() == std::next(source.begin(), test_error.begin));
-        ASSERT(file, line, context_error.get_end_parse_position().get_iterator() == std::next(source.begin(), test_error.end));
-        ASSERT(file, line, context_error.get_id() == test_error.id);
+static void test_parse_bool() {
+    {
+        const auto grammar = make_parse_node(true);
+        std::string source = "";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
     }
 
-    //other test
-    if (other_test) {
-        ASSERT(file, line, other_test(context));
+    {
+        const auto grammar = make_parse_node(false);
+        std::string source = "";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_end_parse_position());
+    }
+}
+
+
+static void test_parse_case_sensitive() {
+    const auto grammar = terminal('a');
+
+    {
+        std::string source = "a";
+        parse_context<std::string::const_iterator, int, int, case_sensitive_symbol_comparator> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+    }
+
+    {
+        std::string source = "A";
+        parse_context<std::string::const_iterator, int, int, case_sensitive_symbol_comparator> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+    }
+
+    {
+        std::string source = "b";
+        parse_context<std::string::const_iterator, int, int, case_sensitive_symbol_comparator> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+    }
+
+    {
+        std::string source = "B";
+        parse_context<std::string::const_iterator, int, int, case_sensitive_symbol_comparator> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+    }
+}
+
+
+static void test_parse_choice() {
+    const auto grammar = terminal('a') | 'b' | 'c';
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "c";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "d";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
+    }
+}
+
+
+static void test_parse_end() {
+    const auto grammar = end();
+
+    {
+        std::string source = "";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
+    }
+}
+
+
+static void test_parse_error_skip_before() {
+    const auto grammar = terminal('a') >> terminal(';') | error(1, skip_before(';'));
+
+    {
+        std::string source = "a;";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_errors().size() == 0);
+    }
+
+    {
+        std::string source = "b;";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 1));
+        assert(pc.get_errors().size() == 1);
+        assert(pc.get_errors()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_errors()[0].end() == std::next(source.begin(), 1));
+    }
+}
+
+
+static void test_parse_error_skip_after() {
+    const auto grammar = terminal('a') >> terminal(';') | error(1, skip_after(';'));
+
+    {
+        std::string source = "a;";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_errors().size() == 0);
+    }
+
+    {
+        std::string source = "b;";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 2));
+        assert(pc.get_errors().size() == 1);
+        assert(pc.get_errors()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_errors()[0].end() == std::next(source.begin(), 2));
+    }
+}
+
+
+static void test_parse_function() {
+    const auto grammar = function([](auto& pc) {
+        if (pc.is_valid_parse_position() && pc.compare_symbols(pc.get_symbol(), 'a') == 0) {
+            pc.increment_parse_position();
+            return true;
+        }
+        return false;
+    });
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
+    }
+}
+
+
+static void test_parse_logical_and() {
+    const auto grammar = &terminal('a');
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_valid_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
+    }
+}
+
+
+static void test_parse_logical_not() {
+    const auto grammar = !terminal('b');
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_valid_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
+    }
+}
+
+
+static void test_parse_loop0() {
+    const auto grammar = *terminal('a');
+
+    {
+        std::string source = "";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aa";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aaa";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "ab";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "aab";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 2));
+    }
+}
+
+
+static void test_parse_loop1() {
+    const auto grammar = +terminal('a');
+
+    {
+        std::string source = "";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aa";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aaa";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "ab";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "aab";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 2));
+    }
+}
+
+
+static void test_parse_match() {
+    enum MATCH_ID { A, B, C, D };
+
+    const auto a = terminal('a')->*A;
+    const auto b = terminal('b')->*B;
+    const auto c = terminal('c')->*C;
+    const auto d = (b >> c)->*D;
+    const auto grammar = a | d | b | c;
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        assert(pc.get_matches()[0].get_id() == A);
+        assert(pc.get_matches()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_matches()[0].end() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        assert(pc.get_matches()[0].get_id() == B);
+        assert(pc.get_matches()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_matches()[0].end() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "c";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        assert(pc.get_matches()[0].get_id() == C);
+        assert(pc.get_matches()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_matches()[0].end() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "bc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        assert(pc.get_matches()[0].get_id() == D);
+        assert(pc.get_matches()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_matches()[0].end() == std::next(source.begin(), 2));
+        assert(pc.get_matches()[0].get_children().size() == 2);
+        assert(pc.get_matches()[0].get_children()[0].get_id() == B);
+        assert(pc.get_matches()[0].get_children()[0].begin() == std::next(source.begin(), 0));
+        assert(pc.get_matches()[0].get_children()[0].end() == std::next(source.begin(), 1));
+        assert(pc.get_matches()[0].get_children()[1].get_id() == C);
+        assert(pc.get_matches()[0].get_children()[1].begin() == std::next(source.begin(), 1));
+        assert(pc.get_matches()[0].get_children()[1].end() == std::next(source.begin(), 2));
+    }
+}
+
+
+static void test_parse_newline() {
+    const auto grammar = *(newline('\n') | terminal('a'));
+
+    {
+        std::string source = "a\na";
+        parse_context<parse_iterator<std::string::const_iterator, file_text_position>> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator().get_text_position().get_line() == 2);
+        assert(pc.get_iterator().get_text_position().get_column() == 2);
+    }
+}
+
+
+static void test_parse_optional() {
+    const auto grammar = -terminal('a');
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.begin());
+    }
+}
+
+
+static void test_parse_node_ptr() {
+    using parse_context_type = parse_context<>;
+
+    parse_node_ptr<parse_context_type> grammar = terminal('a');
+
+    {
+        std::string source = "a";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+    }
+}
+
+
+static void test_parse_range() {
+    const auto grammar = range('0', '9');
+
+    {
+        std::string source = "0";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "5";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "9";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+}
+
+
+static void test_parse_rule() {
+    using parse_context_type = parse_context<>;
+
+    rule<parse_context_type> grammar = terminal('a');
+
+    {
+        std::string source = "a";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "b";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+}
+
+
+static void test_parse_sequence() {
+    const auto grammar = terminal('a') >> "b" >> 'c';
+
+    {
+        std::string source = "abc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "xbc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "axc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "abx";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+}
+
+
+static void test_parse_set() {
+    const auto grammar = set("0123456789");
+
+    {
+        std::string source = "0";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "5";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "9";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+}
+
+
+static void test_parse_string() {
+    const auto grammar = terminal("abc");
+
+    {
+        std::string source = "abc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.end());
+    }
+
+    {
+        std::string source = "xbc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "axc";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "abx";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.get_iterator() == source.begin());
     }
 }
 
 
 static void test_parse_symbol() {
     const auto grammar = terminal('a');
-    DO_TEST(grammar, "a", true);
-    DO_TEST(grammar, "b", false);
-}
 
-
-static void test_parse_string() {
-    const auto grammar = terminal("abc");
-    DO_TEST(grammar, "abc", true);
-    DO_TEST(grammar, "abd", false);
-}
-
-
-static void test_parse_set() {
-    const auto grammar = set("abc");
-    DO_TEST(grammar, "a", true);
-    DO_TEST(grammar, "b", true);
-    DO_TEST(grammar, "c", true);
-    DO_TEST(grammar, "A", false);
-    DO_TEST(grammar, "d", false);
-}
-
-
-static void test_parse_range() {
-    const auto grammar = range('0', '9');
-    DO_TEST(grammar, "0", true);
-    DO_TEST(grammar, "5", true);
-    DO_TEST(grammar, "9", true);
-    DO_TEST(grammar, "a", false);
-    DO_TEST(grammar, "b", false);
-}
-
-
-static void test_parse_any() {
-    const auto grammar = any();
-    DO_TEST(grammar, "a", true);
-    DO_TEST(grammar, "b", true);
-    DO_TEST(grammar, "", false);
-}
-
-
-static void test_parse_end() {
-    const auto grammar = end();
-    DO_TEST(grammar, "", true);
-    DO_TEST(grammar, "b", false);
-}
-
-
-static void test_parse_bool() {
-    DO_TEST(terminal('a') >> true, "a", true);
-    DO_TEST(terminal('a') >> false, "a", false);
-}
-
-
-static void test_parse_newline() {
-    const auto grammar = newline('\n');
-    DO_TEST(grammar, "\n", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_source_position().get_line() == 2; });
-    DO_TEST(grammar, "a", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_source_position().get_line() == 1; });
-}
-
-
-static void test_parse_error() {
     {
-        const auto grammar = terminal('a') >> ';' | error(1, skip_before(';'));
-        DO_TEST(grammar, "a;", true);
-        DO_TEST(grammar, "b;", true, _, { {0, 1, 1} }, [](const auto& pc) { return pc.get_parse_position().get_index() == 1; });
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
     }
+
     {
-        const auto grammar = terminal('a') >> ';' | error(1, skip_after(';'));
-        DO_TEST(grammar, "a;", true);
-        DO_TEST(grammar, "b;", true, _, { {0, 2, 1} }, [](const auto& pc) { return pc.get_parse_position().get_index() == 2; });
+        std::string source = "b";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
     }
 }
 
 
-static void test_parse_loop_0() {
-    const auto grammar = *terminal('a');
-    DO_TEST(grammar, "a", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "aa", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "aaa", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "b", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
+static void test_parse_recursion() {
+    using parse_context_type = parse_context<>;
+
+    const rule<parse_context_type> grammar = -(terminal('a') >> grammar);
+
+    {
+        std::string source = "";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "a";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aa";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "aaa";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == source.begin());
+    }
+
+    {
+        std::string source = "ab";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 1));
+    }
+
+    {
+        std::string source = "aab";
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_iterator() == std::next(source.begin(), 2));
+    }
 }
 
 
-static void test_parse_loop_1() {
-    const auto grammar = +terminal('a');
-    DO_TEST(grammar, "a", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "aa", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "aaa", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "ab", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 1; });
-    DO_TEST(grammar, "aab", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 2; });
-    DO_TEST(grammar, "", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-    DO_TEST(grammar, "b", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-}
+static void test_parse_left_recursion() {
+    /**** types ****/
 
+    using parse_context_type = parse_context<>;
 
-static void test_parse_optional() {
-    const auto grammar = -terminal('a');
-    DO_TEST(grammar, "a", true, _, _, [](const auto& pc) { return pc.is_end_parse_position(); });
-    DO_TEST(grammar, "b", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-}
+    using match_type = typename parse_context_type::match_type;
 
+    using rule_type = rule<parse_context_type>;
 
-static void test_parse_logical_and() {
-    const auto grammar = &terminal('a');
-    DO_TEST(grammar, "a", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-    DO_TEST(grammar, "b", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-}
+    /**** grammar ****/
 
+    enum {NUM, ADD, SUB, MUL, DIV};
 
-static void test_parse_logical_not() {
-    const auto grammar = !terminal('a');
-    DO_TEST(grammar, "a", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-    DO_TEST(grammar, "b", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-}
+    rule_type add, mul;
 
+    auto digit = range('0', '9');
 
-static void test_parse_sequence() {
-    const auto grammar = terminal('a') >> 'b';
-    DO_TEST(grammar, "ab", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 2; });
-    DO_TEST(grammar, "ac", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-}
+    auto num = (+digit >> -('.' >> +digit))->*NUM;
 
+    auto val = '(' >> add >> ')'
+             | num;
 
-static void test_parse_choice() {
-    const auto grammar = terminal('a') | 'b';
-    DO_TEST(grammar, "a", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 1; });
-    DO_TEST(grammar, "b", true, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 1; });
-    DO_TEST(grammar, "c", false, _, _, [](const auto& pc) { return pc.get_parse_position().get_index() == 0; });
-}
+    add = (add >> '+' >> mul)->*ADD
+        | (add >> '-' >> mul)->*SUB
+        | mul;
 
+    mul = (mul >> '*' >> val)->*MUL
+        | (mul >> '/' >> val)->*DIV
+        | val;
 
-static void test_parse_match() {
-    const auto grammar = +((terminal('a')->*1 >> terminal('b')->*2)->*4 | terminal('c')->*3);
-    DO_TEST(grammar, "ab", true, { {0, 2, "ab", 4, {{0, 1, "a", 1}, {1, 2, "b", 2}}} });
-    DO_TEST(grammar, "c", true, { {0, 1, "c", 3} });
-    DO_TEST(grammar, "abc", true, { {0, 2, "ab", 4, {{0, 1, "a", 1}, {1, 2, "b", 2}}}, {2, 3, "c", 3} });
-    DO_TEST(grammar, "d", false);
-}
+    auto grammar = add;
 
+    /*** helper functions ****/
 
-static void test_parse_node_ptr() {
-    const parse_node_ptr grammar = terminal('a');
-    DO_TEST(grammar, "a", true);
-    DO_TEST(grammar, "b", false);
-}
+    std::function<double(const match_type&)> eval;
 
+    eval = [&](const match_type& match) {
+        switch (match.get_id()) {
+            case NUM: {
+                std::stringstream stream;
+                stream << match.get_source();
+                double v;
+                stream >> v;
+                return v;
+            }
 
-static void test_parse_rule() {
-    const rule grammar = terminal('a');
-    DO_TEST(grammar, "a", true);
-    DO_TEST(grammar, "b", false);
+            case ADD:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) + eval(match.get_children()[1]);
+
+            case SUB:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) - eval(match.get_children()[1]);
+
+            case MUL:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) * eval(match.get_children()[1]);
+
+            case DIV:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) / eval(match.get_children()[1]);
+        }
+
+        throw std::runtime_error("calculator::eval: invalid match id");
+    };
+
+    auto calc = [&](const char* expr, double val) {
+        std::string source = expr;
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        const double eval_value = eval(pc.get_matches()[0]);
+        assert(eval_value == val);
+    };
+
+    #define TEST_CALC(EXPR) calc(#EXPR, EXPR)
+
+    /*** tests ****/
+
+    TEST_CALC(1.0);
+    TEST_CALC(1.0+2.0);
+    TEST_CALC(1.0-2.0);
+    TEST_CALC(1.0*2.0);
+    TEST_CALC(1.0/2.0);
+    TEST_CALC(1.0+2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0/4.0*5.0);
+    TEST_CALC((1.0+2.0)+3.0+4.0+5.0);
+    TEST_CALC(1.0+(2.0+3.0)+4.0-5.0);
+    TEST_CALC(1.0+2.0+(3.0+4.0)*5.0);
+    TEST_CALC(1.0+2.0+3.0+(4.0/5.0));
+    TEST_CALC((1.0+2.0+3.0)-4.0+5.0);
+    TEST_CALC(1.0+(2.0+3.0-4.0)-5.0);
+    TEST_CALC(1.0+2.0+(3.0-4.0*5.0));
+    TEST_CALC(1.0+2.0+(3.0-4.0)/5.0);
+    TEST_CALC(1.0+(2.0+3.0*4.0+5.0));
+    TEST_CALC((1.0+2.0+3.0*4.0)-5.0);
+    TEST_CALC((1.0+2.0+3.0*4.0*5.0));
 }
 
 
 void run_tests() {
-    test_parse_symbol();
-    test_parse_string();
-    test_parse_set();
-    test_parse_range();
     test_parse_any();
-    test_parse_end();
     test_parse_bool();
-    test_parse_newline();
-    test_parse_error();
-    test_parse_loop_0();
-    test_parse_loop_1();
-    test_parse_optional();
+    test_parse_case_sensitive();
+    test_parse_choice();
+    test_parse_end();
+    test_parse_error_skip_before();
+    test_parse_error_skip_after();
+    test_parse_function();
     test_parse_logical_and();
     test_parse_logical_not();
-    test_parse_sequence();
-    test_parse_choice();
+    test_parse_loop0();
+    test_parse_loop1();
     test_parse_match();
+    test_parse_newline();
+    test_parse_optional();
     test_parse_node_ptr();
+    test_parse_range();
     test_parse_rule();
+    test_parse_sequence();
+    test_parse_set();
+    test_parse_string();
+    test_parse_symbol();
+    test_parse_recursion();
+    test_parse_left_recursion();
 }
