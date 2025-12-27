@@ -105,6 +105,19 @@ namespace parserlib {
     }
 
 
+    /**
+     * The exclusion operator.
+     * It converts a grammar of the form `A - B` to `!B >> A`.
+     * @param left the left operand.
+     * @param right the right operand.
+     * @return the sequence of the logical negation of the right argument and the left argument.
+     */
+    template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, L> || std::is_base_of_v<parse_node_tag, R>, bool> = true>
+    auto operator - (const L& left, const R& right) {
+        return !make_parse_node(right) >> make_parse_node(left);
+    }
+
+
 } //namespace parserlib
 
 
