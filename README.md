@@ -1,7 +1,5 @@
 # Parserlib
 
-A C++17 Parsing Expression Grammar recursive-descent parsing library.
-
 * [Changes](#changes)
 
 **Current Version**
