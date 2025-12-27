@@ -23,9 +23,9 @@ namespace parserlib {
      * @param SymbolComparator symbol comparator type.
      */
     template <
-        class Iterator = typename std::string::const_iterator, 
-        class MatchId = int, 
-        class ErrorId = int, 
+        class Iterator = typename std::string::const_iterator,
+        class MatchId = int,
+        class ErrorId = int,
         class SymbolComparator = default_symbol_comparator
     >
     class parse_context {
@@ -84,7 +84,7 @@ namespace parserlib {
             /**
              * Returns the match count.
              * @return the match count.
-             */ 
+             */
             size_t get_match_count() const noexcept {
                 return m_match_count;
             }
@@ -97,7 +97,7 @@ namespace parserlib {
         };
 
         /**
-         * Parse context state. 
+         * Parse context state.
          */
         class state {
         public:
@@ -211,7 +211,7 @@ namespace parserlib {
          */
         template <class Container>
         parse_context(Container& src)
-            : parse_context(src.begin(), src.end())
+            : parse_context(src.cbegin(), src.cend())
         {
         }
 

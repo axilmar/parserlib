@@ -1097,7 +1097,6 @@ static void test_parse_left_recursion() {
 
 
 void run_tests() {
-    /*
     test_parse_any();
     test_parse_bool();
     test_parse_case_sensitive();
@@ -1109,6 +1108,7 @@ void run_tests() {
     test_parse_logical_and();
     test_parse_logical_not();
     test_parse_loop0();
+    test_parse_loop1();
     test_parse_match();
     test_parse_newline();
     test_parse_optional();
@@ -1120,6 +1120,5 @@ void run_tests() {
     test_parse_string();
     test_parse_symbol();
     test_parse_recursion();
-    */
     test_parse_left_recursion();
 }
