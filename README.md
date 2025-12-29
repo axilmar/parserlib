@@ -1,19 +1,61 @@
 # Parserlib
 
-* [Changes](#changes)
+A c++17 Parsing Expression Grammar (PEG) recursive-descent library.
 
 **Current Version**
 
 1.0.0.10
 
-## Changes
+**Features**
+
+- PEG parser with EBNF-like syntax.
+- recursive-descent parsing.
+- parses left-recursive grammars.
+- can be used as a lexer and parser.
+- supports case insensitive parsing.
+- supports line and column.
+- can be used on STL containers and streams.
+- supports the creation of ASTs.
+
+**Quick Example: Calculator**
+
+```cpp
+extern rule add;
+
+//digit
+auto digit = range('0', '9');
+
+//number
+auto number = +digit >> -('.' >> +digit);
+
+//value
+auto value = '(' >> add >> ')'
+           | number;
+
+//multiplication/division
+rule mul = mul >> '*' >> value
+         | mul >> '/' >> value
+         | value;
+
+//addition/subtraction
+rule add = add >> '+' >> mul
+         | add >> '-' >> mul
+         | mul;
+```
+
+## Table Of Contents
+
+* TODO documentation
+* [Changes](#changes)
+
+### Changes
 
 - 1.0.0.10
 
 	- changed the parse context API so it is also usable with stream iterators.
 	- removed some features that were not really useful.
 	- rules no longer need to be bound variables.
-	- TODO documentation.
+	- documentation.
 
 - 1.0.0.9
 	- Rewritten again from scratch in order to improve the quality.
