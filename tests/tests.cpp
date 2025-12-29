@@ -1096,6 +1096,31 @@ static void test_parse_left_recursion() {
 }
 
 
+static void test_parse_matches() {
+    enum { A, B, C };
+
+    const auto a = terminal('a')->*A;
+    const auto b = terminal('b')->*B;
+    const auto c = terminal('c')->*C;
+    const auto grammar1 = a >> b >> c;
+
+    std::string source = "abc";
+    parse_context<> pc1(source);
+    const auto result1 = grammar1.parse(pc1);
+    assert(result1);
+    assert(pc1.get_matches().size() == 3);
+
+    auto pc2 = pc1.derive_parse_context();
+    const auto grammar2 = (terminal(A)->*A) >> (terminal(B)->*B) >> (terminal(C)->*C);
+    const auto result2 = grammar2.parse(pc2);
+    assert(result2);
+    assert(pc2.get_matches().size() == pc1.get_matches().size());
+    assert(pc2.get_matches()[0].get_id() == pc1.get_matches()[0].get_id());
+    assert(pc2.get_matches()[1].get_id() == pc1.get_matches()[1].get_id());
+    assert(pc2.get_matches()[2].get_id() == pc1.get_matches()[2].get_id());
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1121,4 +1146,5 @@ void run_tests() {
     test_parse_symbol();
     test_parse_recursion();
     test_parse_left_recursion();
+    test_parse_matches();
 }

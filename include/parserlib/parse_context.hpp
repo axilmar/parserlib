@@ -391,6 +391,18 @@ namespace parserlib {
             return it->second;
         }
 
+        /**
+         * Creates a parse context for the matches.
+         * @param DerivedMatchId the match id type for the derived parse context.
+         * @param DerivedErrorId the error id type for the derived parse context.
+         * @param DerivedSymbolComparator the error id type for the derived parse context.
+         * @return a parse context that can be used to parse the matches of this parse context.
+         */
+        template <class DerivedMatchId = MatchId, class DerivedErrorId = ErrorId, class DerivedSymbolComparator = default_symbol_comparator>
+        auto derive_parse_context() {
+            return parse_context<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>(m_matches.begin(), m_matches.end());
+        }
+
     private:
         state m_state;
         const iterator_type m_end;
