@@ -28,6 +28,7 @@
 #include "parserlib/skip_after_parse_node.hpp"
 #include "parserlib/parse_node_ptr.hpp"
 #include "parserlib/rule.hpp"
+#include "parserlib/ast.hpp"
 
 
 #endif // PARSERLIB_HPP

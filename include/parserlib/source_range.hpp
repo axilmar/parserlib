@@ -12,7 +12,7 @@ namespace parserlib {
 
     /**
      * A class that represents a source range.
-     * @param Id id type of range.
+     * @param Id id type.
      * @param Iterator iterator type.
      */
     template <class Id = int, class Iterator = typename std::string::const_iterator>

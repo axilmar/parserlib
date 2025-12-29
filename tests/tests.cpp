@@ -1121,6 +1121,28 @@ static void test_parse_matches() {
 }
 
 
+static void test_ast() {
+    enum { GRAMMAR, A, B, C };
+
+    const auto a = terminal('a')->*A;
+    const auto b = terminal('b')->*B;
+    const auto c = terminal('c')->*C;
+    const auto grammar = (a >> b >> c)->*GRAMMAR;
+
+    std::string source = "abc";
+    parse_context<> pc1(source);
+    const auto result1 = grammar.parse(pc1);
+    assert(result1);
+    assert(pc1.get_matches().size() == 1);
+    auto ast = make_ast_node(pc1.get_matches()[0]);
+
+    assert(ast->get_id() == GRAMMAR);
+    assert((*std::next(ast->get_children().begin(), 0))->get_id() == A);
+    assert((*std::next(ast->get_children().begin(), 1))->get_id() == B);
+    assert((*std::next(ast->get_children().begin(), 2))->get_id() == C);
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1147,4 +1169,5 @@ void run_tests() {
     test_parse_recursion();
     test_parse_left_recursion();
     test_parse_matches();
+    test_ast();
 }
