@@ -85,10 +85,10 @@ namespace parserlib {
 	/**
 	 * Converts a parse node base type to its implementation type.
 	 * @param pn the parse node to convert.
-	 * @return the parse node's implementation type.
+	 * @return the parse node's implementation.
 	 */
 	template <class Impl>
-	const Impl& make_parse_node(const parse_node<Impl>& pn) {
+	Impl make_parse_node(const parse_node<Impl>& pn) {
 		return *pn.get_impl();
 	}
 
