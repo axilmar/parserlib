@@ -46,6 +46,7 @@ rule add = add >> '+' >> mul
 ## Table Of Contents
 
 * [Writing a parser](doc/writing_a_parser.md)
+* [Using a parser](doc/using_a_parser.md)
 * TODO documentation
 * [Changes](#changes)
 
