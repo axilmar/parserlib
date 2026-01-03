@@ -439,7 +439,9 @@ static void test_parse_match() {
 
 
 static void test_parse_newline() {
-    const auto grammar = *(newline('\n') | terminal('a'));
+    enum { A };
+
+    const auto grammar = *(newline('\n') | terminal('a')->*A);
 
     {
         std::string source = "a\na";
@@ -448,6 +450,11 @@ static void test_parse_newline() {
         assert(result);
         assert(pc.get_iterator().get_text_position().get_line() == 2);
         assert(pc.get_iterator().get_text_position().get_column() == 2);
+        assert(pc.get_matches().size() == 2);
+        assert(pc.get_matches()[0].get_id() == A);
+        assert(pc.get_matches()[1].get_id() == A);
+        assert(pc.get_matches()[0].get_source() == "a");
+        assert(pc.get_matches()[1].get_source() == "a");
     }
 }
 

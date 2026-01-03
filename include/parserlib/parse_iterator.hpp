@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <iterator>
 #include "file_text_position.hpp"
 
 
@@ -27,6 +28,9 @@ namespace parserlib {
 
         /** value type. */
         using value_type = typename iterator_type::value_type;
+
+        /** Iterator category. */
+        using iterator_category = std::input_iterator_tag;
 
         /**
          * The constructor.
@@ -118,6 +122,22 @@ namespace parserlib {
 
 
 } //namespace parserlib
+
+
+namespace std {
+
+
+    template <class Iterator, class TextPosition>
+    struct iterator_traits<parserlib::parse_iterator<Iterator, TextPosition>> {
+        using difference_type = std::ptrdiff_t;
+        using value_type = typename parserlib::parse_iterator<Iterator, TextPosition>::value_type;
+        using pointer = value_type*;
+        using reference = value_type&;
+        using iterator_category = typename parserlib::parse_iterator<Iterator, TextPosition>::iterator_category;
+    };
+
+
+} //namespace std
 
 
 #endif //PARSERLIB_PARSE_ITERATOR_HPP
