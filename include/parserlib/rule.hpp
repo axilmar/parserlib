@@ -7,6 +7,7 @@
 #include <map>
 #include "parse_node_wrapper.hpp"
 #include "parse_left_recursion_algorithm.hpp"
+#include "parse_context.hpp"
 
 
 namespace parserlib {
@@ -16,7 +17,7 @@ namespace parserlib {
      * A parse node that allows grammars to be recursive.
      * @param ParseContext type of parse context to use.
      */
-    template <class ParseContext>
+    template <class ParseContext = parse_context<>>
     class rule : public parse_node<rule<ParseContext>> {
     public:
         /**

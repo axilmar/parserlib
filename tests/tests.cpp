@@ -534,7 +534,7 @@ static void test_parse_range() {
 static void test_parse_rule() {
     using parse_context_type = parse_context<>;
 
-    rule<parse_context_type> grammar = terminal('a');
+    rule grammar = terminal('a');
 
     {
         std::string source = "a";
