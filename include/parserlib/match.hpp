@@ -65,6 +65,18 @@ namespace parserlib {
             return m_children;
         }
 
+        /**
+         * Returns number of nodes in the whole tree.
+         * @return number of nodes in the whole tree.
+         */
+        size_t get_tree_count() const {
+            size_t result = 1;
+            for (const auto& child : m_children) {
+                result += child.get_tree_count();
+            }
+            return result;
+        }
+
     private:
         match_container_type m_children;
     };
