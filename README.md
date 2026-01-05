@@ -49,7 +49,7 @@ rule add = add >> '+' >> mul
 * [Using a parser](doc/using_a_parser.md)
 * [Writing a lexer and a parser](doc/lexer_and_parser.md)
 * [Abstract Syntax Trees](doc/ast.md)
-* TODO documentation
+* [How left recursion parsing works](doc/left_recursion.md)
 * [Changes](#changes)
 
 ### Changes
