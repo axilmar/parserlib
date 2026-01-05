@@ -210,8 +210,8 @@ namespace parserlib {
          * @param src the container.
          */
         template <class Container>
-        parse_context(Container& src)
-            : parse_context(src.cbegin(), src.cend())
+        parse_context(const Container& src)
+            : parse_context(src.begin(), src.end())
         {
         }
 
