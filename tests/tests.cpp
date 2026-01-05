@@ -1161,6 +1161,7 @@ static void run_ss_test() {
     const auto start_time = std::chrono::high_resolution_clock::now();
     const bool ok = sS.parse(pc);
     assert(ok);
+    assert(pc.is_end_parse_position());
     const auto end_time = std::chrono::high_resolution_clock::now();
     const auto duration = end_time - start_time;
     const auto seconds = std::chrono::duration<double>(duration);
