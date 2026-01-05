@@ -180,7 +180,7 @@ namespace parserlib {
          * @return the created AST node.
          */
         template <class Id, class Iterator>
-        std::shared_ptr<ast_node<Id, Iterator>> make_ast_node(const match<Id, Iterator>& m) {
+        std::shared_ptr<ast_node<Id, Iterator>> operator ()(const match<Id, Iterator>& m) {
             return std::make_shared<ast_node<Id, Iterator>>(m.get_id(), m.begin(), m.end());
         }
     };
@@ -194,7 +194,7 @@ namespace parserlib {
      */
     template <class Id, class Iterator, class ASTFactory>
     std::shared_ptr<ast_node<Id, Iterator>> make_ast_node(const match<Id, Iterator>& m, ASTFactory& factory) {
-        std::shared_ptr<ast_node<Id, Iterator>> node = factory.make_ast_node(m);
+        std::shared_ptr<ast_node<Id, Iterator>> node = factory(m);
         make_ast_node_children(node, m, factory);
         return node;
     }

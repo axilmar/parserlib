@@ -48,6 +48,7 @@ rule add = add >> '+' >> mul
 * [Writing a parser](doc/writing_a_parser.md)
 * [Using a parser](doc/using_a_parser.md)
 * [Writing a lexer and a parser](doc/lexer_and_parser.md)
+* [Abstract Syntax Trees](doc/ast.md)
 * TODO documentation
 * [Changes](#changes)
 
