@@ -1,5 +1,7 @@
 #include <functional>
 #include <sstream>
+#include <chrono>
+#include <iostream>
 #include "parserlib.hpp"
 using namespace parserlib;
 
@@ -1150,6 +1152,22 @@ static void test_ast() {
 }
 
 
+static void run_ss_test() {
+    rule<> sS = 's' >> sS >> sS | true;
+
+    std::string src = "sssss";
+
+    parse_context<> pc(src);
+    const auto start_time = std::chrono::high_resolution_clock::now();
+    const bool ok = sS.parse(pc);
+    assert(ok);
+    const auto end_time = std::chrono::high_resolution_clock::now();
+    const auto duration = end_time - start_time;
+    const auto seconds = std::chrono::duration<double>(duration);
+    std::cout << std::fixed << "sS test took " << seconds.count() << " seconds.\n";
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1177,4 +1195,5 @@ void run_tests() {
     test_parse_left_recursion();
     test_parse_matches();
     test_ast();
+    run_ss_test();
 }
