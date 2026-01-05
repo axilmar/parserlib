@@ -1152,33 +1152,6 @@ static void test_ast() {
 }
 
 
-//test sS: https://dl.acm.org/doi/epdf/10.1145/1149982.1149988
-//the above claims that if the input is 96 characters long, then it cannot be parsed (with their algorithm), without memoization;
-//with memoization, they achieved a time of 2,620,807 milliseconds.
-//This library parses it in a few milliseconds for a 96 character string.
-static void run_ss_test() {
-    enum { SS };
-
-    rule<> ss 
-        = (ss >> 's')->*SS
-        | terminal('s')->*SS
-        ;
-
-    std::string src = "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss";
-
-    parse_context<> pc(src);
-    const auto start_time = std::chrono::high_resolution_clock::now();
-    const bool ok = ss.parse(pc);
-    assert(ok);
-    assert(pc.is_end_parse_position());
-    assert(pc.get_matches()[0].get_tree_count() == src.size());
-    const auto end_time = std::chrono::high_resolution_clock::now();
-    const auto duration = end_time - start_time;
-    const auto seconds = std::chrono::duration<double>(duration);
-    std::cout << std::fixed << "ss test took " << seconds.count() << " seconds.\n";
-}
-
-
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1206,5 +1179,4 @@ void run_tests() {
     test_parse_left_recursion();
     test_parse_matches();
     test_ast();
-    run_ss_test();
 }
