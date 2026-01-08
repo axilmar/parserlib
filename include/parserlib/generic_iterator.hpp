@@ -13,28 +13,49 @@
 namespace parserlib {
 
 
+    /**
+     * A wrapper over an iterator.
+     * Useful when it is required that grammars shall have to be compiled 
+     * before knowing the exact input type.
+     */
     class generic_iterator {
     public:
         /** value type. */
         using value_type = uintptr_t;
 
+        /**
+         * The default constructor.
+         * An empty iterator is created.
+         */
         generic_iterator() 
             : m_vtable(nullptr)
         {
         }
 
+        /**
+         * The copy constructor.
+         * @param src the source object.
+         */
         generic_iterator(const generic_iterator& src) 
             : m_vtable(src.m_vtable)
             , m_iterator(src.m_iterator)
         {
         }
 
+        /**
+         * The move constructor.
+         * @param src the source object.
+         */
         generic_iterator(generic_iterator&& src)
             : m_vtable(src.m_vtable)
             , m_iterator(std::move(src.m_iterator))
         {
         }
 
+        /**
+         * Constructor from iterator.
+         * @param iterator the iterator to wrap over.
+         */
         template <class It>
         generic_iterator(const It& iterator)
             : m_vtable(get_vtable<It>())
@@ -42,18 +63,43 @@ namespace parserlib {
         {
         }
 
+        /**
+         * The destructor.
+         */
         ~generic_iterator() {
         }
 
-        generic_iterator& operator = (const generic_iterator& iterator) {
-            assert(m_vtable == iterator.m_vtable);
-            m_iterator = iterator.m_iterator;
+        /**
+         * The copy assignment operator.
+         * @param src the source object.
+         * @return reference to this.
+         */
+        generic_iterator& operator = (const generic_iterator& src) {
+            assert(m_vtable == src.m_vtable);
+            m_iterator = src.m_iterator;
             return *this;
         }
 
-        generic_iterator& operator = (generic_iterator&& iterator) {
-            assert(m_vtable == iterator.m_vtable);
-            m_iterator = std::move(iterator.m_iterator);
+        /**
+         * The move assignment operator.
+         * @param src the source object.
+         * @return reference to this.
+         */
+        generic_iterator& operator = (generic_iterator&& src) {
+            assert(m_vtable == src.m_vtable);
+            m_iterator = std::move(src.m_iterator);
+            return *this;
+        }
+
+        /**
+         * Assigment from iterator.
+         * @param iterator the iterator to wrap over.
+         * @return reference to this.
+         */
+        template <class It>
+        generic_iterator& operator = (const It& iterator) {
+            m_vtable = get_vtable<It>();
+            m_iterator = iterator;
             return *this;
         }
 
