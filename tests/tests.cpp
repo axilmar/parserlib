@@ -1152,6 +1152,29 @@ static void test_ast() {
 }
 
 
+static void test_generic_iterator() {
+    const auto grammar = terminal('a');
+
+    using iterator_type = generic_iterator;
+
+    {
+        std::string source = "a";
+        parse_context<iterator_type> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+    }
+
+    {
+        std::string source = "b";
+        parse_context<iterator_type> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+        assert(pc.is_valid_parse_position());
+    }
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1179,4 +1202,5 @@ void run_tests() {
     test_parse_left_recursion();
     test_parse_matches();
     test_ast();
+    test_generic_iterator();
 }

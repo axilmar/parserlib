@@ -29,6 +29,7 @@
 #include "parserlib/parse_node_ptr.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/ast.hpp"
+#include "parserlib/generic_iterator.hpp"
 
 
 #endif // PARSERLIB_HPP
