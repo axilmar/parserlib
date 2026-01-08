@@ -2,8 +2,8 @@
 #define PARSERLIB_CHOICE_PARSE_NODE_HPP
 
 
-#include <tuple>
 #include <type_traits>
+#include "tuple.hpp"
 #include "parse_node.hpp"
 #include "parse_algorithms.hpp"
 
@@ -19,16 +19,16 @@ namespace parserlib {
      * A parse node that contains one or more other parse nodes,
      * which one of them must parse successfully in order
      * for this node to parse successfully.
-     * @param Children types of children parse nodes.
+     * @param Tpl type of tuple for the children.
      */
-    template <class ...Children>
+    template <class Tpl>
     class choice_parse_node 
-        : public parse_node<choice_parse_node<Children...>>
+        : public parse_node<choice_parse_node<Tpl>>
         , public choice_parse_node_tag
     {
     public:
         /** Type of tuple for children. */
-        using tuple_type = std::tuple<Children...>;
+        using tuple_type = Tpl;
 
         /**
          * The constructor.
@@ -68,8 +68,8 @@ namespace parserlib {
 
         template <size_t Index, class ParseContext>
         bool _parse(ParseContext& pc) const {
-            if constexpr (Index < std::tuple_size_v<tuple_type>) {
-                const auto& child = std::get<Index>(m_children);
+            if constexpr (Index < parserlib::tuple_size_v<tuple_type>) {
+                const auto& child = parserlib::get<Index>(m_children);
                 if (_parse_child(pc, child)) {
                     return true;
                 }
@@ -95,16 +95,16 @@ namespace parserlib {
     template <class L, class R, std::enable_if_t<std::is_base_of_v<parse_node_tag, L> || std::is_base_of_v<parse_node_tag, R>, bool> = true>
     auto operator | (const L& left, const R& right) {
         if constexpr (std::is_base_of_v<choice_parse_node_tag, L> && std::is_base_of_v<choice_parse_node_tag, R>) {
-            return choice_parse_node(std::tuple_cat(left.get_children(), right.get_children()));
+            return choice_parse_node(parserlib::tuple_cat(left.get_children(), right.get_children()));
         }
         else if constexpr (std::is_base_of_v<choice_parse_node_tag, L>) {
-            return choice_parse_node(std::tuple_cat(left.get_children(), std::make_tuple(make_parse_node(right))));
+            return choice_parse_node(parserlib::tuple_cat(left.get_children(), parserlib::make_tuple(make_parse_node(right))));
         }
         else if constexpr (std::is_base_of_v<choice_parse_node_tag, R>) {
-            return choice_parse_node(std::tuple_cat(std::make_tuple(make_parse_node(left)), right.get_children()));
+            return choice_parse_node(parserlib::tuple_cat(parserlib::make_tuple(make_parse_node(left)), right.get_children()));
         }
         else {
-            return choice_parse_node(std::make_tuple(make_parse_node(left), make_parse_node(right)));
+            return choice_parse_node(parserlib::make_tuple(make_parse_node(left), make_parse_node(right)));
         }
     }
 

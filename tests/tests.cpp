@@ -1175,6 +1175,129 @@ static void test_generic_iterator() {
 }
 
 
+#include "parserlib/tuple.hpp"
+
+
+static void test_tuple() {
+    {
+        auto t = make_tuple();
+        assert(tuple_size_v<decltype(t)> == 0);
+    }
+
+    {
+        auto t = make_tuple(1);
+        assert(tuple_size_v<decltype(t)> == 1);
+        assert(get<0>(t) == 1);
+    }
+
+    {
+        auto t = make_tuple(1, 'a');
+        assert(tuple_size_v<decltype(t)> == 2);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 'a');
+    }
+
+    {
+        auto t = make_tuple(1, 'a', 3.14);
+        assert(tuple_size_v<decltype(t)> == 3);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 'a');
+        assert(get<2>(t) == 3.14);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple());
+        assert(tuple_size_v<decltype(t)> == 0);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1), make_tuple());
+        assert(tuple_size_v<decltype(t)> == 1);
+        assert(get<0>(t) == 1);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(), make_tuple(1));
+        assert(tuple_size_v<decltype(t)> == 1);
+        assert(get<0>(t) == 1);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1), make_tuple(2));
+        assert(tuple_size_v<decltype(t)> == 2);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1, 2), make_tuple(3));
+        assert(tuple_size_v<decltype(t)> == 3);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1), make_tuple(2, 3));
+        assert(tuple_size_v<decltype(t)> == 3);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1, 2), make_tuple(3, 4));
+        assert(tuple_size_v<decltype(t)> == 4);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+        assert(get<3>(t) == 4);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1, 2, 3), make_tuple(4, 5));
+        assert(tuple_size_v<decltype(t)> == 5);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+        assert(get<3>(t) == 4);
+        assert(get<4>(t) == 5);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1, 2), make_tuple(3, 4, 5));
+        assert(tuple_size_v<decltype(t)> == 5);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+        assert(get<3>(t) == 4);
+        assert(get<4>(t) == 5);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1, 2, 3), make_tuple(4, 5, 6));
+        assert(tuple_size_v<decltype(t)> == 6);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+        assert(get<3>(t) == 4);
+        assert(get<4>(t) == 5);
+        assert(get<5>(t) == 6);
+    }
+
+    {
+        auto t = tuple_cat(make_tuple(1, 2), make_tuple(3, 4), make_tuple(5, 6));
+        assert(tuple_size_v<decltype(t)> == 6);
+        assert(get<0>(t) == 1);
+        assert(get<1>(t) == 2);
+        assert(get<2>(t) == 3);
+        assert(get<3>(t) == 4);
+        assert(get<4>(t) == 5);
+        assert(get<5>(t) == 6);
+    }
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1203,4 +1326,5 @@ void run_tests() {
     test_parse_matches();
     test_ast();
     test_generic_iterator();
+    test_tuple();
 }
