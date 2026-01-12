@@ -3,6 +3,8 @@
 
 
 #include <cstddef>
+#include <string>
+#include <sstream>
 
 
 namespace parserlib {
@@ -52,6 +54,16 @@ namespace parserlib {
         void increment_line() noexcept {
             ++m_line;
             m_column = 1;
+        }
+
+        /**
+         * Converts the text position to a string.
+         * @return a string for this text position.
+         */ 
+        std::string to_string() const {
+            std::stringstream stream;
+            stream << "line " << m_line << ", column " << m_column;
+            return stream.str();
         }
 
     private:
