@@ -17,6 +17,7 @@
 #include "parserlib/newline_parse_node.hpp"
 #include "parserlib/loop0_parse_node.hpp"
 #include "parserlib/loop1_parse_node.hpp"
+#include "parserlib/loopn_parse_node.hpp"
 #include "parserlib/optional_parse_node.hpp"
 #include "parserlib/logical_and_parse_node.hpp"
 #include "parserlib/logical_not_parse_node.hpp"
