@@ -3,6 +3,7 @@
 
 
 #include <map>
+#include <unordered_map>
 #include <algorithm>
 #include "match.hpp"
 #include "parse_error.hpp"
@@ -106,7 +107,7 @@ namespace parserlib {
              * @param begin begin iterator.
              * @param end end iterator.
              */
-            state(const iterator_type& begin, const iterator_type& end)
+            state(const iterator_type& begin = iterator_type(), const iterator_type& end = iterator_type())
                 : m_parse_state(begin)
                 , m_match_parse_state(begin)
                 , m_end(end)
@@ -403,12 +404,41 @@ namespace parserlib {
             return parse_context<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>(m_matches.begin(), m_matches.end());
         }
 
+        template <class ParseNode>
+        bool parse_with_memoization(const ParseNode& parse_node) {
+            bool result;
+            const void* key = &*m_state.m_parse_state.m_iterator;
+            const auto it = m_memoized_states.find(key);
+            if (it == m_memoized_states.end()) {
+                const size_t prev_matches_size = m_matches.size();
+                result = parse_node.parse(*this);
+                memoization_state& ms = m_memoized_states[key];
+                ms.result_state = m_state;
+                ms.result_matches.insert(ms.result_matches.end(), m_matches.begin() + prev_matches_size, m_matches.end());
+                ms.result = result;
+            }
+            else {
+                const memoization_state& ms = it->second;
+                m_state = ms.result_state;
+                m_matches.insert(m_matches.end(), ms.result_matches.begin(), ms.result_matches.end());
+                result = ms.result;
+            }
+            return result;
+        }
+
     private:
+        struct memoization_state {
+            state result_state;
+            match_container_type result_matches;
+            bool result;
+        };
+
         state m_state;
-        const iterator_type m_end;
         match_container_type m_matches;
         parse_error_container_type m_errors;
         std::map<const void*, left_recursion_state> m_left_recursion_states;
+        std::unordered_map<const void*, memoization_state> m_memoized_states;
+        const iterator_type m_end;
         const left_recursion_state m_initial_left_recursion_state;
     };
 

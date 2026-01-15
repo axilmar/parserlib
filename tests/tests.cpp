@@ -1298,6 +1298,50 @@ static void test_tuple() {
 }
 
 
+static void test_parse_with_memoization() {
+    size_t parse_float_literal_count = 0;
+    const auto sign = -set("+-");
+    const auto digit = range('0', '9');
+    const auto digits = +digit;
+    const auto e = set("eE");
+    const auto float_literal = sign >> digits >> -('.' >> digits) >> -(e >> sign >> digits);
+    const auto parse_float_literal = memoize(function([&](auto& pc) {
+        ++parse_float_literal_count;
+        return float_literal.parse(pc);
+    }));
+    const auto float64_literal = parse_float_literal >> 'd';
+    const auto float32_literal = parse_float_literal >> 'f';
+    const auto grammar = float64_literal | float32_literal | parse_float_literal;
+
+    {
+        parse_float_literal_count = 0;
+        std::string source = "+123.456e+789d";
+        parse_context<> pc(source);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(parse_float_literal_count == 1);
+    }
+
+    {
+        parse_float_literal_count = 0;
+        std::string source = "+123.456e+789f";
+        parse_context<> pc(source);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(parse_float_literal_count == 1);
+    }
+
+    {
+        parse_float_literal_count = 0;
+        std::string source = "+123.456e+789";
+        parse_context<> pc(source);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(parse_float_literal_count == 1);
+    }
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1327,4 +1371,5 @@ void run_tests() {
     test_ast();
     test_generic_iterator();
     test_tuple();
+    test_parse_with_memoization();
 }

@@ -26,6 +26,7 @@
 #include "parserlib/error_parse_node.hpp"
 #include "parserlib/skip_before_parse_node.hpp"
 #include "parserlib/skip_after_parse_node.hpp"
+#include "parserlib/memoize_parse_node.hpp"
 #include "parserlib/parse_node_ptr.hpp"
 #include "parserlib/rule.hpp"
 #include "parserlib/ast.hpp"
