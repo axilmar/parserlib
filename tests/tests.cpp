@@ -7,7 +7,7 @@ using namespace parserlib;
 
 
 static void test_parse_any() {
-    const auto grammar = any();
+    const auto grammar = any;
 
     {
         std::string source = "a";
@@ -119,7 +119,7 @@ static void test_parse_choice() {
 
 
 static void test_parse_end() {
-    const auto grammar = end();
+    const auto grammar = end;
 
     {
         std::string source = "";

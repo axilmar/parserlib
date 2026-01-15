@@ -50,6 +50,52 @@ namespace parserlib {
     }
 
 
+    /**
+     * A parse node that returns true.
+     */ 
+    class true_parse_node : public parse_node<true_parse_node> {
+    public:
+        /**
+         * Returns true.
+         * @param pc the parse context to use.
+         * @return true.
+         */
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const noexcept {
+            return true;
+        }
+    };
+
+
+    /**
+     * A true parse node.
+     */
+    inline const true_parse_node true_;
+
+
+    /**
+     * A parse node that returns false.
+     */ 
+    class false_parse_node : public parse_node<false_parse_node> {
+    public:
+        /**
+         * Returns false.
+         * @param pc the parse context to use.
+         * @return false.
+         */
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const noexcept {
+            return false;
+        }
+    };
+
+
+    /**
+     * A false parse node.
+     */
+    inline const false_parse_node false_;
+
+
 } //namespace parserlib
 
 

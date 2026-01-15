@@ -26,12 +26,9 @@ namespace parserlib {
 
 
     /**
-     * Creates an end parse node instance.
-     * @return an end parse node instance.
+     * An end parse node instance.
      */
-    inline end_parse_node end() noexcept {
-        return end_parse_node();
-    }
+    inline const end_parse_node end;
 
 
 } //namespace parserlib

@@ -30,12 +30,9 @@ namespace parserlib {
 
 
     /**
-     * Creates an any parse node instance.
-     * @return an any parse node instance.
+     * An any parse node instance.
      */
-    inline any_parse_node any() noexcept {
-        return any_parse_node();
-    }
+    inline const any_parse_node any;
 
 
 } //namespace parserlib
