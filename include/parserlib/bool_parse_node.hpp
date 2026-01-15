@@ -74,6 +74,12 @@ namespace parserlib {
 
 
     /**
+     * A true parse node that can be used as 'continue parsing'.
+     */
+    inline const true_parse_node _;
+
+
+    /**
      * A parse node that returns false.
      */ 
     class false_parse_node : public parse_node<false_parse_node> {
