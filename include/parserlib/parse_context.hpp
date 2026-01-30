@@ -59,6 +59,15 @@ namespace parserlib {
         using parse_error_container_type = std::vector<parse_error_type>;
 
         /**
+         * Type of derived parse context.
+         * @param DerivedMatchId match id of the derived parse context.
+         * @param DerivedErrorId error id of the derived parse context.
+         * @param DerivedSymbolComparator symbol comparator for the derived parse context.
+         */
+        template <class DerivedMatchId = MatchId, class DerivedErrorId = ErrorId, class DerivedSymbolComparator = default_symbol_comparator>
+        using derived_parse_context_type = parse_context<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>;
+
+        /**
          * Parse state.
          */
         class parse_state {
