@@ -70,6 +70,18 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a parse node that repeats another parse node a specific amount of times.
+     * @param parse_node the parse node to repeat.
+     * @param times the repetition count.
+     * @return a loop parse node object.
+     */
+    template <class ParseNode, std::enable_if_t<std::is_base_of_v<parse_node_tag, ParseNode>, bool> = true>
+    auto operator *(size_t times, const ParseNode& parse_node) {
+        return loopn_parse_node(parse_node, times);
+    }
+
+
 } //namespace parserlib
 
 
