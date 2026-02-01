@@ -379,30 +379,60 @@ static void test_parse_loop1() {
 
 
 static void test_parse_loopn() {
-    const auto grammar = terminal('a') * 4;
-
     {
-        std::string source = "aaaa";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-        assert(pc.is_end_parse_position());
+        const auto grammar = terminal('a') * 4;
+
+        {
+            std::string source = "aaaa";
+            parse_context<> pc(source);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.is_end_parse_position());
+        }
+
+        {
+            std::string source = "aaa";
+            parse_context<> pc(source);
+            const bool result = grammar.parse(pc);
+            assert(!result);
+            assert(pc.get_iterator() == source.begin());
+        }
+
+        {
+            std::string source = "aaaaa";
+            parse_context<> pc(source);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.get_iterator() == std::next(source.begin(), 4));
+        }
     }
 
     {
-        std::string source = "aaa";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(!result);
-        assert(pc.get_iterator() == source.begin());
-    }
+        const auto grammar = 4 * terminal('a');
 
-    {
-        std::string source = "aaaaa";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-        assert(pc.get_iterator() == std::next(source.begin(), 4));
+        {
+            std::string source = "aaaa";
+            parse_context<> pc(source);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.is_end_parse_position());
+        }
+
+        {
+            std::string source = "aaa";
+            parse_context<> pc(source);
+            const bool result = grammar.parse(pc);
+            assert(!result);
+            assert(pc.get_iterator() == source.begin());
+        }
+
+        {
+            std::string source = "aaaaa";
+            parse_context<> pc(source);
+            const bool result = grammar.parse(pc);
+            assert(result);
+            assert(pc.get_iterator() == std::next(source.begin(), 4));
+        }
     }
 }
 
