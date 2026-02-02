@@ -128,7 +128,7 @@ namespace parserlib {
 
         //returns the ref map
         static ref_map& get_refs() {
-            static thread_local ref_map rm;
+            static ref_map rm;
             return rm;
         }
 
@@ -199,7 +199,8 @@ namespace parserlib {
 
         //deletes a reference
         static void delete_ref(const rule* r) {
-            get_refs().erase(r);
+            auto& refs = get_refs();
+            refs.erase(r);
         }
     };
 
