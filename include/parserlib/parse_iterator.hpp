@@ -118,6 +118,19 @@ namespace parserlib {
     };
 
 
+    /**
+     * Converts a parse position into a string.
+     * @param stream target stream.
+     * @param begin begin of range.
+     * @param end end of range.
+     * @param max_length maximum length to write.
+     */
+    template <class Stream, class Iterator, class TextPosition>
+    void to_string(Stream& stream, const parse_iterator<Iterator, TextPosition>& begin, const parse_iterator<Iterator, TextPosition>& end, size_t max_length = 10) {
+        stream << begin.get_text_position().to_string();
+    }
+
+
 } //namespace parserlib
 
 

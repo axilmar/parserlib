@@ -213,6 +213,81 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates an AST for the given matches and their children, using the given AST factory.
+     * @param m the matches to create an AST of.
+     * @param the factory to use for creating an AST node.
+     * @return an AST for the given matches.
+     */
+    template <class Id, class Iterator, class ASTFactory>
+    auto make_ast_nodes(const std::vector<match<Id, Iterator>>& m, ASTFactory& factory) {
+        std::vector<std::shared_ptr<ast_node<Id, Iterator>>> result;
+        for (const auto& match : m) {
+            std::shared_ptr<ast_node<Id, Iterator>> node = factory(match);
+            make_ast_node_children(node, match, factory);
+            result.push_back(node);
+        }
+        return result;
+    }
+
+
+    /**
+     * Creates an AST for the given matches and their children, using the default AST factory.
+     * @param m the matches to create an AST of.
+     * @param the factory to use for creating an AST node.
+     * @return an AST for the given matches.
+     */
+    template <class Id, class Iterator>
+    auto make_ast_nodes(const std::vector<match<Id, Iterator>>& m) {
+        default_ast_factory factory;
+        return make_ast_nodes(m, factory);
+    }
+
+
+    template <class Id, class Iterator> struct is_ptr_to_object_with_begin_method<std::shared_ptr<ast_node<Id, Iterator>>> {
+        static constexpr bool value = true;
+    };
+
+
+    /**
+     * Helper function which converts an ast node and its children to a string.
+     * @param stream target stream.
+     * @param node to convert to a stream.
+     * @param tab_size number of characters for a tab.
+     * @param max_length maximum length for source output.
+     * @param depth tree depth.
+     */
+    template <class Stream, class Id, class Iterator>
+    void to_string(Stream& stream, const std::shared_ptr<ast_node<Id, Iterator>>& node, size_t tab_size = 4, size_t max_length = 10, size_t depth = 0) {
+        for (size_t index = 0; index < depth * tab_size; ++index) {
+            stream << ' ';
+        }
+        to_string(stream, node->get_id());
+        stream << " at ";
+        to_string(stream, node->begin(), node->end(), max_length);
+        stream << '\n';
+        for (const auto& child_node : node->get_children()) {
+            to_string(stream, child_node, tab_size, max_length, depth + 1);
+        }
+    }
+
+
+    /**
+     * Helper function which converts an ast node and its children to a string.
+     * @param stream target stream.
+     * @param node to convert to a stream.
+     * @param tab_size number of characters for a tab.
+     * @param max_length maximum length for source output.
+     * @param depth tree depth.
+     */
+    template <class Stream, class Id, class Iterator>
+    void to_string(Stream& stream, const std::vector<std::shared_ptr<ast_node<Id, Iterator>>>& nodes, size_t tab_size = 4, size_t max_length = 10, size_t depth = 0) {
+        for (const auto& node : nodes) {
+            to_string(stream, node, tab_size, max_length, depth);
+        }
+    }
+
+
 } //namespace parserlib
 
 

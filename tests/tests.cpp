@@ -2,6 +2,26 @@
 #include <sstream>
 #include <chrono>
 #include <iostream>
+
+
+enum class TEST_ENUM {
+    A
+};
+
+
+namespace parserlib {
+    template <class Stream>
+    void to_string(Stream& stream, TEST_ENUM te) {
+        switch (te) {
+            case TEST_ENUM::A:
+                stream << "A";
+                break;
+        }
+    }
+
+}
+
+
 #include "parserlib.hpp"
 using namespace parserlib;
 
@@ -1401,6 +1421,72 @@ static void test_parse_with_memoization() {
 }
 
 
+static void test_to_string() {
+    {
+        const auto grammar = terminal('a')->*0;
+        std::string source = "a";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+        std::stringstream stream;
+        to_string(stream, pc.get_matches());
+        const std::string str = stream.str();
+        assert(str == "0 at \"a\"\n");
+    }
+
+    {
+        const auto grammar = terminal('a')->*TEST_ENUM::A;
+        std::string source = "a";
+        parse_context<std::string::const_iterator, TEST_ENUM> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+        std::stringstream stream;
+        to_string(stream, pc.get_matches());
+        const std::string str = stream.str();
+        assert(str == "A at \"a\"\n");
+    }
+
+    {
+        const auto grammar = terminal('a')->*0;
+        std::string source = "a";
+        parse_context<parse_iterator<>> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+
+        const auto grammar1 = terminal(0)->*1;
+        auto pc1 = pc.derive_parse_context<>();
+        const bool result1 = grammar1.parse(pc1);
+        std::stringstream stream;
+        to_string(stream, pc1.get_matches());
+        const std::string str = stream.str();
+        assert(str == "1 at line 1, column 1\n");
+    }
+
+    {
+        const auto grammar = terminal('a')->*0;
+        std::string source = "a";
+        parse_context<parse_iterator<>> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.is_end_parse_position());
+
+        const auto grammar1 = terminal(0)->*1;
+        auto pc1 = pc.derive_parse_context<>();
+        const bool result1 = grammar1.parse(pc1);
+
+        const auto ast_nodes = make_ast_nodes(pc1.get_matches());
+
+        std::stringstream stream;
+        to_string(stream, ast_nodes);
+        const std::string str = stream.str();
+        assert(str == "1 at line 1, column 1\n");
+    }
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1432,4 +1518,5 @@ void run_tests() {
     test_generic_iterator();
     test_tuple();
     test_parse_with_memoization();
+    test_to_string();
 }

@@ -82,6 +82,51 @@ namespace parserlib {
     };
 
 
+    template <class Id, class Iterator>
+    struct has_begin_method<match<Id, Iterator>> {
+        static constexpr bool value = true;
+    };
+
+
+    /**
+     * Helper function which converts a match and its children to a string.
+     * @param stream target stream.
+     * @param match the match to convert to a stream.
+     * @param tab_size number of characters for a tab.
+     * @param max_length maximum length for source output.
+     * @param depth tree depth.
+     */
+    template <class Stream, class Id, class Iterator>
+    void to_string(Stream& stream, const match<Id, Iterator>& match, size_t tab_size = 4, size_t max_length = 10, size_t depth = 0) {
+        for (size_t index = 0; index < depth * tab_size; ++index) {
+            stream << ' ';
+        }
+        to_string(stream, match.get_id());
+        stream << " at ";
+        to_string(stream, match.begin(), match.end(), max_length);
+        stream << '\n';
+        for (const auto& child_match : match.get_children()) {
+            to_string(stream, child_match, tab_size, max_length, depth + 1);
+        }
+    }
+
+
+    /**
+     * Helper function for converting a vector of matches to a string.
+     * @param stream target stream.
+     * @param matches the matches to convert to a string.
+     * @param tab_size number of characters for a tab.
+     * @param max_length maximum length for source output.
+     * @param depth tree depth.
+     */
+    template <class Stream, class Id, class Iterator>
+    void to_string(Stream& stream, const std::vector<match<Id, Iterator>>& matches, size_t tab_size = 4, size_t max_length = 10, size_t depth = 0) {
+        for (const auto& match : matches) {
+            to_string(stream, match, tab_size, max_length, depth);
+        }
+    }
+
+
 } //namespace parserlib
 
 
