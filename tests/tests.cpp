@@ -2,6 +2,8 @@
 #include <sstream>
 #include <chrono>
 #include <iostream>
+#include "parserlib.hpp"
+using namespace parserlib;
 
 
 enum class TEST_ENUM {
@@ -10,20 +12,16 @@ enum class TEST_ENUM {
 
 
 namespace parserlib {
-    template <class Stream>
-    void to_string(Stream& stream, TEST_ENUM te) {
-        switch (te) {
-            case TEST_ENUM::A:
-                stream << "A";
-                break;
+    template <> struct id_to_string<TEST_ENUM> {
+        template <class Stream> static void exec(Stream& stream, TEST_ENUM te) {
+            switch (te) {
+                case TEST_ENUM::A:
+                    stream << "A";
+                    break;
+            }
         }
-    }
-
+    };
 }
-
-
-#include "parserlib.hpp"
-using namespace parserlib;
 
 
 static void test_parse_any() {

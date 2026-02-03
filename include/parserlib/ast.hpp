@@ -262,12 +262,12 @@ namespace parserlib {
         for (size_t index = 0; index < depth * tab_size; ++index) {
             stream << ' ';
         }
-        to_string(stream, node->get_id());
+        parserlib::id_to_string<Id>::exec(stream, node->get_id());
         stream << " at ";
-        to_string(stream, node->begin(), node->end(), max_length);
+        parserlib::to_string(stream, node->begin(), node->end(), max_length);
         stream << '\n';
         for (const auto& child_node : node->get_children()) {
-            to_string(stream, child_node, tab_size, max_length, depth + 1);
+            parserlib::to_string(stream, child_node, tab_size, max_length, depth + 1);
         }
     }
 

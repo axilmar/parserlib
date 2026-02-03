@@ -101,12 +101,12 @@ namespace parserlib {
         for (size_t index = 0; index < depth * tab_size; ++index) {
             stream << ' ';
         }
-        to_string(stream, match.get_id());
+        parserlib::id_to_string<Id>::exec(stream, match.get_id());
         stream << " at ";
-        to_string(stream, match.begin(), match.end(), max_length);
+        parserlib::to_string(stream, match.begin(), match.end(), max_length);
         stream << '\n';
         for (const auto& child_match : match.get_children()) {
-            to_string(stream, child_match, tab_size, max_length, depth + 1);
+            parserlib::to_string(stream, child_match, tab_size, max_length, depth + 1);
         }
     }
 
@@ -122,7 +122,7 @@ namespace parserlib {
     template <class Stream, class Id, class Iterator>
     void to_string(Stream& stream, const std::vector<match<Id, Iterator>>& matches, size_t tab_size = 4, size_t max_length = 10, size_t depth = 0) {
         for (const auto& match : matches) {
-            to_string(stream, match, tab_size, max_length, depth);
+            parserlib::to_string(stream, match, tab_size, max_length, depth);
         }
     }
 

@@ -98,15 +98,17 @@ namespace parserlib {
 
 
     /**
-     * Helper function for writing an id to a stream.
-     * It can be overloaded for enumerations to print the exact enumeration name,
+     * Helper struct for writing an id to a stream.
+     * It can be specialized for enumerations to print the exact enumeration name,
      * @param stream target stream.
      * @param id id to write.
      */
-    template <class Stream>
-    void to_string(Stream& stream, int id) {
-        stream << id;
-    }
+    template <class Id>
+    struct id_to_string {
+        template <class Stream> static void exec(Stream& stream, const Id& id) {
+            stream << id;
+        }
+    };
 
 
     template <class T> struct has_begin_method {
@@ -133,10 +135,10 @@ namespace parserlib {
     void to_string(Stream& stream, const It& begin, const It& end, size_t max_length = 10) {
         using value_type = std::decay_t<decltype(*begin)>;
         if constexpr (has_begin_method<value_type>::value) {
-            to_string(stream, begin->begin(), std::prev(end)->end(), max_length);
+            parserlib::to_string(stream, begin->begin(), std::prev(end)->end(), max_length);
         }
         else if constexpr (is_ptr_to_object_with_begin_method<value_type>::value) {
-            to_string(stream, (*begin)->begin(), std::prev((*end))->end(), max_length);
+            parserlib::to_string(stream, (*begin)->begin(), std::prev((*end))->end(), max_length);
         }
         else {
             stream << '"';
