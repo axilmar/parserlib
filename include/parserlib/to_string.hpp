@@ -30,7 +30,7 @@ namespace parserlib {
 
 
     struct to_string_options {
-        size_t source_max_length = 16;
+        size_t source_max_length = 40;
         size_t tab_size = 4;
     };
 
@@ -59,16 +59,19 @@ namespace parserlib {
     struct source_to_string {
         template <class Stream>
         static void exec(Stream& stream, const Iterator& begin, const Iterator& end, const to_string_options& options) {
-            stream << '\"';
             size_t length = options.source_max_length;
             Iterator it = begin;
             for (; it != end && length > 0; ++it, --length) {
-                stream << *it;
+                if (*it != '\n') {
+                    stream << *it;
+                }
+                else {
+                    stream << "\\n";
+                }
             }
             if (it != end) {
                 stream << "...";
             }
-            stream << '\"';
         }
     };
 

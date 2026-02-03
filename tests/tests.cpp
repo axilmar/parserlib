@@ -1430,7 +1430,7 @@ static void test_to_string() {
         std::stringstream stream;
         to_string(stream, pc.get_matches());
         const std::string str = stream.str();
-        assert(str == "0 at \"a\"\n");
+        assert(str == "0 at a\n");
     }
 
     {
@@ -1443,7 +1443,7 @@ static void test_to_string() {
         std::stringstream stream;
         to_string(stream, pc.get_matches());
         const std::string str = stream.str();
-        assert(str == "A at \"a\"\n");
+        assert(str == "A at a\n");
     }
 
     {
@@ -1460,7 +1460,7 @@ static void test_to_string() {
         std::stringstream stream;
         to_string(stream, pc1.get_matches());
         const std::string str = stream.str();
-        assert(str == "1 at line 1, column 1: \"a\"\n");
+        assert(str == "1 at line 1, column 1: a\n");
     }
 
     {
@@ -1480,7 +1480,7 @@ static void test_to_string() {
         std::stringstream stream;
         to_string(stream, ast_nodes);
         const std::string str = stream.str();
-        assert(str == "1 at line 1, column 1: \"a\"\n");
+        assert(str == "1 at line 1, column 1: a\n");
     }
 }
 
