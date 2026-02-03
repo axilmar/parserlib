@@ -32,6 +32,7 @@
 #include "parserlib/rule.hpp"
 #include "parserlib/ast.hpp"
 #include "parserlib/generic_iterator.hpp"
+#include "parserlib/to_string.hpp"
 
 
 #endif // PARSERLIB_HPP

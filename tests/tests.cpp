@@ -1460,7 +1460,7 @@ static void test_to_string() {
         std::stringstream stream;
         to_string(stream, pc1.get_matches());
         const std::string str = stream.str();
-        assert(str == "1 at line 1, column 1\n");
+        assert(str == "1 at line 1, column 1: \"a\"\n");
     }
 
     {
@@ -1480,7 +1480,7 @@ static void test_to_string() {
         std::stringstream stream;
         to_string(stream, ast_nodes);
         const std::string str = stream.str();
-        assert(str == "1 at line 1, column 1\n");
+        assert(str == "1 at line 1, column 1: \"a\"\n");
     }
 }
 
