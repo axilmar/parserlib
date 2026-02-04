@@ -88,7 +88,7 @@ namespace parserlib {
 	 * @param symbol the symbol to create a parse node for.
 	 * @return a symbol parse node.
 	 */
-	string_parse_node<char, std::char_traits<char>> operator ""_term(const char* string, size_t size) {
+	inline string_parse_node<char, std::char_traits<char>> operator ""_term(const char* string, size_t size) {
 		return std::basic_string_view<char, std::char_traits<char>>(string);
 	}    
 
@@ -98,7 +98,7 @@ namespace parserlib {
 	 * @param symbol the symbol to create a parse node for.
 	 * @return a symbol parse node.
 	 */
-	string_parse_node<wchar_t, std::char_traits<wchar_t>> operator ""_term(const wchar_t* string, size_t size) {
+	inline string_parse_node<wchar_t, std::char_traits<wchar_t>> operator ""_term(const wchar_t* string, size_t size) {
 		return std::basic_string_view<wchar_t, std::char_traits<wchar_t>>(string);
 	}    
 
