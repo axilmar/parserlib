@@ -70,6 +70,36 @@ namespace parserlib {
 	}
 
 
+	/**
+	 * Creates a symbol parse node for a char value.
+	 * @param symbol the symbol to create a parse node for.
+	 * @return a symbol parse node.
+	 */
+	symbol_parse_node<char> operator ""_term(char symbol) {
+		return symbol;
+	}    
+
+
+	/**
+	 * Creates a symbol parse node for a wchar_t value.
+	 * @param symbol the symbol to create a parse node for.
+	 * @return a symbol parse node.
+	 */
+	symbol_parse_node<wchar_t> operator ""_term(wchar_t symbol) {
+		return symbol;
+	}    
+
+
+	/**
+	 * Creates a symbol parse node for an unsigned long long value.
+	 * @param symbol the symbol to create a parse node for.
+	 * @return a symbol parse node.
+	 */
+	symbol_parse_node<unsigned long long> operator ""_term(unsigned long long symbol) {
+		return symbol;
+	}    
+
+
 } //namespace parserlib
 
 
