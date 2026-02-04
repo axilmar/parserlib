@@ -88,17 +88,17 @@ namespace parserlib {
                     //and the last error created by previous child;
                     //keep the errors with the furthest position
                     else {
-                        const auto distance_of_current_child_last_error = std::distance(base_iterator, errors.back().begin());
-                        const auto distance_of_last_child_last_error = std::distance(base_iterator, child_errors.back().begin());
+                        const auto distance_of_current_child_last_error_begin = std::distance(base_iterator, errors.back().begin());
+                        const auto distance_of_last_child_last_error_begin = std::distance(base_iterator, child_errors.back().begin());
 
                         //if current child last error begin is further down the last child last error begin
-                        if (distance_of_current_child_last_error > distance_of_last_child_last_error) {
+                        if (distance_of_current_child_last_error_begin > distance_of_last_child_last_error_begin) {
                             child_errors.clear();
                             child_errors.insert(child_errors.end(), errors.begin() + base_error_state.get_error_count(), errors.end());
                         }
 
                         //else if there are at the same position
-                        else if (distance_of_current_child_last_error == distance_of_last_child_last_error) {
+                        else if (distance_of_current_child_last_error_begin == distance_of_last_child_last_error_begin) {
                             const auto distance_of_current_child_last_error_end = std::distance(base_iterator, errors.back().end());
                             const auto distance_of_last_child_last_error_end = std::distance(base_iterator, child_errors.back().end());
 
