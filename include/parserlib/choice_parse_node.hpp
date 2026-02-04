@@ -90,15 +90,29 @@ namespace parserlib {
                     else {
                         const auto distance_of_current_child_last_error = std::distance(base_iterator, errors.back().begin());
                         const auto distance_of_last_child_last_error = std::distance(base_iterator, child_errors.back().begin());
+
+                        //if current child last error begin is further down the last child last error begin
                         if (distance_of_current_child_last_error > distance_of_last_child_last_error) {
                             child_errors.clear();
                             child_errors.insert(child_errors.end(), errors.begin() + base_error_state.get_error_count(), errors.end());
                         }
-                    }
-                }
 
-                //reset the error state for the next child
-                pc.set_error_state(base_error_state);
+                        //else if there are at the same position
+                        else if (distance_of_current_child_last_error == distance_of_last_child_last_error) {
+                            const auto distance_of_current_child_last_error_end = std::distance(base_iterator, errors.back().end());
+                            const auto distance_of_last_child_last_error_end = std::distance(base_iterator, child_errors.back().end());
+
+                            //if current child last error end is further down the last child last error end
+                            if (distance_of_current_child_last_error_end > distance_of_last_child_last_error_end) {
+                                child_errors.clear();
+                                child_errors.insert(child_errors.end(), errors.begin() + base_error_state.get_error_count(), errors.end());
+                            }
+                        }
+                    }
+
+                    //reset the error state for the next child
+                    pc.set_error_state(base_error_state);
+                }
 
                 return false;
             });
