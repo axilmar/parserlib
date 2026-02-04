@@ -31,7 +31,7 @@ namespace parserlib {
          * It invokes the child node to parse.
          * A breakpoint can be placed here for debugging.
          * @param pc the context to pass to the child.
-         * @return the result of the child parse node.
+         * @return always true.
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
@@ -47,7 +47,7 @@ namespace parserlib {
                 } while (pc.is_valid_parse_position());
                 return true;
             }
-            return false;
+            return true;
         }
 
     private:

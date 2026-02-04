@@ -70,7 +70,7 @@ namespace parserlib {
                 //parse
                 const bool result = child.parse(pc);
 
-                //on success, reject all the child errors, except the errors added by the current child
+                //on success
                 if (result) {
                     return true;
                 }
