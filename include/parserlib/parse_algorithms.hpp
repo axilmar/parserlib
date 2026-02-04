@@ -30,7 +30,34 @@ namespace parserlib {
 
 
     /**
-     * Executes a parse function, then restores the parse context state.
+     * Executes a parse function.
+     * If the function fails, then the state and the error state of the parse context is restored.
+     * @param pc the parse context.
+     * @param fn the parse function.
+     * @return true if the function suceeds, false otherwise.
+     */
+    template <class ParseContext, class F>
+    bool parse_and_restore_state_and_error_state_on_failure(ParseContext& pc, const F& fn) {
+        const auto initial_state = pc.get_state();
+        const auto initial_error_state = pc.get_error_state();
+        try {
+            if (fn()) {
+                return true;
+            }
+            pc.set_state(initial_state);
+            pc.set_error_state(initial_error_state);
+        }
+        catch (...) {
+            pc.set_state(initial_state);
+            pc.set_error_state(initial_error_state);
+            throw;
+        }
+        return false;
+    }
+
+
+    /**
+     * Executes a parse function, then restores the parse context state and error state.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return true if the function suceeds, false otherwise.
@@ -53,6 +80,12 @@ namespace parserlib {
     }
 
 
+    /**
+     * If parsing fails, it restores the error state.
+     * @param pc the parse context.
+     * @param fn the parse function.
+     * @return always true.
+     */
     template <class ParseContext, class F>
     bool parse_optional(ParseContext& pc, const F& fn) {
         const auto error_state = pc.get_error_state();
@@ -63,6 +96,13 @@ namespace parserlib {
     }
 
 
+    /**
+     * Invokes the given function repeatedly, until it returns false.
+     * If parsing fails, it restores the error state.
+     * @param pc the parse context.
+     * @param fn the parse function.
+     * @return always true.
+     */
     template <class ParseContext, class F>
     bool parse_loop_0(ParseContext& pc, const F& fn) {
         while (true) {
