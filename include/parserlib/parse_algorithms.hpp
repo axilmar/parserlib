@@ -36,17 +36,44 @@ namespace parserlib {
      * @return true if the function suceeds, false otherwise.
      */
     template <class ParseContext, class F>
-    bool parse_and_restore_state(ParseContext& pc, const F& fn) {
+    bool parse_and_restore_state_and_error_state(ParseContext& pc, const F& fn) {
         const auto initial_state = pc.get_state();
+        const auto initial_error_state = pc.get_error_state();
         try {
             const bool result = fn();
             pc.set_state(initial_state);
+            pc.set_error_state(initial_error_state);
             return result;
         }
         catch (...) {
             pc.set_state(initial_state);
+            pc.set_error_state(initial_error_state);
             throw;
         }
+    }
+
+
+    template <class ParseContext, class F>
+    bool parse_optional(ParseContext& pc, const F& fn) {
+        const auto error_state = pc.get_error_state();
+        if (!fn()) {
+            pc.set_error_state(error_state);
+        }
+        return true;
+    }
+
+
+    template <class ParseContext, class F>
+    bool parse_loop_0(ParseContext& pc, const F& fn) {
+        while (true) {
+            const auto error_state = pc.get_error_state();
+            const auto base_iterator = pc.get_iterator();
+            if (!fn() || pc.get_iterator() == base_iterator) {
+                pc.set_error_state(error_state);
+                break;
+            }
+        }
+        return true;
     }
 
 

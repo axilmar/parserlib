@@ -3,6 +3,7 @@
 
 
 #include "parse_node.hpp"
+#include "parse_algorithms.hpp"
 
 
 namespace parserlib {
@@ -35,8 +36,7 @@ namespace parserlib {
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
             if (m_child.parse(pc)) {
-                while (m_child.parse(pc)) {
-                }
+                parse_loop_0(pc, [&]() { return m_child.parse(pc); });
                 return true;
             }
             return false;

@@ -37,7 +37,7 @@ namespace parserlib {
         bool parse(ParseContext& pc) const {
             if (pc.is_valid_parse_position()) {
                 do {
-                    bool result = parse_and_restore_state(pc, [&]() {
+                    bool result = parse_and_restore_state_and_error_state(pc, [&]() {
                         return m_child.parse(pc);
                     });
                     if (result) {
