@@ -204,6 +204,25 @@ namespace parserlib {
         };
 
         /**
+         * Used for manipulating the internal error stack.
+         */
+        class error_state {
+        public:
+            /**
+             * Returns the error count.
+             * @return the error count.
+             */
+            size_t get_error_count() const {
+                return m_error_count;
+            }
+
+        private:
+            size_t m_error_count;
+            error_state(size_t error_count) : m_error_count(error_count) {}
+            friend parse_context_type;
+        };
+
+        /**
          * The constructor.
          * @param begin begin parse position.
          * @param end end parse position.
@@ -382,6 +401,21 @@ namespace parserlib {
         }
 
         /**
+         * Returns the current error state.
+         */
+        error_state get_error_state() const {
+            return m_errors.size();
+        }
+
+        /**
+         * Sets the error state.
+         * @param state the new error state.
+         */
+        void set_error_state(const error_state& state) {
+            m_errors.resize(state.get_error_count());
+        }
+
+        /**
          * Adds an error to the errors of this context.
          * @param id id of error.
          * @param begin_state state for the error start.
@@ -389,6 +423,14 @@ namespace parserlib {
          */
         void add_error(const error_id_type& id, const iterator_type& begin, const iterator_type& end) {
             m_errors.emplace_back(id, begin, end);
+        }
+
+        /**
+         * Adds multiple errors.
+         * @param errors errors to add.
+         */
+        void add_errors(const parse_error_container_type& errors) {
+            m_errors.insert(m_errors.end(), errors.begin(), errors.end());
         }
 
         /**
@@ -413,6 +455,13 @@ namespace parserlib {
             return parse_context<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>(m_matches.begin(), m_matches.end());
         }
 
+        /**
+         * Invokes a parse node with memoization.
+         * If the given parse node has been previously invoked at the same parse context state,
+         * then the results of the parsing are restored from memory.
+         * @param parse_node the parse node to parse.
+         * @return true on success, false on failure.
+         */
         template <class ParseNode>
         bool parse_with_memoization(const ParseNode& parse_node) {
             bool result;
@@ -420,16 +469,19 @@ namespace parserlib {
             const auto it = m_memoized_states.find(key);
             if (it == m_memoized_states.end()) {
                 const size_t prev_matches_size = m_matches.size();
+                const size_t prev_errors_size = m_errors.size();
                 result = parse_node.parse(*this);
                 memoization_state& ms = m_memoized_states[key];
                 ms.result_state = m_state;
                 ms.result_matches.insert(ms.result_matches.end(), m_matches.begin() + prev_matches_size, m_matches.end());
+                ms.result_errors.insert(ms.result_errors.end(), m_errors.begin() + prev_errors_size, m_errors.end());
                 ms.result = result;
             }
             else {
                 const memoization_state& ms = it->second;
                 m_state = ms.result_state;
                 m_matches.insert(m_matches.end(), ms.result_matches.begin(), ms.result_matches.end());
+                m_errors.insert(m_errors.end(), ms.result_errors.begin(), ms.result_errors.end());
                 result = ms.result;
             }
             return result;
@@ -439,6 +491,7 @@ namespace parserlib {
         struct memoization_state {
             state result_state;
             match_container_type result_matches;
+            parse_error_container_type result_errors;
             bool result;
         };
 

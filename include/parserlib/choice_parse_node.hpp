@@ -49,7 +49,9 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return _parse<0>(pc);
+            const auto base_error_state = pc.get_error_state();
+            typename ParseContext::parse_error_container_type child_errors;
+            return _parse<0>(pc, base_error_state, child_errors);
         }
 
         const tuple_type& get_children() const {
@@ -59,23 +61,60 @@ namespace parserlib {
     private:
         tuple_type m_children;
 
-        template <class ParseContext, class Child>
-        static bool _parse_child(ParseContext& pc, const Child& child) {
+        //if the child creates some errors, keep the errors that are further into the source
+        template <class ParseContext, class Child, class ErrorState, class ErrorContainer>
+        static bool _parse_child(ParseContext& pc, const Child& child, const ErrorState& base_error_state, ErrorContainer& child_errors) {
             return parse_and_restore_state_on_failure(pc, [&]() {
-                return child.parse(pc);
+                const auto base_iterator = pc.get_iterator();
+
+                //parse
+                const bool result = child.parse(pc);
+
+                //on success, reject all the child errors, except the errors added by the current child
+                if (result) {
+                    return true;
+                }
+
+                //handle new errors
+                if (pc.get_errors().size() > base_error_state.get_error_count()) {
+                    const auto& errors = pc.get_errors();
+
+                    //if there were no child errors previously, then store all the new errors as child errors
+                    if (child_errors.empty()) {
+                        child_errors.insert(child_errors.end(), errors.begin() + base_error_state.get_error_count(), errors.end());
+                    }
+
+                    //otherwise compare the last error created by the current child
+                    //and the last error created by previous child;
+                    //keep the errors with the furthest position
+                    else {
+                        const auto distance_of_current_child_last_error = std::distance(base_iterator, errors.back().begin());
+                        const auto distance_of_last_child_last_error = std::distance(base_iterator, child_errors.back().begin());
+                        if (distance_of_current_child_last_error > distance_of_last_child_last_error) {
+                            child_errors.clear();
+                            child_errors.insert(child_errors.end(), errors.begin() + base_error_state.get_error_count(), errors.end());
+                        }
+                    }
+                }
+
+                //reset the error state for the next child
+                pc.set_error_state(base_error_state);
+
+                return false;
             });
         }
 
-        template <size_t Index, class ParseContext>
-        bool _parse(ParseContext& pc) const {
+        template <size_t Index, class ParseContext, class ErrorState, class ErrorContainer>
+        bool _parse(ParseContext& pc, const ErrorState& base_error_state, ErrorContainer& child_errors) const {
             if constexpr (Index < parserlib::tuple_size_v<tuple_type>) {
                 const auto& child = parserlib::get<Index>(m_children);
-                if (_parse_child(pc, child)) {
+                if (_parse_child(pc, child, base_error_state, child_errors)) {
                     return true;
                 }
-                return _parse<Index + 1>(pc);
+                return _parse<Index + 1>(pc, base_error_state, child_errors);
             }
             else {
+                pc.add_errors(child_errors);
                 return false;
             }
         }
