@@ -158,7 +158,10 @@ static void test_parse_end() {
 
 
 static void test_parse_error_skip_before() {
-    const auto grammar = terminal('a') >> terminal(';') | error(1, skip_before(';'));
+    const auto grammar 
+        = terminal('a') >> terminal(';') 
+        | error(1, skip_before(';'))
+        ;
 
     {
         std::string source = "a;";
@@ -201,6 +204,41 @@ static void test_parse_error_skip_after() {
         assert(pc.get_errors().size() == 1);
         assert(pc.get_errors()[0].begin() == std::next(source.begin(), 0));
         assert(pc.get_errors()[0].end() == std::next(source.begin(), 2));
+    }
+}
+
+
+static void  test_parse_error_choice() {
+    const auto grammar 
+        = 'a'_term >> 'b' >> 'c' >> ('d' | error(1, any)) >> 'e' | error(2, any | end)
+        | 'a'_term >> 'b' >> 'c' >> ('d' | error(3, any))
+        ;
+
+    {
+        std::string source = "abc1e";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_errors().size() == 1);
+        assert(pc.get_errors()[0].get_id() == 1);
+    }
+
+    {
+        std::string source = "abcd1";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_errors().size() == 1);
+        assert(pc.get_errors()[0].get_id() == 2);
+    }
+
+    {
+        std::string source = "abc1";
+        parse_context<> pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_errors().size() == 1);
+        assert(pc.get_errors()[0].get_id() == 2);
     }
 }
 
@@ -1493,6 +1531,7 @@ void run_tests() {
     test_parse_end();
     test_parse_error_skip_before();
     test_parse_error_skip_after();
+    test_parse_error_choice();
     test_parse_function();
     test_parse_logical_and();
     test_parse_logical_not();
