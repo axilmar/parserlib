@@ -120,6 +120,14 @@ namespace parserlib {
             }
 
             /**
+             * Returns the iterator.
+             * @return the iterator.
+             */
+            const iterator_type& get_iterator() const {
+                return m_parse_state.get_iterator();
+            }
+
+            /**
              * Returns the parse state for matches.
              * @return the parse state for matches.
              */
