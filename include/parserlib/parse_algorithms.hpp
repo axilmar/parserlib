@@ -73,7 +73,11 @@ namespace parserlib {
      */
     template <class ParseContext, class F>
     bool parse_loop_0(ParseContext& pc, const F& fn) {
-        while (parse_and_restore_state_on_failure(pc, fn)) {
+        for(;;) {
+            const auto base_iterator = pc.get_iterator();
+            if (!parse_and_restore_state_on_failure(pc, fn) || pc.get_iterator() == base_iterator) {
+                break;
+            }
         }
         return true;
     }
