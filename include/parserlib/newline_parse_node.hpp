@@ -56,6 +56,15 @@ namespace parserlib {
     }
 
 
+    /**
+     * Creates a newline parse node for the character '\n'.
+     * @return a newline parse node for the character '\n'.
+     */
+    inline auto newline() {
+        return newline('\n');
+    }
+
+
 } //namespace parserlib
 
 

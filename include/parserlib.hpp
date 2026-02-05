@@ -12,6 +12,7 @@
 #include "parserlib/any_parse_node.hpp"
 #include "parserlib/bool_parse_node.hpp"
 #include "parserlib/debug_parse_node.hpp"
+#include "parserlib/exception_parse_node.hpp"
 #include "parserlib/end_parse_node.hpp"
 #include "parserlib/function_parse_node.hpp"
 #include "parserlib/newline_parse_node.hpp"

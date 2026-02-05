@@ -24,7 +24,7 @@ namespace parserlib {
          */
         template <class Stream>
         static void exec(Stream& stream, const Id& id) {
-            stream << id;
+            stream << (int)id;
         }
     };
 

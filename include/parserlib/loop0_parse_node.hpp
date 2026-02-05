@@ -34,7 +34,9 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            parse_loop_0(pc, [&]() { return m_child.parse(pc); });
+            parse_loop_0(pc, [&]() { 
+                return m_child.parse(pc);
+            });
             return true;
         }
 
