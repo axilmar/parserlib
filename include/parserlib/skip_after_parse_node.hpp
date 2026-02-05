@@ -35,15 +35,18 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            do {
+            for(;;) {
                 bool result = parse_and_restore_state_on_failure(pc, [&]() {
                     return m_child.parse(pc);
                 });
                 if (result) {
                     return true;
                 }
+                if (pc.is_end_parse_position()) {
+                    break;
+                }
                 pc.increment_parse_position();
-            } while (pc.is_valid_parse_position());
+            }
             return false;
         }
 
