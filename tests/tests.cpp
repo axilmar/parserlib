@@ -1523,6 +1523,95 @@ static void test_to_string() {
 }
 
 
+enum class MATCH_ID {
+    TERM,
+    EXPRESSION1,
+    EXPRESSION2
+};
+
+
+template <> struct id_to_string<MATCH_ID> {
+    template <class Stream>
+    static void exec(Stream& stream, MATCH_ID id) {
+        switch (id) {
+            case MATCH_ID::TERM:
+                stream << "TERM";
+                break;
+
+            case MATCH_ID::EXPRESSION1:
+                stream << "EXPRESSION1";
+                break;
+
+            case MATCH_ID::EXPRESSION2:
+                stream << "EXPRESSION2";
+                break;
+        }
+    }
+};
+
+
+static void test_continue_with_error() {
+    enum class ERROR_ID {
+        SYNTAX_ERROR
+    };
+
+    const auto ws
+        = *(newline() | terminal(' '))
+        ;
+
+    const auto digit
+        = range('0', '9')
+        ;
+
+    const auto letter
+        = range('a', 'z')
+        | range('A', 'Z')
+        ;
+
+    const auto term
+        = (letter >> *(letter | digit))->*MATCH_ID::TERM
+        ;
+
+    const auto expression2
+        = debug(ws >> term >> ws >> '#' >> ws >> term >> ws)->*MATCH_ID::EXPRESSION2
+        | ws >> term >> ws
+        ;
+
+    const auto expression1
+        = (ws >> expression2 >> ws >> '@' >> ws >> expression2 >> ws)->*MATCH_ID::EXPRESSION1
+        | ws >> expression2 >> ws
+        ;
+
+    const auto grammar 
+        = *(ws >> expression1 >> ws) >> end
+        ;
+
+    using parse_context_type = parse_context<parse_iterator<>, MATCH_ID, ERROR_ID>;
+
+    std::string source = R"(
+        term1 @ term2
+
+        term1 @ term21 # term22
+
+        term11 # term12 @ term2
+
+        term11 # term12 @ term21 # term22
+    )";
+
+    parse_context_type pc(source);
+
+    const bool ok = grammar.parse(pc);
+
+    for (const auto& error : pc.get_errors()) {
+        std::cout << "ERROR at " << error.begin().get_text_position().to_string() << ": " << (int)error.get_id() << '\n';
+    }
+
+    assert(ok);
+
+    to_string(std::cout, pc.get_matches());
+}
+
+
 void run_tests() {
     test_parse_any();
     test_parse_bool();
@@ -1556,4 +1645,5 @@ void run_tests() {
     test_tuple();
     test_parse_with_memoization();
     test_to_string();
+    //test_continue_with_error();
 }
