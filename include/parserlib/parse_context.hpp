@@ -135,6 +135,14 @@ namespace parserlib {
                 return m_end;
             }
 
+            /**
+             * Returns the number of errors at this particular state.
+             * @return the number of errors at this particular state.
+             */
+            size_t get_error_count() const {
+                return m_error_count;
+            }
+
         private:
             parse_state m_parse_state;
             parse_state m_match_parse_state;
@@ -149,6 +157,25 @@ namespace parserlib {
             {
             }
 
+            friend parse_context_type;
+        };
+
+        /**
+         * The error state.
+         */
+        class error_state {
+        public:
+            /**
+             * Returns the number of errors at this particular state.
+             * @return the number of errors at this particular state.
+             */
+            size_t get_error_count() const {
+                return m_error_count;
+            }
+
+        private:
+            size_t m_error_count;
+            error_state(size_t error_count) : m_error_count(error_count) {}
             friend parse_context_type;
         };
 
@@ -387,6 +414,23 @@ namespace parserlib {
          */
         void add_error(const error_id_type& id, const iterator_type& begin, const iterator_type& end) {
             m_errors.emplace_back(id, begin, end);
+            m_state.m_error_count = m_errors.size();
+        }
+
+        /**
+         * Returns the current error state.
+         * @return the current error state.
+         */
+        error_state get_error_state() const {
+            return m_state.m_error_count;
+        }
+
+        /**
+         * Sets the error state.
+         * @param es the error state to set.
+         */
+        void set_error_state(const error_state& es) {
+            m_errors.resize(es.get_error_count());
             m_state.m_error_count = m_errors.size();
         }
 
