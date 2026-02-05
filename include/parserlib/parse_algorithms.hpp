@@ -52,54 +52,28 @@ namespace parserlib {
 
     /**
      * Invokes the given function.
-     * If new errors are detected, they are canceled.
+     * If the function fails, then the state of the parse context is restored.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return always true.
      */
     template <class ParseContext, class F>
     bool parse_optional(ParseContext& pc, const F& fn) {
-        //store the current error state
-        const auto initial_error_state = pc.get_error_state();
-
-        //invoke the function; discard the result as it is not useful, optionals always return true
-        fn();
-
-        //if errors are found, consider the parsing as failed and cancel the errors
-        if (pc.get_errors().size() > initial_error_state.get_error_count()) {
-            pc.set_error_state(initial_error_state);
-        }
-
+        parse_and_restore_state_on_failure(pc, fn);
         return true;
     }
 
 
     /**
-     * Invokes the given function repeatedly, until it fails to parse or an error is detected
-     * that starts at the parse position before the loop.
+     * Invokes the given function repeatedly, until it fails to parse.
+     * When it fails to parse, the state of the parse context is restored to the last good state.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return always true.
      */
     template <class ParseContext, class F>
     bool parse_loop_0(ParseContext& pc, const F& fn) {
-        while (true) {
-            const auto base_iterator = pc.get_iterator();
-            const auto base_error_state = pc.get_error_state();
-
-            //parse
-            const bool result = fn();
-
-            //if failed, stop the loop
-            if (!result) {
-                break;
-            }
-
-            //if new errors are detected and the first error starts at the base iterator, cancel the errors and stop the loop
-            if (pc.get_errors().size() > base_error_state.get_error_count() && pc.get_errors()[base_error_state.get_error_count()].begin() == base_iterator) {
-                pc.set_error_state(base_error_state);
-                break;
-            }
+        while (parse_and_restore_state_on_failure(pc, fn)) {
         }
         return true;
     }
