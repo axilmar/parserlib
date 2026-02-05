@@ -61,7 +61,7 @@ namespace parserlib {
 
         template <class ParseContext, class Child>
         static bool _parse_child(ParseContext& pc, const Child& child) {
-            return parse_and_restore_state_and_error_state_on_failure(pc, [&]() {
+            return parse_and_restore_state_on_failure(pc, [&]() {
                 return child.parse(pc);
             });
         }

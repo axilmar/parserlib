@@ -32,7 +32,7 @@ namespace parserlib {
          */
         template <class ParseContext>
         bool parse(ParseContext& pc) const {
-            return parse_and_restore_state_and_error_state(pc, [&]() { 
+            return parse_and_restore_state(pc, [&]() { 
                 return !m_child.parse(pc);
             });
         }
