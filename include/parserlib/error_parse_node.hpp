@@ -63,13 +63,46 @@ namespace parserlib {
 
 
     /**
-     * Creates a error parse node that does not skip any input.
+     * A parse node that adds an error to a parse context without a skip node.
+     * @param ErrorId type of id of the parse node.
+     * @param Child child type.
+     */
+    template <class ErrorId>
+    class error_parse_node<ErrorId, void> : public parse_node<error_parse_node<ErrorId, void>> {
+    public:
+        /**
+         * The constructor.
+         * @param id the error id.
+         */
+        error_parse_node(const ErrorId& id)
+            : m_id(id)
+        {
+        }
+
+        /**
+         * Adds an error to the parse context.
+         * @param pc the parse context.
+         * @return always true.
+         */
+        template <class ParseContext>
+        bool parse(ParseContext& pc) const {
+            pc.add_error(m_id, pc.get_iterator(), pc.get_iterator());
+            return true;
+        }
+
+    private:
+        ErrorId m_id;
+    };
+
+
+    /**
+     * Creates an error parse node.
      * @param id error id.
-     * @return a error parse node.
+     * @return an error parse node.
      */
     template <class ErrorId>
     auto error(const ErrorId& id) {
-        return error_parse_node(id, true_);
+        return error_parse_node<ErrorId, void>(id);
     }
 
 

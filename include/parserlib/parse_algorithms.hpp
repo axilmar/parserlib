@@ -52,21 +52,20 @@ namespace parserlib {
 
     /**
      * Invokes the given function.
-     * If the function fails, then the state of the parse context is restored.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return always true.
      */
     template <class ParseContext, class F>
     bool parse_optional(ParseContext& pc, const F& fn) {
-        parse_and_restore_state_on_failure(pc, fn);
+        fn();
         return true;
     }
 
 
     /**
      * Invokes the given function repeatedly, until it fails to parse.
-     * When it fails to parse, the state of the parse context is restored to the last good state.
+     * The loop also stops if no progress is made.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return always true.
@@ -75,7 +74,7 @@ namespace parserlib {
     bool parse_loop_0(ParseContext& pc, const F& fn) {
         for(;;) {
             const auto base_iterator = pc.get_iterator();
-            if (!parse_and_restore_state_on_failure(pc, fn) || pc.get_iterator() == base_iterator) {
+            if (!fn() || pc.get_iterator() == base_iterator) {
                 break;
             }
         }

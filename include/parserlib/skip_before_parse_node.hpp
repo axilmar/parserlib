@@ -57,8 +57,8 @@ namespace parserlib {
 
     /**
      * Creates a skip before parse node for another parse node.
-     * @param val value/parse node the child parse node to debug.
-     * @return a debug parse node.
+     * @param val value/parse node the child parse node to use for testing.
+     * @return a skip parse node.
      */
     template <class T>
     auto skip_before(const T& child) {
