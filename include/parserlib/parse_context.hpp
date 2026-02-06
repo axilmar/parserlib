@@ -396,6 +396,14 @@ namespace parserlib {
         }
 
         /**
+         * Sets the error count.
+         * @param count the new error count.
+         */
+        void set_error_count(size_t count) {
+            m_errors.resize(count);
+        }
+
+        /**
          * Adds an error to the errors of this context.
          * @param id id of error.
          * @param begin_state state for the error start.
