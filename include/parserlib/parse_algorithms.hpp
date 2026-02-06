@@ -52,13 +52,14 @@ namespace parserlib {
 
     /**
      * Invokes the given function.
+     * If parsing fails, any side effects, like errors or matches are canceled.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return always true.
      */
     template <class ParseContext, class F>
     bool parse_optional(ParseContext& pc, const F& fn) {
-        fn();
+        parse_and_restore_state_on_failure(pc, fn);
         return true;
     }
 
@@ -67,7 +68,7 @@ namespace parserlib {
      * Invokes the given function repeatedly, until it fails to parse.
      * The loop also stops if no progress is made, i.e. when the parse context iterator
      * after the parse equals the parse context iterator before the parse.
-     * If the loop stops, any errors done within from the last iteration are cancelled.
+     * If the loop stops, any side effects like errors or matches are canceled.
      * @param pc the parse context.
      * @param fn the parse function.
      * @return always true.
@@ -76,17 +77,16 @@ namespace parserlib {
     bool parse_loop_0(ParseContext& pc, const F& fn) {
         for(;;) {
             //store locally the required state
-            const auto base_iterator = pc.get_iterator();
-            const auto base_error_count = pc.get_errors().size();
+            const auto base_state = pc.get_state();
 
             //on success with progress, continue
-            if (fn() && pc.get_iterator() != base_iterator) {
+            if (fn() && pc.get_iterator() != base_state.get_iterator()) {
                 continue;
             }
 
             //failed to parse or suceeded but without progress; 
-            //cancel the last iteration's errors and stop the loop
-            pc.set_error_count(base_error_count);
+            //restore the state
+            pc.set_state(base_state);
             break;
         }
         return true;
