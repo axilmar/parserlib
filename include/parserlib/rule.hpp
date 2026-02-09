@@ -2,207 +2,262 @@
 #define PARSERLIB_RULE_HPP
 
 
-#include <memory>
-#include <utility>
+#include <set>
 #include <map>
-#include "parse_node_wrapper.hpp"
-#include "parse_left_recursion_algorithm.hpp"
-#include "parse_context.hpp"
+#include "grammar_node.hpp"
 
 
 namespace parserlib {
 
 
     /**
-     * A parse node that allows grammars to be recursive.
-     * @param ParseContext type of parse context to use.
-     */
-    template <class ParseContext = parse_context<>>
-    class rule : public parse_node<rule<ParseContext>> {
+     * Class used for assosiating a grammar expression to a variable.
+     * It allows the use of a grammar expression in other expressions.
+     * It allows for recursive grammars.
+     * Internally, rule references are registered with a thread-local map,
+     * and therefore constructing a grammar tree that uses a rule should only be done
+     * in one thread.
+     * Using rules for parsing can be done by multiple threads, since rules are 
+     * considered immutable for parsing.
+     */ 
+    class rule {
     public:
         /**
          * The default constructor.
-         */
-        rule() 
-            : m_ref(make_ref(this))
-        {
+         * An empty rule is created.
+         */ 
+        rule() {
         }
 
         /**
          * The copy constructor.
-         * @param r the source object.
-         */
+         * Any references for this rule created before this constructor is invoked are updated
+         * with the node of the given rule.
+         * @param r the source rule.
+         */ 
         rule(const rule& r)
-            : m_ref(make_common_ref(std::addressof(r), this))
+            : m_node(r.m_node)
         {
+            _update_refs();
         }
 
         /**
          * The move constructor.
-         * @param r the source object.
-         */
-        rule(rule&& r) 
-            : m_ref(make_common_ref(std::addressof(r), this))
+         * The rule gets the node pointer and the references of the given rule.
+         * @param r the source rule.
+         */ 
+        rule(rule&& r)
+            : m_node(std::move(r.m_node))
         {
+            _move_refs(std::addressof(r));
         }
 
         /**
-         * Constructor from value/parse node.
-         * @param value value/parse node.
-         */
+         * Constructor from pointer to grammar.
+         * Any references for this rule created before this constructor is invoked are updated
+         * with the given node.
+         * @param node the node to set to this rule.
+         */ 
+        rule(const grammar_node_ptr& node)
+            : m_node(node)
+        {
+            _update_refs();
+        }
+
+        /**
+         * Constructor from symbol.
+         * It creates a symbol grammar node.
+         * @param symbol the symbol to use.
+         */ 
         template <class T>
-        rule(const T& value)
-            : m_ref(make_ref_for(this, make_wrapper(value)))
+        rule(const T& symbol)
+            : m_node(std::make_shared<symbol_grammar_node>(symbol))
         {
+            _update_refs();
         }
 
         /**
-         * The destructor.
-         */
+         * Constructor from symbol string.
+         * It creates a string grammar node.
+         * @param symbol the symbol string to use.
+         */ 
+        template <class T>
+        rule(const T* symbol)
+            : m_node(std::make_shared<string_grammar_node>(symbol))
+        {
+            _update_refs();
+        }
+
+        /**
+         * Destroys the rule.
+         * Any references to the rule are destroyed if there reference count reaches 0.
+         */ 
         ~rule() {
-            delete_ref(this);
+            _remove_refs();
         }
 
         /**
          * The copy assignment operator.
+         * This rule gets a shallow copy of the node of the given rule.
+         * The references of this rule are also updated.
          * @param r the source object.
          * @return reference to this.
-         */
+         */ 
         rule& operator = (const rule& r) {
-            m_ref = make_common_ref(std::addressof(r), this);
+            m_node = r.m_node;
+            _update_refs();
             return *this;
         }
 
         /**
          * The move assignment operator.
+         * This rule gets the given rule's pointer moved to this.
+         * The references of the given rule are also moved to this.
          * @param r the source object.
          * @return reference to this.
-         */
+         */ 
         rule& operator = (rule&& r) {
-            m_ref = make_common_ref(std::addressof(r), this);
+            m_node = std::move(r.m_node);
+            _move_refs(std::addressof(r));
             return *this;
         }
 
         /**
-         * Assignment from value/parse node.
-         * @param value value/parse node.
+         * Assignment from grammar node.
+         * This rule gets a shallow copy of the given node.
+         * The references of this rule are also updated.
+         * @param r the source object.
          * @return reference to this.
-         */
-        template <class T>
-        rule& operator = (const T& value) {
-            m_ref->parse_node = make_wrapper(value);
+         */ 
+        rule& operator = (const grammar_node_ptr& node) {
+            m_node = node;
+            _update_refs();
             return *this;
         }
 
         /**
-         * Parses using the left recursion parsing algorithm.
-         * @param pc the parse context.
-         * @return true on success, false on failure.
-         */
-        bool parse(ParseContext& pc) const {
-            const parse_node_wrapper<ParseContext>& pn = *m_ref->parse_node;
-            return parse_left_recursion_algorithm::parse(pc, pn);
+         * Assignment from symbol.
+         * This rule gets a new instance of a symbol grammar node.
+         * The references of this rule are also updated.
+         * @param r the source object.
+         * @return reference to this.
+         */ 
+        template <class T>
+        rule& operator = (const T& symbol) {
+            m_node = std::make_shared<symbol_grammar_node>(symbol);
+            _update_refs();
+            return *this;
         }
+
+        /**
+         * Assignment from symbol string.
+         * This rule gets a new instance of a string grammar node.
+         * The references of this rule are also updated.
+         * @param r the source object.
+         * @return reference to this.
+         */ 
+        template <class T>
+        rule& operator = (const T* symbol) {
+            m_node = std::make_shared<string_grammar_node>(symbol);
+            _update_refs();
+            return *this;
+        }
+
+        /**
+         * Creates a reference node for this rule.
+         * @return a reference node for this rule.
+         */ 
+        grammar_node_ptr create_ref_node() const {
+            ref_grammar_node_ptr ref = std::make_shared<ref_grammar_node>(m_node);
+            _get_rule_ref_map()[this].push_back(ref);
+            return ref;
+        }
+
+        /**
+         * Returns the rule of this node.
+         */ 
+        const grammar_node_ptr& get_node() const {
+            return m_node;
+        }
+
+        /**
+         * Allows the conversion of this rule to a grammar node ptr.
+         * @return the node's grammar node ptr.
+         */ 
+        operator const grammar_node_ptr& () const {
+            return get_node();
+        }
+
+        /**
+         * Creates a zero-or-more times loop for this rule.
+         * @return a zero-or-more times loop for this rule.
+         */  
+        inline grammar_node_ptr operator *() const;
+
+        /**
+         * Creates a one-or-more times loop for this rule.
+         * @return a one-or-more times loop for this rule.
+         */  
+        inline grammar_node_ptr operator +() const;
+
+        /**
+         * Makes this rule optional.
+         * @return an optional node for this rule.
+         */  
+        inline grammar_node_ptr operator -() const;
+
+        /**
+         * Makes this rule a logical and predicate.
+         * @return a logical and node for this rule.
+         */  
+        inline grammar_node_ptr operator &() const;
+
+        /**
+         * Makes this rule a logical not predicate.
+         * @return a logical not node for this rule.
+         */  
+        inline grammar_node_ptr operator !() const;
 
     private:
-        //reference
-        struct ref {
-            //pointer to parse node
-            std::unique_ptr<parse_node_wrapper<ParseContext>> parse_node;
+        //the node
+        grammar_node_ptr m_node;
 
-            //the default constructor
-            ref() {
+        //tracks the references of a rule
+        static std::map<const rule*, std::vector<ref_grammar_node_ptr>>& _get_rule_ref_map() {
+            static thread_local std::map<const rule*, std::vector<ref_grammar_node_ptr>> map;
+            return map;
+        }
+
+        //moves the references of a rule to this 
+        void _move_refs(const rule* src_rule) {
+            auto it = _get_rule_ref_map().find(src_rule);
+            if (it != _get_rule_ref_map().end()) {
+                _get_rule_ref_map()[this] = it->second;
+                _get_rule_ref_map().erase(it);
             }
+        }
 
-            //constructor from parameter
-            ref(std::unique_ptr<parse_node_wrapper<ParseContext>>&& ptr)
-                : parse_node(std::move(ptr))
-            {
+        //updates the references with the current node
+        void _update_refs() {
+            const auto it = _get_rule_ref_map().find(this);
+            if (it != _get_rule_ref_map().end()) {
+                for (const ref_grammar_node_ptr& ref : it->second) {
+                    ref->set_node(m_node);
+                }
             }
-        };
-
-        using ref_map = std::map<const rule*, std::shared_ptr<ref>>;
-
-        //pointer to reference
-        std::shared_ptr<ref> m_ref;
-
-        //returns the ref map
-        static ref_map& get_refs() {
-            static ref_map rm;
-            return rm;
         }
 
-        //creates a wrapper for the given type.
-        template <class T>
-        static std::unique_ptr<parse_node_wrapper<ParseContext>> make_wrapper(const T& value) {
-            return std::make_unique<parse_node_wrapper_impl<ParseContext, decltype(make_parse_node(value))>>(make_parse_node(value));
-        }
-
-        //creates a reference for one rule
-        static std::shared_ptr<ref> make_ref(const rule* r) {
-            //get the ref map
-            ref_map& refs = get_refs();
-
-            //find the ref
-            const auto it = refs.find(r);
-
-            //if found, return it
-            if (it != refs.end()) {
-                return it->second;
-            }
-
-            //create a new empty ref
-            std::shared_ptr<ref> result = std::make_shared<ref>();
-
-            //register the new ref
-            refs[r] = result;
-
-            //return the new ref
-            return result;
-        }
-
-        //creates a reference for one rule with a specific value
-        static std::shared_ptr<ref> make_ref_for(const rule* r, std::unique_ptr<parse_node_wrapper<ParseContext>>&& pn) {
-            //get the ref map
-            ref_map& refs = get_refs();
-
-            //find the ref
-            const auto it = refs.find(r);
-
-            //if found, set the parse node and return it
-            if (it != refs.end()) {
-                it->second->parse_node = std::move(pn);
-                return it->second;
-            }
-
-            //create a new non-empty ref
-            std::shared_ptr<ref> result = std::make_shared<ref>(std::move(pn));
-
-            //register the new ref
-            refs[r] = result;
-
-            //return the new ref
-            return result;
-        }
-
-        //creates a common reference for two rules
-        static std::shared_ptr<ref> make_common_ref(const rule* r1, const rule* r2) {
-            //make a ref for the first rule
-            std::shared_ptr<ref> result = make_ref(r1);
-
-            //also register the same ref for the 2nd rule
-            get_refs()[r2] = result;
-
-            //return the result
-            return result;
-        }
-
-        //deletes a reference
-        static void delete_ref(const rule* r) {
-            auto& refs = get_refs();
-            refs.erase(r);
+        //removes any refs for this node
+        void _remove_refs() {
+            _get_rule_ref_map().erase(this);
         }
     };
+
+
+    inline grammar_node_ptr::grammar_node_ptr(const rule& r)
+        : std::shared_ptr<grammar_node>(r.create_ref_node())
+    {
+    }
 
 
 } //namespace parserlib
