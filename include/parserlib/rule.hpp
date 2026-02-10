@@ -181,14 +181,6 @@ namespace parserlib {
         }
 
         /**
-         * Allows the conversion of this rule to a grammar node ptr.
-         * @return the node's grammar node ptr.
-         */ 
-        operator const grammar_node_ptr& () const {
-            return get_node();
-        }
-
-        /**
          * Creates a zero-or-more times loop for this rule.
          * @return a zero-or-more times loop for this rule.
          */  
@@ -217,6 +209,14 @@ namespace parserlib {
          * @return a logical not node for this rule.
          */  
         inline grammar_node_ptr operator !() const;
+
+        /**
+         * Helper function for parsing.
+         * @param pc the parse context to use.
+         * @return true on success, false on error.
+         */
+        template <class ParseContext, class SymbolComparator = default_symbol_comparator>
+        inline bool parse(ParseContext& pc) const;
 
     private:
         //the node

@@ -4,8 +4,8 @@
 
 #include <type_traits>
 #include <functional>
-#include "single_linked_list_node.hpp"
-#include "symbol.hpp"
+#include "vector.hpp"
+#include "symbol_comparator.hpp"
 #include "parse_context_base.hpp"
 
 
@@ -44,7 +44,7 @@ namespace parserlib {
     /**
      * Base class for grammar nodes.
      */
-    class grammar_node : public single_linked_list_node<grammar_node> {
+    class grammar_node {
     public:
         /**
          * Virtual destructor due to polymorphism.
@@ -139,28 +139,34 @@ namespace parserlib {
          * @return a logical not node for this node.
          */  
         inline grammar_node_ptr operator !() const;
+
+        /**
+         * Helper function for parsing.
+         * @param pc the parse context to use.
+         * @return true on success, false on error.
+         */
+        template <class ParseContext, class SymbolComparator = default_symbol_comparator>
+        inline bool parse(ParseContext& pc) const;
     };
 
 
     /**
-     * Base class for grammar nodes with one or more children.
+     * Type of grammar node container.
      */ 
-    class parent_grammar_node : public grammar_node {
+    using grammar_node_container = std::vector<grammar_node_ptr>;
+
+
+    /**
+     * Base class for grammar nodes with one child.
+     */
+    class parent_grammar_node_single_child : public grammar_node {
     public:
         /**
-         * Returns the first child.
-         * @return the first child.
+         * Returns the child.
+         * @return the child.
          */ 
-        const grammar_node_ptr& get_first() const {
-            return m_first;
-        }
-
-        /**
-         * Sets the first child.
-         * @param first the first child.
-         */ 
-        void set_first(const grammar_node_ptr& first) {
-            m_first = first;
+        const grammar_node_ptr& get_child() const {
+            return m_child;
         }
 
     protected:
@@ -168,16 +174,47 @@ namespace parserlib {
          * The constructor.
          * It can only be instantiated through subclasses.
          * @param type the node type.
-         * @param first the first child node; optional.
+         * @param child the child child node; optional.
          */ 
-        parent_grammar_node(grammar_node_type type, const grammar_node_ptr& first = {})
+        parent_grammar_node_single_child(grammar_node_type type, const grammar_node_ptr& child = {})
             : grammar_node(type)
-            , m_first(first)
+            , m_child(child)
         {
         }
 
     private:
-        grammar_node_ptr m_first;
+        grammar_node_ptr m_child;
+    };
+
+
+    /**
+     * Base class for grammar nodes with multiple children.
+     */
+    class parent_grammar_node : public grammar_node {
+    public:
+        /**
+         * Returns the children.
+         * @return the children.
+         */ 
+        const grammar_node_container& get_children() const {
+            return m_children;
+        }
+
+    protected:
+        /**
+         * The constructor.
+         * It can only be instantiated through subclasses.
+         * @param type the node type.
+         * @param child the child child node; optional.
+         */ 
+        parent_grammar_node(grammar_node_type type, grammar_node_container&& children = {})
+            : grammar_node(type)
+            , m_children(std::move(children))
+        {
+        }
+
+    private:
+        grammar_node_container m_children;
     };
 
 
@@ -255,13 +292,23 @@ namespace parserlib {
     class string_grammar_node : public grammar_node {
     public:
         /**
-         * The constructor.
+         * Constructor from string view.
          * @param value the symbol value.
          */ 
         template <class T>
         string_grammar_node(const std::basic_string_view<T>& value) 
             : grammar_node(grammar_node_type_string)
             , m_symbol(std::make_unique<typed_symbol_string<T>>(value))
+        {
+        }
+
+        /**
+         * Constructor from null-terminated string.
+         * @param value the symbol value.
+         */ 
+        template <class T>
+        string_grammar_node(const T* value) 
+            : string_grammar_node(std::basic_string_view<T>(value))
         {
         }
 
@@ -288,7 +335,7 @@ namespace parserlib {
          * @param symbol the symbol set.
          */
         template <class T>
-        set_grammar_node(std::unique_ptr<typed_symbol_set<T>>& symbol) 
+        set_grammar_node(std::unique_ptr<typed_symbol_set<T>>&& symbol) 
             : grammar_node(grammar_node_type_set)
             , m_symbol(std::move(symbol))
         {
@@ -301,6 +348,16 @@ namespace parserlib {
         template <class T>
         set_grammar_node(const std::basic_string_view<T>& value) 
             : set_grammar_node(std::make_unique<typed_symbol_set<T>>(value))
+        {
+        }
+
+        /**
+         * Constructor from a null-terminated string.
+         * @param value the symbol value.
+         */
+        template <class T>
+        set_grammar_node(const T* value) 
+            : set_grammar_node(std::basic_string_view<T>(value))
         {
         }
 
@@ -371,14 +428,14 @@ namespace parserlib {
     /**
      * A grammar node used for parsing another grammar node 0 or more times.
      */ 
-    class loop_0_grammar_node : public parent_grammar_node {
+    class loop_0_grammar_node : public parent_grammar_node_single_child {
     public:
         /**
          * The constructor.
-         * @param first the first child node; optional.
+         * @param child the child child node; optional.
          */ 
-        loop_0_grammar_node(const grammar_node_ptr& first = {})
-            : parent_grammar_node(grammar_node_type_loop_0, first)
+        loop_0_grammar_node(const grammar_node_ptr& child = {})
+            : parent_grammar_node_single_child(grammar_node_type_loop_0, child)
         {
         }
     };
@@ -387,14 +444,14 @@ namespace parserlib {
     /**
      * A grammar node used for parsing another grammar node 1 or more times.
      */ 
-    class loop_1_grammar_node : public parent_grammar_node {
+    class loop_1_grammar_node : public parent_grammar_node_single_child {
     public:
         /**
          * The constructor.
-         * @param first the first child node; optional.
+         * @param child the child child node; optional.
          */ 
-        loop_1_grammar_node(const grammar_node_ptr& first = {})
-            : parent_grammar_node(grammar_node_type_loop_1, first)
+        loop_1_grammar_node(const grammar_node_ptr& child = {})
+            : parent_grammar_node_single_child(grammar_node_type_loop_1, child)
         {
         }
     };
@@ -404,14 +461,14 @@ namespace parserlib {
      * A grammar node used for parsing another grammar node as an optional node.
      * If optional node parsing fails, the parse context is restored to its previous state.
      */ 
-    class optional_grammar_node : public parent_grammar_node {
+    class optional_grammar_node : public parent_grammar_node_single_child {
     public:
         /**
          * The constructor.
-         * @param first the first child node; optional.
+         * @param child the child child node; optional.
          */ 
-        optional_grammar_node(const grammar_node_ptr& first = {})
-            : parent_grammar_node(grammar_node_type_optional, first)
+        optional_grammar_node(const grammar_node_ptr& child = {})
+            : parent_grammar_node_single_child(grammar_node_type_optional, child)
         {
         }
     };
@@ -421,14 +478,14 @@ namespace parserlib {
      * A grammar node that allows another grammar node to be used as a positive test.
      * No state is allowed to change during using a grammar node as a positive test.
      */ 
-    class logical_and_grammar_node : public parent_grammar_node {
+    class logical_and_grammar_node : public parent_grammar_node_single_child {
     public:
         /**
          * The constructor.
-         * @param first the first child node; optional.
+         * @param child the child child node; optional.
          */ 
-        logical_and_grammar_node(const grammar_node_ptr& first = {})
-            : parent_grammar_node(grammar_node_type_logical_and, first)
+        logical_and_grammar_node(const grammar_node_ptr& child = {})
+            : parent_grammar_node_single_child(grammar_node_type_logical_and, child)
         {
         }
     };
@@ -438,14 +495,14 @@ namespace parserlib {
      * A grammar node that allows another grammar node to be used as a negative test.
      * No state is allowed to change during using a grammar node as a negative test.
      */ 
-    class logical_not_grammar_node : public parent_grammar_node {
+    class logical_not_grammar_node : public parent_grammar_node_single_child {
     public:
         /**
          * The constructor.
-         * @param first the first child node; optional.
+         * @param child the child child node; optional.
          */ 
-        logical_not_grammar_node(const grammar_node_ptr& first = {})
-            : parent_grammar_node(grammar_node_type_logical_not, first)
+        logical_not_grammar_node(const grammar_node_ptr& child = {})
+            : parent_grammar_node_single_child(grammar_node_type_logical_not, child)
         {
         }
     };
@@ -459,7 +516,10 @@ namespace parserlib {
      */ 
     class sequence_grammar_node : public parent_grammar_node {
     public:
-        sequence_grammar_node() : parent_grammar_node(grammar_node_type_sequence) {}
+        sequence_grammar_node(grammar_node_container&& children) : 
+            parent_grammar_node(grammar_node_type_sequence, std::move(children))
+        {
+        }
     };
 
 
@@ -471,23 +531,26 @@ namespace parserlib {
      */ 
     class choice_grammar_node : public parent_grammar_node {
     public:
-        choice_grammar_node() : parent_grammar_node(grammar_node_type_choice) {}
+        choice_grammar_node(grammar_node_container&& children) 
+            : parent_grammar_node(grammar_node_type_choice, std::move(children))
+        {
+        }
     };
 
 
     /**
      * A grammar node that represents a match.
      */
-    class match_grammar_node : public parent_grammar_node {
+    class match_grammar_node : public parent_grammar_node_single_child {
     public:
         /**
          * The constructor.
-         * @param first the child node to use for parsing.
+         * @param child the child node to use for parsing.
          * @param id the id to use for this match.
          */
         template <class T>
-        match_grammar_node(const grammar_node_ptr& first, const T& id)
-            : parent_grammar_node(grammar_node_type_match, first)
+        match_grammar_node(const grammar_node_ptr& child, const T& id)
+            : parent_grammar_node_single_child(grammar_node_type_match, child)
             , m_id_symbol(std::make_unique<typed_symbol<T>>(id))
         {
         }

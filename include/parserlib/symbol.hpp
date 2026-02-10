@@ -73,6 +73,7 @@ namespace parserlib {
          */
         typed_symbol(const T& value) 
             : symbol(static_cast<symbol_value_type>(value))
+            , m_value(value)
         {
         }
 
