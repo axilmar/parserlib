@@ -89,44 +89,34 @@ namespace parserlib {
     }
 
 
+    /**** grammar node construction variables ****/
+
+
     /**
-     * Creates an any grammar node.
+     * An any grammar node.
      * It parses any one symbol.
-     * @return an any grammar node.
      */ 
-    inline grammar_node_ptr any() {
-        return std::make_shared<any_grammar_node>();
-    }
+    inline const grammar_node_ptr any = std::make_shared<any_grammar_node>();
 
 
     /**
-     * Creates an end grammar node.
+     * An end grammar node.
      * Used for checking if the end of input has been reached.
-     * @return an end grammar node.
      */ 
-    inline grammar_node_ptr end() {
-        return std::make_shared<end_grammar_node>();
-    }
+    inline const grammar_node_ptr end = std::make_shared<end_grammar_node>();
 
 
     /**
-     * Creates a false grammar node.
-     * Used for returning false.
-     * @return a false grammar node.
+     * A false grammar node.
      */ 
-    inline grammar_node_ptr false_() {
-        return std::make_shared<false_grammar_node>();
-    }
+    inline const grammar_node_ptr false_ = std::make_shared<false_grammar_node>();
 
 
     /**
-     * Creates a true grammar node.
+     * A true grammar node.
      * Used for returning false.
-     * @return a true grammar node.
      */ 
-    inline grammar_node_ptr true_() {
-        return std::make_shared<true_grammar_node>();
-    }
+    inline const grammar_node_ptr true_ = std::make_shared<true_grammar_node>();
 
 
     /**

@@ -393,7 +393,7 @@ static void test_parse_match() {
 
 
 static void test_parse_exclusion() {
-    const rule grammar = any() - 'a';
+    const rule grammar = any - 'a';
 
     //true
     {
@@ -415,6 +415,148 @@ static void test_parse_exclusion() {
 }
 
 
+static void test_rule() {
+    //test rule where its expression is set before it is used
+    {
+        rule r = 'a';
+        auto grammar = +r;
+
+        //true
+        {
+            std::string src = "a";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //true
+        {
+            std::string src = "aa";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //false
+        {
+            std::string src = "b";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    //test rule where its expression is set after it is used
+    {
+        rule r;
+        auto grammar = +r;
+        r = 'a';
+
+        //true
+        {
+            std::string src = "a";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //true
+        {
+            std::string src = "aa";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //false
+        {
+            std::string src = "b";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    //test rule recursive declaration at initialization
+    {
+        rule grammar
+            = 'a' >> grammar
+            | end
+            ;
+
+        //true
+        {
+            std::string src = "a";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //true
+        {
+            std::string src = "aa";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //false
+        {
+            std::string src = "b";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    //test rule recursive declaration after initialization
+    {
+        rule grammar;
+
+        grammar
+            = 'a' >> grammar
+            | end
+            ;
+
+        //true
+        {
+            std::string src = "a";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //true
+        {
+            std::string src = "aa";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //false
+        {
+            std::string src = "b";
+            parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+}
+
+
 void run_tests() {
     test_symbol();
     test_parse_symbol();
@@ -430,4 +572,5 @@ void run_tests() {
     test_parse_choice();
     test_parse_match();
     test_parse_exclusion();
+    test_rule();
 }
