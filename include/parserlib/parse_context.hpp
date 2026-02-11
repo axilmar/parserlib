@@ -47,7 +47,6 @@ namespace parserlib {
              */ 
             state(const Iterator& begin, const Iterator& end) 
                 : m_iterator(begin)
-                , m_match_begin(begin)
                 , m_match_count(0)
                 , m_error_count(0)
                 , m_end(end)
@@ -56,7 +55,6 @@ namespace parserlib {
 
         private:
             Iterator m_iterator;
-            Iterator m_match_begin;
             size_t m_match_count;
             size_t m_error_count;
             Iterator m_end;
@@ -116,7 +114,6 @@ namespace parserlib {
         void increment_iterator() {
             assert(is_valid_iterator());
             ++m_state.m_iterator;
-            _update_state();
         }
 
         /**
@@ -126,7 +123,6 @@ namespace parserlib {
         void increment_iterator(size_t count) {
             assert(is_valid_iterator());
             m_state.m_iterator += count;
-            _update_state();
         }
 
         /**
@@ -170,7 +166,7 @@ namespace parserlib {
         void add_match(const MatchId& id, const state& from_state) {
             match_container children(m_matches.begin() + from_state.m_match_count, m_matches.end());
             m_matches.resize(from_state.m_match_count);
-            m_matches.push_back(match(id, from_state.m_match_begin, m_state.m_iterator, std::move(children)));
+            m_matches.push_back(match(id, from_state.m_iterator, m_state.m_iterator, std::move(children)));
             m_state.m_match_count = m_matches.size();
         }
 
@@ -196,10 +192,6 @@ namespace parserlib {
         state m_state;
         match_container m_matches;
         error_container m_errors;
-
-        void _update_state() {
-            m_state.m_match_begin = m_state.m_iterator;
-        }
     };
 
 

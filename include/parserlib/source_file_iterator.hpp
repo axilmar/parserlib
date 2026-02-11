@@ -2,6 +2,7 @@
 #define PARSERLIB_SOURCE_FILE_ITERATOR_HPP
 
 
+#include <string>
 #include <iterator>
 
 
@@ -53,7 +54,7 @@ namespace parserlib {
      * @param Iterator type of iterator.
      * @param SourceFilePosition type of source file position.
      */ 
-    template <class Iterator, class SourceFilePosition = source_file_position> 
+    template <class Iterator = std::string::const_iterator, class SourceFilePosition = source_file_position> 
     class source_file_iterator {
     public:
         /** value type */
@@ -64,7 +65,7 @@ namespace parserlib {
          * @param iterator iterator.
          * @param source_file_position the initial source file position.
          */ 
-        source_file_iterator(const Iterator& iterator, const SourceFilePosition& source_file_position = {})
+        source_file_iterator(const Iterator& iterator = {}, const SourceFilePosition& source_file_position = {})
             : m_iterator(iterator)
             , m_source_file_position(source_file_position)
         {

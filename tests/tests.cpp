@@ -603,6 +603,33 @@ static void test_rule() {
 }
 
 
+static void test_source_file_iterator() {
+    const rule grammar = 'a';
+
+    //true
+    {
+        std::string src = "a";
+        parse_context<source_file_iterator<>> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.get_iterator() == src.end());
+        assert(pc.get_iterator().get_line() == 1);
+        assert(pc.get_iterator().get_column() == 2);
+    }
+
+    //false
+    {
+        std::string src = "b";
+        parse_context<source_file_iterator<>> pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.get_iterator() == src.begin());
+        assert(pc.get_iterator().get_line() == 1);
+        assert(pc.get_iterator().get_column() == 1);
+    }
+}
+
+
 void run_tests() {
     test_symbol();
     test_parse_symbol();
@@ -619,4 +646,5 @@ void run_tests() {
     test_parse_match();
     test_parse_exclusion();
     test_rule();
+    test_source_file_iterator();
 }
