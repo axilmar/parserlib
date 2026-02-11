@@ -14,10 +14,10 @@ namespace parserlib {
      * Class used for assosiating a grammar expression to a variable.
      * It allows the use of a grammar expression in other expressions.
      * It allows for recursive grammars.
-     * Internally, rule references are registered with a thread-local map,
-     * and therefore constructing a grammar tree that uses a rule should only be done
-     * in one thread.
-     * Using rules for parsing can be done by multiple threads, since rules are 
+     * Internally, rule references are registered with a statically allocated map,
+     * and therefore constructing a grammar tree that uses rules should only be done
+     * in a single thread.
+     * Using already constructed rules can be done by multiple threads, since rules are 
      * considered immutable for parsing.
      */ 
     class rule {

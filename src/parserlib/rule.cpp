@@ -8,13 +8,13 @@ namespace parserlib {
 
 
     static std::map<const rule*, std::vector<ref_grammar_node_ptr>>& _get_rule_ref_map() {
-        static thread_local std::map<const rule*, std::vector<ref_grammar_node_ptr>> map;
+        static std::map<const rule*, std::vector<ref_grammar_node_ptr>> map;
         return map;
     }
 
 
     static std::set<const rule*>& _get_constructed_rule_set() {
-        static thread_local std::set<const rule*> set;
+        static std::set<const rule*> set;
         return set;
     }
 

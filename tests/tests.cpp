@@ -415,6 +415,10 @@ static void test_parse_exclusion() {
 }
 
 
+static const rule global_r_non_recursive = +terminal('a');
+static const rule global_r_recursive = 'a' >> global_r_recursive | end;
+
+
 static void test_rule() {
     //test rule where its expression is set before it is used
     {
@@ -550,6 +554,48 @@ static void test_rule() {
             std::string src = "b";
             parse_context pc(src);
             const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    //test rule as global variable, non-recursive
+    {
+        //true
+        {
+            std::string src = "a";
+            parse_context pc(src);
+            const bool ok = global_r_non_recursive.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //false
+        {
+            std::string src = "b";
+            parse_context pc(src);
+            const bool ok = global_r_non_recursive.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    //test rule as global variable, recursive
+    {
+        //true
+        {
+            std::string src = "a";
+            parse_context pc(src);
+            const bool ok = global_r_recursive.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        //false
+        {
+            std::string src = "b";
+            parse_context pc(src);
+            const bool ok = global_r_recursive.parse(pc);
             assert(!ok);
             assert(pc.get_iterator() == src.begin());
         }
