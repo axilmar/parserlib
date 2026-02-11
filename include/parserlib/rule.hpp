@@ -26,8 +26,7 @@ namespace parserlib {
          * The default constructor.
          * An empty rule is created.
          */ 
-        rule() {
-        }
+        rule();
 
         /**
          * The copy constructor.
@@ -35,22 +34,14 @@ namespace parserlib {
          * with the node of the given rule.
          * @param r the source rule.
          */ 
-        rule(const rule& r)
-            : m_node(r.m_node)
-        {
-            _update_refs();
-        }
+        rule(const rule& r);
 
         /**
          * The move constructor.
          * The rule gets the node pointer and the references of the given rule.
          * @param r the source rule.
          */ 
-        rule(rule&& r)
-            : m_node(std::move(r.m_node))
-        {
-            _move_refs(std::addressof(r));
-        }
+        rule(rule&& r);
 
         /**
          * Constructor from pointer to grammar.
@@ -58,11 +49,7 @@ namespace parserlib {
          * with the given node.
          * @param node the node to set to this rule.
          */ 
-        rule(const grammar_node_ptr& node)
-            : m_node(node)
-        {
-            _update_refs();
-        }
+        rule(const grammar_node_ptr& node);
 
         /**
          * Constructor from symbol.
@@ -73,7 +60,7 @@ namespace parserlib {
         rule(const T& symbol)
             : m_node(std::make_shared<symbol_grammar_node>(symbol))
         {
-            _update_refs();
+            _init();
         }
 
         /**
@@ -85,16 +72,14 @@ namespace parserlib {
         rule(const T* symbol)
             : m_node(std::make_shared<string_grammar_node>(symbol))
         {
-            _update_refs();
+            _init();
         }
 
         /**
          * Destroys the rule.
          * Any references to the rule are destroyed if there reference count reaches 0.
          */ 
-        ~rule() {
-            _remove_refs();
-        }
+        ~rule();
 
         /**
          * The copy assignment operator.
@@ -103,11 +88,7 @@ namespace parserlib {
          * @param r the source object.
          * @return reference to this.
          */ 
-        rule& operator = (const rule& r) {
-            m_node = r.m_node;
-            _update_refs();
-            return *this;
-        }
+        rule& operator = (const rule& r);
 
         /**
          * The move assignment operator.
@@ -116,11 +97,7 @@ namespace parserlib {
          * @param r the source object.
          * @return reference to this.
          */ 
-        rule& operator = (rule&& r) {
-            m_node = std::move(r.m_node);
-            _move_refs(std::addressof(r));
-            return *this;
-        }
+        rule& operator = (rule&& r);
 
         /**
          * Assignment from grammar node.
@@ -129,11 +106,7 @@ namespace parserlib {
          * @param r the source object.
          * @return reference to this.
          */ 
-        rule& operator = (const grammar_node_ptr& node) {
-            m_node = node;
-            _update_refs();
-            return *this;
-        }
+        rule& operator = (const grammar_node_ptr& node);
 
         /**
          * Assignment from symbol.
@@ -145,7 +118,7 @@ namespace parserlib {
         template <class T>
         rule& operator = (const T& symbol) {
             m_node = std::make_shared<symbol_grammar_node>(symbol);
-            _update_refs();
+            _update();
             return *this;
         }
 
@@ -159,7 +132,7 @@ namespace parserlib {
         template <class T>
         rule& operator = (const T* symbol) {
             m_node = std::make_shared<string_grammar_node>(symbol);
-            _update_refs();
+            _update();
             return *this;
         }
 
@@ -167,48 +140,42 @@ namespace parserlib {
          * Creates a reference node for this rule.
          * @return a reference node for this rule.
          */ 
-        grammar_node_ptr create_ref_node() const {
-            ref_grammar_node_ptr ref = std::make_shared<ref_grammar_node>(m_node);
-            _get_rule_ref_map()[this].push_back(ref);
-            return ref;
-        }
+        grammar_node_ptr create_ref_node() const;
 
         /**
          * Returns the rule of this node.
          */ 
-        const grammar_node_ptr& get_node() const {
-            return m_node;
-        }
+        const grammar_node_ptr& get_node() const;
 
         /**
          * Creates a zero-or-more times loop for this rule.
          * @return a zero-or-more times loop for this rule.
          */  
-        inline grammar_node_ptr operator *() const;
+        grammar_node_ptr operator *() const;
 
         /**
          * Creates a one-or-more times loop for this rule.
          * @return a one-or-more times loop for this rule.
          */  
-        inline grammar_node_ptr operator +() const;
+        grammar_node_ptr operator +() const;
 
         /**
          * Makes this rule optional.
          * @return an optional node for this rule.
          */  
-        inline grammar_node_ptr operator -() const;
+        grammar_node_ptr operator -() const;
 
         /**
          * Makes this rule a logical and predicate.
          * @return a logical and node for this rule.
          */  
-        inline grammar_node_ptr operator &() const;
+        grammar_node_ptr operator &() const;
 
         /**
          * Makes this rule a logical not predicate.
          * @return a logical not node for this rule.
          */  
-        inline grammar_node_ptr operator !() const;
+        grammar_node_ptr operator !() const;
 
         /**
          * Helper function for parsing.
@@ -216,48 +183,16 @@ namespace parserlib {
          * @return true on success, false on error.
          */
         template <class ParseContext, class SymbolComparator = default_symbol_comparator>
-        inline bool parse(ParseContext& pc) const;
+        bool parse(ParseContext& pc) const;
 
     private:
         //the node
         grammar_node_ptr m_node;
 
-        //tracks the references of a rule
-        static std::map<const rule*, std::vector<ref_grammar_node_ptr>>& _get_rule_ref_map() {
-            static thread_local std::map<const rule*, std::vector<ref_grammar_node_ptr>> map;
-            return map;
-        }
-
-        //moves the references of a rule to this 
-        void _move_refs(const rule* src_rule) {
-            auto it = _get_rule_ref_map().find(src_rule);
-            if (it != _get_rule_ref_map().end()) {
-                _get_rule_ref_map()[this] = it->second;
-                _get_rule_ref_map().erase(it);
-            }
-        }
-
-        //updates the references with the current node
-        void _update_refs() {
-            const auto it = _get_rule_ref_map().find(this);
-            if (it != _get_rule_ref_map().end()) {
-                for (const ref_grammar_node_ptr& ref : it->second) {
-                    ref->set_node(m_node);
-                }
-            }
-        }
-
-        //removes any refs for this node
-        void _remove_refs() {
-            _get_rule_ref_map().erase(this);
-        }
+        //internal functions
+        void _init();
+        void _update();
     };
-
-
-    inline grammar_node_ptr::grammar_node_ptr(const rule& r)
-        : std::shared_ptr<grammar_node>(r.create_ref_node())
-    {
-    }
 
 
 } //namespace parserlib

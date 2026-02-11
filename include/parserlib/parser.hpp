@@ -323,14 +323,14 @@ namespace parserlib {
 
 
     template <class ParseContext, class SymbolComparator>
-    inline bool grammar_node_ptr::parse(ParseContext& pc) const {
+    bool grammar_node_ptr::parse(ParseContext& pc) const {
         parser<ParseContext, SymbolComparator> parser(pc);
         return parser.parse(*this);
     }
 
 
     template <class ParseContext, class SymbolComparator>
-    inline bool rule::parse(ParseContext& pc) const {
+    bool rule::parse(ParseContext& pc) const {
         return get_node().parse<ParseContext, SymbolComparator>(pc);
     }
 

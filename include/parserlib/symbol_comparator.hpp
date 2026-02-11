@@ -2,7 +2,6 @@
 #define PARSERLIB_SYMBOL_COMPARATOR_HPP
 
 
-#include <cctype>
 #include "symbol.hpp"
 
 
@@ -17,11 +16,10 @@ namespace parserlib {
         /**
          * Returns the result of `left - right`.
          * @return the result of `left - right`.
-         */ 
-        static symbol_value_type compare(symbol_value_type left, symbol_value_type right) {
-            return left - right;
-        }
+         */
+        static symbol_value_type compare(symbol_value_type left, symbol_value_type right);
     };
+
 
     /**
      * It converts the symbols to lowercase, using std::tolower,
@@ -34,9 +32,7 @@ namespace parserlib {
          * then subtracts the values and returns the difference.
          * @return the result of `std::tolower(left) - std::tolower(right)`.
          */ 
-        static symbol_value_type compare(symbol_value_type left, symbol_value_type right) {
-            return std::tolower(left) - std::tolower(right);
-        }
+        static symbol_value_type compare(symbol_value_type left, symbol_value_type right);
     };
 
 

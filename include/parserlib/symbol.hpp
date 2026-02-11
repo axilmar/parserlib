@@ -28,16 +28,13 @@ namespace parserlib {
         /**
          * Virtual destructor due to inheritance.
          */
-        virtual ~symbol() {
-        }
+        virtual ~symbol();
 
         /**
          * Returns the symbol value as an 'symbol_value_type'.
          * @return the symbol value.
          */
-        symbol_value_type get_value() const {
-            return m_value;
-        }
+        symbol_value_type get_value() const;
 
     protected:
         /**
@@ -45,7 +42,7 @@ namespace parserlib {
          * It can only be instantiated through the `typed_symbol` class.
          * @param value the 'symbol_value_type' value of the symbol.
          */
-        symbol(symbol_value_type value) : m_value(value) {}
+        symbol(symbol_value_type value);
 
     private:
         symbol_value_type m_value;
@@ -99,16 +96,13 @@ namespace parserlib {
         /**
          * Virtual destructor due to inheritance.
          */
-        virtual ~symbol_string() {
-        }
+        virtual ~symbol_string();
 
         /**
          * Returns the string as a vector of 'symbol_value_type'.
          * @return the string as a vector of 'symbol_value_type'.
          */ 
-        const std::vector<symbol_value_type>& get_value() const {
-            return m_value;
-        }
+        const std::vector<symbol_value_type>& get_value() const;
 
     protected:
         /**
@@ -116,7 +110,7 @@ namespace parserlib {
          * It can only be instantiated through the `typed_symbol_string` class.
          * @param value the array of characters as of type 'symbol_value_type'.
          */
-        symbol_string(const std::vector<symbol_value_type>& value) : m_value(value) {}
+        symbol_string(const std::vector<symbol_value_type>& value);
 
     private:
         std::vector<symbol_value_type> m_value;
@@ -170,16 +164,13 @@ namespace parserlib {
         /**
          * Virtual destructor due to inheritance.
          */
-        virtual ~symbol_set() {
-        }
+        virtual ~symbol_set();
 
         /**
          * Returns the set as a vector of 'symbol_value_type'.
          * @return the set as a vector of 'symbol_value_type'.
          */ 
-        const std::vector<symbol_value_type>& get_value() const {
-            return m_value;
-        }
+        const std::vector<symbol_value_type>& get_value() const;
 
     protected:
         /**
@@ -187,11 +178,7 @@ namespace parserlib {
          * It can only be instantiated through the `typed_symbol_set` class.
          * @param value the array of characters as of type 'symbol_value_type'; they are sorted.
          */
-        symbol_set(const std::vector<symbol_value_type>& value) 
-            : m_value(value)
-        {
-            std::sort(m_value.begin(), m_value.end());
-        }
+        symbol_set(const std::vector<symbol_value_type>& value);
 
     private:
         std::vector<symbol_value_type> m_value;
@@ -276,16 +263,13 @@ namespace parserlib {
         /**
          * Virtual destructor due to inheritance.
          */ 
-        virtual ~symbol_pair() {
-        }
+        virtual ~symbol_pair();
 
         /**
          * Returns the pair of symbols as pair of 'symbol_value_type'.
          * @return the pair of symbols as pair of 'symbol_value_type'.
          */ 
-        const std::pair<symbol_value_type, symbol_value_type>& get_value() const {
-            return m_value;
-        }
+        const std::pair<symbol_value_type, symbol_value_type>& get_value() const;
 
     protected:
         /**
@@ -293,7 +277,7 @@ namespace parserlib {
          * It can only be instantiated through the `typed_symbol_pair` class.
          * @param value the array of characters as of type 'symbol_value_type'.
          */
-        symbol_pair(const std::pair<symbol_value_type, symbol_value_type>& value) : m_value(value) {}
+        symbol_pair(const std::pair<symbol_value_type, symbol_value_type>& value);
 
     private:
         std::pair<symbol_value_type, symbol_value_type> m_value;

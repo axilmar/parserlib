@@ -18,40 +18,29 @@ namespace parserlib {
          * Returns the current line.
          * @return the current line.
          */ 
-        size_t get_line() const {
-            return m_line;
-        }
+        size_t get_line() const;
 
         /**
          * Returns the current column.
          * @return the current column.
          */ 
-        size_t get_column() const {
-            return m_column;
-        }
+        size_t get_column() const;
 
         /**
          * Increments the column.
          */ 
-        void increment_column() {
-            ++m_column;
-        }
+        void increment_column();
 
         /**
          * Increments a column by a specific count.
          * @param count increment count.
          */ 
-        void increment_column(size_t count) {
-            m_column += count;
-        }
+        void increment_column(size_t count);
 
         /**
          * Increments the line by 1 and sets the column to 1.
          */ 
-        void increment_line() {
-            ++m_line;
-            m_column = 1;
-        }
+        void increment_line();
 
     private:
         size_t m_line = 1;
@@ -95,7 +84,7 @@ namespace parserlib {
          * @param it the other iterator.
          * @return true if this and the given iterator are equal, false otherwise.
          */ 
-        bool operator == (const iterator& it) const {
+        bool operator == (const Iterator& it) const {
             return m_iterator == it;
         }
 
@@ -113,7 +102,7 @@ namespace parserlib {
          * @param it the other iterator.
          * @return true if this and the given iterator are different, false otherwise.
          */ 
-        bool operator != (const iterator& it) const {
+        bool operator != (const Iterator& it) const {
             return m_iterator != it;
         }
 

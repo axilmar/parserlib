@@ -49,16 +49,13 @@ namespace parserlib {
         /**
          * Virtual destructor due to polymorphism.
          */ 
-        virtual ~grammar_node() {
-        }
+        virtual ~grammar_node();
 
         /**
          * Returns the node's type.
          * @return the node's type.
          */ 
-        grammar_node_type get_type() const {
-            return m_type;
-        }
+        grammar_node_type get_type() const;
 
     protected:
         /**
@@ -66,7 +63,7 @@ namespace parserlib {
          * It can only be instantiated through subclasses.
          * @param type the node type.
          */ 
-        grammar_node(grammar_node_type type) : m_type(type) {}
+        grammar_node(grammar_node_type type);
 
     private:
         grammar_node_type m_type;
@@ -85,10 +82,7 @@ namespace parserlib {
          * Constructor from shared ptr to node.
          * @param node the source node.
          */ 
-        grammar_node_ptr(const std::shared_ptr<grammar_node>& node)
-            : std::shared_ptr<grammar_node>(node)
-        {
-        }
+        grammar_node_ptr(const std::shared_ptr<grammar_node>& node);
 
         /**
          * Creation of symbol grammar node for a symbol.
@@ -108,37 +102,37 @@ namespace parserlib {
          * Creation of symbol grammar node for a rule.
          * @param r the rule to create a node for.
          */ 
-        inline grammar_node_ptr(const rule& r);
+        grammar_node_ptr(const rule& r);
 
         /**
          * Creates a zero-or-more times loop for this grammar node.
          * @return a zero-or-more times loop for this grammar node.
          */  
-        inline grammar_node_ptr operator *() const;
+        grammar_node_ptr operator *() const;
 
         /**
          * Creates a one-or-more times loop for this grammar node.
          * @return a one-or-more times loop for this grammar node.
          */  
-        inline grammar_node_ptr operator +() const;
+        grammar_node_ptr operator +() const;
 
         /**
          * Makes this node optional.
          * @return an optional node for this node.
          */  
-        inline grammar_node_ptr operator -() const;
+        grammar_node_ptr operator -() const;
 
         /**
          * Makes this node a logical and predicate.
          * @return a logical and node for this node.
          */  
-        inline grammar_node_ptr operator &() const;
+        grammar_node_ptr operator &() const;
 
         /**
          * Makes this node a logical not predicate.
          * @return a logical not node for this node.
          */  
-        inline grammar_node_ptr operator !() const;
+        grammar_node_ptr operator !() const;
 
         /**
          * Helper function for parsing.
@@ -146,7 +140,7 @@ namespace parserlib {
          * @return true on success, false on error.
          */
         template <class ParseContext, class SymbolComparator = default_symbol_comparator>
-        inline bool parse(ParseContext& pc) const;
+        bool parse(ParseContext& pc) const;
     };
 
 
@@ -165,9 +159,7 @@ namespace parserlib {
          * Returns the child.
          * @return the child.
          */ 
-        const grammar_node_ptr& get_child() const {
-            return m_child;
-        }
+        const grammar_node_ptr& get_child() const;
 
     protected:
         /**
@@ -176,11 +168,7 @@ namespace parserlib {
          * @param type the node type.
          * @param child the child child node; optional.
          */ 
-        parent_grammar_node_single_child(grammar_node_type type, const grammar_node_ptr& child = {})
-            : grammar_node(type)
-            , m_child(child)
-        {
-        }
+        parent_grammar_node_single_child(grammar_node_type type, const grammar_node_ptr& child = {});
 
     private:
         grammar_node_ptr m_child;
@@ -196,9 +184,7 @@ namespace parserlib {
          * Returns the children.
          * @return the children.
          */ 
-        const grammar_node_container& get_children() const {
-            return m_children;
-        }
+        const grammar_node_container& get_children() const;
 
     protected:
         /**
@@ -207,11 +193,7 @@ namespace parserlib {
          * @param type the node type.
          * @param child the child child node; optional.
          */ 
-        parent_grammar_node(grammar_node_type type, grammar_node_container&& children = {})
-            : grammar_node(type)
-            , m_children(std::move(children))
-        {
-        }
+        parent_grammar_node(grammar_node_type type, grammar_node_container&& children = {});
 
     private:
         grammar_node_container m_children;
@@ -225,26 +207,22 @@ namespace parserlib {
      */ 
     class ref_grammar_node : public grammar_node {
     public:
-        ref_grammar_node(const grammar_node_ptr& node = {}) 
-            : grammar_node(grammar_node_type_ref) 
-            , m_node(node)
-        {
-        }
+        /**
+         * The constructor.
+         * @param node node to refer to.
+         */ 
+        ref_grammar_node(const grammar_node_ptr& node = {});
 
         /**
          * Returns the currently referenced node.
          */ 
-        const grammar_node_ptr get_node() const {
-            return m_node.lock();
-        }
+        const grammar_node_ptr get_node() const;
 
         /**
          * Sets the node to refer to.
          * @param node the ndoe to refer to.
          */ 
-        void set_node(const grammar_node_ptr& node) {
-            m_node = node;
-        }
+        void set_node(const grammar_node_ptr& node);
 
     private:
         std::weak_ptr<grammar_node> m_node;
@@ -277,9 +255,7 @@ namespace parserlib {
          * Returns the symbol.
          * @return the symbol.
          */ 
-        const symbol_ptr& get_symbol() const {
-            return m_symbol;
-        }
+        const symbol_ptr& get_symbol() const;
 
     private:
         symbol_ptr m_symbol;
@@ -316,9 +292,7 @@ namespace parserlib {
          * Returns the symbol.
          * @return the symbol.
          */ 
-        const symbol_string_ptr& get_symbol() const {
-            return m_symbol;
-        }
+        const symbol_string_ptr& get_symbol() const;
 
     private:
         symbol_string_ptr m_symbol;
@@ -385,9 +359,7 @@ namespace parserlib {
          * Returns the symbol.
          * @return the symbol.
          */ 
-        const symbol_set_ptr& get_symbol() const {
-            return m_symbol;
-        }
+        const symbol_set_ptr& get_symbol() const;
 
     private:
         symbol_set_ptr m_symbol;
@@ -416,9 +388,7 @@ namespace parserlib {
          * Returns the symbol.
          * @return the symbol.
          */ 
-        const symbol_pair_ptr& get_symbol() const {
-            return m_symbol;
-        }
+        const symbol_pair_ptr& get_symbol() const;
 
     private:
         symbol_pair_ptr m_symbol;
@@ -434,10 +404,7 @@ namespace parserlib {
          * The constructor.
          * @param child the child child node; optional.
          */ 
-        loop_0_grammar_node(const grammar_node_ptr& child = {})
-            : parent_grammar_node_single_child(grammar_node_type_loop_0, child)
-        {
-        }
+        loop_0_grammar_node(const grammar_node_ptr& child = {});
     };
 
 
@@ -450,10 +417,7 @@ namespace parserlib {
          * The constructor.
          * @param child the child child node; optional.
          */ 
-        loop_1_grammar_node(const grammar_node_ptr& child = {})
-            : parent_grammar_node_single_child(grammar_node_type_loop_1, child)
-        {
-        }
+        loop_1_grammar_node(const grammar_node_ptr& child = {});
     };
 
 
@@ -467,10 +431,7 @@ namespace parserlib {
          * The constructor.
          * @param child the child child node; optional.
          */ 
-        optional_grammar_node(const grammar_node_ptr& child = {})
-            : parent_grammar_node_single_child(grammar_node_type_optional, child)
-        {
-        }
+        optional_grammar_node(const grammar_node_ptr& child = {});
     };
 
 
@@ -484,10 +445,7 @@ namespace parserlib {
          * The constructor.
          * @param child the child child node; optional.
          */ 
-        logical_and_grammar_node(const grammar_node_ptr& child = {})
-            : parent_grammar_node_single_child(grammar_node_type_logical_and, child)
-        {
-        }
+        logical_and_grammar_node(const grammar_node_ptr& child = {});
     };
 
 
@@ -501,10 +459,7 @@ namespace parserlib {
          * The constructor.
          * @param child the child child node; optional.
          */ 
-        logical_not_grammar_node(const grammar_node_ptr& child = {})
-            : parent_grammar_node_single_child(grammar_node_type_logical_not, child)
-        {
-        }
+        logical_not_grammar_node(const grammar_node_ptr& child = {});
     };
 
 
@@ -516,10 +471,7 @@ namespace parserlib {
      */ 
     class sequence_grammar_node : public parent_grammar_node {
     public:
-        sequence_grammar_node(grammar_node_container&& children) : 
-            parent_grammar_node(grammar_node_type_sequence, std::move(children))
-        {
-        }
+        sequence_grammar_node(grammar_node_container&& children);
     };
 
 
@@ -531,10 +483,7 @@ namespace parserlib {
      */ 
     class choice_grammar_node : public parent_grammar_node {
     public:
-        choice_grammar_node(grammar_node_container&& children) 
-            : parent_grammar_node(grammar_node_type_choice, std::move(children))
-        {
-        }
+        choice_grammar_node(grammar_node_container&& children);
     };
 
 
@@ -559,9 +508,7 @@ namespace parserlib {
          * Returns the match id symbol.
          * @return the match id symbol.
          */ 
-        const symbol_ptr& get_id_symbol() const {
-            return m_id_symbol;
-        }
+        const symbol_ptr& get_id_symbol() const;
 
     private:
         symbol_ptr m_id_symbol;
@@ -573,7 +520,7 @@ namespace parserlib {
      */ 
     class any_grammar_node : public grammar_node {
     public:
-        any_grammar_node() : grammar_node(grammar_node_type_any) {}
+        any_grammar_node();
     };
 
 
@@ -582,7 +529,7 @@ namespace parserlib {
      */ 
     class end_grammar_node : public grammar_node {
     public:
-        end_grammar_node() : grammar_node(grammar_node_type_end) {}
+        end_grammar_node();
     };
 
 
@@ -591,7 +538,7 @@ namespace parserlib {
      */ 
     class false_grammar_node : public grammar_node {
     public:
-        false_grammar_node() : grammar_node(grammar_node_type_false) {}
+        false_grammar_node();
     };
 
 
@@ -600,7 +547,7 @@ namespace parserlib {
      */ 
     class true_grammar_node : public grammar_node {
     public:
-        true_grammar_node() : grammar_node(grammar_node_type_true) {}
+        true_grammar_node();
     };
 
 
@@ -632,9 +579,7 @@ namespace parserlib {
          * Returns the function.
          * @return the function.
          */ 
-        const parse_function& get_function() const {
-            return m_function;
-        }
+        const parse_function& get_function() const;
 
     private:
         parse_function m_function;
