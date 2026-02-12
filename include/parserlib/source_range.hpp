@@ -3,9 +3,72 @@
 
 
 #include <vector>
+#include <string>
 
 
 namespace parserlib {
+
+
+    template <class Id, class Iterator> class source_range;
+    template <class Id, class Iterator> class match;
+    template <class Id, class Iterator> class error;
+
+
+    template <class T> struct source_type {
+        using type = std::vector<T>;
+    };
+
+
+    template <> struct source_type<signed char> {
+        using type = std::basic_string<signed char>;
+    };
+
+
+    template <> struct source_type<unsigned char> {
+        using type = std::basic_string<unsigned char>;
+    };
+
+
+    template <> struct source_type<char> {
+        using type = std::basic_string<char>;
+    };
+
+
+    #ifdef char8_t
+    template <> struct source_type<char8_t> {
+        using type = std::basic_string<char8_t>;
+    };
+    #endif
+
+
+    template <> struct source_type<char16_t> {
+        using type = std::basic_string<char16_t>;
+    };
+
+
+    template <> struct source_type<char32_t> {
+        using type = std::basic_string<char32_t>;
+    };
+
+
+    template <> struct source_type<wchar_t> {
+        using type = std::basic_string<wchar_t>;
+    };
+
+
+    template <class Id, class Iterator> struct source_type<source_range<Id, Iterator>> {
+        using type = typename source_type<typename Iterator::value_type>::type;
+    };
+
+
+    template <class Id, class Iterator> struct source_type<match<Id, Iterator>> {
+        using type = typename source_type<source_range<Id, Iterator>>::type;
+    };
+
+
+    template <class Id, class Iterator> struct source_type<error<Id, Iterator>> {
+        using type = typename source_type<source_range<Id, Iterator>>::type;
+    };
 
 
     /**
@@ -16,6 +79,15 @@ namespace parserlib {
     template <class Id, class Iterator>
     class source_range {
     public:
+        /** The id */ 
+        using id = Id;
+
+        /** The iterator */
+        using iterator = Iterator;
+
+        /** The value type */
+        using value = typename Iterator::value_type;
+
         /**
          * The constructor.
          * @param id id.
@@ -49,46 +121,28 @@ namespace parserlib {
          * Returns the begin iterator.
          * @return the begin iterator.
          */ 
-        const Iterator& begin() {
+        const Iterator& begin() const {
             return m_begin;
-        }
-
-        /**
-         * Returns the begin iterator.
-         * @return the begin iterator.
-         */ 
-        const Iterator& get_begin() {
-            return m_begin;
-        }
-        /**
-         * Sets the begin iterator.
-         * @param it the begin iterator.
-         */ 
-        void set_begin(const Iterator& it) {
-            m_begin = begin;
         }
 
         /**
          * Returns the end iterator.
          * @return the end iterator.
          */ 
-        const Iterator& end() {
+        const Iterator& end() const {
             return m_end;
         }
 
         /**
-         * Returns the end iterator.
-         * @return the end iterator.
+         * Returns the source that corresponds to this source range.
+         * @return the source that corresponds to this source range.
          */ 
-        const Iterator& get_end() {
-            return m_end;
+        auto get_source() const {
+            return typename source_type<value>::type{ m_begin, m_end };
         }
-        /**
-         * Sets the end iterator.
-         * @param it the end iterator.
-         */ 
-        void set_end(const Iterator& it) {
-            m_end = end;
+
+        operator Id () const {
+            return m_id;
         }
 
     private:
@@ -101,7 +155,7 @@ namespace parserlib {
     /**
      * A source range that represents a match.
      * @param Id the type of the match id.
-     * @param Iterator the iterator the match source range.
+     * @param Iterator the iterator for the match source range.
      */ 
     template <class Id, class Iterator>
     class match : public source_range<Id, Iterator> {
@@ -132,18 +186,6 @@ namespace parserlib {
 
     private:
         match_container m_children;
-    };
-
-
-    /**
-     * A source range that represents an error.
-     * @param Id the type of the error id.
-     * @param Iterator the iterator the error source range.
-     */ 
-    template <class Id, class Iterator>
-    class error : public source_range<Id, Iterator> {
-    public:
-        using source_range<Id, Iterator>::source_range;
     };
 
 

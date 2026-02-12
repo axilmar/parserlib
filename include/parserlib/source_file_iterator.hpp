@@ -2,8 +2,8 @@
 #define PARSERLIB_SOURCE_FILE_ITERATOR_HPP
 
 
-#include <string>
 #include <iterator>
+#include <string>
 
 
 namespace parserlib {
@@ -19,29 +19,40 @@ namespace parserlib {
          * Returns the current line.
          * @return the current line.
          */ 
-        size_t get_line() const;
+        size_t get_line() const {
+            return m_line;
+        }
 
         /**
          * Returns the current column.
          * @return the current column.
          */ 
-        size_t get_column() const;
+        size_t get_column() const {
+            return m_column;
+        }
 
         /**
          * Increments the column.
          */ 
-        void increment_column();
+        void increment_column() {
+            ++m_column;
+        }
 
         /**
          * Increments a column by a specific count.
          * @param count increment count.
          */ 
-        void increment_column(size_t count);
+        void increment_column(size_t count) {
+            m_column += count;
+        }
 
         /**
          * Increments the line by 1 and sets the column to 1.
          */ 
-        void increment_line();
+        void increment_line() {
+            ++m_line;
+            m_column = 1;
+        }
 
     private:
         size_t m_line = 1;
@@ -65,7 +76,7 @@ namespace parserlib {
          * @param iterator iterator.
          * @param source_file_position the initial source file position.
          */ 
-        source_file_iterator(const Iterator& iterator = {}, const SourceFilePosition& source_file_position = {})
+        source_file_iterator(const Iterator& iterator = Iterator(), const SourceFilePosition& source_file_position = {})
             : m_iterator(iterator)
             , m_source_file_position(source_file_position)
         {

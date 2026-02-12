@@ -35,6 +35,12 @@ namespace parserlib {
     }
 
 
+    template <class T> 
+    std::vector<T> vector_cat(const T& v1, const T& v2) {
+        return std::vector<T>({v1, v2});
+    }
+
+
 } //namespace parserlib
 
 

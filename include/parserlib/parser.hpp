@@ -2,337 +2,714 @@
 #define PARSERLIB_PARSER_HPP
 
 
-#include <stdexcept>
-#include "grammar_node.hpp"
+#include <cassert>
+#include <memory>
+#include <string>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <type_traits>
 #include "parse_context.hpp"
+#include "vector.hpp"
 
 
 namespace parserlib {
 
 
-    /**
-     * Class that implements the parsing algorithms.
-     * Adding new parsing algorithms or replacing the old ones 
-     * can be achieved by overloading the `parse` method in a subclass.
-     * @param ParseContext the parse context type to use.
-     * @param SymbolComparator the symbol comparator to use.
-     */ 
-    template <class ParseContext = parse_context<>, class SymbolComparator = default_symbol_comparator, std::enable_if_t<std::is_base_of_v<parse_context_base, ParseContext>, bool> = true>
-    class parser {
+    template <class ParseContext = parse_context<>> class parser {
     public:
-        /**
-         * The constructor.
-         * @param pc the parse context to use.
-         */
-        parser(ParseContext& pc)
-            : m_parse_context(pc)
-        {
-        }
+        class false_parse_node;
+        class true_parse_node;
+        class rule;
 
-        /**
-         * Returns the parse context.
-         * @return the parse context.
-         */ 
-        const ParseContext& get_parse_context() const {
-            return m_parse_context;
-        }
-
-        /**
-         * Parses using the given grammar node.
-         * Subclasses can be used to either replace existing parsing algorithms,
-         * based on the type of the node, or provide new algorithms for new node types.
-         * @param node the grammar node to start parsing from.
-         * @return true on success, false on failure.
-         * @exception std::runtime_error thrown if the node type is unknown.
-         */ 
-        virtual bool parse(const grammar_node_ptr& node) {
-            switch (node->get_type()) {
-                case grammar_node_type::grammar_node_type_ref:
-                    return _parse(std::static_pointer_cast<ref_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_symbol:
-                    return _parse(std::static_pointer_cast<symbol_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_string:
-                    return _parse(std::static_pointer_cast<string_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_set:
-                    return _parse(std::static_pointer_cast<set_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_range:
-                    return _parse(std::static_pointer_cast<range_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_loop_0:
-                    return _parse(std::static_pointer_cast<loop_0_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_loop_1:
-                    return _parse(std::static_pointer_cast<loop_1_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_optional:
-                    return _parse(std::static_pointer_cast<optional_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_logical_and:
-                    return _parse(std::static_pointer_cast<logical_and_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_logical_not:
-                    return _parse(std::static_pointer_cast<logical_not_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_sequence:
-                    return _parse(std::static_pointer_cast<sequence_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_choice:
-                    return _parse(std::static_pointer_cast<choice_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_match:
-                    return _parse(std::static_pointer_cast<match_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_any:
-                    return _parse(std::static_pointer_cast<any_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_end:
-                    return _parse(std::static_pointer_cast<end_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_false:
-                    return _parse(std::static_pointer_cast<false_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_true:
-                    return _parse(std::static_pointer_cast<true_grammar_node>(node));
-
-                case grammar_node_type::grammar_node_type_function:
-                    return _parse(std::static_pointer_cast<function_grammar_node>(node));
+        class parse_node {
+        public:
+            virtual ~parse_node() {
             }
 
-            throw std::runtime_error(std::string("parser: unhandled grammar node type: ") + std::to_string(static_cast<symbol_value_type>(node->get_type())));
-        }
+            virtual bool parse(ParseContext& pc) const = 0;
+        };
 
-    private:
-        //the parse context to work with
-        ParseContext& m_parse_context;
+        class parse_node_ptr : public std::shared_ptr<parse_node> {
+        public:
+            using std::shared_ptr<parse_node>::shared_ptr;
 
-        //invokes the symbol
-        template <class L, class R>
-        static symbol_value_type _compare(const L& left, const R& right) {
-            return SymbolComparator::compare(static_cast<symbol_value_type>(left), static_cast<symbol_value_type>(right));
-        }
-
-        //parse the node the ref refers to
-        bool _parse(const std::shared_ptr<ref_grammar_node>& node) {
-            return parse(node->get_node());
-        }
-
-        //check if the symbol matches the source
-        bool _parse(const std::shared_ptr<symbol_grammar_node>& node) {
-            if (m_parse_context.is_valid_iterator()) {
-                const auto& source_symbol = *m_parse_context.get_iterator();
-                const int grammar_symbol = node->get_symbol()->get_value();
-                if (_compare(source_symbol, grammar_symbol) == 0) {
-                    m_parse_context.increment_iterator();
-                    return true;
-                }
+            template <class T> parse_node_ptr(const T& symbol) 
+                : std::shared_ptr<parse_node>(std::make_shared<symbol_parse_node<T>>(symbol))
+            {
             }
-            return false;
-        }
 
-        //check if the string matches the source
-        bool _parse(const std::shared_ptr<string_grammar_node>& node) {
-            auto itSource = m_parse_context.get_iterator();
-            const auto& symbol_value = node->get_symbol()->get_value();
-            auto itGrammar = symbol_value.begin();
-            const auto itGrammarEnd = symbol_value.end();
-            for (;;) {
-                if (itGrammar == itGrammarEnd) {
-                    m_parse_context.increment_iterator(symbol_value.size());
-                    return true;
-                }
-                if (itSource == m_parse_context.get_end_iterator()) {
-                    break;
-                }
-                if (_compare(*itSource, *itGrammar) != 0) {
-                    break;
-                }
-                ++itSource;
-                ++itGrammar;
+            template <class T> parse_node_ptr(const T* string) 
+                : std::shared_ptr<parse_node>(std::make_shared<string_parse_node<T>>(string))
+            {
             }
-            return false;
-        }
 
-        //check if the source symbol is in the set
-        bool _parse(const std::shared_ptr<set_grammar_node>& node) {
-            if (m_parse_context.is_valid_iterator()) {
-                const auto& source_symbol = *m_parse_context.get_iterator();
-                const auto& symbol_value = node->get_symbol()->get_value();
-                auto it = std::upper_bound(symbol_value.begin(), symbol_value.end(), source_symbol, [&](const auto& a, const auto& b) {
-                    return _compare(a, b) < 0;
-                });
-                if (it != symbol_value.begin()) {
-                    --it;
-                    if (_compare(source_symbol, *it) == 0) {
-                        m_parse_context.increment_iterator();
+            parse_node_ptr(const rule& r) 
+                : std::shared_ptr<parse_node>(r.get_ref_node())
+            {
+            }
+
+            parse_node_ptr(bool b)
+                : std::shared_ptr<parse_node>(create_bool_parse_node(b))
+            {
+            }
+
+            parse_node_ptr operator *() const {
+                return std::make_shared<loop_0_parse_node>(*this);
+            }
+
+            parse_node_ptr operator +() const {
+                return std::make_shared<loop_1_parse_node>(*this);
+            }
+
+            parse_node_ptr operator -() const {
+                return std::make_shared<optional_parse_node>(*this);
+            }
+
+            parse_node_ptr operator &() const {
+                return std::make_shared<logical_and_parse_node>(*this);
+            }
+
+            parse_node_ptr operator !() const {
+                return std::make_shared<logical_not_parse_node>(*this);
+            }
+
+            bool parse(ParseContext& pc) const {
+                return (*this)->parse(pc);
+            }
+
+        private:
+            static std::shared_ptr<parse_node> create_bool_parse_node(bool b) {
+                return b ? 
+                    std::static_pointer_cast<parse_node>(std::make_shared<true_parse_node>()) : 
+                    std::static_pointer_cast<parse_node>(std::make_shared<false_parse_node>());
+            }
+        };
+
+        using parse_node_vector = std::vector<parse_node_ptr>;
+
+
+        class parent_parse_node_single_child : public parse_node {
+        public:
+            parent_parse_node_single_child(const parse_node_ptr& child) : m_child(child) {
+            }
+
+            const parse_node_ptr& get_child() const {
+                return m_child;
+            }
+
+        private:
+            const parse_node_ptr m_child;
+        };
+
+        class parent_parse_node : public parse_node {
+        public:
+            parent_parse_node(const parse_node_vector& children) : m_children(children) {
+            }
+
+            const parse_node_vector& get_children() const {
+                return m_children;
+            }
+
+        private:
+            const parse_node_vector m_children;
+        };
+
+        template <class T> class symbol_parse_node : public parse_node {
+        public:
+            symbol_parse_node(const T& symbol) : m_symbol(symbol) {
+            }
+
+            bool parse(ParseContext& pc) const override {
+                if (pc.is_valid_iterator()) {
+                    const auto& token = *pc.get_iterator();
+                    if (ParseContext::compare(token, m_symbol) == 0) {
+                        pc.increment_iterator();
                         return true;
                     }
                 }
+                return false;
             }
-            return false;
-        }
 
-        //checks if the source symbol is within the range
-        bool _parse(const std::shared_ptr<range_grammar_node>& node) {
-            if (m_parse_context.is_valid_iterator()) {
-                const auto& source_symbol = *m_parse_context.get_iterator();
-                const auto& symbol_value = node->get_symbol()->get_value();
-                if (_compare(source_symbol, symbol_value.first) >= 0 && _compare(source_symbol, symbol_value.second) <= 0) {
-                    m_parse_context.increment_iterator();
-                    return true;
+        private:
+            const T m_symbol;
+        };
+
+        template <class T> class string_parse_node : public parse_node {
+        public:
+            string_parse_node(const std::basic_string<T>& string) : m_string(string) {
+            }
+
+            bool parse(ParseContext& pc) const override {
+                if (pc.is_valid_iterator()) {
+                    auto itStr = m_string.begin();
+                    auto itSrc = pc.get_iterator();
+                    for (;;) {
+                        if (itStr == m_string.end()) {
+                            pc.increment_iterator(m_string.size());
+                            return true;
+                        }
+                        if (itSrc == pc.get_end_iterator()) {
+                            break;
+                        }
+                        const auto& strch = *itStr;
+                        const auto& token = *itSrc;
+                        if (ParseContext::compare(token, strch) != 0) {
+                            break;
+                        }
+                        ++itStr;
+                        ++itSrc;
+                    }
                 }
+                return false;
             }
-            return false;
-        }
 
-        //parse until there is an error
-        bool _parse(const std::shared_ptr<loop_0_grammar_node>& node) {
-            while (_parse_and_restore_state_on_failure(node->get_child())) {
+        private:
+            const std::basic_string<T> m_string;
+        };
+
+        template <class T> class set_parse_node : public parse_node {
+        public:
+            set_parse_node(const std::basic_string<T>& set) : m_set(get_sorted_vector(set)) {
             }
-            return true;
-        }
 
-        //parse once, then parse in loop
-        bool _parse(const std::shared_ptr<loop_1_grammar_node>& node) {
-            if (parse(node->get_child())) {
-                while (_parse_and_restore_state_on_failure(node->get_child())) {
+            bool parse(ParseContext& pc) const override {
+                if (pc.is_valid_iterator()) {
+                    const auto& token = *pc.get_iterator();
+                    auto it = std::upper_bound(m_set.begin(), m_set.end(), token, [](const auto& a, const auto& b) {
+                        return ParseContext::compare(a, b) < 0;
+                    });
+                    if (it != m_set.begin()) {
+                        --it;
+                        if (ParseContext::compare(token, *it) == 0) {
+                            pc.increment_iterator();
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+        private:
+            const std::vector<T> m_set;
+
+            static std::vector<T> get_sorted_vector(const std::basic_string<T>& set) {
+                std::vector<T> result(set.begin(), set.end());
+                std::sort(result.begin(), result.end());
+                return result;
+            }
+        };
+
+        template <class T> class range_parse_node : public parse_node {
+        public:
+            range_parse_node(const T& min, const T& max) : m_min(min), m_max(max) {
+                assert(min <= max);
+            }
+
+            bool parse(ParseContext& pc) const override {
+                if (pc.is_valid_iterator()) {
+                    const auto& token = *pc.get_iterator();
+                    if (ParseContext::compare(token, m_min) >= 0 && ParseContext::compare(token, m_max) <= 0) {
+                        pc.increment_iterator();
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+        private:
+            const T m_min;
+            const T m_max;
+        };
+
+        class loop_0_parse_node : public parent_parse_node_single_child {
+        public:
+            using parent_parse_node_single_child::parent_parse_node_single_child;
+
+            bool parse(ParseContext& pc) const override {
+                for (;;) {
+                    const auto state = pc.get_state();
+                    try {
+                        const parse_node_ptr& child = this->get_child();
+                        if (!child->parse(pc) || pc.get_iterator() == state.get_iterator()) {
+                            pc.set_state(state);
+                            break;
+                        }
+                    }
+                    catch (...) {
+                        pc.set_state(state);
+                        throw;
+                    }
                 }
                 return true;
             }
-            return false;
-        }
+        };
 
-        //parse, then return true no matter what the result was
-        bool _parse(const std::shared_ptr<optional_grammar_node>& node) {
-            _parse_and_restore_state_on_failure(node->get_child());
-            return true;
-        }
+        class loop_1_parse_node : public parent_parse_node_single_child {
+        public:
+            using parent_parse_node_single_child::parent_parse_node_single_child;
 
-        //parse then restore state
-        bool _parse(const std::shared_ptr<logical_and_grammar_node>& node) {
-            return _parse_and_restore_state(node->get_child());
-        }
-
-        //parse then restore state, reverse the result
-        bool _parse(const std::shared_ptr<logical_not_grammar_node>& node) {
-            return !_parse_and_restore_state(node->get_child());
-        }
-
-        //parse all in sequence
-        bool _parse(const std::shared_ptr<sequence_grammar_node>& node) {
-            const auto prev_state = m_parse_context.get_state();
-            for (const grammar_node_ptr& child : node->get_children()) {
+            bool parse(ParseContext& pc) const override {
+                const auto state = pc.get_state();
                 try {
-                    if (!parse(child)) {
-                        m_parse_context.set_state(prev_state);
+                    const parse_node_ptr& child = this->get_child();
+                    if (!child->parse(pc)) {
+                        pc.set_state(state);
                         return false;
                     }
                 }
                 catch (...) {
-                    m_parse_context.set_state(prev_state);
+                    pc.set_state(state);
+                    throw;
+                }
+
+                for (;;) {
+                    const auto state = pc.get_state();
+                    try {
+                        const parse_node_ptr& child = this->get_child();
+                        if (!child->parse(pc) || pc.get_iterator() == state.get_iterator()) {
+                            pc.set_state(state);
+                            break;
+                        }
+                    }
+                    catch (...) {
+                        pc.set_state(state);
+                        throw;
+                    }
+                }
+
+                return true;
+            }
+        };
+
+        class loop_n_parse_node : public parent_parse_node_single_child {
+        public:
+            loop_n_parse_node(size_t count, const parse_node_ptr& child)
+                : parent_parse_node_single_child(child)
+                , m_count(count)
+            {
+            }
+
+            bool parse(ParseContext& pc) const override {
+                const auto state = pc.get_state();
+                try {
+                    for (size_t i = 0; i < m_count; ++i) {
+                        const parse_node_ptr& child = this->get_child();
+                        if (!child->parse(pc)) {
+                            pc.set_state(state);
+                            return false;
+                        }
+                    }
+                }
+                catch (...) {
+                    pc.set_state(state);
+                    throw;
+                }
+                return true;
+            }
+
+        private:
+            const size_t m_count;
+        };
+
+        class optional_parse_node : public parent_parse_node_single_child {
+        public:
+            using parent_parse_node_single_child::parent_parse_node_single_child;
+
+            bool parse(ParseContext& pc) const override {
+                const auto state = pc.get_state();
+                try {
+                    const parse_node_ptr& child = this->get_child();
+                    if (!child->parse(pc)) {
+                        pc.set_state(state);
+                    }
+                }
+                catch (...) {
+                    pc.set_state(state);
+                    throw;
+                }
+                return true;
+            }
+        };
+
+        class logical_and_parse_node : public parent_parse_node_single_child {
+        public:
+            using parent_parse_node_single_child::parent_parse_node_single_child;
+
+            bool parse(ParseContext& pc) const override {
+                const auto state = pc.get_state();
+                try {
+                    const parse_node_ptr& child = this->get_child();
+                    const bool result = child->parse(pc);
+                    pc.set_state(state);
+                    return result;
+                }
+                catch (...) {
+                    pc.set_state(state);
                     throw;
                 }
             }
-            return true;
-        }
+        };
 
-        //parse one after the other, return for the first branch that it succeeds
-        bool _parse(const std::shared_ptr<choice_grammar_node>& node) {
-            for (const grammar_node_ptr& child : node->get_children()) {
-                if (_parse_and_restore_state_on_failure(child)) {
-                    return true;
+        class logical_not_parse_node : public parent_parse_node_single_child {
+        public:
+            using parent_parse_node_single_child::parent_parse_node_single_child;
+
+            bool parse(ParseContext& pc) const override {
+                const auto state = pc.get_state();
+                try {
+                    const parse_node_ptr& child = this->get_child();
+                    const bool result = !child->parse(pc);
+                    pc.set_state(state);
+                    return result;
+                }
+                catch (...) {
+                    pc.set_state(state);
+                    throw;
                 }
             }
-            return false;
-        }
+        };
 
-        //add a match if subnode succeeds
-        bool _parse(const std::shared_ptr<match_grammar_node>& node) {
-            const auto from_state = m_parse_context.get_state();
-            if (parse(node->get_child())) {
-                m_parse_context.add_match(static_cast<typename ParseContext::match_id>(node->get_id_symbol()->get_value()), from_state);
-                return true;
-            }
-            return false;
-        }
+        class sequence_parse_node : public parent_parse_node {
+        public:
+            using parent_parse_node::parent_parse_node;
 
-        //advance one symbol
-        bool _parse(const std::shared_ptr<any_grammar_node>& node) {
-            if (m_parse_context.is_valid_iterator()) {
-                m_parse_context.increment_iterator();
-                return true;
-            }
-            return false;
-        }
-
-        //check for end
-        bool _parse(const std::shared_ptr<end_grammar_node>& node) {
-            return m_parse_context.is_end_iterator();
-        }
-
-        //return false
-        bool _parse(const std::shared_ptr<false_grammar_node>& node) {
-            return false;
-        }
-
-        //return true
-        bool _parse(const std::shared_ptr<true_grammar_node>& node) {
-            return true;
-        }
-
-        //invoke the function with the parse context
-        bool _parse(const std::shared_ptr<function_grammar_node>& node) {
-            return node->get_function()(m_parse_context);
-        }
-
-        //if parsing fails, restore the parse context state
-        bool _parse_and_restore_state_on_failure(const grammar_node_ptr& node) {
-            const auto prev_state = m_parse_context.get_state();
-            try {
-                const bool result = parse(node);
-                if (result) {
+            bool parse(ParseContext& pc) const override {
+                const auto state = pc.get_state();
+                try {
+                    for (const parse_node_ptr& child : this->get_children()) {
+                        if (!child->parse(pc)) {
+                            pc.set_state(state);
+                            return false;
+                        }
+                    }
                     return true;
                 }
-                m_parse_context.set_state(prev_state);
+                catch (...) {
+                    pc.set_state(state);
+                    throw;
+                }
             }
-            catch (...) {
-                m_parse_context.set_state(prev_state);
-                throw;
+        };
+
+        class choice_parse_node : public parent_parse_node {
+        public:
+            using parent_parse_node::parent_parse_node;
+
+            bool parse(ParseContext& pc) const override {
+                for (const parse_node_ptr& child : this->get_children()) {
+                    const auto state = pc.get_state();
+                    try {
+                        if (child->parse(pc)) {
+                            return true;
+                        }
+                    }
+                    catch (...) {
+                        pc.set_state(state);
+                        throw;
+                    }
+                    pc.set_state(state);
+                }
+                return false;
             }
-            return false;
+        };
+
+        class match_parse_node : public parent_parse_node_single_child {
+        public:
+            match_parse_node(typename ParseContext::match_id id, const parse_node_ptr& child) 
+                : parent_parse_node_single_child(child), m_id(id)
+            {
+            }
+
+            bool parse(ParseContext& pc) const override {
+                const auto match_start_state = pc.get_match_start_state();
+                const parse_node_ptr& child = this->get_child();
+                if (child->parse(pc)) {
+                    pc.add_match(m_id, match_start_state);
+                    return true;
+                }
+                return false;
+            }
+
+        private:
+            typename ParseContext::match_id m_id;
+        };
+
+        class any_parse_node : public parse_node {
+        public:
+            bool parse(ParseContext& pc) const override {
+                if (pc.is_valid_iterator()) {
+                    pc.increment_iterator();
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        class end_parse_node : public parse_node {
+        public:
+            bool parse(ParseContext& pc) const override {
+                return pc.is_end_iterator();
+            }
+        };
+
+        class false_parse_node : public parse_node {
+        public:
+            bool parse(ParseContext& pc) const override {
+                return false;
+            }
+        };
+
+        class true_parse_node : public parse_node {
+        public:
+            bool parse(ParseContext& pc) const override {
+                return true;
+            }
+        };
+
+        class newline_parse_node : public parent_parse_node_single_child {
+        public:
+            using parent_parse_node_single_child::parent_parse_node_single_child;
+
+            bool parse(ParseContext& pc) const override {
+                const parse_node_ptr& child = this->get_child();
+                if (child->parse(pc)) {
+                    pc.increment_line();
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        template <class T> class function_parse_node : public parse_node {
+        public:
+            function_parse_node(const T& function) : m_function(function) {
+            }
+
+            bool parse(ParseContext& pc) const override {
+                return m_function(pc);
+            }
+
+        private:
+            const T m_function;
+        };
+
+        class ref_parse_node : public parse_node {
+        public:
+            ref_parse_node(const parse_node_ptr& child) : m_child(child) {
+            }
+
+            void set_child(const parse_node_ptr& child) {
+                m_child = child;
+            }
+
+            bool parse(ParseContext& pc) const override {
+                const std::shared_ptr<parse_node> child = m_child.lock();
+                return child->parse(pc);
+            }
+
+        private:
+            std::weak_ptr<parse_node> m_child;
+        };
+
+        class rule {
+        public:
+            rule() {
+                set_constructed();
+            }
+
+            rule(const rule& r) : m_node(r.m_node) {
+                set_constructed();
+                update_refs();
+            }
+
+            rule(rule&&) = delete;
+
+            rule(const parse_node_ptr& node) : m_node(node) {
+                set_constructed();
+                update_refs();
+            }
+
+            ~rule() {
+                reset_constructed();
+                remove_refs();
+            }
+
+            rule& operator = (const rule& r) {
+                m_node = r.m_node;
+                update_refs();
+                return *this;
+            }
+
+            rule& operator = (const parse_node_ptr& node) {
+                m_node = node;
+                update_refs();
+                return *this;
+            }
+
+            parse_node_ptr get_ref_node() const {
+                std::shared_ptr<ref_parse_node> ref_node = std::make_shared<ref_parse_node>(is_constructed() ? m_node : nullptr);
+                get_rule_ref_map()[this].push_back(ref_node);
+                return ref_node;
+            }
+
+            parse_node_ptr operator *() const {
+                return std::make_shared<loop_0_parse_node>(get_ref_node());
+            }
+
+            parse_node_ptr operator +() const {
+                return std::make_shared<loop_1_parse_node>(get_ref_node());
+            }
+
+            parse_node_ptr operator -() const {
+                return std::make_shared<optional_parse_node>(get_ref_node());
+            }
+
+            parse_node_ptr operator &() const {
+                return std::make_shared<logical_and_parse_node>(get_ref_node());
+            }
+
+            parse_node_ptr operator !() const {
+                return std::make_shared<logical_not_parse_node>(get_ref_node());
+            }
+
+            bool parse(ParseContext& pc) const {
+                return m_node->parse(pc);
+            }
+
+        private:
+            using rule_set = std::set<const rule*>;
+            using rule_ref_map = std::map<const rule*, std::vector<std::shared_ptr<ref_parse_node>>>;
+
+            parse_node_ptr m_node;
+
+            static rule_set& get_rule_set() {
+                static rule_set set;
+                return set;
+            }
+
+            static rule_ref_map& get_rule_ref_map() {
+                static rule_ref_map map;
+                return map;
+            }
+
+            bool is_constructed() const {
+                return get_rule_set().find(this) != get_rule_set().end();
+            }
+
+            void set_constructed() const {
+                get_rule_set().insert(this);
+            }
+
+            void reset_constructed() const {
+                get_rule_set().erase(this);
+            }
+
+            void update_refs() const {
+                const auto it = get_rule_ref_map().find(this);
+                if (it != get_rule_ref_map().end()) {
+                    for (const auto& ref : it->second) {
+                        ref->set_child(m_node);
+                    }
+                }
+            }
+
+            void remove_refs() const {
+                get_rule_ref_map().erase(this);
+            }
+        };
+
+        template <class T> static parse_node_ptr terminal(const T& symbol) {
+            return std::make_shared<symbol_parse_node<T>>(symbol);
         }
 
-        //restore the parse context state anyway
-        bool _parse_and_restore_state(const grammar_node_ptr& node) {
-            const auto prev_state = m_parse_context.get_state();
-            try {
-                const bool result = parse(node);
-                m_parse_context.set_state(prev_state);
-                return result;
-            }
-            catch (...) {
-                m_parse_context.set_state(prev_state);
-                throw;
-            }
-            return false;
+        template <class T> static parse_node_ptr terminal(const T* symbol) {
+            return std::make_shared<string_parse_node<T>>(symbol);
         }
-    };
 
+        template <class T> static parse_node_ptr set(const T* set) {
+            return std::make_shared<set_parse_node<T>>(set);
+        }
 
-    template <class ParseContext, class SymbolComparator>
-    bool grammar_node_ptr::parse(ParseContext& pc) const {
-        parser<ParseContext, SymbolComparator> parser(pc);
-        return parser.parse(*this);
-    }
+        template <class T> static parse_node_ptr range(const T& min, const T& max) {
+            return std::make_shared<range_parse_node<T>>(min, max);
+        }
 
+        static parse_node_ptr any() {
+            return std::make_shared<any_parse_node>();
+        }
 
-    template <class ParseContext, class SymbolComparator>
-    bool rule::parse(ParseContext& pc) const {
-        return get_node().parse<ParseContext, SymbolComparator>(pc);
-    }
+        static parse_node_ptr end() {
+            return std::make_shared<end_parse_node>();
+        }
+
+        static parse_node_ptr false_() {
+            return std::make_shared<false_parse_node>();
+        }
+
+        static parse_node_ptr true_() {
+            return std::make_shared<true_parse_node>();
+        }
+
+        static parse_node_ptr newline(const parse_node_ptr& child) {
+            return std::make_shared<newline_parse_node>(child);
+        }
+
+        template <class T> static parse_node_ptr function(const T& function) {
+            return std::make_shared<function_parse_node<T>>(function);
+        }
+
+        template <class T> static parse_node_ptr make_parse_node(const T& val) {
+            return val;
+        }
+
+        friend parse_node_ptr operator >> (const parse_node_ptr& left, const parse_node_ptr& right) {
+            const sequence_parse_node* left_sequence = dynamic_cast<const sequence_parse_node*>(left.get());
+            const sequence_parse_node* right_sequence = dynamic_cast<const sequence_parse_node*>(right.get());
+            if (left_sequence && right_sequence) {
+                return std::make_shared<sequence_parse_node>(vector_cat(left_sequence->get_children(), right_sequence->get_children()));
+            }
+            else if (left_sequence) {
+                return std::make_shared<sequence_parse_node>(vector_cat(left_sequence->get_children(), right));
+            }
+            else if (right_sequence) {
+                return std::make_shared<sequence_parse_node>(vector_cat(left, right_sequence->get_children()));
+            }
+            else {
+                return std::make_shared<sequence_parse_node>(vector_cat(left, right));
+            }
+        }
+
+        friend parse_node_ptr operator | (const parse_node_ptr& left, const parse_node_ptr& right) {
+            const choice_parse_node* left_choice = dynamic_cast<const choice_parse_node*>(left.get());
+            const choice_parse_node* right_choice = dynamic_cast<const choice_parse_node*>(right.get());
+            if (left_choice && right_choice) {
+                return std::make_shared<choice_parse_node>(vector_cat(left_choice->get_children(), right_choice->get_children()));
+            }
+            else if (left_choice) {
+                return std::make_shared<choice_parse_node>(vector_cat(left_choice->get_children(), right));
+            }
+            else if (right_choice) {
+                return std::make_shared<choice_parse_node>(vector_cat(left, right_choice->get_children()));
+            }
+            else {
+                return std::make_shared<choice_parse_node>(vector_cat(left, right));
+            }
+        }
+
+        friend parse_node_ptr operator - (const parse_node_ptr& left, const parse_node_ptr& right) {
+            return !right >> left;
+        }
+
+        friend parse_node_ptr operator * (size_t count, const parse_node_ptr& node) {
+            return std::make_shared<loop_n_parse_node>(count, node);
+        }
+
+        friend parse_node_ptr operator ->* (const parse_node_ptr& node, typename ParseContext::match_id id) {
+            return std::make_shared<match_parse_node>(id, node);
+        }
+
+    }; //class parser
 
 
 } //namespace parserlib
