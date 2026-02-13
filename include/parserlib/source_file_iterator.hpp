@@ -68,8 +68,14 @@ namespace parserlib {
     template <class Iterator = std::string::const_iterator, class SourceFilePosition = source_file_position> 
     class source_file_iterator {
     public:
-        /** value type */
+        /** The iterator type. */
+        using iterator_type = Iterator;
+
+        /** The value type. */
         using value_type = typename Iterator::value_type;
+
+        /** The source file position type. */
+        using source_file_position_type = SourceFilePosition;
 
         /**
          * The constructor.

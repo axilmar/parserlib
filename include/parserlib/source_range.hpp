@@ -14,60 +14,103 @@ namespace parserlib {
     template <class Id, class Iterator> class error;
 
 
-    template <class T> struct source_type {
+    /**
+     * Class that provides the appropriate container for type T.
+     * @param T type to define the container of.
+     */ 
+    template <class T> struct source_container_type {
+        /** The container type. */ 
         using type = std::vector<T>;
     };
 
 
-    template <> struct source_type<signed char> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<signed char> {
+        /** the container type. */
         using type = std::basic_string<signed char>;
     };
 
 
-    template <> struct source_type<unsigned char> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<unsigned char> {
+        /** the container type. */
         using type = std::basic_string<unsigned char>;
     };
 
 
-    template <> struct source_type<char> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<char> {
+        /** the container type. */
         using type = std::basic_string<char>;
     };
 
 
     #ifdef char8_t
-    template <> struct source_type<char8_t> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<char8_t> {
+        /** the container type. */
         using type = std::basic_string<char8_t>;
     };
     #endif
 
 
-    template <> struct source_type<char16_t> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<char16_t> {
+        /** the container type. */
         using type = std::basic_string<char16_t>;
     };
 
 
-    template <> struct source_type<char32_t> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<char32_t> {
+        /** the container type. */
         using type = std::basic_string<char32_t>;
     };
 
 
-    template <> struct source_type<wchar_t> {
+    /**
+     * Specialization for the given character type.
+     * The container type is an std::basic_string instance for the given type.
+     */ 
+    template <> struct source_container_type<wchar_t> {
+        /** the container type. */
         using type = std::basic_string<wchar_t>;
     };
 
 
-    template <class Id, class Iterator> struct source_type<source_range<Id, Iterator>> {
-        using type = typename source_type<typename Iterator::value_type>::type;
+    /**
+     * Specialization for source range.
+     * The container type for the source of the source range is defined by its iterator type value.
+     */ 
+    template <class Id, class Iterator> struct source_container_type<source_range<Id, Iterator>> {
+        using type = typename source_container_type<typename Iterator::value_type>::type;
     };
 
 
-    template <class Id, class Iterator> struct source_type<match<Id, Iterator>> {
-        using type = typename source_type<source_range<Id, Iterator>>::type;
-    };
-
-
-    template <class Id, class Iterator> struct source_type<error<Id, Iterator>> {
-        using type = typename source_type<source_range<Id, Iterator>>::type;
+    /**
+     * Specialization for match.
+     * Same container as for the `source_range` class.
+     */ 
+    template <class Id, class Iterator> struct source_container_type<match<Id, Iterator>> {
+        using type = typename source_container_type<source_range<Id, Iterator>>::type;
     };
 
 
@@ -79,14 +122,14 @@ namespace parserlib {
     template <class Id, class Iterator>
     class source_range {
     public:
-        /** The id */ 
-        using id = Id;
+        /** The id type. */ 
+        using id_type = Id;
 
-        /** The iterator */
-        using iterator = Iterator;
+        /** The iterator type. */
+        using iterator_type = Iterator;
 
-        /** The value type */
-        using value = typename Iterator::value_type;
+        /** The value type. */
+        using value_type = typename Iterator::value_type;
 
         /**
          * The constructor.
@@ -110,14 +153,6 @@ namespace parserlib {
         }
 
         /**
-         * Sets the id.
-         * @param id the new id.
-         */ 
-        void set_id(const Id& id) {
-            m_id = id;
-        }
-
-        /**
          * Returns the begin iterator.
          * @return the begin iterator.
          */ 
@@ -138,9 +173,13 @@ namespace parserlib {
          * @return the source that corresponds to this source range.
          */ 
         auto get_source() const {
-            return typename source_type<value>::type{ m_begin, m_end };
+            return typename source_container_type<value_type>::type{ m_begin, m_end };
         }
 
+        /**
+         * Auto conversion to id type.
+         * @return the id type.
+         */ 
         operator Id () const {
             return m_id;
         }
@@ -161,7 +200,7 @@ namespace parserlib {
     class match : public source_range<Id, Iterator> {
     public:
         /** container of matches. */
-        using match_container = std::vector<match<Id, Iterator>>;
+        using match_container_type = std::vector<match<Id, Iterator>>;
 
         /**
          * The constructor.
@@ -170,7 +209,7 @@ namespace parserlib {
          * @param end the end iterator.
          * @param children children.
          */ 
-        match(const Id& id = Id(), const Iterator& begin = Iterator(), const Iterator& end = Iterator(), match_container&& children = {})
+        match(const Id& id = Id(), const Iterator& begin = Iterator(), const Iterator& end = Iterator(), match_container_type&& children = {})
             : source_range<Id, Iterator>(id, begin, end)
             , m_children(std::move(children))
         {
@@ -180,12 +219,12 @@ namespace parserlib {
          * Returns the children.
          * @return the children.
          */ 
-        const match_container& get_children() const {
+        const match_container_type& get_children() const {
             return m_children;
         }
 
     private:
-        match_container m_children;
+        match_container_type m_children;
     };
 
 

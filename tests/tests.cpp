@@ -8,7 +8,7 @@ using namespace parserlib;
 
 using default_parse_context = parse_context<>;
 using p = parser<>;
-using p2 = parser<parse_context<default_parse_context::match_container::const_iterator>>;
+using p2 = parser<parse_context<default_parse_context::match_container_type::const_iterator>>;
 using p3 = parser<parse_context<source_file_iterator<>>>;
 
 
@@ -719,7 +719,7 @@ static void test_parse_rule_left_recursion() {
 
     using parse_context_type = parse_context<>;
 
-    using match_type = typename parse_context_type::match;
+    using match_type = typename parse_context_type::match_type;
 
     using rule_type = p::rule;
 
