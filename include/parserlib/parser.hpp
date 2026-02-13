@@ -141,12 +141,6 @@ namespace parserlib {
         class parse_node : public ParseContext::parse_node {
         public:
             /**
-             * The destructor.
-             */ 
-            virtual ~parse_node() {
-            }
-
-            /**
              * Interface for parsing.
              * Subclasses provide their own parsing algorithm.
              * @param pc the parse context to use for parsing.
