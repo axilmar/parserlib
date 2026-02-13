@@ -138,7 +138,7 @@ namespace parserlib {
         /**
          * Base class for parse nodes.
          */ 
-        class parse_node {
+        class parse_node : public ParseContext::parse_node {
         public:
             /**
              * The destructor.

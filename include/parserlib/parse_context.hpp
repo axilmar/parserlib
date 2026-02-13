@@ -49,11 +49,19 @@ namespace parserlib {
         /** The symbol comparator type. */ 
         using symbol_comparator_type = SymbolComparator;
 
-        /** parser type. */ 
-        using parser_type = parser<parse_context>;
-
-        /** parse node type. */ 
-        using parse_node_type = typename parser_type::parse_node;
+        /**
+         * Interface for parse nodes.
+         * It is used to allow a parse context to keep left recursion state per node.
+         */ 
+        class parse_node {
+        public:
+            /**
+             * The destructor.
+             * Virtual due to polymorphism.
+             */ 
+            virtual ~parse_node() {
+            }
+        };
 
         /**
          * The match start state.
@@ -299,10 +307,6 @@ namespace parserlib {
             return m_matches;
         }
 
-        bool has_left_recursion_state(const parse_node_type* node) const {
-            return m_left_recursion_map.find(node) != m_left_recursion_map.end();
-        }
-
         /**
          * Returns the left recursion state for a node at the given address,
          * and a flag that indicates if this state is the initial state for the node.
@@ -310,7 +314,7 @@ namespace parserlib {
          * @param node pointer to node address to get the left recursion state of.
          * @return the left recursion state for the given node and the initial state flag.
          */ 
-        std::pair<left_recursion_state, bool> get_or_create_left_recursion_state(const parse_node_type* node) {
+        std::pair<left_recursion_state, bool> get_or_create_left_recursion_state(const parse_node* node) {
             auto it = m_left_recursion_map.find(node);
             if (it != m_left_recursion_map.end()) {
                 return std::make_pair(it->second, false);
@@ -324,7 +328,7 @@ namespace parserlib {
          * @param node pointer to node address to get the left recursion state of.
          * @param state the state.
          */ 
-        void set_left_recursion_state(const parse_node_type* node, const left_recursion_state& state) {
+        void set_left_recursion_state(const parse_node* node, const left_recursion_state& state) {
             m_left_recursion_map[node] = state;
         }
 
@@ -334,7 +338,7 @@ namespace parserlib {
          * @param node pointer to node address to get the left recursion state of.
          * @param status the new status.
          */ 
-        void set_new_left_recursion_state(const parse_node_type* node, left_recursion_status status) {
+        void set_new_left_recursion_state(const parse_node* node, left_recursion_status status) {
             m_left_recursion_map[node] = left_recursion_state(m_state.m_iterator, status);
         }
 
@@ -353,7 +357,7 @@ namespace parserlib {
         }
 
     private:
-        using left_recursion_map = std::map<const parse_node_type*, left_recursion_state>;
+        using left_recursion_map = std::map<const parse_node*, left_recursion_state>;
 
         state m_state;
         const Iterator m_end;
