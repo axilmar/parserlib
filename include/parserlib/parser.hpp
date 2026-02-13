@@ -17,6 +17,85 @@
 namespace parserlib {
 
 
+    /**
+     * A class that contains the classes, functions and operators required for writing a parser.
+     * 
+     * A parser is a tree of objects, called `parse nodes`, which receive and manipulate
+     * a parse context in order to recognize structures.
+     * 
+     * It provides the following parse nodes:
+     * 
+     *  - symbol: parses any atomic value (i.e, character, enumeration, etc).
+     *  - string: parses strings.
+     *  - set: parses an atomic value out of a set.
+     *  - range: parses an atomic value out of a range.
+     *  - loop 0-or-more-times: repeats another parse node 0 or more times.
+     *  - loop 1-or-more-times: repeats another parse node 1 or more times.
+     *  - loop a specific amount of times: repeats another parse node a specific amount of times.
+     *  - optional: makes a parse node optional.
+     *  - logical and: makes a parse node a positive logical test.
+     *  - logical not: makes a parse node a positive logical test.
+     *  - sequence: makes one or more parse nodes a single atomic parse node.
+     *  - choice: allows branching in the grammar.
+     *  - match: adds a match.
+     *  - any: parses any atomic symbol.
+     *  - end: tests for end of source.
+     *  - false: always returns false.
+     *  - true: always returns true.
+     *  - function: uses a custom function to parse.
+     *  - newline: special node that increments the current line
+     *  - rule: special node used for recursive grammars
+     * 
+     * The following functions/operators can be used to create parse nodes:
+     * 
+     *  - terminal: creates symbol or string parse nodes.
+     *  - set: creates set parse nodes.
+     *  - range: creates range parse nodes.
+     *  - any: creates an any parse node.
+     *  - end: creates an end parse node.
+     *  - false_: creates a false parse node.
+     *  - true_: creates a true parse node.
+     *  - newline: creates a newline parse node.
+     *  - function: creates a function parse node.
+     *  - unary operator *: creates 0-or-more-times parse nodes.
+     *  - unary operator +: creates 1-or-more-times parse nodes.
+     *  - unary operator -: creates optional parse nodes.
+     *  - unary operator &: creates positive logical test parse nodes.
+     *  - unary operator !: creates negative logical test parse nodes.
+     *  - binary operator >>: creates sequences.
+     *  - binary operator |: creates branches.
+     *  - binary operator -: creates exclusions.
+     *  - binary operator ->*: creates matches.
+     * 
+     * NOTE:
+     * 
+     * In previous versions, the parse node classes were provided as standalone classes,
+     * and the rule class was the only class with a parse context template parameter.
+     * 
+     * Furthemore, in previous versions parse nodes where kept by value inside sequences,
+     * choices, and parse nodes with a single child.
+     * 
+     * The above created huge problems:
+     * 
+     *  - the object files size ballooned to many megabytes, due to excessive use of templates,
+     *    c++ tuples or custom tuples, creating problems with various compilers, which could not
+     *    be solved even with 'big object' compiler parameters.
+     * 
+     *  - the compilation time for even modestly big grammars was huge, interrupting the work flow.
+     * 
+     * For the above reasons, it was decided that:
+     * 
+     *  - parse nodes should live as heap objects that implement an interface accessible via pointers.
+     *  - due to the use of pointers and interfaces, all parse nodes would have a parse context template parameter.
+     * 
+     * Thus, the only reasonable approach was to put all parse nodes under one template class
+     * which can be customized on the used parse context.
+     * 
+     * This new approach led to very fast compilation times and no problems with object file sizes,
+     * even for huge grammars, with minimal performance loss.
+     * 
+     * @param ParseContext the parse context to create a parser for.
+     */ 
     template <class ParseContext = parse_context<>> class parser {
     public:
         class false_parse_node;
@@ -847,7 +926,7 @@ namespace parserlib {
              * with the specified value.
              * @param r the source rule.
              */ 
-            rule(const rule& r) : m_node(r.m_node) {
+            rule(const rule& r) : m_node(create_rule_parse_node(r.m_node)) {
                 set_constructed();
                 update_refs();
             }
@@ -860,7 +939,7 @@ namespace parserlib {
              * with the specified value.
              * @param r the source rule.
              */ 
-            rule(const parse_node_ptr& node) : m_node(node) {
+            rule(const parse_node_ptr& node) : m_node(create_rule_parse_node(node)) {
                 set_constructed();
                 update_refs();
             }
@@ -881,7 +960,7 @@ namespace parserlib {
              * @param r the source rule.
              */ 
             rule& operator = (const rule& r) {
-                m_node = r.m_node;
+                m_node = create_rule_parse_node(r.m_node);
                 update_refs();
                 return *this;
             }
@@ -893,7 +972,7 @@ namespace parserlib {
              * @param r the source rule.
              */ 
             rule& operator = (const parse_node_ptr& node) {
-                m_node = node;
+                m_node = create_rule_parse_node(node);
                 update_refs();
                 return *this;
             }
@@ -958,14 +1037,26 @@ namespace parserlib {
             }
 
         private:
+            //the internal rule parse node
+            class rule_parse_node : public parent_parse_node_single_child {
+            public:
+                using parent_parse_node_single_child::parent_parse_node_single_child;
+
+                //TODO parse with left recursion
+                bool parse(ParseContext& pc) const override {
+                    const std::shared_ptr<parse_node> child = this->get_child();
+                    return child->parse(pc);
+                }
+            };
+
             //constructed rule map
             using rule_set = std::set<const rule*>;
 
             //set of references per rule
             using rule_ref_map = std::map<const rule*, std::vector<std::shared_ptr<ref_parse_node>>>;
             
-            //the internal node
-            parse_node_ptr m_node;
+            //the internal node ptr
+            std::shared_ptr<rule_parse_node> m_node;
 
             //returns the constructed rule map
             static rule_set& get_rule_set() {
@@ -1008,6 +1099,11 @@ namespace parserlib {
             //removes any references for the rule
             void remove_refs() const {
                 get_rule_ref_map().erase(this);
+            }
+
+            //creates a rule parse node
+            static std::shared_ptr<rule_parse_node> create_rule_parse_node(const parse_node_ptr& node) {
+                return std::make_shared<rule_parse_node>(node);
             }
         };
 
