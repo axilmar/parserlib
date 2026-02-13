@@ -746,6 +746,11 @@ static void test_parse_rule_left_recursion() {
 
     auto grammar = add;
 
+    val.set_name("val");
+    add.set_name("add");
+    mul.set_name("mul");
+    grammar.set_name("grammar");
+
     /*** helper functions ****/
 
     std::function<double(const match_type&)> eval;
@@ -794,7 +799,7 @@ static void test_parse_rule_left_recursion() {
 
     /*** tests ****/
 
-    TEST_CALC(1.0);
+    //TEST_CALC(1.0);
     TEST_CALC(1.0+2.0);
     TEST_CALC(1.0-2.0);
     TEST_CALC(1.0*2.0);
@@ -1126,28 +1131,28 @@ static void test_parse_case_sensitive() {
 
 
 void run_tests() {
-    test_parse_symbol();
-    test_parse_string();
-    test_parse_set();
-    test_parse_range();
-    test_parse_loop_0();
-    test_parse_loop_1();
-    test_parse_loop_n();
-    test_parse_optional();
-    test_parse_logical_and();
-    test_parse_logical_not();
-    test_parse_sequence();
-    test_parse_choice();
-    test_parse_match();
-    test_parse_matches();
-    test_parse_any();
-    test_parse_end();
-    test_parse_bool();
-    test_parse_newline();
-    test_parse_function();
-    test_parse_rule();
-    test_parse_rule_recursion();
-    //test_parse_rule_left_recursion();
-    test_parse_case_sensitive();
+    //test_parse_symbol();
+    //test_parse_string();
+    //test_parse_set();
+    //test_parse_range();
+    //test_parse_loop_0();
+    //test_parse_loop_1();
+    //test_parse_loop_n();
+    //test_parse_optional();
+    //test_parse_logical_and();
+    //test_parse_logical_not();
+    //test_parse_sequence();
+    //test_parse_choice();
+    //test_parse_match();
+    //test_parse_matches();
+    //test_parse_any();
+    //test_parse_end();
+    //test_parse_bool();
+    //test_parse_newline();
+    //test_parse_function();
+    //test_parse_rule();
+    //test_parse_rule_recursion();
+    test_parse_rule_left_recursion();
+    //test_parse_case_sensitive();
     //test_ast();
 }

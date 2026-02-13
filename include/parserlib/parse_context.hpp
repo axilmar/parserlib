@@ -4,11 +4,25 @@
 
 #include <cassert>
 #include <string>
+#include <map>
 #include "source_range.hpp"
 #include "symbol_comparator.hpp"
 
 
 namespace parserlib {
+
+
+    /**
+     * The left recursion status for a rule.
+     */ 
+    enum class left_recursion_status {
+        no_left_recursion,
+        reject_left_recursion,
+        accept_left_recursion
+    };
+
+
+    template <class ParseContext> class parser;
 
 
     /**
@@ -34,6 +48,12 @@ namespace parserlib {
 
         /** The symbol comparator type. */ 
         using symbol_comparator_type = SymbolComparator;
+
+        /** parser type. */ 
+        using parser_type = parser<parse_context>;
+
+        /** parse node type. */ 
+        using parse_node_type = typename parser_type::parse_node;
 
         /**
          * The match start state.
@@ -88,12 +108,49 @@ namespace parserlib {
         };
 
         /**
+         * State of left recursion for a parse node.
+         */ 
+        class left_recursion_state {
+        public:
+            /**
+             * The default constructor.
+             * @param iterator iterator.
+             * @param status status.
+             */ 
+            left_recursion_state(const Iterator& iterator = {}, left_recursion_status status = {})
+                : m_iterator(iterator), m_status(status)
+            {
+            }
+
+            /**
+             * Returns the last position a node was parsed at.
+             * @return the last position a node was parsed at.
+             */ 
+            const Iterator& get_iterator() const {
+                return m_iterator;
+            }
+
+            /**
+             * Returns the current left recursion status for a node.
+             * @return the current left recursion status for a node.
+             */ 
+            left_recursion_status get_status() const {
+                return m_status;
+            }
+
+        private:
+            Iterator m_iterator;
+            left_recursion_status m_status;
+        };
+
+        /**
          * Constructor from source range.
          * @param begin the begin iterator.
          * @param end the end iterator.
          */ 
         parse_context(const Iterator& begin, const Iterator& end)
             : m_state(begin, end)
+            , m_end(end)
         {
         }
 
@@ -136,8 +193,8 @@ namespace parserlib {
         }
 
         /**
-         * Returns the end iterator.
-         * @return the end iterator.
+         * Returns the current end iterator.
+         * @return the current end iterator.
          */ 
         const Iterator& get_end_iterator() const {
             return m_state.m_end;
@@ -173,7 +230,7 @@ namespace parserlib {
         void increment_iterator() {
             assert(is_valid_iterator());
             ++m_state.m_iterator;
-            m_state.m_match_start_state.m_iterator = m_state.m_iterator;
+            update_match_start_state();
         }
 
         /**
@@ -183,7 +240,7 @@ namespace parserlib {
         void increment_iterator(size_t count) {
             assert(is_valid_iterator());
             m_state.m_iterator += count;
-            m_state.m_match_start_state.m_iterator = m_state.m_iterator;
+            update_match_start_state();
         }
 
         /**
@@ -211,6 +268,14 @@ namespace parserlib {
         }
 
         /**
+         * Sets the match start state.
+         * @param state the match start state.
+         */ 
+        void set_match_start_state(const match_start_state& state) {
+            m_state.m_match_start_state = state;
+        }
+
+        /**
          * Adds a match.
          * The range of the match is from the provided state up to the current state.
          * @param id id.
@@ -234,9 +299,71 @@ namespace parserlib {
             return m_matches;
         }
 
+        bool has_left_recursion_state(const parse_node_type* node) const {
+            return m_left_recursion_map.find(node) != m_left_recursion_map.end();
+        }
+
+        /**
+         * Returns the left recursion state for a node at the given address,
+         * and a flag that indicates if this state is the initial state for the node.
+         * If the node does not have any state, then the a default state is set and returned for the node.
+         * @param node pointer to node address to get the left recursion state of.
+         * @return the left recursion state for the given node and the initial state flag.
+         */ 
+        std::pair<left_recursion_state, bool> get_or_create_left_recursion_state(const parse_node_type* node) {
+            auto it = m_left_recursion_map.find(node);
+            if (it != m_left_recursion_map.end()) {
+                return std::make_pair(it->second, false);
+            }
+            auto [it1, ok] = m_left_recursion_map.insert(std::make_pair(node, left_recursion_state(m_state.m_iterator, left_recursion_status::no_left_recursion)));
+            return std::make_pair(it1->second, true);
+        }   
+
+        /**
+         * Sets the left recursion state for a node at the given address from a previous state.
+         * @param node pointer to node address to get the left recursion state of.
+         * @param state the state.
+         */ 
+        void set_left_recursion_state(const parse_node_type* node, const left_recursion_state& state) {
+            m_left_recursion_map[node] = state;
+        }
+
+        /**
+         * Sets the left recursion state for a node at the given address.
+         * It uses the current iterator and the given status for the new state.
+         * @param node pointer to node address to get the left recursion state of.
+         * @param status the new status.
+         */ 
+        void set_new_left_recursion_state(const parse_node_type* node, left_recursion_status status) {
+            m_left_recursion_map[node] = left_recursion_state(m_state.m_iterator, status);
+        }
+
+        /**
+         * Enables terminal parsing.
+         */ 
+        void enable_terminal_parsing() {
+            m_state.m_end = m_end;
+        }
+
+        /**
+         * Disables terminal parsing.
+         */ 
+        void disable_terminal_parsing() {
+            m_state.m_end = m_state.m_iterator;
+        }
+
     private:
+        using left_recursion_map = std::map<const parse_node_type*, left_recursion_state>;
+
         state m_state;
+        const Iterator m_end;
         match_container_type m_matches;
+        left_recursion_map m_left_recursion_map;
+
+        void update_match_start_state() {
+            m_state.m_match_start_state.m_iterator = m_state.m_iterator;
+            m_state.m_match_start_state.m_match_count = m_state.m_match_count;
+        }
     };
 
 

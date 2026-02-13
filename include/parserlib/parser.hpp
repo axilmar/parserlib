@@ -10,11 +10,44 @@
 #include <set>
 #include <type_traits>
 #include <initializer_list>
+#include <stdexcept>
 #include "parse_context.hpp"
 #include "vector.hpp"
 
 
 namespace parserlib {
+
+
+    /**
+     * Special exception thrown to handle left recursion.
+     */ 
+    class left_recursion_exception {
+    public:
+        #ifndef NDEBUG
+        left_recursion_exception(const void* node, const std::string& name) : m_node(node), m_name(name) {
+        }
+        #else
+        left_recursion_exception(const void* node) : m_node(node) {
+        }
+        #endif
+
+        const void* get_node() const {
+            return m_node;
+        }
+
+        #ifndef NDEBUG
+        const std::string& get_name() const {
+            return m_name;
+        }
+        #endif
+
+    private:
+        const void* m_node;
+
+        #ifndef NDEBUG
+        const std::string m_name;
+        #endif
+    };
 
 
     /**
@@ -120,6 +153,25 @@ namespace parserlib {
              * @return true on success, false on failure.
              */ 
             virtual bool parse(ParseContext& pc) const = 0;
+
+            /**
+             * Returns the name of this parse node.
+             * @return the name of this parse node.
+             */ 
+            const std::string& get_name() const {
+                return m_name;
+            }
+
+            /**
+             * Sets the name of this parse node.
+             * @param name the name of this parse node.
+             */  
+            void set_name(const std::string& name) {
+                m_name = name;
+            }
+
+        private:
+            std::string m_name;
         };
 
         /**
@@ -217,6 +269,22 @@ namespace parserlib {
              */ 
             bool parse(ParseContext& pc) const {
                 return (*this)->parse(pc);
+            }
+
+            /**
+             * Returns the name of the parse node of this parse_node_ptr.
+             * @return the name of the parse node of this parse_node_ptr.
+             */ 
+            const std::string& get_name() const {
+                return (*this)->get_name();
+            }
+
+            /**
+             * Sets the name of the parse node of this parse_node_ptr.
+             * @param name the name of the parse node of this parse_node_ptr.
+             */  
+            void set_name(const std::string& name) {
+                (*this)->set_name(name);
             }
 
         private:
@@ -1036,6 +1104,22 @@ namespace parserlib {
                 return m_node->parse(pc);
             }
 
+            /**
+             * Returns the name of the parse node of this rule.
+             * @return the name of the parse node of this rule.
+             */ 
+            const std::string& get_name() const {
+                return m_node->get_name();
+            }
+
+            /**
+             * Sets the name of the parse node of this rule.
+             * @param name the name of the parse node of this rule.
+             */  
+            void set_name(const std::string& name) {
+                m_node->set_name(name);
+            }
+
         private:
             //the internal rule parse node
             class rule_parse_node : public parent_parse_node_single_child {
@@ -1045,7 +1129,123 @@ namespace parserlib {
                 //TODO parse with left recursion
                 bool parse(ParseContext& pc) const override {
                     const std::shared_ptr<parse_node> child = this->get_child();
-                    return child->parse(pc);
+                    return parse_with_left_recursion(pc);
+                }
+
+            private:
+                //parse with possible left recursion
+                bool parse_with_left_recursion(ParseContext& pc) const {
+                    const auto [left_recursion_state, initial_state] = pc.get_or_create_left_recursion_state(this);
+
+                    //if iterator has progressed since the last time this was called,
+                    //or this was the first time this is called for this node,
+                    //the proceed with no left recursion
+                    if (left_recursion_state.get_iterator() != pc.get_iterator() || initial_state) {
+                        return parse_and_handle_left_recursion_exception(pc, left_recursion_state, left_recursion_status::no_left_recursion);
+                    }
+
+                    //iterator same as in previous call, so therefore a left recursion is found; handle status
+                    switch (left_recursion_state.get_status()) {
+                        //found left recursion; throw exception in order to handle the left recursion
+                        case left_recursion_status::no_left_recursion:
+                            #ifndef NDEBUG
+                            throw left_recursion_exception(this, this->get_name());
+                            #else
+                            throw left_recursion_exception(this);
+                            #endif
+
+                        //reject the left recursion to allow terminals to parse
+                        case left_recursion_status::reject_left_recursion:
+                            return false;
+
+                        //accept the left recursion; allow terminals to parse after this
+                        case left_recursion_status::accept_left_recursion:
+                            pc.enable_terminal_parsing();
+                            return true;
+                    }
+
+                    //invalid state
+                    throw std::runtime_error("rule: rule_parse_node: parse_with_left_recursion: invalid left recursion status.");
+                }
+
+                //parse; if a left recursion exception is thrown, handle it
+                bool parse_and_handle_left_recursion_exception(ParseContext& pc, const typename ParseContext::left_recursion_state &prev_left_recursion_state, left_recursion_status status) const {
+                    try {
+                        return parse(pc, prev_left_recursion_state, left_recursion_status::no_left_recursion);
+                    }
+                    catch (left_recursion_exception ex) {
+                        if (ex.get_node() == this) {
+                            return parse_left_recursion(pc, prev_left_recursion_state);
+                        }
+                        throw ex;
+                    }
+                }
+
+                //do the parsing with a specific left recursion status;
+                //restore the previous state on return
+                bool parse(ParseContext& pc, const typename ParseContext::left_recursion_state &prev_left_recursion_state, left_recursion_status status) const {
+                    //set the new state
+                    pc.set_new_left_recursion_state(this, status);
+
+                    //invoke the child
+                    const parse_node_ptr& child = this->get_child();
+                    try {
+                        const bool result = child->parse(pc);
+
+                        //restore the previous state
+                        pc.set_left_recursion_state(this, prev_left_recursion_state);
+
+                        return result;
+                    }
+
+                    //on an exception, restore the left recursion state
+                    catch (...) {
+                        pc.set_left_recursion_state(this, prev_left_recursion_state);
+                        throw;
+                    }
+                }
+
+                //do left recursion parsing
+                bool parse_left_recursion(ParseContext& pc, const typename ParseContext::left_recursion_state& prev_left_recursion_state) const {
+                    const auto state = pc.get_state();
+
+                    try {
+                        //the match start state for the left-recursive matches
+                        //is the one that starts before the reject phase
+                        const auto match_start_state = pc.get_match_start_state();
+
+                        //do the reject phase
+                        if (!parse(pc, prev_left_recursion_state, left_recursion_status::reject_left_recursion)) {
+                            return false;
+                        }
+
+                        //do the accept phase; parse until no more parsing can be done
+                        for (;;) {
+                            const auto state = pc.get_state();
+
+                            //keep the left associativity
+                            pc.set_match_start_state(match_start_state);
+
+                            //lock terminal parsing so as that rules get to succeed before any terminals
+                            pc.disable_terminal_parsing();
+
+                            //parse
+                            if (!parse(pc, prev_left_recursion_state, left_recursion_status::accept_left_recursion)) {
+                                pc.set_state(state);
+                                break;
+                            }
+                        }
+                    }
+
+                    //on any exception during handling of the left recursion,
+                    //restore the state to the one before this call
+                    catch (...) {
+                        pc.set_state(state);
+                        throw;
+                    }
+
+                    //successfully parsed the left recursion
+                    return true;
                 }
             };
 
