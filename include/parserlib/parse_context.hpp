@@ -54,13 +54,6 @@ namespace parserlib {
          * It is used to allow a parse context to keep left recursion state per node.
          */ 
         class parse_node {
-        public:
-            /**
-             * The destructor.
-             * Virtual due to polymorphism.
-             */ 
-            virtual ~parse_node() {
-            }
         };
 
         /**
