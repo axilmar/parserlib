@@ -7,6 +7,7 @@
 #include <map>
 #include "source_range.hpp"
 #include "symbol_comparator.hpp"
+#include "parse_node.hpp"
 
 
 namespace parserlib {
@@ -53,7 +54,7 @@ namespace parserlib {
          * Interface for parse nodes.
          * It is used to allow a parse context to keep left recursion state per node.
          */ 
-        class parse_node {
+        class parse_node : public parserlib::parse_node {
         };
 
         /**

@@ -23,30 +23,23 @@ namespace parserlib {
      */ 
     class left_recursion_exception {
     public:
-        #ifndef NDEBUG
-        left_recursion_exception(const void* node, const std::string& name) : m_node(node), m_name(name) {
+        /**
+         * The constructor.
+         * @param node the node for which the left recursion happened.
+         */ 
+        left_recursion_exception(const parse_node* node) : m_node(node) {
         }
-        #else
-        left_recursion_exception(const void* node) : m_node(node) {
-        }
-        #endif
 
-        const void* get_node() const {
+        /**
+         * Returns the node.
+         * @return the node.
+         */ 
+        const parse_node* get_node() const {
             return m_node;
         }
 
-        #ifndef NDEBUG
-        const std::string& get_name() const {
-            return m_name;
-        }
-        #endif
-
     private:
-        const void* m_node;
-
-        #ifndef NDEBUG
-        const std::string m_name;
-        #endif
+        const parse_node* m_node;
     };
 
 
@@ -141,38 +134,12 @@ namespace parserlib {
         class parse_node : public ParseContext::parse_node {
         public:
             /**
-             * The destructor.
-             * Virtual due to polymorphism.
-             */ 
-            virtual ~parse_node() {
-            }
-
-            /**
              * Interface for parsing.
              * Subclasses provide their own parsing algorithm.
              * @param pc the parse context to use for parsing.
              * @return true on success, false on failure.
              */ 
             virtual bool parse(ParseContext& pc) const = 0;
-
-            /**
-             * Returns the name of this parse node.
-             * @return the name of this parse node.
-             */ 
-            const std::string& get_name() const {
-                return m_name;
-            }
-
-            /**
-             * Sets the name of this parse node.
-             * @param name the name of this parse node.
-             */  
-            void set_name(const std::string& name) {
-                m_name = name;
-            }
-
-        private:
-            std::string m_name;
         };
 
         /**
@@ -1149,11 +1116,7 @@ namespace parserlib {
                     switch (left_recursion_state.get_status()) {
                         //found left recursion; throw exception in order to handle the left recursion
                         case left_recursion_status::no_left_recursion:
-                            #ifndef NDEBUG
-                            throw left_recursion_exception(this, this->get_name());
-                            #else
                             throw left_recursion_exception(this);
-                            #endif
 
                         //reject the left recursion to allow terminals to parse
                         case left_recursion_status::reject_left_recursion:
