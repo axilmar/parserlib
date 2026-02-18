@@ -140,6 +140,10 @@ public:
     template <class Id>
     class source_partition {
     public:
+        using id_type = id;
+
+        using iterator_type = Iterator;
+
         source_partition() {
         }
 
