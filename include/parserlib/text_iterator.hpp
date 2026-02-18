@@ -1,5 +1,5 @@
-#ifndef PARSERLIB_SOURCE_FILE_ITERATOR_HPP
-#define PARSERLIB_SOURCE_FILE_ITERATOR_HPP
+#ifndef PARSERLIB_TEXT_ITERATOR_HPP
+#define PARSERLIB_TEXT_ITERATOR_HPP
 
 
 #include <iterator>
@@ -10,10 +10,10 @@ namespace parserlib {
 
 
     /**
-     * A source file position. 
+     * A text position. 
      * It maintains a line and a column.
      */ 
-    class source_file_position {
+    class text_position {
     public:
         /**
          * Returns the current line.
@@ -61,12 +61,12 @@ namespace parserlib {
 
 
     /**
-     * A source file iterator.
+     * A text iterator.
      * @param Iterator type of iterator.
-     * @param SourceFilePosition type of source file position.
+     * @param TextPosition type of text position.
      */ 
-    template <class Iterator = std::string::const_iterator, class SourceFilePosition = source_file_position> 
-    class source_file_iterator {
+    template <class Iterator = std::string::const_iterator, class TextPosition = text_position> 
+    class text_iterator {
     public:
         /** The iterator type. */
         using iterator_type = Iterator;
@@ -74,17 +74,17 @@ namespace parserlib {
         /** The value type. */
         using value_type = typename Iterator::value_type;
 
-        /** The source file position type. */
-        using source_file_position_type = SourceFilePosition;
+        /** The text position type. */
+        using text_position_type = TextPosition;
 
         /**
          * The constructor.
          * @param iterator iterator.
-         * @param source_file_position the initial source file position.
+         * @param text_position the initial text position.
          */ 
-        source_file_iterator(const Iterator& iterator = Iterator(), const SourceFilePosition& source_file_position = {})
+        text_iterator(const Iterator& iterator = Iterator(), const TextPosition& text_position = {})
             : m_iterator(iterator)
-            , m_source_file_position(source_file_position)
+            , m_text_position(text_position)
         {
         }
 
@@ -93,7 +93,7 @@ namespace parserlib {
          * @param it the other iterator.
          * @return true if this and the given iterator are equal, false otherwise.
          */ 
-        bool operator == (const source_file_iterator& it) const {
+        bool operator == (const text_iterator& it) const {
             return m_iterator == it.m_iterator;
         }
 
@@ -111,7 +111,7 @@ namespace parserlib {
          * @param it the other iterator.
          * @return true if this and the given iterator are different, false otherwise.
          */ 
-        bool operator != (const source_file_iterator& it) const {
+        bool operator != (const text_iterator& it) const {
             return m_iterator != it.m_iterator;
         }
 
@@ -137,7 +137,7 @@ namespace parserlib {
          */ 
         void operator ++() {
             ++m_iterator;
-            m_source_file_position.increment_column();
+            m_text_position.increment_column();
         }
 
         /**
@@ -146,7 +146,7 @@ namespace parserlib {
          */ 
         void operator += (size_t count) {
             m_iterator = std::next(m_iterator, count);
-            m_source_file_position.increment_column(count);
+            m_text_position.increment_column(count);
         }
 
         /**
@@ -154,18 +154,18 @@ namespace parserlib {
          * @param count the increment count.
          * @return the incremented iterator.
          */ 
-        source_file_iterator operator + (size_t count) const {
-            source_file_iterator result;
+        text_iterator operator + (size_t count) const {
+            text_iterator result;
             result += count;
             return result;
         }
 
         /**
-         * Returns the source file position.
-         * @return the source file position.
+         * Returns the text position.
+         * @return the text position.
          */ 
-        const SourceFilePosition& get_source_file_position() const {
-            return m_source_file_position;
+        const TextPosition& get_text_position() const {
+            return m_text_position;
         }
 
         /**
@@ -173,7 +173,7 @@ namespace parserlib {
          * @return the line.
          */ 
         size_t get_line() const {
-            return m_source_file_position.get_line();
+            return m_text_position.get_line();
         }
 
         /**
@@ -181,19 +181,19 @@ namespace parserlib {
          * @return the column.
          */ 
         size_t get_column() const {
-            return m_source_file_position.get_column();
+            return m_text_position.get_column();
         }
 
         /**
          * Increments the line.
          */ 
         void increment_line() {
-            m_source_file_position.increment_line();
+            m_text_position.increment_line();
         }
 
     private:
         Iterator m_iterator;
-        SourceFilePosition m_source_file_position;
+        TextPosition m_text_position;
     };
 
 
@@ -203,8 +203,8 @@ namespace parserlib {
 namespace std {
 
 
-    template <class Iterator, class SourceFilePosition>
-    struct iterator_traits<parserlib::source_file_iterator<Iterator, SourceFilePosition>> {
+    template <class Iterator, class TextPosition>
+    struct iterator_traits<parserlib::text_iterator<Iterator, TextPosition>> {
         using difference_type = std::ptrdiff_t;
         using value_type = typename Iterator::value_type;
         using pointer = const value_type*;
@@ -216,4 +216,4 @@ namespace std {
 } //namespace std
 
 
-#endif //PARSERLIB_SOURCE_FILE_ITERATOR_HPP
+#endif //PARSERLIB_TEXT_ITERATOR_HPP

@@ -3,7 +3,7 @@
 
 
 #include "parserlib/parser.hpp"
-#include "parserlib/source_file_iterator.hpp"
+#include "parserlib/text_iterator.hpp"
 
 
 #endif // PARSERLIB_HPP

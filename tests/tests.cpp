@@ -3,13 +3,16 @@
 #include <chrono>
 #include <iostream>
 #include "parserlib.hpp"
+
+
 using namespace parserlib;
 
 
-using default_parse_context = parse_context<>;
-using p = parser<>;
-using p2 = parser<parse_context<default_parse_context::match_container_type::const_iterator>>;
-using p3 = parser<parse_context<source_file_iterator<>>>;
+using default_parser = parser<>;
+using default_parse_context = default_parser::parse_context;
+using p = default_parser;
+using p2 = parser<default_parser::match_container::const_iterator>;
+using p3 = parser<text_iterator<>>;
 
 
 static void test_parse_symbol() {
@@ -17,7 +20,7 @@ static void test_parse_symbol() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -25,7 +28,7 @@ static void test_parse_symbol() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_valid_iterator());
@@ -38,7 +41,7 @@ static void test_parse_string() {
 
     {
         std::string source = "abc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -46,7 +49,7 @@ static void test_parse_string() {
 
     {
         std::string source = "xbc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -54,7 +57,7 @@ static void test_parse_string() {
 
     {
         std::string source = "axc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -62,7 +65,7 @@ static void test_parse_string() {
 
     {
         std::string source = "abx";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -75,7 +78,7 @@ static void test_parse_set() {
 
     {
         std::string source = "0";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -83,7 +86,7 @@ static void test_parse_set() {
 
     {
         std::string source = "5";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -91,7 +94,7 @@ static void test_parse_set() {
 
     {
         std::string source = "9";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -99,7 +102,7 @@ static void test_parse_set() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -112,7 +115,7 @@ static void test_parse_range() {
 
     {
         std::string source = "0";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -120,7 +123,7 @@ static void test_parse_range() {
 
     {
         std::string source = "5";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -128,7 +131,7 @@ static void test_parse_range() {
 
     {
         std::string source = "9";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -136,7 +139,7 @@ static void test_parse_range() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -149,7 +152,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -157,7 +160,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -165,7 +168,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "aa";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -173,7 +176,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "aaa";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -181,7 +184,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.begin());
@@ -189,7 +192,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "ab";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == std::next(source.begin(), 1));
@@ -197,7 +200,7 @@ static void test_parse_loop_0() {
 
     {
         std::string source = "aab";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == std::next(source.begin(), 2));
@@ -210,7 +213,7 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_end_iterator());
@@ -218,7 +221,7 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -226,7 +229,7 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "aa";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -234,7 +237,7 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "aaa";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -242,7 +245,7 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -250,7 +253,7 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "ab";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == std::next(source.begin(), 1));
@@ -258,39 +261,10 @@ static void test_parse_loop_1() {
 
     {
         std::string source = "aab";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == std::next(source.begin(), 2));
-    }
-}
-
-
-static void test_parse_loop_n() {
-    const auto grammar = 4 * p::terminal('a');
-
-    {
-        std::string source = "aaaa";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-        assert(pc.is_end_iterator());
-    }
-
-    {
-        std::string source = "aaa";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(!result);
-        assert(pc.get_iterator() == source.begin());
-    }
-
-    {
-        std::string source = "aaaaa";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-        assert(pc.get_iterator() == std::next(source.begin(), 4));
     }
 }
 
@@ -300,7 +274,7 @@ static void test_parse_optional() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -308,7 +282,7 @@ static void test_parse_optional() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.begin());
@@ -321,7 +295,7 @@ static void test_parse_logical_and() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_valid_iterator());
@@ -329,7 +303,7 @@ static void test_parse_logical_and() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_valid_iterator());
@@ -342,7 +316,7 @@ static void test_parse_logical_not() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_valid_iterator());
@@ -350,7 +324,7 @@ static void test_parse_logical_not() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_valid_iterator());
@@ -363,7 +337,7 @@ static void test_parse_sequence() {
 
     {
         std::string source = "abc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
@@ -371,7 +345,7 @@ static void test_parse_sequence() {
 
     {
         std::string source = "xbc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -379,7 +353,7 @@ static void test_parse_sequence() {
 
     {
         std::string source = "axc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -387,7 +361,7 @@ static void test_parse_sequence() {
 
     {
         std::string source = "abx";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.get_iterator() == source.begin());
@@ -400,7 +374,7 @@ static void test_parse_choice() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -408,7 +382,7 @@ static void test_parse_choice() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -416,7 +390,7 @@ static void test_parse_choice() {
 
     {
         std::string source = "c";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -424,7 +398,7 @@ static void test_parse_choice() {
 
     {
         std::string source = "d";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_valid_iterator());
@@ -443,7 +417,7 @@ static void test_parse_match() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_matches().size() == 1);
@@ -454,7 +428,7 @@ static void test_parse_match() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_matches().size() == 1);
@@ -465,7 +439,7 @@ static void test_parse_match() {
 
     {
         std::string source = "c";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_matches().size() == 1);
@@ -476,7 +450,7 @@ static void test_parse_match() {
 
     {
         std::string source = "bc";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_matches().size() == 1);
@@ -503,14 +477,14 @@ static void test_parse_matches() {
     const auto grammar1 = a >> b >> c;
 
     std::string source = "abc";
-    parse_context<> pc1(source);
-    const auto result1 = grammar1.parse(pc1);
+    default_parse_context pc1(source);
+    const bool result1 = grammar1.parse(pc1);
     assert(result1);
     assert(pc1.get_matches().size() == 3);
 
     auto pc2 = pc1.derive_parse_context();
     const auto grammar2 = (p2::terminal(A)->*A) >> (p2::terminal(B)->*B) >> (p2::terminal(C)->*C);
-    const auto result2 = grammar2.parse(pc2);
+    const bool result2 = grammar2.parse(pc2);
     assert(result2);
     assert(pc2.get_matches().size() == pc1.get_matches().size());
     assert(pc2.get_matches()[0].get_id() == pc1.get_matches()[0].get_id());
@@ -524,7 +498,7 @@ static void test_parse_any() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -532,7 +506,7 @@ static void test_parse_any() {
 
     {
         std::string source = "";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_end_iterator());
@@ -545,7 +519,7 @@ static void test_parse_end() {
 
     {
         std::string source = "";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -553,31 +527,10 @@ static void test_parse_end() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_valid_iterator());
-    }
-}
-
-
-static void test_parse_bool() {
-    {
-        const auto grammar = p::make_parse_node(true);
-        std::string source = "";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-        assert(pc.is_end_iterator());
-    }
-
-    {
-        const auto grammar = p::make_parse_node(false);
-        std::string source = "";
-        parse_context<> pc(source);
-        const bool result = grammar.parse(pc);
-        assert(!result);
-        assert(pc.is_end_iterator());
     }
 }
 
@@ -589,7 +542,7 @@ static void test_parse_newline() {
 
     {
         std::string source = "a\na";
-        parse_context<source_file_iterator<>> pc(source);
+        parser<text_iterator<>>::parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.get_iterator().get_line() == 2);
@@ -612,7 +565,7 @@ static void test_parse_function() {
 
     {
         std::string source = "a";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
         assert(pc.is_end_iterator());
@@ -620,7 +573,7 @@ static void test_parse_function() {
 
     {
         std::string source = "b";
-        parse_context<> pc(source);
+        default_parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
         assert(pc.is_valid_iterator());
@@ -629,7 +582,7 @@ static void test_parse_function() {
 
 
 static void test_parse_rule() {
-    using parse_context_type = parse_context<>;
+    using parse_context_type = default_parse_context;
 
     p::rule grammar = p::terminal('a');
 
@@ -652,7 +605,7 @@ static void test_parse_rule() {
 
 
 static void test_parse_rule_recursion() {
-    using parse_context_type = parse_context<>;
+    using parse_context_type = default_parse_context;
 
     const p::rule grammar = -(p::terminal('a') >> grammar);
 
@@ -717,9 +670,9 @@ static void test_parse_rule_recursion() {
 static void test_parse_rule_left_recursion() {
     /**** types ****/
 
-    using parse_context_type = parse_context<>;
+    using parse_context_type = default_parse_context;
 
-    using match_type = typename parse_context_type::match_type;
+    using match_type = default_parser::match;
 
     using rule_type = p::rule;
 
@@ -1074,34 +1027,34 @@ static void test_parse_rule_left_recursion() {
 
 
 static void test_parse_case_sensitive() {
-    using p = parser<parse_context<std::string::const_iterator, int, int, case_insensitive_symbol_comparator>>;
+    using p = parser<std::string::const_iterator, int, int, case_insensitive_symbol_comparator>;
 
     const auto grammar = p::terminal('a');
 
     {
         std::string source = "a";
-        parse_context<std::string::const_iterator, int, int, case_insensitive_symbol_comparator> pc(source);
+        p::parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
     }
 
     {
         std::string source = "A";
-        parse_context<std::string::const_iterator, int, int, case_insensitive_symbol_comparator> pc(source);
+        p::parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(result);
     }
 
     {
         std::string source = "b";
-        parse_context<std::string::const_iterator, int, int, case_insensitive_symbol_comparator> pc(source);
+        p::parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
     }
 
     {
         std::string source = "B";
-        parse_context<std::string::const_iterator, int, int, case_insensitive_symbol_comparator> pc(source);
+        p::parse_context pc(source);
         const bool result = grammar.parse(pc);
         assert(!result);
     }
@@ -1117,7 +1070,7 @@ static void test_parse_case_sensitive() {
 //    const auto grammar = (a >> b >> c)->*GRAMMAR;
 //
 //    std::string source = "abc";
-//    parse_context<> pc1(source);
+//    default_parse_context pc1(source);
 //    const auto result1 = grammar.parse(pc1);
 //    assert(result1);
 //    assert(pc1.get_matches().size() == 1);
@@ -1131,28 +1084,26 @@ static void test_parse_case_sensitive() {
 
 
 void run_tests() {
-    //test_parse_symbol();
-    //test_parse_string();
-    //test_parse_set();
-    //test_parse_range();
-    //test_parse_loop_0();
-    //test_parse_loop_1();
-    //test_parse_loop_n();
-    //test_parse_optional();
-    //test_parse_logical_and();
-    //test_parse_logical_not();
-    //test_parse_sequence();
-    //test_parse_choice();
-    //test_parse_match();
-    //test_parse_matches();
-    //test_parse_any();
-    //test_parse_end();
-    //test_parse_bool();
-    //test_parse_newline();
-    //test_parse_function();
-    //test_parse_rule();
-    //test_parse_rule_recursion();
-    test_parse_rule_left_recursion();
+    test_parse_symbol();
+    test_parse_string();
+    test_parse_set();
+    test_parse_range();
+    test_parse_loop_0();
+    test_parse_loop_1();
+    test_parse_optional();
+    test_parse_logical_and();
+    test_parse_logical_not();
+    test_parse_sequence();
+    test_parse_choice();
+    test_parse_match();
+    test_parse_matches();
+    test_parse_any();
+    test_parse_end();
+    test_parse_newline();
+    test_parse_function();
+    test_parse_rule();
+    test_parse_rule_recursion();
+    //test_parse_rule_left_recursion();
     //test_parse_case_sensitive();
     //test_ast();
 }
