@@ -140,7 +140,7 @@ public:
     template <class Id>
     class source_partition {
     public:
-        using id_type = id;
+        using id_type = Id;
 
         using iterator_type = Iterator;
 
@@ -413,7 +413,8 @@ public:
         parse_node_ptr() {
         }
 
-        parse_node_ptr(const std::shared_ptr<parse_node>& parse_node)
+        template <class T>
+        parse_node_ptr(const std::shared_ptr<T>& parse_node)
             : m_node(parse_node)
         {
         }
@@ -1053,26 +1054,6 @@ public:
             return std::make_shared<rule_ref_parse_node>(get_or_create_node());
         }
 
-        parse_node_ptr operator *() const {
-            return std::static_pointer_cast<parse_node>(std::make_shared<loop_0_parse_node>(get_ref_node()));
-        }
-
-        parse_node_ptr operator +() const {
-            return std::static_pointer_cast<parse_node>(std::make_shared<loop_1_parse_node>(get_ref_node()));
-        }
-
-        parse_node_ptr operator -() const {
-            return std::static_pointer_cast<parse_node>(std::make_shared<optional_parse_node>(get_ref_node()));
-        }
-
-        parse_node_ptr operator &() const {
-            return std::static_pointer_cast<parse_node>(std::make_shared<logical_and_parse_node>(get_ref_node()));
-        }
-
-        parse_node_ptr operator !() const {
-            return std::static_pointer_cast<parse_node>(std::make_shared<logical_not_parse_node>(get_ref_node()));
-        }
-
         const std::string& get_name() const {
             return m_node->get_name();
         }
@@ -1120,23 +1101,23 @@ public:
      **************************************************************************/
 
     friend parse_node_ptr operator *(const parse_node_ptr& pn) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<loop_0_parse_node>(pn));
+        return std::make_shared<loop_0_parse_node>(pn);
     }
 
     friend parse_node_ptr operator +(const parse_node_ptr& pn) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<loop_1_parse_node>(pn));
+        return std::make_shared<loop_1_parse_node>(pn);
     }
 
     friend parse_node_ptr operator -(const parse_node_ptr& pn) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<optional_parse_node>(pn));
+        return std::make_shared<optional_parse_node>(pn);
     }
 
     friend parse_node_ptr operator &(const parse_node_ptr& pn) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<logical_and_parse_node>(pn));
+        return std::make_shared<logical_and_parse_node>(pn);
     }
 
     friend parse_node_ptr operator !(const parse_node_ptr& pn) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<logical_not_parse_node>(pn));
+        return std::make_shared<logical_not_parse_node>(pn);
     }
 
     friend parse_node_ptr operator >> (const parse_node_ptr& left, const parse_node_ptr& right) {
@@ -1155,7 +1136,7 @@ public:
         else {
             children.push_back(right);
         }
-        return std::static_pointer_cast<parse_node>(std::make_shared<sequence_parse_node>(std::move(children)));
+        return std::make_shared<sequence_parse_node>(std::move(children));
     }
 
     friend parse_node_ptr operator | (const parse_node_ptr& left, const parse_node_ptr& right) {
@@ -1174,7 +1155,7 @@ public:
         else {
             children.push_back(right);
         }
-        return std::static_pointer_cast<parse_node>(std::make_shared<choice_parse_node>(std::move(children)));
+        return std::make_shared<choice_parse_node>(std::move(children));
     }
 
     friend parse_node_ptr operator - (const parse_node_ptr& left, const parse_node_ptr& right) {
@@ -1182,7 +1163,7 @@ public:
     }
 
     friend parse_node_ptr operator ->* (const parse_node_ptr& left, const MatchId& right) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<match_parse_node>(left, right));
+        return std::make_shared<match_parse_node>(left, right);
     }
 
     /**************************************************************************
@@ -1191,52 +1172,52 @@ public:
 
     template <class Symbol>
     static parse_node_ptr terminal(const Symbol& symbol) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<symbol_parse_node<Symbol>>(symbol));
+        return std::make_shared<symbol_parse_node<Symbol>>(symbol);
     }
 
     template <class Symbol>
     static parse_node_ptr terminal(const Symbol* string) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<string_parse_node<Symbol>>(string));
+        return std::make_shared<string_parse_node<Symbol>>(string);
     }
 
     template <class Symbol>
     static parse_node_ptr set(const Symbol* set) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<set_parse_node<Symbol>>(set));
+        return std::make_shared<set_parse_node<Symbol>>(set);
     }
 
     template <class Symbol>
     static parse_node_ptr set(const std::initializer_list<Symbol>& set) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<set_parse_node<Symbol>>(set));
+        return std::make_shared<set_parse_node<Symbol>>(set);
     }
 
     template <class Symbol>
     static parse_node_ptr range(const Symbol& min, const Symbol& max) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<range_parse_node<Symbol>>(min, max));
+        return std::make_shared<range_parse_node<Symbol>>(min, max);
     }
 
     static parse_node_ptr any() {
-        return std::static_pointer_cast<parse_node>(std::make_shared<any_parse_node>());
+        return std::make_shared<any_parse_node>();
     }
 
     static parse_node_ptr end() {
-        return std::static_pointer_cast<parse_node>(std::make_shared<end_parse_node>());
+        return std::make_shared<end_parse_node>();
     }
 
     static parse_node_ptr failure() {
-        return std::static_pointer_cast<parse_node>(std::make_shared<failure_parse_node>());
+        return std::make_shared<failure_parse_node>();
     }
 
     static parse_node_ptr success() {
-        return std::static_pointer_cast<parse_node>(std::make_shared<success_parse_node>());
+        return std::make_shared<success_parse_node>();
     }
 
     static parse_node_ptr newline(const parse_node_ptr& pn) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<newline_parse_node>(pn));
+        return std::make_shared<newline_parse_node>(pn);
     }
 
     template <class F>
     static parse_node_ptr function(const F& function) {
-        return std::static_pointer_cast<parse_node>(std::make_shared<function_parse_node<F>>(function));
+        return std::make_shared<function_parse_node<F>>(function);
     }
 };
 
