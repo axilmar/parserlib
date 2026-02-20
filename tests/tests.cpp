@@ -581,6 +581,41 @@ static void test_parse_function() {
 }
 
 
+static void test_parse_case_sensitive() {
+    using p = parser<std::string::const_iterator, int, int, case_insensitive_symbol_comparator>;
+
+    const auto grammar = p::terminal('a');
+
+    {
+        std::string source = "a";
+        p::parse_context pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+    }
+
+    {
+        std::string source = "A";
+        p::parse_context pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+    }
+
+    {
+        std::string source = "b";
+        p::parse_context pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+    }
+
+    {
+        std::string source = "B";
+        p::parse_context pc(source);
+        const bool result = grammar.parse(pc);
+        assert(!result);
+    }
+}
+
+
 static void test_parse_rule() {
     using parse_context_type = default_parse_context;
 
@@ -589,7 +624,7 @@ static void test_parse_rule() {
     {
         std::string source = "a";
         parse_context_type pc(source);
-        const bool result = grammar.parse(pc);
+        const bool result = grammar->parse(pc);
         assert(result);
         assert(pc.get_iterator() == source.end());
     }
@@ -1026,41 +1061,6 @@ static void test_parse_rule_left_recursion() {
 }
 
 
-static void test_parse_case_sensitive() {
-    using p = parser<std::string::const_iterator, int, int, case_insensitive_symbol_comparator>;
-
-    const auto grammar = p::terminal('a');
-
-    {
-        std::string source = "a";
-        p::parse_context pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-    }
-
-    {
-        std::string source = "A";
-        p::parse_context pc(source);
-        const bool result = grammar.parse(pc);
-        assert(result);
-    }
-
-    {
-        std::string source = "b";
-        p::parse_context pc(source);
-        const bool result = grammar.parse(pc);
-        assert(!result);
-    }
-
-    {
-        std::string source = "B";
-        p::parse_context pc(source);
-        const bool result = grammar.parse(pc);
-        assert(!result);
-    }
-}
-
-
 //static void test_ast() {
 //    enum { GRAMMAR, A, B, C };
 //
@@ -1101,9 +1101,9 @@ void run_tests() {
     test_parse_end();
     test_parse_newline();
     test_parse_function();
+    test_parse_case_sensitive();
     test_parse_rule();
     test_parse_rule_recursion();
     //test_parse_rule_left_recursion();
-    //test_parse_case_sensitive();
     //test_ast();
 }

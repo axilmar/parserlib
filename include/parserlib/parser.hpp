@@ -14,6 +14,7 @@
 #include <map>
 #include <set>
 #include <stdexcept>
+#include <optional>
 
 
 namespace parserlib {
@@ -144,7 +145,9 @@ public:
 
         using iterator_type = Iterator;
 
-        source_partition() {
+        source_partition() 
+            : m_id()
+        {
         }
 
         source_partition(const Id& id, const Iterator& begin, const Iterator& end)
@@ -290,11 +293,14 @@ public:
             parse_state m_parse_state;
             parse_state m_match_start_state;
             Iterator m_end;
+            size_t m_index{ 0 };
+
             friend class parse_context;
         };
 
         parse_context(const Iterator& begin, const Iterator& end) 
             : m_state(begin, end)
+            , m_end(end)
         {
         }
 
@@ -335,12 +341,16 @@ public:
         }
 
         void increment_iterator() {
+            remove_error();
             ++m_state.m_parse_state.m_iterator;
+            ++m_state.m_index;
             m_state.m_match_start_state = m_state.m_parse_state;
         }
 
         void increment_iterator(size_t count) {
+            remove_errors(count);
             m_state.m_parse_state.m_iterator += count;
+            m_state.m_index += count;
             m_state.m_match_start_state = m_state.m_parse_state;
         }
 
@@ -364,6 +374,54 @@ public:
             m_state.m_match_start_state.m_match_count = m_state.m_parse_state.m_match_count = m_matches.size();
         }
 
+        error_container get_errors() const {
+            error_container result;
+            for (const error_element& entry : m_errors) {
+                if (entry.has_value()) {
+                    result.push_back(entry.value());
+                }
+            }
+            return result;
+        }
+
+        bool add_error(const ErrorId& id, const Iterator& from) {
+            const auto& new_error_end = m_state.m_parse_state.m_iterator;
+
+            static constexpr size_t error_vector_doubling_limit = 4096;
+
+            //make room for the new error
+            if (m_state.m_index >= m_errors.size()) {
+                if (m_errors.size() >= error_vector_doubling_limit) {
+                    m_errors.resize(m_errors.size() + error_vector_doubling_limit);
+                }
+                else {
+                    const size_t old_size = std::max((size_t)1, m_errors.size());
+                    m_errors.resize(old_size * 2);
+                }
+            }
+
+            //new error for the position
+            if (!m_errors[m_state.m_index].has_value()) {
+                m_errors[m_state.m_index] = error(id, from, new_error_end);
+                return false;
+            }
+
+            const error& prev_error = m_errors[m_state.m_index].value();
+
+            const auto new_error_extend = std::distance(from, new_error_end);
+            const auto prev_error_extend = std::distance(prev_error.begin(), prev_error.end());
+
+            //new error has smaller extend, which means more input was parsed,
+            //therefore replace previous error with new error
+            if (new_error_extend < prev_error_extend) {
+                m_errors[m_state.m_index] = error(id, from, new_error_end);
+                return false;
+            }
+
+            //return true if the error to add has already been added before
+            return id == prev_error.get_id() && new_error_end == prev_error.end();
+        }
+
         template <class DerivedMatchId = int, class DerivedErrorId = int, class DerivedSymbolComparator = default_symbol_comparator>
         auto derive_parse_context() const {
             return parser<typename match_container::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>::parse_context(m_matches);
@@ -371,12 +429,37 @@ public:
 
         parse_result parse_left_recursion(const rule_parse_node& node) {
             //TODO
-            return node.get_child().parse(*this);
+            return node.get_child()->parse(*this);
         }
 
     private:
+        using error_element = std::optional<error>;
+        using error_vector = std::vector<error_element>;
+
         state m_state;
         match_container m_matches;
+        Iterator m_end;
+        error_vector m_errors;
+
+        void remove_error(size_t index) {
+            m_errors[index].reset();
+        }
+
+        void remove_error() {
+            if (m_state.m_index < m_errors.size()) {
+                remove_error(m_state.m_index);
+            }
+        }
+
+        void remove_errors(size_t count) {
+            if (m_state.m_index < m_errors.size()) {
+                size_t index = m_state.m_index;
+                const size_t end_index = std::min(index + count, m_errors.size());
+                for (; index < end_index; ++index) {
+                    remove_error(index);
+                }
+            }
+        }
     };
 
     /**************************************************************************
@@ -413,6 +496,16 @@ public:
         parse_node_ptr() {
         }
 
+        parse_node_ptr(const parse_node_ptr& ptr)
+            : m_node(ptr.m_node)
+        {
+        }
+
+        parse_node_ptr(parse_node_ptr&& ptr)
+            : m_node(std::move(ptr.m_node))
+        {
+        }
+
         template <class T>
         parse_node_ptr(const std::shared_ptr<T>& parse_node)
             : m_node(parse_node)
@@ -434,6 +527,40 @@ public:
         parse_node_ptr(const rule& r)
             : m_node(r.get_ref_node())
         {
+        }
+
+        parse_node_ptr& operator = (const parse_node_ptr& ptr) {
+            m_node = ptr.m_node;
+            return *this;
+        }
+
+        parse_node_ptr& operator = (parse_node_ptr&& ptr) {
+            m_node = std::move(ptr.m_node);
+            return *this;
+        }
+
+        template <class T>
+        parse_node_ptr& operator = (const std::shared_ptr<T>& parse_node) {
+            m_node = parse_node;
+            return *this;
+        }
+
+        template <class Symbol>
+        parse_node_ptr& operator = (const Symbol& symbol) {
+            return operator = (terminal(symbol));
+        }
+
+        template <class Symbol>
+        parse_node_ptr& operator = (const Symbol* string) {
+            return operator = (terminal(string));
+        }
+
+        parse_node_ptr& operator = (const rule& r) {
+            return operator = (r.get_ref_node());
+        }
+
+        operator std::shared_ptr<parse_node> () const {
+            return m_node;
         }
 
         const parse_node* operator ->() const {
@@ -682,7 +809,7 @@ public:
             const parse_node_ptr& child = this->get_child();
 
             for (;;) {
-                const parse_result result = child.parse(pc);
+                const parse_result result = child->parse(pc);
 
                 if (result.get_type() == parse_result_type::success) {
                     continue;
@@ -710,7 +837,7 @@ public:
         parse_result parse(parse_context& pc) const override {
             const parse_node_ptr& child = this->get_child();
 
-            const parse_result result = child.parse(pc);
+            const parse_result result = child->parse(pc);
 
             if (result.get_type() == parse_result_type::success) {
                 return loop_0_parse_node::parse(pc);
@@ -731,7 +858,7 @@ public:
         parse_result parse(parse_context& pc) const override {
             const parse_node_ptr& child = this->get_child();
             
-            const parse_result result = child.parse(pc);
+            const parse_result result = child->parse(pc);
 
             if (result.get_type() != parse_result_type::failure) {
                 return result;
@@ -753,7 +880,7 @@ public:
             const parse_node_ptr& child = this->get_child();
 
             const parse_context::state base_state = pc.get_state();
-            const parse_result result = child.parse(pc);
+            const parse_result result = child->parse(pc);
             pc.set_state(base_state);
 
             return result;
@@ -772,7 +899,7 @@ public:
             const parse_node_ptr& child = this->get_child();
 
             const parse_context::state base_state = pc.get_state();
-            const parse_result result = child.parse(pc);
+            const parse_result result = child->parse(pc);
             pc.set_state(base_state);
             
             if (result.get_type() == parse_result_type::success) {
@@ -801,7 +928,7 @@ public:
             const parse_context::state base_state = pc.get_state();
 
             for (const parse_node_ptr& child : children) {
-                const parse_result result = child.parse(pc);
+                const parse_result result = child->parse(pc);
 
                 if (result.get_type() == parse_result_type::success) {
                     continue;
@@ -827,7 +954,7 @@ public:
             const parse_node_container& children = this->get_children();
 
             for (const parse_node_ptr& child : children) {
-                const parse_result result = child.parse(pc);
+                const parse_result result = child->parse(pc);
 
                 if (result.get_type() != parse_result_type::failure) {
                     return result;
@@ -855,7 +982,7 @@ public:
 
             const parse_context::parse_state from_state = pc.get_match_start_state();
 
-            const parse_result result = child.parse(pc);
+            const parse_result result = child->parse(pc);
             
             if (result.get_type() == parse_result_type::success) {
                 pc.add_match(m_id, from_state);
@@ -1033,6 +1160,11 @@ public:
             rule_map().erase(this);
         }
 
+        rule& operator = (const rule& r) {
+            m_node->set_child(r.m_node->get_child());
+            return *this;
+        }
+
         rule& operator = (rule&&) = delete;
 
         rule& operator = (const parse_node_ptr& ptr) {
@@ -1050,8 +1182,16 @@ public:
             return operator = (parse_node_ptr(string));
         }
 
-        std::shared_ptr<rule_ref_parse_node> get_ref_node() const {
-            return std::make_shared<rule_ref_parse_node>(get_or_create_node());
+        operator std::shared_ptr<parse_node> () const {
+            return m_node;
+        }
+
+        const parse_node* operator ->() const {
+            return m_node.get();
+        }
+
+        const std::shared_ptr<parse_node>& get() const {
+            return m_node;
         }
 
         const std::string& get_name() const {
@@ -1060,6 +1200,10 @@ public:
 
         void set_name(const std::string& name) {
             m_node->set_name(name);
+        }
+
+        std::shared_ptr<rule_ref_parse_node> get_ref_node() const {
+            return std::make_shared<rule_ref_parse_node>(get_or_create_node());
         }
 
         parse_result parse(parse_context& pc) const {
@@ -1218,6 +1362,10 @@ public:
     template <class F>
     static parse_node_ptr function(const F& function) {
         return std::make_shared<function_parse_node<F>>(function);
+    }
+
+    static parse_result parse(parse_context& pc, const std::shared_ptr<parse_node>& pn) {
+        //TODO
     }
 };
 
