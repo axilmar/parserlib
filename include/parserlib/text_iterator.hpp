@@ -161,6 +161,15 @@ namespace parserlib {
         }
 
         /**
+         * Computes the iterator difference.
+         * @param it the right operand.
+         * @return the difference between this and the given iterator.
+         */ 
+        auto operator - (const text_iterator& it) const {
+            return m_iterator - it.m_iterator;
+        }
+
+        /**
          * Returns the text position.
          * @return the text position.
          */ 

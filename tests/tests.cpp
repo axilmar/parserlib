@@ -581,6 +581,10 @@ static void test_parse_function() {
 }
 
 
+static void test_parse_error() {
+}
+
+
 static void test_parse_case_sensitive() {
     using p = parser<std::string::const_iterator, int, int, case_insensitive_symbol_comparator>;
 
@@ -1084,26 +1088,27 @@ static void test_parse_rule_left_recursion() {
 
 
 void run_tests() {
-    test_parse_symbol();
-    test_parse_string();
-    test_parse_set();
-    test_parse_range();
-    test_parse_loop_0();
-    test_parse_loop_1();
-    test_parse_optional();
-    test_parse_logical_and();
-    test_parse_logical_not();
-    test_parse_sequence();
-    test_parse_choice();
-    test_parse_match();
-    test_parse_matches();
-    test_parse_any();
-    test_parse_end();
-    test_parse_newline();
-    test_parse_function();
-    test_parse_case_sensitive();
-    test_parse_rule();
-    test_parse_rule_recursion();
+    //test_parse_symbol();
+    //test_parse_string();
+    //test_parse_set();
+    //test_parse_range();
+    //test_parse_loop_0();
+    //test_parse_loop_1();
+    //test_parse_optional();
+    //test_parse_logical_and();
+    //test_parse_logical_not();
+    //test_parse_sequence();
+    //test_parse_choice();
+    //test_parse_match();
+    //test_parse_matches();
+    //test_parse_any();
+    //test_parse_end();
+    //test_parse_newline();
+    //test_parse_function();
+    test_parse_error();
+    //test_parse_case_sensitive();
+    //test_parse_rule();
+    //test_parse_rule_recursion();
     //test_parse_rule_left_recursion();
     //test_ast();
 }

@@ -45,9 +45,9 @@ enum class parse_result_type {
 };
 
 
-class invalid_parse_result_type_error : public std::runtime_error {
+class invalid_parse_result_type : public std::runtime_error {
 public:
-    invalid_parse_result_type_error(const char* what)
+    invalid_parse_result_type(const char* what)
         : std::runtime_error(what)
     {
     }
@@ -248,7 +248,7 @@ public:
             if (m_type == parse_result_type::failure) {
                 return false;
             }
-            throw invalid_parse_result_type_error("parse result cannot be converted to bool.");
+            throw invalid_parse_result_type("parse result cannot be converted to bool.");
         }
 
     private:
@@ -267,33 +267,32 @@ public:
     class parse_context {
     public:
         class parse_state {
-        public:
+        private:
+            Iterator m_iterator;
+            size_t m_match_count;
+
             parse_state(const Iterator& iterator)
                 : m_iterator(iterator)
                 , m_match_count(0)
             {
             }
 
-        private:
-            Iterator m_iterator;
-            size_t m_match_count;
+
             friend class parse_context;
         };
 
         class state {
-        public:
+        private:
+            parse_state m_parse_state;
+            parse_state m_match_start_state;
+            Iterator m_end;
+
             state(const Iterator& begin, const Iterator& end)
                 : m_parse_state(begin)
                 , m_match_start_state(begin)
                 , m_end(end)
             {
             }
-
-        private:
-            parse_state m_parse_state;
-            parse_state m_match_start_state;
-            Iterator m_end;
-            size_t m_index{ 0 };
 
             friend class parse_context;
         };
@@ -335,23 +334,27 @@ public:
             return m_state.m_end;
         }
 
+        const Iterator& get_source_end_iterator() const {
+            return m_end;
+        }
+
+        void set_iterator(const Iterator& iterator) {
+            m_state.m_parse_state.m_iterator = iterator;
+        }
+
         template <class Symbol>
         int compare(const typename Iterator::value_type& token, const Symbol& symbol) {
             return parser::compare(token, symbol);
         }
 
         void increment_iterator() {
-            remove_error();
             ++m_state.m_parse_state.m_iterator;
-            ++m_state.m_index;
-            m_state.m_match_start_state = m_state.m_parse_state;
+            update_match_start_state();
         }
 
         void increment_iterator(size_t count) {
-            remove_errors(count);
             m_state.m_parse_state.m_iterator += count;
-            m_state.m_index += count;
-            m_state.m_match_start_state = m_state.m_parse_state;
+            update_match_start_state();
         }
 
         void increment_line() {
@@ -367,59 +370,11 @@ public:
             return m_matches;
         }
 
-        void add_match(const MatchId& id, const parse_state& from_state) {
-            match_container children(m_matches.begin() + from_state.m_match_count, m_matches.end());
-            m_matches.resize(from_state.m_match_count);
-            m_matches.push_back(match(id, from_state.m_iterator, m_state.m_parse_state.m_iterator, std::move(children)));
+        void add_match(const MatchId& id, const parse_state& begin_state) {
+            match_container children(m_matches.begin() + begin_state.m_match_count, m_matches.end());
+            m_matches.resize(begin_state.m_match_count);
+            m_matches.push_back(match(id, begin_state.m_iterator, m_state.m_parse_state.m_iterator, std::move(children)));
             m_state.m_match_start_state.m_match_count = m_state.m_parse_state.m_match_count = m_matches.size();
-        }
-
-        error_container get_errors() const {
-            error_container result;
-            for (const error_element& entry : m_errors) {
-                if (entry.has_value()) {
-                    result.push_back(entry.value());
-                }
-            }
-            return result;
-        }
-
-        bool add_error(const ErrorId& id, const Iterator& from) {
-            const auto& new_error_end = m_state.m_parse_state.m_iterator;
-
-            static constexpr size_t error_vector_doubling_limit = 4096;
-
-            //make room for the new error
-            if (m_state.m_index >= m_errors.size()) {
-                if (m_errors.size() >= error_vector_doubling_limit) {
-                    m_errors.resize(m_errors.size() + error_vector_doubling_limit);
-                }
-                else {
-                    const size_t old_size = std::max((size_t)1, m_errors.size());
-                    m_errors.resize(old_size * 2);
-                }
-            }
-
-            //new error for the position
-            if (!m_errors[m_state.m_index].has_value()) {
-                m_errors[m_state.m_index] = error(id, from, new_error_end);
-                return false;
-            }
-
-            const error& prev_error = m_errors[m_state.m_index].value();
-
-            const auto new_error_extend = std::distance(from, new_error_end);
-            const auto prev_error_extend = std::distance(prev_error.begin(), prev_error.end());
-
-            //new error has smaller extend, which means more input was parsed,
-            //therefore replace previous error with new error
-            if (new_error_extend < prev_error_extend) {
-                m_errors[m_state.m_index] = error(id, from, new_error_end);
-                return false;
-            }
-
-            //return true if the error to add has already been added before
-            return id == prev_error.get_id() && new_error_end == prev_error.end();
         }
 
         template <class DerivedMatchId = int, class DerivedErrorId = int, class DerivedSymbolComparator = default_symbol_comparator>
@@ -433,32 +388,12 @@ public:
         }
 
     private:
-        using error_element = std::optional<error>;
-        using error_vector = std::vector<error_element>;
-
         state m_state;
         match_container m_matches;
         Iterator m_end;
-        error_vector m_errors;
 
-        void remove_error(size_t index) {
-            m_errors[index].reset();
-        }
-
-        void remove_error() {
-            if (m_state.m_index < m_errors.size()) {
-                remove_error(m_state.m_index);
-            }
-        }
-
-        void remove_errors(size_t count) {
-            if (m_state.m_index < m_errors.size()) {
-                size_t index = m_state.m_index;
-                const size_t end_index = std::min(index + count, m_errors.size());
-                for (; index < end_index; ++index) {
-                    remove_error(index);
-                }
-            }
+        void update_match_start_state() {
+            m_state.m_match_start_state = m_state.m_parse_state;
         }
     };
 
@@ -952,13 +887,15 @@ public:
 
         parse_result parse(parse_context& pc) const override {
             const parse_node_container& children = this->get_children();
-
+            
             for (const parse_node_ptr& child : children) {
                 const parse_result result = child->parse(pc);
 
-                if (result.get_type() != parse_result_type::failure) {
-                    return result;
+                if (result.get_type() == parse_result_type::failure) {
+                    continue;
                 }
+
+                return result;
             }
 
             return parse_result_type::failure;
@@ -1086,6 +1023,21 @@ public:
 
     private:
         F m_function;
+    };
+
+    /**************************************************************************
+        DEBUG PARSE NODE
+     **************************************************************************/
+
+    class debug_parse_node : public parent_parse_node_1 {
+    public:
+        using parent_parse_node_1::parent_parse_node_1;
+
+        parse_result parse(parse_context& pc) const override {
+            const parse_node_ptr& child = this->get_child();
+            const parse_result result = child->parse(pc);
+            return result;
+        }
     };
 
     /**************************************************************************
@@ -1364,8 +1316,8 @@ public:
         return std::make_shared<function_parse_node<F>>(function);
     }
 
-    static parse_result parse(parse_context& pc, const std::shared_ptr<parse_node>& pn) {
-        //TODO
+    static parse_node_ptr debug(const parse_node_ptr& child) {
+        return std::make_shared<debug_parse_node>(child);
     }
 };
 
