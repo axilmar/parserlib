@@ -1,0 +1,50 @@
+#ifndef PARSERLIB_PARSE_NODE_PTR_HPP
+#define PARSERLIB_PARSE_NODE_PTR_HPP
+
+
+#include <memory>
+#include "parse_node.hpp"
+
+
+namespace parserlib {
+
+
+    template <class ParseContext>
+    class parse_node_ptr {
+    public:
+        parse_node_ptr() {
+        }
+
+        template <class ParseNode>
+        parse_node_ptr(const std::shared_ptr<ParseNode>& parse_node)
+            : m_parse_node(parse_node)
+        {
+        }
+
+        template <class Symbol>
+        parse_node_ptr(const Symbol& symbol);
+
+        template <class Symbol>
+        parse_node_ptr(const Symbol* string);
+
+        parse_node<ParseContext>* get() const {
+            return m_parse_node.get();
+        }
+
+        parse_node<ParseContext>* operator ->() const {
+            return m_parse_node.get();
+        }
+
+        bool parse(ParseContext& pc) const {
+            return m_parse_node->parse();
+        }
+
+    private:
+        std::shared_ptr<parse_node<ParseContext>> m_parse_node;
+    };
+
+
+} //namespace parserlib
+
+
+#endif //PARSERLIB_PARSE_NODE_PTR_HPP

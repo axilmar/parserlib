@@ -1,0 +1,44 @@
+#ifndef PARSERLIB_SOURCE_PARTITION_HPP
+#define PARSERLIB_SOURCE_PARTITION_HPP
+
+
+namespace parserlib {
+
+
+    template <class Iterator, class Id>
+    class source_partition {
+    public:
+        using iterator_type = Iterator;
+        using id_type = Id;
+
+        const Id& get_id() const {
+            return m_id;
+        }
+
+        const Iterator& begin() const {
+            return m_begin;
+        }
+
+        const Iterator& end() const {
+            return m_end;
+        }
+
+    protected:
+        source_partition(const Id& id = {}, const Iterator& begin = {}, const Iterator& end = {})
+            : m_id(id)
+            , m_begin(begin)
+            , m_end(end)
+        {
+        }
+
+    private:
+        Id m_id;
+        Iterator m_begin;
+        Iterator m_end;
+    };
+
+
+} //namespace parserlib
+
+
+#endif //PARSERLIB_SOURCE_PARTITION_HPP
