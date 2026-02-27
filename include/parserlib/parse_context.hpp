@@ -252,11 +252,16 @@ namespace parserlib {
             error_container_type* prev_error_container = m_curr_error_container;
 
             try {
-                m_curr_error_container = branch_errors;
+                m_curr_error_container = &branch_errors;
                 const bool result = parse_node->parse(*this);
                 m_curr_error_container = prev_error_container;
 
-                if (!branch_errors.empty()) {
+                if (branch_errors.empty()) {
+                    if (result) {
+                        prev_error_container->resize(base_error_count);
+                    }
+                }
+                else {
                     if (prev_error_container->empty()) {
                         prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
                     }
