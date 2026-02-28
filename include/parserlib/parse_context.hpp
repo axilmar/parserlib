@@ -184,7 +184,7 @@ namespace parserlib {
         using match_type = match<Iterator, MatchId>;
         using match_container_type = std::vector<match_type>;
 
-        using error_type = error<Iterator, ErrorId>;
+        using error_type = parserlib::error<Iterator, ErrorId>;
         using error_container_type = std::vector<error_type>;
 
         using parse_node_type = parse_node<parse_context>;

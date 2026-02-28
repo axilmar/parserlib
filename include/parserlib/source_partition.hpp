@@ -11,6 +11,13 @@ namespace parserlib {
         using iterator_type = Iterator;
         using id_type = Id;
 
+        source_partition(const Id& id = {}, const Iterator& begin = {}, const Iterator& end = {})
+            : m_id(id)
+            , m_begin(begin)
+            , m_end(end)
+        {
+        }
+
         const Id& get_id() const {
             return m_id;
         }
@@ -21,14 +28,6 @@ namespace parserlib {
 
         const Iterator& end() const {
             return m_end;
-        }
-
-    protected:
-        source_partition(const Id& id = {}, const Iterator& begin = {}, const Iterator& end = {})
-            : m_id(id)
-            , m_begin(begin)
-            , m_end(end)
-        {
         }
 
     private:

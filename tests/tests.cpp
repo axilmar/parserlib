@@ -33,4 +33,7 @@ void run_tests() {
     pc.increment_line();
 
     parser<>::function([](parser<>::parse_context& pc) { return true; });
+
+    parser<>::error(0, parser<>::skip_before(parser<>::terminal('a')));
+    parser<>::error(0, parser<>::skip_after(parser<>::terminal('a')));
 }

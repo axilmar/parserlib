@@ -13,6 +13,9 @@
 #include "true_parse_node.hpp"
 #include "newline_parse_node.hpp"
 #include "function_parse_node.hpp"
+#include "error_parse_node.hpp"
+#include "skip_before_parse_node.hpp"
+#include "skip_after_parse_node.hpp"
 
 
 namespace parserlib {
@@ -72,6 +75,18 @@ namespace parserlib {
         template <class F>
         static parse_node_ptr<parse_context> function(const F& func) {
             return std::make_shared<function_parse_node<parse_context, F>>(func);
+        }
+
+        static parse_node_ptr<parse_context> error(const ErrorId& id, const parse_node_ptr<parse_context>& parse_node) {
+            return std::make_shared<error_parse_node<parse_context>>(parse_node, id);
+        }
+
+        static parse_node_ptr<parse_context> skip_before(const parse_node_ptr<parse_context>& valid_parse_node, const parse_node_ptr<parse_context>& invalid_parse_node = {}) {
+            return std::make_shared<skip_before_parse_node<parse_context>>(valid_parse_node, invalid_parse_node);
+        }
+
+        static parse_node_ptr<parse_context> skip_after(const parse_node_ptr<parse_context>& valid_parse_node, const parse_node_ptr<parse_context>& invalid_parse_node = {}) {
+            return std::make_shared<skip_after_parse_node<parse_context>>(valid_parse_node, invalid_parse_node);
         }
     };
 

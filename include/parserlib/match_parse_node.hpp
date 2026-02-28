@@ -8,10 +8,12 @@
 namespace parserlib {
 
 
-    template <class ParseContext, class Id>
+    template <class ParseContext>
     class match_parse_node : public parse_node<ParseContext> {
     public:
-        match_parse_node(const parse_node_ptr<ParseContext>& parse_node, const Id& id)
+        using id_type = typename ParseContext::match_id_type;
+
+        match_parse_node(const parse_node_ptr<ParseContext>& parse_node, const id_type& id)
             : m_parse_node(parse_node)
             , m_id(id)
         {
@@ -28,13 +30,13 @@ namespace parserlib {
 
     private:
         parse_node_ptr<ParseContext> m_parse_node;
-        Id m_id;
+        id_type m_id;
     };
 
 
-    template <class ParseContext, class Id>
-    parse_node_ptr<ParseContext> operator ->* (const parse_node_ptr<ParseContext>& parse_node, const Id& id) {
-        return std::make_shared<match_parse_node<ParseContext, Id>>(parse_node, id);
+    template <class ParseContext>
+    parse_node_ptr<ParseContext> operator ->* (const parse_node_ptr<ParseContext>& parse_node, const typename ParseContext::match_id_type& id) {
+        return std::make_shared<match_parse_node<ParseContext>>(parse_node, id);
     }
 
 

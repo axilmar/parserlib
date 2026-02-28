@@ -27,6 +27,10 @@ namespace parserlib {
         template <class Symbol>
         parse_node_ptr(const Symbol* string);
 
+        explicit operator bool() const {
+            return (bool)m_parse_node;
+        }
+
         parse_node<ParseContext>* get() const {
             return m_parse_node.get();
         }
