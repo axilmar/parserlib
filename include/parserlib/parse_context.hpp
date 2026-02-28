@@ -6,6 +6,7 @@
 #include <map>
 #include <stdexcept>
 #include <algorithm>
+#include <cctype>
 #include "match.hpp"
 #include "parse_node.hpp"
 
@@ -155,6 +156,20 @@ namespace parserlib {
     };
 
 
+    class case_sensitive_symbol_comparator {
+    public:
+        template <class L, class R>
+        static int compare(const L& l, const R& r) {
+            return std::tolower(static_cast<int>(l)) - std::tolower(static_cast<int>(r));
+        }
+    };
+
+
+    template <class Iterator> 
+    void increment_line(Iterator& it) {
+    }
+
+
     template <class Iterator = std::string::const_iterator, class MatchId = int, class ErrorId = int, class SymbolComparator = default_symbol_comparator>
     class parse_context {
     public:
@@ -220,6 +235,11 @@ namespace parserlib {
 
         void increment_iterator(size_t count) {
             m_state.m_parse_state.m_iterator += count;
+            m_state.m_match_parse_state = m_state.m_parse_state;
+        }
+
+        void increment_line() {
+            parserlib::increment_line(m_state.m_parse_state.m_iterator);
             m_state.m_match_parse_state = m_state.m_parse_state;
         }
 

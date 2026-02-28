@@ -7,6 +7,12 @@
 #include "string_parse_node.hpp"
 #include "set_parse_node.hpp"
 #include "range_parse_node.hpp"
+#include "any_parse_node.hpp"
+#include "end_parse_node.hpp"
+#include "false_parse_node.hpp"
+#include "true_parse_node.hpp"
+#include "newline_parse_node.hpp"
+#include "function_parse_node.hpp"
 
 
 namespace parserlib {
@@ -41,6 +47,31 @@ namespace parserlib {
         template <class Symbol>
         static parse_node_ptr<parse_context> range(const Symbol& min, const Symbol& max) {
             return std::make_shared<range_parse_node<parse_context, Symbol>>(min, max);
+        }
+
+        static parse_node_ptr<parse_context> any() {
+            return std::make_shared<any_parse_node<parse_context>>();
+        }
+
+        static parse_node_ptr<parse_context> end() {
+            return std::make_shared<end_parse_node<parse_context>>();
+        }
+
+        static parse_node_ptr<parse_context> false_() {
+            return std::make_shared<false_parse_node<parse_context>>();
+        }
+
+        static parse_node_ptr<parse_context> true_() {
+            return std::make_shared<true_parse_node<parse_context>>();
+        }
+
+        static parse_node_ptr<parse_context> newline(const parse_node_ptr<parse_context>& parse_node) {
+            return std::make_shared<newline_parse_node<parse_context>>(parse_node);
+        }
+
+        template <class F>
+        static parse_node_ptr<parse_context> function(const F& func) {
+            return std::make_shared<function_parse_node<parse_context, F>>(func);
         }
     };
 
