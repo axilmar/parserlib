@@ -655,6 +655,212 @@ static void test_parse_case_insensitive() {
 }
 
 
+static void test_parse_rule() {
+    {
+        p::rule grammar = 'a';
+
+        {
+            std::string src = "a";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "b";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar;
+        grammar = 'a';
+
+        {
+            std::string src = "a";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "b";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar = "abc";
+
+        {
+            std::string src = "abc";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "abd";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar;        
+        grammar = "abc";
+
+        {
+            std::string src = "abc";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "abd";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar = p::terminal('a');
+
+        {
+            std::string src = "a";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "b";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar;
+        grammar = p::terminal('a');
+
+        {
+            std::string src = "a";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "b";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar = p::terminal("abc");
+
+        {
+            std::string src = "abc";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "abd";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar;        
+        grammar = p::terminal("abc");
+
+        {
+            std::string src = "abc";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "abd";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(!ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+
+    {
+        p::rule grammar 
+            = ('a' >> grammar)
+            | p::true_()
+            ;
+
+        {
+            std::string src = "a";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "aa";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "aaa";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.end());
+        }
+
+        {
+            std::string src = "b";
+            p::parse_context pc(src);
+            const bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_iterator() == src.begin());
+        }
+    }
+}
+
+
 void run_tests() {
     test_parse_symbol();
     test_parse_string();
@@ -678,4 +884,5 @@ void run_tests() {
     test_parse_match();
     test_parse_error();
     test_parse_case_insensitive();
+    test_parse_rule();
 }
