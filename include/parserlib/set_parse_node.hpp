@@ -5,7 +5,7 @@
 #include <string_view>
 #include <vector>
 #include <algorithm>
-#include "parse_node_ptr.hpp"
+#include "parse_node.hpp"
 
 
 namespace parserlib {

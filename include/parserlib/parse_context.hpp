@@ -9,6 +9,7 @@
 #include <cctype>
 #include "match.hpp"
 #include "parse_node.hpp"
+#include "parserlib/text_iterator.hpp"
 
 
 namespace parserlib {
@@ -156,7 +157,7 @@ namespace parserlib {
     };
 
 
-    class case_sensitive_symbol_comparator {
+    class case_insensitive_symbol_comparator {
     public:
         template <class L, class R>
         static int compare(const L& l, const R& r) {

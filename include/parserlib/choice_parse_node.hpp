@@ -57,13 +57,17 @@ namespace parserlib {
         if (left_choice) {
             parse_nodes.insert(parse_nodes.end(), left_choice->get_parse_nodes().begin(), left_choice->get_parse_nodes().end());
         }
-        parse_nodes.push_back(left);
+        else {
+            parse_nodes.push_back(left);
+        }
 
         const choice_parse_node<ParseContext>* right_choice = dynamic_cast<const choice_parse_node<ParseContext>*>(right.get());
         if (right_choice) {
             parse_nodes.insert(parse_nodes.end(), right_choice->get_parse_nodes().begin(), right_choice->get_parse_nodes().end());
         }
-        parse_nodes.push_back(right);
+        else {
+            parse_nodes.push_back(right);
+        }
 
         return std::make_shared<choice_parse_node<ParseContext>>(parse_nodes);
     }

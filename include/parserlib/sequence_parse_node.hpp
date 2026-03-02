@@ -51,13 +51,17 @@ namespace parserlib {
         if (left_sequence) {
             parse_nodes.insert(parse_nodes.end(), left_sequence->get_parse_nodes().begin(), left_sequence->get_parse_nodes().end());
         }
-        parse_nodes.push_back(left);
+        else {
+            parse_nodes.push_back(left);
+        }
 
         const sequence_parse_node<ParseContext>* right_sequence = dynamic_cast<const sequence_parse_node<ParseContext>*>(right.get());
         if (right_sequence) {
             parse_nodes.insert(parse_nodes.end(), right_sequence->get_parse_nodes().begin(), right_sequence->get_parse_nodes().end());
         }
-        parse_nodes.push_back(right);
+        else {
+            parse_nodes.push_back(right);
+        }
 
         return std::make_shared<sequence_parse_node<ParseContext>>(parse_nodes);
     }

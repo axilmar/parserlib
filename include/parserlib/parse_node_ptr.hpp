@@ -50,7 +50,7 @@ namespace parserlib {
         }
 
         bool parse(ParseContext& pc) const {
-            return m_parse_node->parse();
+            return m_parse_node->parse(pc);
         }
 
     private:

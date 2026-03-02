@@ -3,7 +3,7 @@
 
 
 #include <cassert>
-#include "parse_node_ptr.hpp"
+#include "parse_node.hpp"
 
 
 namespace parserlib {
