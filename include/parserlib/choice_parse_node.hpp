@@ -3,7 +3,7 @@
 
 
 #include <vector>
-#include "parse_node_ptr.hpp"
+#include "rule.hpp"
 
 
 namespace parserlib {
@@ -78,6 +78,18 @@ namespace parserlib {
     template <class ParseContext, class Symbol>
     parse_node_ptr<ParseContext> operator | (const Symbol& left, const parse_node_ptr<ParseContext>& right) {
         return parse_node_ptr<ParseContext>(left) | right;
+    }
+
+
+    template <class ParseContext, class Left>
+    parse_node_ptr<ParseContext> operator | (const Left& left, rule<ParseContext>& right) {
+        return parse_node_ptr<ParseContext>(left) | parse_node_ptr<ParseContext>(right);
+    }
+
+
+    template <class ParseContext, class Right>
+    parse_node_ptr<ParseContext> operator | (rule<ParseContext>& left, const Right& right) {
+        return parse_node_ptr<ParseContext>(left) | parse_node_ptr<ParseContext>(right);
     }
 
 

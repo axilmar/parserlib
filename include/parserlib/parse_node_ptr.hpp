@@ -10,6 +10,10 @@ namespace parserlib {
 
 
     template <class ParseContext>
+    class rule;
+
+
+    template <class ParseContext>
     class parse_node_ptr {
     public:
         parse_node_ptr() {
@@ -27,6 +31,8 @@ namespace parserlib {
         template <class Symbol>
         parse_node_ptr(const Symbol* string);
 
+        parse_node_ptr(rule<ParseContext>& rule);
+
         explicit operator bool() const {
             return (bool)m_parse_node;
         }
@@ -37,6 +43,10 @@ namespace parserlib {
 
         parse_node<ParseContext>* operator ->() const {
             return m_parse_node.get();
+        }
+
+        const std::shared_ptr<parse_node<ParseContext>>& get_shared() const {
+            return m_parse_node;
         }
 
         bool parse(ParseContext& pc) const {

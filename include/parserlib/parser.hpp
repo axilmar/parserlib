@@ -16,6 +16,7 @@
 #include "error_parse_node.hpp"
 #include "skip_before_parse_node.hpp"
 #include "skip_after_parse_node.hpp"
+#include "parserlib/rule.hpp"
 
 
 namespace parserlib {
@@ -32,60 +33,66 @@ namespace parserlib {
         using parse_context = parserlib::parse_context<Iterator, MatchId, ErrorId, SymbolComparator>;
         using parse_context_type = parse_context;
 
+        using parse_node_ptr = parserlib::parse_node_ptr<parse_context>;
+        using parse_node_ptr_type = parse_node_ptr;
+
+        using rule = parserlib::rule<parse_context>;
+        using rule_type = rule;
+
         template <class Symbol>
-        static parse_node_ptr<parse_context> terminal(const Symbol& symbol) {
+        static parse_node_ptr terminal(const Symbol& symbol) {
             return symbol;
         }
 
         template <class Symbol>
-        static parse_node_ptr<parse_context> terminal(const Symbol* string) {
+        static parse_node_ptr terminal(const Symbol* string) {
             return string;
         }
 
         template <class Symbol>
-        static parse_node_ptr<parse_context> set(const Symbol* set) {
+        static parse_node_ptr set(const Symbol* set) {
             return std::make_shared<set_parse_node<parse_context, Symbol>>(set);
         }
 
         template <class Symbol>
-        static parse_node_ptr<parse_context> range(const Symbol& min, const Symbol& max) {
+        static parse_node_ptr range(const Symbol& min, const Symbol& max) {
             return std::make_shared<range_parse_node<parse_context, Symbol>>(min, max);
         }
 
-        static parse_node_ptr<parse_context> any() {
+        static parse_node_ptr any() {
             return std::make_shared<any_parse_node<parse_context>>();
         }
 
-        static parse_node_ptr<parse_context> end() {
+        static parse_node_ptr end() {
             return std::make_shared<end_parse_node<parse_context>>();
         }
 
-        static parse_node_ptr<parse_context> false_() {
+        static parse_node_ptr false_() {
             return std::make_shared<false_parse_node<parse_context>>();
         }
 
-        static parse_node_ptr<parse_context> true_() {
+        static parse_node_ptr true_() {
             return std::make_shared<true_parse_node<parse_context>>();
         }
 
-        static parse_node_ptr<parse_context> newline(const parse_node_ptr<parse_context>& parse_node) {
+        static parse_node_ptr newline(const parse_node_ptr& parse_node) {
             return std::make_shared<newline_parse_node<parse_context>>(parse_node);
         }
 
         template <class F>
-        static parse_node_ptr<parse_context> function(const F& func) {
+        static parse_node_ptr function(const F& func) {
             return std::make_shared<function_parse_node<parse_context, F>>(func);
         }
 
-        static parse_node_ptr<parse_context> error(const ErrorId& id, const parse_node_ptr<parse_context>& parse_node) {
+        static parse_node_ptr error(const ErrorId& id, const parse_node_ptr& parse_node) {
             return std::make_shared<error_parse_node<parse_context>>(parse_node, id);
         }
 
-        static parse_node_ptr<parse_context> skip_before(const parse_node_ptr<parse_context>& valid_parse_node, const parse_node_ptr<parse_context>& invalid_parse_node = {}) {
+        static parse_node_ptr skip_before(const parse_node_ptr& valid_parse_node, const parse_node_ptr& invalid_parse_node = {}) {
             return std::make_shared<skip_before_parse_node<parse_context>>(valid_parse_node, invalid_parse_node);
         }
 
-        static parse_node_ptr<parse_context> skip_after(const parse_node_ptr<parse_context>& valid_parse_node, const parse_node_ptr<parse_context>& invalid_parse_node = {}) {
+        static parse_node_ptr skip_after(const parse_node_ptr& valid_parse_node, const parse_node_ptr& invalid_parse_node = {}) {
             return std::make_shared<skip_after_parse_node<parse_context>>(valid_parse_node, invalid_parse_node);
         }
     };
