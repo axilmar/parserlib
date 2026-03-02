@@ -22,10 +22,6 @@ namespace parserlib {
             return static_cast<int>(this->get_id());
         }
 
-        const std::vector<match>& get_matches() const {
-            return m_children;
-        }
-
         const std::vector<match>& get_children() const {
             return m_children;
         }

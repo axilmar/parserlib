@@ -11,7 +11,7 @@ namespace parserlib {
     template <class ParseContext>
     class rule_parse_node : public parse_node<ParseContext> {
     public:
-        rule_parse_node(const parse_node_ptr<ParseContext>& parse_node)
+        rule_parse_node(const parse_node_ptr<ParseContext>& parse_node = {})
             : m_parse_node(parse_node.get_shared())
         {
         }

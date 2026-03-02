@@ -8,8 +8,9 @@
 #include <algorithm>
 #include <cctype>
 #include "match.hpp"
+#include "error.hpp"
 #include "parse_node.hpp"
-#include "parserlib/text_iterator.hpp"
+#include "text_iterator.hpp"
 
 
 namespace parserlib {
@@ -84,13 +85,6 @@ namespace parserlib {
 
         template <class Iterator, class MatchId, class ErrorId, class SymbolComparator>
         friend class parse_context;
-    };
-
-
-    template <class Iterator, class Id>
-    class error : public source_partition<Iterator, Id> {
-    public:
-        using source_partition<Iterator, Id>::source_partition;
     };
 
 

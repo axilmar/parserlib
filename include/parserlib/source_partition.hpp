@@ -30,6 +30,8 @@ namespace parserlib {
             return m_end;
         }
 
+        auto get_source() const;
+
     private:
         Id m_id;
         Iterator m_begin;

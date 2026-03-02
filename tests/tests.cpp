@@ -1,4 +1,6 @@
 #include <cassert>
+#include <functional>
+#include <sstream>
 #include "parserlib.hpp"
 
 
@@ -861,6 +863,377 @@ static void test_parse_rule() {
 }
 
 
+static void test_parse_left_recursion() {
+    /**** types ****/
+
+    using parse_context_type = p::parse_context;
+
+    using match_type = typename parse_context_type::match_type;
+
+    using rule_type = p::rule;
+
+    /**** grammar ****/
+
+    enum { NUM, ADD, SUB, MUL, DIV };
+
+    rule_type add, mul;
+
+    auto digit 
+        = p::range('0', '9')
+        ;
+
+    auto num 
+        = (-p::terminal('-') >> +digit >> -('.' >> +digit))->*NUM
+        ;
+
+    auto val 
+        = '(' >> add >> ')'
+        | num
+        ;
+
+    mul 
+        = (mul >> '*' >> val)->*MUL
+        | (mul >> '/' >> val)->*DIV
+        | val
+        ;
+
+    add 
+        = (add >> '+' >> mul)->*ADD
+        | (add >> '-' >> mul)->*SUB
+        | mul
+        ;
+
+    auto grammar = add;
+
+
+    grammar.set_name("grammar");
+    add.set_name("add");
+    mul.set_name("mul");
+    val.set_name("val");
+    num.set_name("num");
+        
+    /*** helper functions ****/
+
+    std::function<double(const match_type&)> eval;
+
+    eval = [&](const match_type& match) {
+        switch (match.get_id()) {
+            case NUM: {
+                std::stringstream stream;
+                stream << match.get_source();
+                double v;
+                stream >> v;
+                return v;
+            }
+
+            case ADD:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) + eval(match.get_children()[1]);
+
+            case SUB:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) - eval(match.get_children()[1]);
+
+            case MUL:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) * eval(match.get_children()[1]);
+
+            case DIV:
+                assert(match.get_children().size() == 2);
+                return eval(match.get_children()[0]) / eval(match.get_children()[1]);
+        }
+
+        throw std::runtime_error("calculator::eval: invalid match id");
+    };
+
+    auto calc = [&](const char* expr, double val) {
+        std::string source = expr;
+        parse_context_type pc(source);
+        const bool result = grammar.parse(pc);
+        assert(result);
+        assert(pc.get_matches().size() == 1);
+        const double eval_value = eval(pc.get_matches()[0]);
+        assert(eval_value == val);
+    };
+
+    #define TEST_CALC(EXPR) calc(#EXPR, EXPR)
+
+    /*** tests ****/
+
+    TEST_CALC(1.0);
+    TEST_CALC(1.0+2.0);
+    TEST_CALC(1.0-2.0);
+    TEST_CALC(1.0*2.0);
+    TEST_CALC(1.0/2.0);
+    TEST_CALC(1.0+2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0*5.0);
+    TEST_CALC(1.0+2.0/3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0*5.0);
+    TEST_CALC(1.0-2.0/3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0*5.0);
+    TEST_CALC(1.0*2.0/3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0*5.0);
+    TEST_CALC(1.0/2.0+3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0*5.0);
+    TEST_CALC(1.0/2.0-3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0*5.0);
+    TEST_CALC(1.0/2.0*3.0/4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0*5.0);
+    TEST_CALC(1.0/2.0/3.0+4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0*5.0);
+    TEST_CALC(1.0/2.0/3.0-4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0*5.0);
+    TEST_CALC(1.0/2.0/3.0*4.0/5.0);
+    TEST_CALC(1.0/2.0/3.0/4.0+5.0);
+    TEST_CALC(1.0/2.0/3.0/4.0-5.0);
+    TEST_CALC(1.0/2.0/3.0/4.0*5.0);
+    TEST_CALC((1.0+2.0)+3.0+4.0+5.0);
+    TEST_CALC(1.0+(2.0+3.0)+4.0-5.0);
+    TEST_CALC(1.0+2.0+(3.0+4.0)*5.0);
+    TEST_CALC(1.0+2.0+3.0+(4.0/5.0));
+    TEST_CALC((1.0+2.0+3.0)-4.0+5.0);
+    TEST_CALC(1.0+(2.0+3.0-4.0)-5.0);
+    TEST_CALC(1.0+2.0+(3.0-4.0*5.0));
+    TEST_CALC(1.0+2.0+(3.0-4.0)/5.0);
+    TEST_CALC(1.0+(2.0+3.0*4.0+5.0));
+    TEST_CALC((1.0+2.0+3.0*4.0)-5.0);
+    TEST_CALC((1.0+2.0+3.0*4.0*5.0));
+}
+
+
 void run_tests() {
     test_parse_symbol();
     test_parse_string();
@@ -885,4 +1258,5 @@ void run_tests() {
     test_parse_error();
     test_parse_case_insensitive();
     test_parse_rule();
+    test_parse_left_recursion();
 }

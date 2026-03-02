@@ -49,6 +49,14 @@ namespace parserlib {
             return m_parse_node;
         }
 
+        const std::string& get_name() const {
+            return m_parse_node->m_name;
+        }
+
+        void set_name(const std::string& name) {
+            m_parse_node->set_name(name);
+        }
+
         bool parse(ParseContext& pc) const {
             return m_parse_node->parse(pc);
         }

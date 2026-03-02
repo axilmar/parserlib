@@ -19,6 +19,9 @@ namespace parserlib {
         {
         }
 
+        rule(const rule& r) = delete;
+        rule(rule&& r) = delete;
+
         template <class Symbol>
         rule(const Symbol& symbol)
             : m_parse_node(parse_node_ptr<ParseContext>(symbol).get_shared())
@@ -33,6 +36,33 @@ namespace parserlib {
         ~rule() {
             get_ref_map().erase(this);
             get_rule_map().erase(this);
+        }
+
+        rule& operator = (const rule&) = delete;
+        rule& operator = (rule&&) = delete;
+
+        rule& operator = (const parse_node_ptr<ParseContext>& parse_node) {
+            m_parse_node = get_rule_parse_node(parse_node.get_shared());
+            return *this;
+        }
+
+        template <class Symbol>
+        rule& operator = (const Symbol& symbol) {
+            m_parse_node = parse_node_ptr<ParseContext>(symbol).get_shared();
+            return *this;
+        }
+
+        rule& operator = (rule& r) {
+            m_parse_node = get_rule_parse_node(r.m_parse_node);
+            return *this;
+        }
+
+        const std::string& get_name() const {
+            return m_parse_node->m_name;
+        }
+
+        void set_name(const std::string& name) {
+            m_parse_node->set_name(name);
         }
 
         bool parse(ParseContext& pc) const {
@@ -55,15 +85,27 @@ namespace parserlib {
             return map;
         }
 
-        std::shared_ptr<rule_parse_node<ParseContext>> get_or_create_rule_parse_node(const std::shared_ptr<parse_node<ParseContext>>& ptr = {}) const {
+        std::shared_ptr<rule_parse_node<ParseContext>> get_rule_parse_node(const std::shared_ptr<parse_node<ParseContext>>& ptr) const {
+            rule_map& map = get_rule_map();
+            auto it = map.find(this);
+            it->second->m_parse_node = ptr;
+            return it->second;
+        }
+
+        std::shared_ptr<rule_parse_node<ParseContext>> get_or_create_rule_parse_node() const {
             rule_map& map = get_rule_map();
             auto it = map.find(this);
             if (it != map.end()) {
-                it->second->m_parse_node = ptr;
                 return it->second;
             }
-            std::shared_ptr<rule_parse_node<ParseContext>> result = std::make_shared<rule_parse_node<ParseContext>>(ptr);
+            std::shared_ptr<rule_parse_node<ParseContext>> result = std::make_shared<rule_parse_node<ParseContext>>();
             map[this] = result;
+            return result;
+        }
+
+        std::shared_ptr<rule_parse_node<ParseContext>> get_or_create_rule_parse_node(const std::shared_ptr<parse_node<ParseContext>>& ptr) const {
+            std::shared_ptr<rule_parse_node<ParseContext>> result = get_or_create_rule_parse_node();
+            result->m_parse_node = ptr;
             return result;
         }
 
