@@ -37,6 +37,8 @@ The library can parse anything, from any container, and from any file, and can b
 
 ### Functions
 
+The following functions are part of the class `parser<>`, which is used to customize a parser instance:
+
 THe function `terminal` is used to create parse nodes for single symbols, or strings, or other symbol values (for example, enumerations).
 
 The function `set` is used to create a parse node that parses a symbol out of a set.
@@ -47,6 +49,10 @@ The function `any` is used to parse any single symbol.
 
 The function `end` can be used to test if the input has ended (in order to make it an error to only parse an input partially).
 
+The function `false_` can be used to create a parse node that returns `false`.
+
+The function `true_` can be used to create a parse node that returns `true`.
+
 The function `newline` can be used on character parsers to increment the line counter, allowing column/line information on matches.
 
 The function `function` can be used to create parse nodes out of lambda functions and out of pointers to functions.
@@ -54,11 +60,12 @@ The function `function` can be used to create parse nodes out of lambda function
 Examples:
 
 ```cpp
-auto star = terminal('*');
-auto struct_keyword = terminal("struct");
-auto digit = range('0', '9');
-auto hex_digit = set("0123456789abcdefABCDEF");
-auto nl = newline('\n');
+using p = parser<>;
+auto star = p::terminal('*');
+auto struct_keyword = p::terminal("struct");
+auto digit = p::range('0', '9');
+auto hex_digit = p::set("0123456789abcdefABCDEF");
+auto nl = p::newline('\n') | p::true_();
 ```
 ### Operators
 
@@ -77,11 +84,11 @@ The `unary operator -` can be used to create a negative logical test out of a pa
 Examples:
 
 ```cpp
-auto parse_0_or_more_a = *terminal('a');
-auto parse_1_or_more_b = +terminal('b');
-auto parse_c_optionally = -terminal('c');
-auto test_for_a = &terminal('a');
-auto test_for_not_a = !terminal('a');
+auto parse_0_or_more_a = *p::terminal('a');
+auto parse_1_or_more_b = +p::terminal('b');
+auto parse_c_optionally = -p::terminal('c');
+auto test_for_a = &p::terminal('a');
+auto test_for_not_a = !p::terminal('a');
 ```
 
 #### Binary operators
@@ -98,8 +105,8 @@ Examples:
 
 ```cpp
 auto class_member = constructor | destructor | getter | setter | method | type_decl;
-auto class_def = terminal("class") >> '{' >> *class_member >> '}';
-auto comment_char = any - "*)";
+auto class_def = p::terminal("class") >> '{' >> *class_member >> '}';
+auto comment_char = p::any() - "*)";
 auto match_class = class_def->*MATCH_ID::CLASS_DEF;
 ```
 
@@ -135,7 +142,7 @@ enum class PARSER_MATCH_ID {
     ...
 };
 
-auto function_def = (terminal(LEXER_MATCH_ID::FUNCTION) >> LEXER_MATCH_ID::IDENTIFIER >> LEXER_MATCH_ID::LEFT_PAREN >> arguments >> LEXER_MATCH_ID::RIGHT_PAREN >> function_body)->*PARSER_MATCH_ID::FUNCTION_DEF;
+auto function_def = (p::terminal(LEXER_MATCH_ID::FUNCTION) >> LEXER_MATCH_ID::IDENTIFIER >> LEXER_MATCH_ID::LEFT_PAREN >> arguments >> LEXER_MATCH_ID::RIGHT_PAREN >> function_body)->*PARSER_MATCH_ID::FUNCTION_DEF;
 ```
 
 Later, parse matches can be retrieved by the member function `get_matches()` on the parse context (more on that on the next section).
@@ -144,21 +151,27 @@ Later, parse matches can be retrieved by the member function `get_matches()` on 
 
 Rules are special classes that allow recursive and left-recursive grammars.
 
-They are templates which can be customized on the parse context type they will parse. This is necessary because in order to implement recursion, type erasure must be used (i.e. expressions wrapped into a generic parse node wrapper).
-
 Rules employ some special algorithms that allow parsing of left recursive grammars, while also maintaining left-associativity.
 
 Here are some examples:
 
 ```cpp
+using p = parser<>;
+
 //using the default parse context type
-using parse_context_type = parse_context<>;
+using parse_context_type = p::parse_context;
 
 //right-recursive grammar
-rule<parse_context_type> list_of_a = 'a' >> list_of_a | 'a';
+p::rule list_of_a 
+    = 'a' >> list_of_a 
+    | 'a'
+    ;
 
 //left-recursive grammar
-rule<parse_context_type> list_of_a = list_of_a >> 'a' | 'a';
+p::rule list_of_a_lr
+    = list_of_a_lr >> 'a' 
+    | 'a'
+    ;
 
 ```
 
@@ -177,10 +190,10 @@ Here are some examples:
 
 ```cpp
 //if unknown text is found, skip it until the next valid token (or the end of input).
-auto lexer = *(token | error(ERROR_ID::SYNTAX_ERROR, skip_before(token)));
+auto lexer = *(token | p::error(ERROR_ID::SYNTAX_ERROR, p::skip_before(token)));
 
 //if there is an error in the statement, skip after the semicolon to the next statement or block end
-auto stm_parser = *(stm | error(ERROR_ID::STM_ERROR, skip_after(';')));
+auto stm_parser = *(stm | p::error(ERROR_ID::STM_ERROR, p::skip_after(';')));
 ```
 
 When an error parse node is called to parse, it uses another node to find the end of error, then it adds an error instance in the parse context.
@@ -197,11 +210,13 @@ Here is a calculator example that can be used to compute arithmetic expressions 
 ```cpp
 enum {NUM, ADD, SUB, MUL, DIV};
 
-using rule_type = rule<>;
+using p = parser<>;
+
+using rule_type = p::rule;
 
 rule_type add, mul;
 
-auto digit = range('0', '9');
+auto digit = p::range('0', '9');
 
 auto num = (+digit >> -('.' >> +digit))->*NUM;
 
@@ -219,3 +234,12 @@ mul = (mul >> '*' >> val)->*MUL
 auto grammar = add;
 ```
 
+And here is how arithmetic expressions can be parsed:
+
+```cpp
+std::string source = "1+2*3";
+p::parse_context pc(source);
+const bool ok = grammar.parse(pc);
+```
+
+**A complete example of how a calculator can be implemented, together with evaluating the matches to produce a number, can be found in the file [`tests.cpp`](../tests/tests.cpp#L866).**

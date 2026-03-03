@@ -358,6 +358,11 @@ namespace parserlib {
             throw std::runtime_error("invalid state");
         }
 
+        template <class DerivedMatchId = int, class DerivedErrorId = int, class DerivedSymbolComparator = default_symbol_comparator>
+        auto derive_parse_context() const {
+            return parse_context<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>(m_matches);
+        }
+
     private:
         using left_recursion_state_type = left_recursion_state<Iterator>;
         using left_recursion_state_map = std::map<const parse_node_type*, left_recursion_state_type>;

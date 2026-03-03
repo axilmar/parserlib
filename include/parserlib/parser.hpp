@@ -39,6 +39,15 @@ namespace parserlib {
         using rule = parserlib::rule<parse_context>;
         using rule_type = rule;
 
+        using match_type = typename parse_context::match_type;
+        using match_container_type = typename parse_context::match_container_type;
+
+        using error_type = typename parse_context::error_type;
+        using error_container_type = typename parse_context::error_container_type;
+
+        using parse_node_type = parse_node<parse_context>;
+        using left_recursion_exception_type = left_recursion_exception<parse_context>;
+
         template <class Symbol>
         static parse_node_ptr terminal(const Symbol& symbol) {
             return symbol;

@@ -2,6 +2,7 @@
 
 ## Using a parser
 
+* [defining a parser type](#defining-a-parser-type)
 * [Using a parse context](#using-a-parse-context)
 * [Parsing streams](#parsing-streams)
 * [The parse_context class](#the-parse_context-class)
@@ -9,6 +10,36 @@
 * [Counting lines and columns](#counting-lines-and-columns)
 * [Processing matches](#processing-matches)
 * [Processing errors](#processing-errors)
+
+### Defining a parser type.
+
+The first step towards parsing is to define a parser.
+
+A `parser` instance has the following signature:
+
+```cpp
+template <class Iterator = std::string::const_iterator, class MatchId = int, class ErrorId = int, class SymbolComparator = default_symbol_comparator> class parser;
+```
+
+The template parameters of the class are:
+
+- `Iterator`: the iterator type; can be an STL container iterator or an STL stream iterator or anything that implements an iterator interface.
+- `MatchId`: type of the match id; each time a match is found, this id, along with the match range are stored into the parse context.
+- `ErrorId`: type of the error id; each time an error is found, this id, along with the error range are stored into the parse context.
+- `SymbolComparator`: type of class used for comparing tokens; it must have a function `compare` the following signature:
+
+```cpp
+//returns the numeric difference of two elements.
+static int compare(A, B);
+```
+
+A good practice is to use a `typedef` or a `using` declaration for the required parser type, since every operation that needs a function to be called lies inside the `parser<>` class.
+
+Example:
+
+```cpp
+using p = parser<>;
+```
 
 ### Using a parse context
 
@@ -19,7 +50,7 @@ Example:
 ```cpp
 	auto grammar = ...;
 	std::string source = ...;
-    parse_context<> pc(source);
+    p::parse_context pc(source);
     grammar.parse(pc);
 ```
 
@@ -28,7 +59,7 @@ A parse context can also be initialized with an iterator pair:
 ```cpp
 	auto grammar = ...;
 	std::string source = ...;
-    parse_context<> pc(source.begin(), source.end());
+    p::parse_context pc(source.begin(), source.end());
     grammar.parse(pc);
 ```
 
@@ -37,9 +68,10 @@ A parse context can also be initialized with an iterator pair:
 The iterators can also be stream iterators, if parsing directly from a stream is required:
 
 ```cpp
+    using p = parser<std::istream_iterator>;
 	auto grammar = ...;
 	std::stringstream source = ...;
-    parse_context<std::istream_iterator> pc(std::istream_iterator(source), std::istream_iterator());
+    p::parse_context pc(std::istream_iterator(source), std::istream_iterator());
     grammar.parse(pc);
 ```
 
@@ -61,37 +93,35 @@ It can be customized over the iterator type that is used for the source; the ite
 
 It can also be customized over the match id, error id and symbol comparator.
 
-Usually, the match id and error id parameters are enumerations.
+Usually, the match id and error id parameters can be enumerations.
 
 ### Case-insensitive parsing
 
 The parameter `SymbolComparator` can be set to the class `case_sensitive_symbol_comparator` for case-insensitive parsing:
 
 ```cpp
-parse_context<std::string::const_iterator, int, int, case_insensitive_symbol_comparator> pc(source);
+parser<std::string::const_iterator, int, int, case_insensitive_symbol_comparator>::parse_context pc(source);
 ```
 
 The class `case_sensitive_symbol_comparator` uses the function `std::tolower` to compare symbols in lower case.
 
 ### Counting lines and columns
 
-In order to know on which line and column of a source a particular construct is, the special class `parse_iterator` can be used:
+In order to know on which line and column of a source a particular construct is, the special class `text_iterator` can be used:
 
 ```cpp
-template <class Iterator, class TextPosition> class parse_iterator;
+template <class Iterator> class text_iterator;
 ```
-
-As a text position, the class `file_text_position` can be used which maintains `column` and `line` properties.
 
 For example, in order to parse some text with line and column, the following parse context can be used:
 
 ```cpp
 using source_iterator_type = std::string::const_iterator;
-using iterator_type = parse_iterator<source_iterato_type, file_text_position>;
-using parse_context_type = parse_context<iterator_type>;
+using iterator_type = text_iterator<source_iterator_type>;
+using parse_context_type = parser<iterator_type>::parse_context;
 ```
 
-The iterator type that is used for the `parse_iterator` class can also be an `std::istream_iterator`.
+The iterator type that is used for the `text_iterator` class can also be an `std::istream_iterator`.
 
 ### Processing matches
 
@@ -102,6 +132,7 @@ for(const auto& match : pc.get_matches()) {
     std::cout << match.get_id() << std::endl; //get the id
     std::cout << match.get_source() << std::endl; //get source
     std::cout << match.begin().get_line() << std::endl; //get the begin iterator line (if `get_line()` is applicable)
+    std::cout << match.begin().get_column() << std::endl; //get the begin iterator column (if `get_column()` is applicable)
     std::cout << match.end() << std::endl; //get the end iterator
     print_children(match.get_children()); //process children
 }

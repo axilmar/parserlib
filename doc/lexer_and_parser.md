@@ -39,39 +39,41 @@ enum class LEXER_ERROR_ID {
 	INVALID_CHARACTERS
 };
 
+using lp = parser<std::string::const_iterator, LEXER_ID, LEXER_ERROR_ID>;
+
 //whitespace
-auto space = range('\0', ' ');
-auto comment = "(*" >> *(any() - "*)") >> "*)";
+auto space = lp::range('\0', ' ');
+auto comment = "(*" >> *(lp::any() - "*)") >> "*)";
 
 //number
-auto digit = range('0', '9');
+auto digit = lp::range('0', '9');
 auto number = +digit >> -('.' >> digit);
 
 //identifier
-auto letter = range('a', 'z') | range('A', 'Z');
+auto letter = lp::range('a', 'z') | lp::range('A', 'Z');
 auto identifier = (letter >> *(letter | digit))->*LEXER_ID::IDENTIFIER;
 
 //string
-auto string = ('"' >> *(any() - '"') >> '"')->*LEXER_ID::STRING;
+auto string = ('"' >> *(lp::any() - '"') >> '"')->*LEXER_ID::STRING;
 
 //symbols
-auto left_parenthesis = terminal('(')->*LEXER_ID::LEFT_PARENTHESIS;
-auto right_parenthesis = terminal(')')->*LEXER_ID::RIGHT_PARENTHESIS;
-auto assigment = terminal('=')->*LEXER_ID::ASSIGNMENT;
-auto terminator = terminal(';')->*LEXER_ID::TERMINATOR;
+auto left_parenthesis = lp::terminal('(')->*LEXER_ID::LEFT_PARENTHESIS;
+auto right_parenthesis = lp::terminal(')')->*LEXER_ID::RIGHT_PARENTHESIS;
+auto assigment = lp::terminal('=')->*LEXER_ID::ASSIGNMENT;
+auto terminator = lp::terminal(';')->*LEXER_ID::TERMINATOR;
 
 //token
 auto token = space | comment | identifier | string | left_parenthesis | right_parenthesis | assignment;
 
 //lexer
-auto lexer = *(token | error(LEXER_ERROR_ID::INVALID_CHARACTERS, skip_before(token)));
+auto lexer = *(token | lp::error(LEXER_ERROR_ID::INVALID_CHARACTERS, lp::skip_before(token)));
 ```
 
 The lexer can be used like this:
 
 ```cpp
 	std::string source = ...;
-	parse_context<> lexer_pc(source);
+	lp::parse_context lexer_pc(source);
     const bool ok = lexer.parse(lexer_pc);
 ```
 
@@ -99,13 +101,15 @@ enum class PARSER_ERROR_ID {
 	...
 };
 
-extern rule expression;
+using pp = parser<lp::match_container_type::const_iterator, PARSER_ID, PARSER_ERROR_ID>;
 
-auto named_value = terminal(LEXER_ID::IDENTIFIER)->*PARSER_ID::NAMED_VALUE;
+extern pp::rule expression;
 
-auto numeric_literal = terminal(LEXER_ID::NUMBER)->*PARSER_ID::NUMERIC_LITERAL;
+auto named_value = pp::terminal(LEXER_ID::IDENTIFIER)->*PARSER_ID::NAMED_VALUE;
 
-auto string_literal = terminal(LEXER_ID::STRING)->*PARSER_ID::STRING_LITERAL;
+auto numeric_literal = pp::terminal(LEXER_ID::NUMBER)->*PARSER_ID::NUMERIC_LITERAL;
+
+auto string_literal = pp::terminal(LEXER_ID::STRING)->*PARSER_ID::STRING_LITERAL;
 
 auto value = named_value
            | numeric_literal
@@ -113,9 +117,9 @@ auto value = named_value
            | LEXER_ID::LEFT_PARENTHESIS >> expression >> LEXER_ID::RIGHT_PARENTHESIS
            ;
 
-rule expression = *value;
+pp::rule expression = *value;
 
-auto declaration = terminal(LEXER_ID::IDENTIFIER) >> LEXER_ID::ASSIGNMENT >> expression >> LEXER_ID::TERMINATOR;
+auto declaration = pp::terminal(LEXER_ID::IDENTIFIER) >> LEXER_ID::ASSIGNMENT >> expression >> LEXER_ID::TERMINATOR;
 
 auto parser = *declaration;
 ```
@@ -130,5 +134,5 @@ parser.parse(parser_pc);
 The member function `derive_parse_context` equals the following:
 
 ```cpp
-parse_context<LEXER_ID, PARSER_ID, PARSER_ERROR_ID> parser_pc(lexer_pc.get_matches());
+pp::parse_context parser_pc(lexer_pc.get_matches());
 ```

@@ -4,7 +4,7 @@ A c++17 Parsing Expression Grammar (PEG) recursive-descent library.
 
 **Current Version**
 
-1.0.0.10
+1.0.0.11
 
 **Features**
 
@@ -20,27 +20,42 @@ A c++17 Parsing Expression Grammar (PEG) recursive-descent library.
 **Quick Example: Calculator**
 
 ```cpp
-extern rule add;
+#include "parserlib.hpp"
+using namespace parserlib;
+
+using p = parser<>;
+
+extern p::rule add;
 
 //digit
-auto digit = range('0', '9');
+auto digit 
+	= p::range('0', '9')
+    ;
 
 //number
-auto number = +digit >> -('.' >> +digit);
+auto number
+	= +digit >> -('.' >> +digit)
+    ;
 
 //value
-auto value = '(' >> add >> ')'
-           | number;
+auto value
+	= '(' >> add >> ')'
+    | number
+    ;
 
 //multiplication/division
-rule mul = mul >> '*' >> value
-         | mul >> '/' >> value
-         | value;
+p::rule mul
+	= mul >> '*' >> value
+    | mul >> '/' >> value
+    | value
+    ;
 
 //addition/subtraction
-rule add = add >> '+' >> mul
-         | add >> '-' >> mul
-         | mul;
+p::rule add
+	= add >> '+' >> mul
+    | add >> '-' >> mul
+    | mul
+    ;
 ```
 
 ## Table Of Contents
@@ -53,6 +68,10 @@ rule add = add >> '+' >> mul
 * [Changes](#changes)
 
 ### Changes
+
+- 1.0.0.11
+
+	- rewrote the library to allocate parse nodes on the heap and use type erasure, in order to speed up compilation; in previous versions it was ridiculously slow for non-trivial grammars and sometimes the compiler couldn't compile the code due to excessive use of templates.
 
 - 1.0.0.10
 

@@ -13,7 +13,7 @@ The accept phase is repeated in a loop, until no more parsing can be done.
 
 ### How left-recursion is detected
 
-A parse context can keep the parse position (i.e. iterator) where a rule is called to parse from; if the new position is equal to the previous position, i.e. if there is no progress between the last time a rule was called to parse and the current time, then there is a left recursion.
+A parse context keeps the parse position (i.e. iterator) where a rule is called to parse from; if the new position is equal to the previous position, i.e. if there is no progress between the last time a rule was called to parse and the current time, then there is a left recursion.
 
 When a left recursion is detected, a left-recursive rule throws a `left_recursion_exception` exception.
 
@@ -28,7 +28,7 @@ In the reject phase, a left-recursive rule just returns false, forcing evaluatio
 For example, if we have the grammar:
 
 ```cpp
-rule list_a 
+p::rule list_a 
     = list_a >> 'a' 
     | 'a'
     ;
@@ -37,7 +37,7 @@ rule list_a
 Then in the reject phase, the grammar can be thought of as:
 
 ```cpp
-rule list_a 
+p::rule list_a 
     = false >> 'a' 
     | 'a'
     ;
@@ -52,7 +52,7 @@ In the accept hase, a left recursive rule returns true, without parsing, in a lo
 For example, the above grammar can be thought of, in the accept phase, as:
 
 ```cpp
-rule list_a 
+p::rule list_a 
     = *(true >> terminal('a')) 
     | 'a'
     ;

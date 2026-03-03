@@ -14,7 +14,7 @@ In order to convert a match and its children to an AST, the following function c
 
 ```cpp
 template <class Id, class Iterator, class ASTFactory>
-std::shared_ptr<ast_node<Id, Iterator>> make_ast_node(const match<Id, Iterator>& m[, ASTFactory& factory]);
+std::shared_ptr<ast_node<Iterator, Id>> make_ast_node(const match<Iterator, Id>& m[, ASTFactory& factory]);
 ```
 
 It creates a tree of AST nodes recursively, with the help of an AST node factory.
@@ -29,7 +29,7 @@ An AST node factory class must provide the following interface:
 class my_ast_factory {
 public:
     template <class Id, class Iterator>
-    std::shared_ptr<ast_node<Id, Iterator>> operator ()(const match<Id, Iterator>& m);
+    std::shared_ptr<ast_node<Iterator, Id>> operator ()(const match<Iterator, Id>& m);
 };
 ```
 
@@ -39,9 +39,8 @@ The library provides an implementation of an AST node factory which creates a ba
 class default_ast_factory {
 public:
     template <class Id, class Iterator>
-    std::shared_ptr<ast_node<Id, Iterator>> operator ()(const match<Id, Iterator>& m) {
-        return std::make_shared<ast_node<Id, Iterator>>(m.get_id(), m.begin(), m.end());
+    std::shared_ptr<ast_node<Iterator, Id>> operator ()(const match<Iterator, Id>& m) {
+        return std::make_shared<ast_node<Iterator, Id>>(m.get_id(), m.begin(), m.end());
     }
 };
 ```
-
