@@ -13,6 +13,7 @@
 #include "parserlib/choice_parse_node.hpp"
 #include "parserlib/match_parse_node.hpp"
 #include "parserlib/get_source.hpp"
+#include "parserlib/ast.hpp"
 
 
 #endif // PARSERLIB_HPP
