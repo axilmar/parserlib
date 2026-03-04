@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <sstream>
 #include <fstream>
 
 
@@ -22,7 +23,7 @@ namespace parserlib {
     }
 
 
-    std::string load_text_file(const char* filename) {
+    inline std::string load_text_file(const char* filename) {
         std::ifstream file(filename, std::ios::ate);
         file.exceptions(std::ios_base::badbit);
         std::streamsize size = file.tellg();
@@ -32,6 +33,35 @@ namespace parserlib {
         file.read(result.data(), size);
         trim_string_end(result);
         return result;
+    }
+
+
+    template <class T>
+    inline T get_command_line_option(int argc, const char* argv[], const std::string& option, const T& default_value) {
+        for (int index = 1; index < argc; ++index) {
+            if (option == argv[index]) {
+                if (index < argc - 1) {
+                    const char* option_value_string = argv[index + 1];
+                    T option_value;
+                    std::stringstream stream;
+                    stream << option_value_string;
+                    stream >> option_value;
+                    return option_value;
+                }
+                break;
+            }
+        }
+        return default_value;
+    }
+
+
+    inline bool get_command_line_switch(int argc, const char* argv[], const std::string& switch_, bool default_value) {
+        for (int index = 1; index < argc; ++index) {
+            if (switch_ == argv[index]) {
+                return true;
+            }
+        }
+        return default_value;
     }
 
 
