@@ -14,6 +14,7 @@
 #include "parserlib/match_parse_node.hpp"
 #include "parserlib/get_source.hpp"
 #include "parserlib/ast.hpp"
+#include "parserlib/util.hpp"
 
 
 #endif // PARSERLIB_HPP
