@@ -11,7 +11,7 @@ namespace parserlib {
     template <class ParseContext>
     class error_parse_node : public parse_node<ParseContext> {
     public:
-        using id_type = typename ParseContext::match_id_type;
+        using id_type = typename ParseContext::error_id_type;
 
         error_parse_node(const parse_node_ptr<ParseContext>& parse_node, const id_type& id)
             : m_parse_node(parse_node)
