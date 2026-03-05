@@ -77,6 +77,10 @@ namespace parserlib {
             return m_error_count;
         }
 
+        const Iterator& get_iterator() const {
+            return m_parse_state.get_iterator();
+        }
+
     private:
         parse_state<Iterator> m_parse_state;
         parse_state<Iterator> m_match_parse_state;
@@ -184,6 +188,14 @@ namespace parserlib {
 
         using parse_node_type = parse_node<parse_context>;
         using left_recursion_exception_type = left_recursion_exception<parse_context>;
+
+        template <class DerivedMatchId, class DerivedErrorId, class DerivedSymbolComparator = default_symbol_comparator>
+        struct derived_parse_context {
+            using type = parserlib::parse_context<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>;
+        };
+
+        template <class DerivedMatchId, class DerivedErrorId, class DerivedSymbolComparator = default_symbol_comparator>
+        using derived_parse_context_type = typename derived_parse_context<DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>::type;
 
         parse_context(const Iterator& begin, const Iterator& end)
             : m_state(begin, end)

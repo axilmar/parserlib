@@ -20,7 +20,7 @@ namespace parserlib {
             for(;;) {
                 const auto base_state = pc.get_state();
                 try {
-                    if (!m_parse_node->parse(pc)) {
+                    if (!m_parse_node->parse(pc) || pc.get_iterator() == base_state.get_iterator()) {
                         pc.set_state(base_state);
                         break;
                     }

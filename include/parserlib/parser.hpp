@@ -48,6 +48,14 @@ namespace parserlib {
         using parse_node_type = parse_node<parse_context>;
         using left_recursion_exception_type = left_recursion_exception<parse_context>;
 
+        template <class DerivedMatchId, class DerivedErrorId, class DerivedSymbolComparator = default_symbol_comparator>
+        struct derived_parser {
+            using type = parserlib::parser<typename match_container_type::const_iterator, DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>;
+        };
+
+        template <class DerivedMatchId, class DerivedErrorId, class DerivedSymbolComparator = default_symbol_comparator>
+        using derived_parser_type = typename derived_parser<DerivedMatchId, DerivedErrorId, DerivedSymbolComparator>::type;
+
         template <class Symbol>
         static parse_node_ptr terminal(const Symbol& symbol) {
             return symbol;
