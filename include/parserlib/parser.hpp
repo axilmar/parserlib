@@ -16,7 +16,8 @@
 #include "error_parse_node.hpp"
 #include "skip_before_parse_node.hpp"
 #include "skip_after_parse_node.hpp"
-#include "parserlib/rule.hpp"
+#include "rule.hpp"
+#include "debug_parse_node.hpp"
 
 
 namespace parserlib {
@@ -111,6 +112,10 @@ namespace parserlib {
 
         static parse_node_ptr skip_after(const parse_node_ptr& valid_parse_node, const parse_node_ptr& invalid_parse_node = {}) {
             return std::make_shared<skip_after_parse_node<parse_context>>(valid_parse_node, invalid_parse_node);
+        }
+
+        static parse_node_ptr debug(const parse_node_ptr& parse_node) {
+            return std::make_shared<debug_parse_node<parse_context>>(parse_node);
         }
     };
 
