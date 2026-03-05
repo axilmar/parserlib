@@ -17,12 +17,11 @@ namespace parserlib {
         }
 
         bool parse(ParseContext& pc) const override {
-            std::shared_ptr<parse_node<ParseContext>> shared = m_parse_node.lock();
-            return shared->parse(pc);
+            return m_parse_node->parse(pc);
         }
 
     private:
-        std::weak_ptr<parse_node<ParseContext>> m_parse_node;
+        std::shared_ptr<parse_node<ParseContext>> m_parse_node;
     };
 
 
