@@ -25,7 +25,7 @@ namespace parserlib {
     public:
         using iterator_type = Iterator;
 
-        parse_state(const Iterator& iterator, size_t match_count = 0) 
+        parse_state(const Iterator& iterator, size_t match_count = 0)
             : m_iterator(iterator)
             , m_match_count(match_count)
         {
@@ -43,7 +43,7 @@ namespace parserlib {
         Iterator m_iterator;
         size_t m_match_count;
 
-        template <class Iterator, class MatchId, class ErrorId, class SymbolComparator>
+        template <class Iterator1, class MatchId, class ErrorId, class SymbolComparator>
         friend class parse_context;
     };
 
@@ -87,7 +87,7 @@ namespace parserlib {
         Iterator m_end_iterator;
         size_t m_error_count;
 
-        template <class Iterator, class MatchId, class ErrorId, class SymbolComparator>
+        template <class Iterator1, class MatchId, class ErrorId, class SymbolComparator>
         friend class parse_context;
     };
 
@@ -122,7 +122,7 @@ namespace parserlib {
         Iterator m_iterator;
         left_recursion_status m_status;
 
-        template <class Iterator, class MatchId, class ErrorId, class SymbolComparator>
+        template <class Iterator1, class MatchId, class ErrorId, class SymbolComparator>
         friend class parse_context;
     };
 
@@ -164,7 +164,7 @@ namespace parserlib {
     };
 
 
-    template <class Iterator> 
+    template <class Iterator>
     void increment_line(Iterator& it) {
     }
 

@@ -20,7 +20,7 @@ namespace parserlib {
     };
 
 
-    template <class T> 
+    template <class T>
     struct get_source_impl;
 
 
@@ -35,22 +35,22 @@ namespace parserlib {
     template <> struct get_source_impl<char32_t> : get_char_source<char32_t> {};
 
 
-    template <class Iterator, class Id> 
+    template <class Iterator, class Id>
     struct get_source_impl<source_partition<Iterator, Id>> {
-        template <class Iterator>
-        static auto get_source(const Iterator& begin, const Iterator& end) {
-            using value_type = std::decay_t<typename Iterator::value_type>;
+        template <class Iterator1>
+        static auto get_source(const Iterator1& begin, const Iterator1& end) {
+            using value_type = std::decay_t<typename Iterator1::value_type>;
             return get_source_impl<value_type>::get_source(begin->begin(), std::prev(end)->end());
         }
     };
 
 
-    template <class Iterator, class Id> 
+    template <class Iterator, class Id>
     struct get_source_impl<match<Iterator, Id>> : get_source_impl<source_partition<Iterator, Id>> {
     };
 
 
-    template <class Iterator, class Id> 
+    template <class Iterator, class Id>
     struct get_source_impl<error<Iterator, Id>> : get_source_impl<source_partition<Iterator, Id>> {
     };
 
