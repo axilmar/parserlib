@@ -2,6 +2,9 @@
 #define PARSERLIB_SOURCE_PARTITION_HPP
 
 
+#include <algorithm>
+
+
 namespace parserlib {
 
 
@@ -31,6 +34,10 @@ namespace parserlib {
         }
 
         auto get_source() const;
+
+        size_t get_size() const {
+            return static_cast<size_t>(std::distance(m_begin, m_end));
+        }
 
     private:
         Id m_id;

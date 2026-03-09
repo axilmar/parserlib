@@ -283,11 +283,13 @@ namespace parserlib {
                 const bool result = parse_node->parse(*this);
                 m_curr_error_container = prev_error_container;
 
-                if (branch_errors.empty()) {
+                if (branch_errors.empty()) {                    
+                    //if parsing was succesful and without errors, cancel errors from previous branches
                     if (result) {
                         prev_error_container->resize(base_error_count);
                     }
                 }
+
                 else {
                     if (prev_error_container->empty()) {
                         prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
@@ -297,9 +299,41 @@ namespace parserlib {
                         const error_type& old_error = prev_error_container->back();
                         const auto new_dist_to_end = std::distance(new_error.end(), m_end_iterator);
                         const auto old_dist_to_end = std::distance(old_error.end(), m_end_iterator);
+
+                        //if the branch parsed more input (i.e. its last error is further down the input than the last error of the errors of the previous branches)
+                        //then replace the previous branch errors with the current branch errors
                         if (new_dist_to_end < old_dist_to_end) {
                             prev_error_container->resize(base_error_count);
                             prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
+                        }
+
+                        //else if the last errors are of equal distance
+                        else if (new_dist_to_end == old_dist_to_end) {
+                            const size_t prev_error_container_error_count = prev_error_container->size() - base_error_count;
+
+                            //if the new branch created less errors than the previous one, keep the new branch errors
+                            if (branch_errors.size() < prev_error_container_error_count) {
+                                prev_error_container->resize(base_error_count);
+                                prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
+                            }
+
+                            //else if an equal number of errors were produced, keep the errors with the smallest extend
+                            else {
+                                size_t prev_error_size = 0;
+                                for (size_t i = base_error_count; i < prev_error_container->size(); ++i) {
+                                    prev_error_size += (*prev_error_container)[i].get_size();
+                                }
+
+                                size_t branch_error_size = 0;
+                                for (const error_type& error : branch_errors) {
+                                    branch_error_size += error.get_size();
+                                }
+
+                                if (branch_error_size < prev_error_size) {
+                                    prev_error_container->resize(base_error_count);
+                                    prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
+                                }
+                            }
                         }
                     }
                     branch_errors.clear();
