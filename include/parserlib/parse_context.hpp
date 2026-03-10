@@ -273,6 +273,7 @@ namespace parserlib {
 
         void add_error(const ErrorId& id, const Iterator& from_iterator) {
             m_errors.push_back(error_type(id, from_iterator, m_state.m_parse_state.m_iterator));
+            m_state.m_error_count = m_errors.size();
         }
 
         bool parse_left_recursion(const parse_node_type* parse_node) {
