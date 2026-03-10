@@ -3,6 +3,8 @@
 
 
 #include <algorithm>
+#include <sstream>
+#include <string>
 
 
 namespace parserlib {
@@ -44,6 +46,13 @@ namespace parserlib {
         Iterator m_begin;
         Iterator m_end;
     };
+
+
+    inline std::string id_to_string(int id) {
+        std::stringstream stream;
+        stream << id;
+        return stream.str();
+    }
 
 
 } //namespace parserlib
