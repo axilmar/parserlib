@@ -22,14 +22,13 @@ namespace parserlib {
         }
 
         bool parse(ParseContext& pc) const override {
-            const size_t base_error_count = pc.get_errors().size();
-            typename ParseContext::error_container_type branch_errors;
+            const auto base_state = pc.get_state();
 
             for (const parse_node_ptr<ParseContext>& parse_node : m_parse_nodes) {
-                const auto base_state = pc.get_state();
 
                 try {
-                    if (pc.parse_branch(parse_node.get(), base_error_count, branch_errors)) {
+                    const bool result = parse_node->parse(pc);
+                    if (result) {
                         return true;
                     }
                 }

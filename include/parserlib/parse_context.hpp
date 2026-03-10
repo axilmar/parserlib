@@ -268,83 +268,11 @@ namespace parserlib {
         }
 
         const error_container_type& get_errors() const {
-            return *m_curr_error_container;
+            return m_errors;
         }
 
         void add_error(const ErrorId& id, const Iterator& from_iterator) {
-            m_curr_error_container->push_back(error_type(id, from_iterator, m_state.m_parse_state.m_iterator));
-        }
-
-        bool parse_branch(const parse_node_type* parse_node, size_t base_error_count, error_container_type& branch_errors) {
-            error_container_type* prev_error_container = m_curr_error_container;
-
-            try {
-                m_curr_error_container = &branch_errors;
-                const bool result = parse_node->parse(*this);
-                m_curr_error_container = prev_error_container;
-
-                if (branch_errors.empty()) {                    
-                    //if parsing was succesful and without errors, cancel errors from previous branches
-                    if (result) {
-                        prev_error_container->resize(base_error_count);
-                    }
-                }
-
-                else {
-                    if (prev_error_container->empty()) {
-                        prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
-                    }
-                    else {
-                        const error_type& new_error = branch_errors.back();
-                        const error_type& old_error = prev_error_container->back();
-                        const auto new_dist_to_end = std::distance(new_error.end(), m_end_iterator);
-                        const auto old_dist_to_end = std::distance(old_error.end(), m_end_iterator);
-
-                        //if the branch parsed more input (i.e. its last error is further down the input than the last error of the errors of the previous branches)
-                        //then replace the previous branch errors with the current branch errors
-                        if (new_dist_to_end < old_dist_to_end) {
-                            prev_error_container->resize(base_error_count);
-                            prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
-                        }
-
-                        //else if the last errors are of equal distance
-                        else if (new_dist_to_end == old_dist_to_end) {
-                            const size_t prev_error_container_error_count = prev_error_container->size() - base_error_count;
-
-                            //if the new branch created less errors than the previous one, keep the new branch errors
-                            if (branch_errors.size() < prev_error_container_error_count) {
-                                prev_error_container->resize(base_error_count);
-                                prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
-                            }
-
-                            //else if an equal number of errors were produced, keep the errors with the smallest extend
-                            else {
-                                size_t prev_error_size = 0;
-                                for (size_t i = base_error_count; i < prev_error_container->size(); ++i) {
-                                    prev_error_size += (*prev_error_container)[i].get_size();
-                                }
-
-                                size_t branch_error_size = 0;
-                                for (const error_type& error : branch_errors) {
-                                    branch_error_size += error.get_size();
-                                }
-
-                                if (branch_error_size < prev_error_size) {
-                                    prev_error_container->resize(base_error_count);
-                                    prev_error_container->insert(prev_error_container->end(), branch_errors.begin(), branch_errors.end());
-                                }
-                            }
-                        }
-                    }
-                    branch_errors.clear();
-                }
-
-                return result;
-            }
-            catch (...) {
-                m_curr_error_container = prev_error_container;
-                throw;
-            }
+            m_errors.push_back(error_type(id, from_iterator, m_state.m_parse_state.m_iterator));
         }
 
         bool parse_left_recursion(const parse_node_type* parse_node) {
@@ -417,7 +345,6 @@ namespace parserlib {
         Iterator m_end_iterator;
         match_container_type m_matches;
         error_container_type m_errors;
-        error_container_type* m_curr_error_container{&m_errors};
         left_recursion_state_map m_left_recursion_states;
 
         void lock_iterator() {
