@@ -53,7 +53,7 @@ namespace parserlib {
     public:
         using iterator_type = Iterator;
 
-        parse_context_state(const Iterator& begin, const Iterator& end)
+        parse_context_state(const Iterator& begin = {}, const Iterator& end = {})
             : m_parse_state(begin)
             , m_match_parse_state(begin)
             , m_end_iterator(end)
@@ -88,6 +88,36 @@ namespace parserlib {
         size_t m_error_count;
 
         template <class Iterator1, class MatchId, class ErrorId, class SymbolComparator>
+        friend class parse_context;
+    };
+
+
+    template <class Iterator, class MatchId, class ErrorId>
+    class parse_context_memoized_state {
+    public:
+        parse_context_memoized_state() {
+        }
+
+        const parse_context_state<Iterator>& get_state() const {
+            return m_state;
+        }
+
+        const std::vector<match<Iterator, MatchId>>& get_matches() const {
+            return m_matches;
+        }
+
+        const std::vector<error<Iterator, ErrorId>>& get_errors() const {
+            return m_errors;
+        }
+
+    private:
+        parse_context_state<Iterator> m_state;
+        size_t m_base_match_count;
+        size_t m_base_error_count;
+        std::vector<match<Iterator, MatchId>> m_matches;
+        std::vector<error<Iterator, ErrorId>> m_errors;
+
+        template <class Iterator1, class MatchId1, class ErrorId1, class SymbolComparator>
         friend class parse_context;
     };
 
@@ -180,6 +210,8 @@ namespace parserlib {
         using parse_state_type = parse_state<Iterator>;
         using parse_context_state_type = parse_context_state<Iterator>;
 
+        using parse_context_memoized_state_type = parse_context_memoized_state<Iterator, MatchId, ErrorId>;
+
         using match_type = match<Iterator, MatchId>;
         using match_container_type = std::vector<match_type>;
 
@@ -199,6 +231,7 @@ namespace parserlib {
 
         parse_context(const Iterator& begin, const Iterator& end)
             : m_state(begin, end)
+            , m_begin_iterator(begin)
             , m_end_iterator(end)
         {
         }
@@ -219,12 +252,34 @@ namespace parserlib {
             m_errors.resize(state.m_error_count);
         }
 
+        parse_context_memoized_state_type get_memoized_state(const parse_context_state_type& base_state) const {
+            parse_context_memoized_state_type result;
+            result.m_state = m_state;
+            result.m_base_match_count = base_state.m_match_parse_state.m_match_count;
+            result.m_base_error_count = base_state.m_error_count;
+            result.m_matches.insert(result.m_matches.end(), m_matches.begin() + base_state.m_match_parse_state.m_match_count, m_matches.end());
+            result.m_errors.insert(result.m_errors.end(), m_errors.begin() + base_state.m_error_count, m_errors.end());
+            return result;
+        }
+
+        void set_memoized_state(const parse_context_memoized_state_type& mem_state) {
+            m_state = mem_state.m_state;
+            m_matches.resize(mem_state.m_base_match_count);
+            m_matches.insert(m_matches.end(), mem_state.m_matches.begin(), mem_state.m_matches.end());
+            m_errors.resize(mem_state.m_base_error_count);
+            m_errors.insert(m_errors.end(), mem_state.m_errors.begin(), mem_state.m_errors.end());
+        }
+
         const parse_state_type& get_match_parse_state() const {
             return m_state.m_match_parse_state;
         }
 
         const Iterator& get_iterator() const {
             return m_state.m_parse_state.m_iterator;
+        }
+
+        const Iterator& get_begin_iterator() const {
+            return m_state.m_begin_iterator;
         }
 
         const Iterator& get_end_iterator() const {
@@ -343,10 +398,11 @@ namespace parserlib {
         using left_recursion_state_map = std::map<const parse_node_type*, left_recursion_state_type>;
 
         parse_context_state_type m_state;
-        Iterator m_end_iterator;
         match_container_type m_matches;
         error_container_type m_errors;
         left_recursion_state_map m_left_recursion_states;
+        const Iterator m_begin_iterator;
+        const Iterator m_end_iterator;
 
         void lock_iterator() {
             m_state.m_end_iterator = m_state.m_parse_state.m_iterator;

@@ -22,10 +22,9 @@ namespace parserlib {
         }
 
         bool parse(ParseContext& pc) const override {
-            const auto base_state = pc.get_state();
+            const typename ParseContext::parse_context_state_type base_state = pc.get_state();
 
             for (const parse_node_ptr<ParseContext>& parse_node : m_parse_nodes) {
-
                 try {
                     const bool result = parse_node->parse(pc);
                     if (result) {
