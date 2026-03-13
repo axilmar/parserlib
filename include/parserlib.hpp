@@ -3,6 +3,9 @@
 
 
 #include "parserlib/parser.hpp"
+#include "parserlib/symbol_parse_node.hpp"
+#include "parserlib/string_parse_node.hpp"
+#include "parserlib/bool_parse_node.hpp"
 #include "parserlib/loop_0_parse_node.hpp"
 #include "parserlib/loop_1_parse_node.hpp"
 #include "parserlib/loop_n_parse_node.hpp"

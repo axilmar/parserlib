@@ -22,7 +22,7 @@ namespace parserlib {
         rule(const rule& r) = delete;
         rule(rule&& r) = delete;
 
-        template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool> = true>
+        template <class Symbol>
         rule(const Symbol& symbol)
             : m_parse_node(parse_node_ptr<ParseContext>(symbol).get_shared())
         {
@@ -51,7 +51,7 @@ namespace parserlib {
             return *this;
         }
 
-        template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool> = true>
+        template <class Symbol>
         rule& operator = (const Symbol& symbol) {
             m_parse_node = parse_node_ptr<ParseContext>(symbol).get_shared();
             return *this;

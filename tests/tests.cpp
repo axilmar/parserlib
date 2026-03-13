@@ -444,87 +444,43 @@ static void test_parse_end() {
 
 
 static void test_parse_false() {
+    const auto grammar = p::terminal('a') >> false;
+
     {
-        const auto grammar = p::terminal('a') >> p::false_();
-
-        {
-            std::string src = "a";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(!ok);
-            assert(pc.get_iterator() == src.begin());
-        }
-
-        {
-            std::string src = "b";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(!ok);
-            assert(pc.get_iterator() == src.begin());
-        }
+        std::string src = "a";
+        p::parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.get_iterator() == src.begin());
     }
 
     {
-        const auto grammar = p::terminal('a') >> false;
-
-        {
-            std::string src = "a";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(!ok);
-            assert(pc.get_iterator() == src.begin());
-        }
-
-        {
-            std::string src = "b";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(!ok);
-            assert(pc.get_iterator() == src.begin());
-        }
+        std::string src = "b";
+        p::parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(!ok);
+        assert(pc.get_iterator() == src.begin());
     }
 }
 
 
 static void test_parse_true() {
+    const auto grammar = p::terminal('a') | true;
+
     {
-        const auto grammar = p::terminal('a') | p::true_();
-
-        {
-            std::string src = "a";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(ok);
-            assert(pc.get_iterator() == src.end());
-        }
-
-        {
-            std::string src = "b";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(ok);
-            assert(pc.get_iterator() == src.begin());
-        }
+        std::string src = "a";
+        p::parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.get_iterator() == src.end());
     }
 
     {
-        const auto grammar = p::terminal('a') | true;
-
-        {
-            std::string src = "a";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(ok);
-            assert(pc.get_iterator() == src.end());
-        }
-
-        {
-            std::string src = "b";
-            p::parse_context pc(src);
-            const bool ok = grammar.parse(pc);
-            assert(ok);
-            assert(pc.get_iterator() == src.begin());
-        }
+        std::string src = "b";
+        p::parse_context pc(src);
+        const bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.get_iterator() == src.begin());
     }
 }
 
@@ -869,7 +825,7 @@ static void test_parse_rule() {
     {
         p::rule grammar 
             = ('a' >> grammar)
-            | p::true_()
+            | true
             ;
 
         {

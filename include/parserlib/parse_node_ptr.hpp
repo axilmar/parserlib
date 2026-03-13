@@ -3,7 +3,6 @@
 
 
 #include <memory>
-#include <type_traits>
 #include "parse_node.hpp"
 
 
@@ -26,7 +25,7 @@ namespace parserlib {
         {
         }
 
-        template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool> = true>
+        template <class Symbol>
         parse_node_ptr(const Symbol& symbol);
 
         template <class Symbol>
