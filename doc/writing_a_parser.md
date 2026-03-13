@@ -49,10 +49,6 @@ The function `any` is used to parse any single symbol.
 
 The function `end` can be used to test if the input has ended (in order to make it an error to only parse an input partially).
 
-The function `false_` can be used to create a parse node that returns `false`.
-
-The function `true_` can be used to create a parse node that returns `true`.
-
 The function `newline` can be used on character parsers to increment the line counter, allowing column/line information on matches.
 
 The function `function` can be used to create parse nodes out of lambda functions and out of pointers to functions.
