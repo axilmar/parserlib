@@ -3,6 +3,7 @@
 
 
 #include <memory>
+#include <type_traits>
 #include "parse_node.hpp"
 
 
@@ -25,13 +26,15 @@ namespace parserlib {
         {
         }
 
-        template <class Symbol>
+        template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool> = true>
         parse_node_ptr(const Symbol& symbol);
 
         template <class Symbol>
         parse_node_ptr(const Symbol* string);
 
         parse_node_ptr(rule<ParseContext>& rule);
+
+        parse_node_ptr(bool result);
 
         explicit operator bool() const {
             return (bool)m_parse_node;

@@ -22,7 +22,7 @@ namespace parserlib {
         rule(const rule& r) = delete;
         rule(rule&& r) = delete;
 
-        template <class Symbol>
+        template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool> = true>
         rule(const Symbol& symbol)
             : m_parse_node(parse_node_ptr<ParseContext>(symbol).get_shared())
         {
@@ -30,6 +30,11 @@ namespace parserlib {
 
         rule(rule& r)
             : rule(parse_node_ptr<ParseContext>(r))
+        {
+        }
+
+        rule(bool result)
+            : rule(parse_node_ptr<ParseContext>(result))
         {
         }
 
@@ -46,7 +51,7 @@ namespace parserlib {
             return *this;
         }
 
-        template <class Symbol>
+        template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool> = true>
         rule& operator = (const Symbol& symbol) {
             m_parse_node = parse_node_ptr<ParseContext>(symbol).get_shared();
             return *this;
@@ -54,6 +59,11 @@ namespace parserlib {
 
         rule& operator = (rule& r) {
             m_parse_node = get_rule_parse_node(r.m_parse_node);
+            return *this;
+        }
+
+        rule& operator = (bool result) {
+            m_parse_node = parse_node_ptr<ParseContext>(result);
             return *this;
         }
 
@@ -78,7 +88,7 @@ namespace parserlib {
         using ref_map = std::map<const rule<ParseContext>*, std::vector<std::shared_ptr<ref_parse_node<ParseContext>>>>;
         using rule_map = std::map<const rule<ParseContext>*, std::shared_ptr<rule_parse_node<ParseContext>>>;
 
-        std::shared_ptr<parse_node<ParseContext>> m_parse_node;
+        parse_node_ptr<ParseContext> m_parse_node;
 
         static ref_map& get_ref_map() {
             static ref_map map;

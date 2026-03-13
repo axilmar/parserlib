@@ -33,7 +33,7 @@ namespace parserlib {
 
 
     template <class ParseContext>
-    template <class Symbol>
+    template <class Symbol, std::enable_if_t<!std::is_same_v<std::decay_t<Symbol>, bool>, bool>>
     parse_node_ptr<ParseContext>::parse_node_ptr(const Symbol& symbol)
         : m_parse_node(std::make_shared<symbol_parse_node<ParseContext, Symbol>>(symbol))
     {
