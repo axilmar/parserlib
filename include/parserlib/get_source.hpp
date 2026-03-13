@@ -40,7 +40,7 @@ namespace parserlib {
         template <class Iterator1>
         static auto get_source(const Iterator1& begin, const Iterator1& end) {
             using value_type = std::decay_t<typename Iterator::value_type>;
-            return get_source_impl<value_type>::get_source(begin->begin(), std::prev(end)->end());
+            return get_source_impl<value_type>::get_source(begin->begin(), begin != end ? std::prev(end)->end() : end->end());
         }
     };
 
