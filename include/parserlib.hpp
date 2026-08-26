@@ -16,11 +16,21 @@
 namespace parserlib {
 
 
+    /**
+     * A class that provides a static function `compare` used to compare symbols.
+     */
     class default_symbol_comparator {
     public:
+        /**
+         * Compares two symbols.
+         * Both symbols must be convertible to `intptr_t`.
+         * @param left the left symbol to compare.
+         * @param right the right symbol to compare.
+         * @return the difference between the symbols (left minus right).
+         */
         template <class L, class R>
-        static int compare(const L& left, const R& right) noexcept {
-            return static_cast<int>(left) - static_cast<int>(right);
+        static intptr_t compare(const L& left, const R& right) noexcept {
+            return static_cast<intptr_t>(left) - static_cast<intptr_t>(right);
         }
     };
 
@@ -275,7 +285,7 @@ namespace parserlib {
             }
 
             template <class L, class R>
-            static int compare(const L& left, const R& right) noexcept {
+            static intptr_t compare(const L& left, const R& right) noexcept {
                 return SymbolComparator::compare(left, right);
             }
 
@@ -473,7 +483,7 @@ namespace parserlib {
             }
 
             bool parse(parse_context& pc) const override {
-                const parse_context::state prev_state = pc.get_state();
+                const typename parse_context::state prev_state = pc.get_state();
                 for (size_t count = 0; count < m_count; ++count) {
                     if (!m_child->parse(pc)) {
                         pc.set_state(prev_state);
@@ -516,7 +526,7 @@ namespace parserlib {
             }
 
             bool parse(parse_context& pc) const override {
-                const parse_context::state prev_state = pc.get_state();
+                const typename parse_context::state prev_state = pc.get_state();
                 const bool result = m_child->parse(pc);
                 pc.set_state(prev_state);
                 return result;
@@ -536,7 +546,7 @@ namespace parserlib {
             }
 
             bool parse(parse_context& pc) const override {
-                const parse_context::state prev_state = pc.get_state();
+                const typename parse_context::state prev_state = pc.get_state();
                 const bool result = !m_child->parse(pc);
                 pc.set_state(prev_state);
                 return result;
@@ -556,7 +566,7 @@ namespace parserlib {
             }
 
             bool parse(parse_context& pc) const override {
-                const parse_context::state prev_state = pc.get_state();
+                const typename parse_context::state prev_state = pc.get_state();
                 for (const parse_node_ptr_type& child : m_children) {
                     if (!child->parse(pc)) {
                         pc.set_state(prev_state);
@@ -581,7 +591,7 @@ namespace parserlib {
 
             bool parse(parse_context& pc) const override {
                 for (const parse_node_ptr_type& child : m_children) {
-                    const parse_context::state prev_state = pc.get_state();
+                    const typename parse_context::state prev_state = pc.get_state();
                     if (child->parse(pc)) {
                         return true;
                     }
@@ -720,7 +730,7 @@ namespace parserlib {
 
         class error_parse_node : public parse_node {
         public:
-            error_parse_node(const parse_node_ptr_type& skip_node, ErrorId id) 
+            error_parse_node(const parse_node_ptr_type& skip_node, ErrorId id)
                 : m_skip_node(skip_node), m_id(id)
             {
             }
@@ -736,7 +746,7 @@ namespace parserlib {
             bool parse(parse_context& pc) const override {
                 const auto begin_iterator = pc.get_iterator();
                 while (pc.is_valid_iterator()) {
-                    const parse_context::state prev_state = pc.get_state();
+                    const typename parse_context::state prev_state = pc.get_state();
                     if (m_skip_node->parse(pc)) {
                         break;
                     }
@@ -748,8 +758,8 @@ namespace parserlib {
             }
 
         private:
-            ErrorId m_id;
             parse_node_ptr_type m_skip_node;
+            ErrorId m_id;
         };
 
         class skip_before_parse_node : public parse_node {
@@ -853,19 +863,19 @@ namespace parserlib {
             }
 
             template <class Symbol, std::enable_if_t<!std::is_invocable_v<std::decay_t<Symbol>, parse_context&>, bool> = true>
-            parse_node_ptr(Symbol symbol) 
+            parse_node_ptr(Symbol symbol)
                 : parse_node_ptr_type(std::make_shared<symbol_parse_node<Symbol>>(symbol))
             {
             }
 
             template <class F, std::enable_if_t<std::is_invocable_v<std::decay_t<F>, parse_context&>, bool> = true>
-            parse_node_ptr(const F& function) 
+            parse_node_ptr(const F& function)
                 : parse_node_ptr_type(std::make_shared<function_parse_node<F>>(function))
             {
             }
 
             template <class Symbol>
-            parse_node_ptr(const std::basic_string<Symbol>& string) 
+            parse_node_ptr(const std::basic_string<Symbol>& string)
                 : parse_node_ptr_type(std::make_shared<string_parse_node<Symbol>>(string))
             {
             }

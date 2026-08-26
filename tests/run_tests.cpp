@@ -553,6 +553,7 @@ static void test_parse_function() {
     std::string str;
     p::parse_context pc{ str };
     bool ok = grammar.parse(pc);
+    assert(ok);
     assert(parsed == true);
 }
 
@@ -567,6 +568,7 @@ static void test_parse_error() {
             std::string str = "a;a;a;";
             p::parse_context pc{ str };
             bool ok = grammar.parse(pc);
+            assert(ok);
             assert(pc.get_errors().size() == 0);
         }
 
@@ -574,6 +576,7 @@ static void test_parse_error() {
             std::string str = "a;b;a;";
             p::parse_context pc{ str };
             bool ok = grammar.parse(pc);
+            assert(ok);
             assert(pc.get_errors().size() == 1);
             assert(pc.get_errors()[0].begin().get_column() == 3);
             assert(pc.get_errors()[0].end().get_column() == 5);
@@ -587,6 +590,7 @@ static void test_parse_error() {
             std::string str = "a;a;a;";
             p::parse_context pc{ str };
             bool ok = grammar.parse(pc);
+            assert(ok);
             assert(pc.get_errors().size() == 0);
         }
 
@@ -594,6 +598,7 @@ static void test_parse_error() {
             std::string str = "a;b;a;";
             p::parse_context pc{ str };
             bool ok = grammar.parse(pc);
+            assert(ok);
             assert(pc.get_errors().size() == 1);
             assert(pc.get_errors()[0].begin().get_column() == 3);
             assert(pc.get_errors()[0].end().get_column() == 4);
@@ -725,19 +730,19 @@ public:
     };
 
     calculator() {
-        auto digit 
+        auto digit
             = p::range('0', '9')
             ;
 
-        auto sign 
+        auto sign
             = p::term('+') | '-'
             ;
 
-        auto integer 
+        auto integer
             = +digit
             ;
 
-        auto number 
+        auto number
             = (-sign >> integer >> -('.' >> integer)) ->* NUM
             ;
 
@@ -746,17 +751,17 @@ public:
             | '(' >> m_expression >> ')'
             ;
 
-        auto mul 
+        auto mul
             = p::left_associative(
-                val, 
-                '*' >> val >> p::match(MUL), 
+                val,
+                '*' >> val >> p::match(MUL),
                 '/' >> val >> p::match(DIV)
             );
 
         auto add
             = p::left_associative(
-                mul, 
-                '+' >> mul >> p::match(ADD), 
+                mul,
+                '+' >> mul >> p::match(ADD),
                 '-' >> mul >> p::match(SUB)
             );
 
