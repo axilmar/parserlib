@@ -16,6 +16,12 @@
 namespace parserlib {
 
 
+    //trait for recognizing if T can be used in an std::basic_string.
+    template <class T, class = std::void_t<>> struct is_valid_basic_string : std::false_type {};
+    template <class T> struct is_valid_basic_string<T, std::void_t<std::basic_string<T>>> : std::true_type {};
+    template <class T> constexpr bool is_valid_basic_string_v = is_valid_basic_string<T>::value;
+
+
     /**
      * A class that provides a static function `compare` used to compare symbols.
      */
@@ -33,19 +39,6 @@ namespace parserlib {
             return static_cast<intptr_t>(left) - static_cast<intptr_t>(right);
         }
     };
-
-
-    //empty because the c++ iterators do not have column/line in them
-    template <class Iterator>
-    void increment_iterator_line(Iterator& iterator) {
-    }
-
-
-    //trait for recognizing if T can be used in an std::basic_string.
-    template <typename T, typename = std::void_t<>>
-    struct is_valid_basic_string : std::false_type {};
-    template <typename T>
-    struct is_valid_basic_string<T, std::void_t<typename std::basic_string<T>>> : std::true_type {};
 
 
     /**
@@ -107,6 +100,12 @@ namespace parserlib {
     };
 
 
+    //empty because the default c++ iterators do not have column/line in them.
+    template <class Iterator>
+    void increment_iterator_line(Iterator& iterator) {
+    }
+
+
     //invokes `increment_line()` on the iterator.
     template <class Iterator>
     void increment_iterator_line(text_position_iterator<Iterator>& iterator) {
@@ -136,11 +135,17 @@ namespace parserlib {
         ///Symbol comparator type.
         using symbol_comparator_type = SymbolComparator;
 
+        ///this parser type.
+        using parser_type = parser<Iterator, MatchId, ErrorId, SymbolComparator>;
+
         /**
          * Base class for source ranges.
          */ 
         class source_range {
         public:
+            ///origin parser type.
+            using origin_parser_type = parser_type;
+
             /**
              * The constructor.
              * @param begin iterator that the source starts from.
@@ -150,24 +155,6 @@ namespace parserlib {
                 : m_begin(begin)
                 , m_end(end)
             {
-            }
-
-            /**
-             * Returns the source either as a basic string or a vector,
-             * depending on if the value type of the iterator can be used
-             * in an std::basic_string.
-             * @return a container with the part of the source the range includes.
-             */ 
-            auto get_source() const {
-                using value_type = std::decay_t<typename Iterator::value_type>;
-
-                if constexpr (is_valid_basic_string<value_type>::value) {
-                    return std::basic_string<value_type>{ m_begin, m_end };
-
-                }
-                else {
-                    return std::vector<value_type>{ m_begin, m_end };
-                }
             }
 
             /**
@@ -186,9 +173,59 @@ namespace parserlib {
                 return m_end;
             }
 
+            /**
+             * Returns the source either as a basic string or a vector,
+             * depending on if the value type of the iterator can be used
+             * in an std::basic_string.
+             * @return a container with the part of the source the range includes.
+             */ 
+            auto get_source() const {
+                return get_source_impl(m_begin, m_end);
+            }
+
+            /**
+             * Returns the origin source either as a basic string or a vector,
+             * depending on if the value type of the origin source iterator can be used
+             * in an std::basic_string.
+             * The origin source is the source that was parsed into an array of matches,
+             * and the array of matches were again parsed to produce this source range.
+             * @return a container with the part of the source the range includes.
+             */ 
+            auto get_origin_source() const {
+                return get_origin_source_impl(m_begin, m_end);
+            }
+
         private:
             Iterator m_begin;
             Iterator m_end;
+
+            template <class It> 
+            static auto get_source_impl(const It& begin, const It& end) {
+                using value_type = std::decay_t<typename It::value_type>;
+                if constexpr (is_valid_basic_string_v<value_type>) {
+                    return std::basic_string<value_type>{ begin, end };
+                }
+                else {
+                    return std::vector<value_type>{ begin, end };
+                }
+            }
+
+            template <class T, class = std::void_t<>> struct is_match_instance : std::false_type {};
+            template <class T> struct is_match_instance<T, std::void_t<typename T::match_parser_type>> : std::true_type {};
+
+            template <class T>
+            static constexpr bool is_match_instance_v = is_match_instance<T>::value;
+
+            template <class It> 
+            static auto get_origin_source_impl(const It& begin, const It& end) {
+                using value_type = std::decay_t<typename It::value_type>;
+                if constexpr (is_match_instance_v<value_type>) {
+                    return get_origin_source_impl(begin->begin(), std::prev(end)->end());
+                }
+                else {
+                    return get_source_impl(begin, end);
+                }
+            }
         };
 
         /**
@@ -196,6 +233,9 @@ namespace parserlib {
          */ 
         class match_instance : public source_range {
         public:
+            ///parser type for this match.
+            using match_parser_type = parser_type;
+
             /**
              * The constructor.
              * @param begin the begin iterator.
@@ -232,6 +272,14 @@ namespace parserlib {
              */ 
             const std::vector<match_instance>& get_children() const noexcept {
                 return m_children;
+            }
+
+            /**
+             * Allows comparison of match to token id.
+             * @return the id as an intptr_t.
+             */ 
+            operator intptr_t () const noexcept {
+                return static_cast<intptr_t>(m_id);
             }
 
         private:
