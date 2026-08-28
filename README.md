@@ -4,18 +4,16 @@ A c++17 Parsing Expression Grammar (PEG) recursive-descent library.
 
 **Current Version**
 
-1.0.0.11
+1.0.0.12
 
 **Features**
 
 - PEG parser with EBNF-like syntax.
-- recursive-descent parsing.
-- parses left-recursive grammars.
+- left-associative parsing.
 - can be used as a lexer and parser.
 - supports case insensitive parsing.
 - supports line and column.
 - can be used on STL containers and streams.
-- supports the creation of ASTs.
 
 **Quick Example: Calculator**
 
@@ -45,29 +43,50 @@ auto value
 
 //multiplication/division
 p::rule mul
-	= mul >> '*' >> value
-    | mul >> '/' >> value
-    | value
+	= p::left_associative(
+    	value,
+        '*' >> value,
+    	'/' >> value)
     ;
 
 //addition/subtraction
 p::rule add
-	= add >> '+' >> mul
-    | add >> '-' >> mul
-    | mul
+	= p::left_associative(
+    	mul,
+        '+' >> mul,
+    	'-' >> mul)
     ;
 ```
 
-## Table Of Contents
+### Using the library
 
-* [Writing a parser](doc/writing_a_parser.md)
-* [Using a parser](doc/using_a_parser.md)
-* [Writing a lexer and a parser](doc/lexer_and_parser.md)
-* [Abstract Syntax Trees](doc/ast.md)
-* [How left recursion parsing works](doc/left_recursion.md)
-* [Changes](#changes)
+There is only one header to copy and use in your projects (file `parserlib.hpp`).
+
+Example:
+
+```cpp
+#include "parserlib.hpp"
+using namespace parserlib;
+```
+
+### Writing a parser
+
+TBD
+
+### Examples
+
+* [calculator](/examples/calculator.cpp)
+* [xml](/examples/xml.cpp)
+* [json](/examples/json.cpp)
 
 ### Changes
+
+- 1.0.0.12
+
+	- rewrote the library into one file only, since it does not make sense as a group of files.
+	- removed ASTs since they are redundant at the scope of the library; matches have children anyway.
+	- removed support for left-recursive grammars due to a) being performance bottlenecks, due to many recursions, b) being difficult to follow mentally when debugging due to complexity, c) exceptions were used as non-local goto, which works but is not good code.
+	- replaced left-recursive grammars with left-associative grammars; same effect, much easier to understand and debug, no exceptions as gotos required.
 
 - 1.0.0.11
 
