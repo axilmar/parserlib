@@ -631,6 +631,29 @@ static void test_parse_error() {
 }
 
 
+static void test_parse_on_error() {
+    auto grammar = p::on_error(p::term('a') >> ';' | p::error(1), p::skip_after(';'));
+
+    {
+        std::string str = "a;";
+        p::parse_context pc{ str };
+        bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.get_errors().size() == 0);
+        assert(pc.get_iterator() == str.end());
+    }
+
+    {
+        std::string str = "b;";
+        p::parse_context pc{ str };
+        bool ok = grammar.parse(pc);
+        assert(ok);
+        assert(pc.get_errors().size() == 1);
+        assert(pc.get_iterator() == str.end());
+    }
+}
+
+
 static void test_parse_rule() {
     {
         p::rule grammar = 'a';
@@ -1140,6 +1163,7 @@ void run_tests() {
     test_parse_newline();
     test_parse_function();
     test_parse_error();
+    test_parse_on_error();
     test_parse_rule();
     test_parse_left_associative();
 }

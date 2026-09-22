@@ -1309,16 +1309,15 @@ namespace parserlib {
              * The constructor.
              * @param skip_node the node to use for skipping to the end of the error.
              * @param id the error id.
-             */ 
+             */
             error_parse_node(const parse_node_ptr_type& skip_node, ErrorId id)
                 : m_skip_node(skip_node), m_id(id)
-            {
-            }
+            {}
 
             /**
              * Returns the error id.
              * @return the error id.
-             */ 
+             */
             ErrorId get_id() const noexcept {
                 return m_id;
             }
@@ -1326,20 +1325,20 @@ namespace parserlib {
             /**
              * Returns the skip node.
              * @return the skip node.
-             */ 
+             */
             const parse_node_ptr_type& get_skip_node() const noexcept {
                 return m_skip_node;
             }
 
             /**
-             * Invokes the skip node. 
+             * Invokes the skip node.
              * If the skip node succeeds in parsing, then an error is added
              * to the given parse context.
              * The error range starts from the parse position when this is invoked
              * and ends to the parse position of the parse context after the skip node is invoked.
              * @param pc the parse context.
              * @return true if the skip node suceeds, false otherwise.
-             */ 
+             */
             bool parse(parse_context& pc) const override {
                 const auto begin_iterator = pc.get_iterator();
                 if (m_skip_node) {
@@ -1357,6 +1356,60 @@ namespace parserlib {
         private:
             parse_node_ptr_type m_skip_node;
             ErrorId m_id;
+        };
+
+        /**
+         * A parse node that skips input if an error was added to a parse context.
+         */ 
+        const class on_error_parse_node : public parse_node {
+        public:
+            /**
+             * The constructor.
+             * @param parse_node node to use for parsing.
+             * @param skip_node the node to use for skipping to the end of the error.
+             */ 
+            on_error_parse_node(const parse_node_ptr_type& parse_node, const parse_node_ptr_type& skip_node)
+                : m_parse_node(parse_node)
+                , m_skip_node(skip_node)
+            {
+            }
+
+            /**
+             * Returns the parse node.
+             * @return the parse node.
+             */ 
+            const parse_node_ptr_type& get_parse_node() const noexcept {
+                return m_parse_node;
+            }
+
+            /**
+             * Returns the skip node.
+             * @return the skip node.
+             */ 
+            const parse_node_ptr_type& get_skip_node() const noexcept {
+                return m_skip_node;
+            }
+
+            /**
+             * Invokes the parse node. 
+             * If the parse context contains more errors on return than before calling
+             * the parse node, then the skip node is invoked to skip the error.
+             * @param pc the parse context.
+             * @return if the number of errors were increased, then it returns
+             *  what the skip node returns; otherwise it returns what the parse node returns.
+             */ 
+            bool parse(parse_context& pc) const override {
+                const size_t errors_before_parse = pc.get_errors().size();
+                const bool result = m_parse_node->parse(pc);
+                if (pc.get_errors().size() > errors_before_parse) {
+                    return m_skip_node->parse(pc);
+                }
+                return result;
+            }
+
+        private:
+            parse_node_ptr_type m_parse_node;
+            parse_node_ptr_type m_skip_node;
         };
 
         /**
@@ -1922,6 +1975,17 @@ namespace parserlib {
          */ 
         static parse_node_ptr error(ErrorId id, const parse_node_ptr& skip_node = nullptr) {
             return std::make_shared<error_parse_node>(skip_node, id);
+        }
+
+        /**
+         * Creates a parse node that skips to a specific part of the input
+         * if an error happens during parsing.
+         * @param parse_node node to use for parsing.
+         * @param skip_node the node to use to skip to the end of the erroneous input.
+         * @return the created parse node.
+         */ 
+        static parse_node_ptr on_error(const parse_node_ptr& parse_node, const parse_node_ptr& skip_node) {
+            return std::make_shared<on_error_parse_node>(parse_node, skip_node);
         }
 
         /**
