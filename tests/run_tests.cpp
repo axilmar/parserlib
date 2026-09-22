@@ -604,6 +604,30 @@ static void test_parse_error() {
             assert(pc.get_errors()[0].end().get_column() == 4);
         }
     }
+
+    {
+        auto grammar = *(p::term('a') >> ';' | p::error(1));
+
+        {
+            std::string str = "a;a;a;";
+            p::parse_context pc{ str };
+            bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_errors().size() == 0);
+            assert(pc.get_iterator() == str.end());
+        }
+
+        {
+            std::string str = "a;b;a;";
+            p::parse_context pc{ str };
+            bool ok = grammar.parse(pc);
+            assert(ok);
+            assert(pc.get_errors().size() == 1);
+            assert(pc.get_errors()[0].begin().get_column() == 3);
+            assert(pc.get_errors()[0].end().get_column() == 3);
+            assert(pc.get_iterator() == std::next(str.begin(), 2));
+        }
+    }
 }
 
 

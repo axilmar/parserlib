@@ -1341,15 +1341,17 @@ namespace parserlib {
              * @return true if the skip node suceeds, false otherwise.
              */ 
             bool parse(parse_context& pc) const override {
+                const auto begin_iterator = pc.get_iterator();
                 if (m_skip_node) {
-                    const auto begin_iterator = pc.get_iterator();
                     if (m_skip_node->parse(pc)) {
                         pc.add_error(begin_iterator, pc.get_iterator(), m_id);
                         return true;
                     }
-                    return false;
                 }
-                return true;
+                else {
+                    pc.add_error(begin_iterator, pc.get_iterator(), m_id);
+                }
+                return false;
             }
 
         private:
@@ -1554,6 +1556,12 @@ namespace parserlib {
             parse_node_ptr(const std::shared_ptr<T>& node)
                 : parse_node_ptr_type(node)
             {
+            }
+
+            /**
+             * Constructor from null value.
+             */ 
+            parse_node_ptr(nullptr_t) {
             }
 
             /**
