@@ -1341,12 +1341,15 @@ namespace parserlib {
              * @return true if the skip node suceeds, false otherwise.
              */ 
             bool parse(parse_context& pc) const override {
-                const auto begin_iterator = pc.get_iterator();
-                if (m_skip_node->parse(pc)) {
-                    pc.add_error(begin_iterator, pc.get_iterator(), m_id);
-                    return true;
+                if (m_skip_node) {
+                    const auto begin_iterator = pc.get_iterator();
+                    if (m_skip_node->parse(pc)) {
+                        pc.add_error(begin_iterator, pc.get_iterator(), m_id);
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
+                return true;
             }
 
         private:
@@ -1905,11 +1908,11 @@ namespace parserlib {
 
         /**
          * Creates a parse node that adds an error to a parse context.
-         * @param skip_node the node to use to skip to the end of the erroneous input.
          * @param id the error id.
+         * @param skip_node the node to use to skip to the end of the erroneous input; optional.
          * @return the created parse node.
          */ 
-        static parse_node_ptr error(const parse_node_ptr& skip_node, ErrorId id) {
+        static parse_node_ptr error(ErrorId id, const parse_node_ptr& skip_node = nullptr) {
             return std::make_shared<error_parse_node>(skip_node, id);
         }
 

@@ -562,7 +562,7 @@ static void test_parse_error() {
     using p = parser<text_position_iterator<>>;
 
     {
-        auto grammar = *(p::term('a') >> ';' | p::error(p::skip_after(';'), 1));
+        auto grammar = *(p::term('a') >> ';' | p::error(1, p::skip_after(';')));
 
         {
             std::string str = "a;a;a;";
@@ -584,7 +584,7 @@ static void test_parse_error() {
     }
 
     {
-        auto grammar = *((p::term('a') | p::error(p::skip_before(';'), 1)) >> ';');
+        auto grammar = *((p::term('a') | p::error(1, p::skip_before(';'))) >> ';');
 
         {
             std::string str = "a;a;a;";
